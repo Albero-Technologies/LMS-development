@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1.7
+# -----------------------------------------------------------------------------
+# LearnHub Frontend — DEVELOPMENT image
+# Build context (from repo root): ./Frontend
+# Runs Vite's dev server with HMR. Source is bind-mounted at runtime.
+# -----------------------------------------------------------------------------
+
+# ---- Stage 1: deps ----------------------------------------------------------
+FROM node:20-alpine AS deps
+
+RUN apk add --no-cache libc6-compat bash
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# ---- Stage 2: runner --------------------------------------------------------
+FROM node:20-alpine AS runner
+
+RUN apk add --no-cache libc6-compat tini bash curl \
+    && addgroup -S app && adduser -S app -G app
+
+WORKDIR /usr/src/app
+ENV NODE_ENV=development \
+    PORT=5173 \
+    # Vite needs to bind 0.0.0.0 inside the container so the compose port-map works.
+    HOST=0.0.0.0
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --chown=app:app . .
+
+RUN chown -R app:app /usr/src/app
+USER app
+
+EXPOSE 5173
+
+ENTRYPOINT ["/sbin/tini", "--"]
+
+HEALTHCHECK --interval=20s --timeout=3s --start-period=15s --retries=3 \
+  CMD curl -fsS "http://localhost:${PORT}/" >/dev/null || exit 1
+
+# --host flag overrides vite.config.ts server binding without mutating it.
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

@@ -62,10 +62,15 @@ jobs:
               - 'Frontend/**'
               - '.github/workflows/_frontend-checks.yml'
             docker:
-              - 'Backend/docker/**'
-              - 'Backend/Dockerfile*'
+              - 'docker/**'
+              - 'nginx/**'
               - 'Backend/package*.json'
               - 'Backend/prisma/**'
+              - 'Backend/src/**'
+              - 'Frontend/package*.json'
+              - 'Frontend/src/**'
+              - 'Frontend/index.html'
+              - 'Frontend/vite.config.ts'
 
   # ---------------------------------------------------------------------------
   # 2. Conventional Commits for PRs into uat (prevents messy history).
@@ -148,19 +153,34 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
 
   # ---------------------------------------------------------------------------
-  # 4. Build + push image tagged "uat-*" to GHCR — only on push to uat.
+  # 4a. Build + push BACKEND image tagged "uat-*" — only on push to uat.
   # ---------------------------------------------------------------------------
   docker:
-    name: Docker image
+    name: Docker image · backend
     needs: [backend, audit]
     if: github.event_name == 'push' && github.ref == 'refs/heads/uat'
     uses: ./.github/workflows/_docker-build.yml
     with:
       environment: uat
       push: true
-      dockerfile: Backend/docker/production/Dockerfile
+      dockerfile: docker/production/Dockerfile.backend
       context: Backend
       image-name: backend
+
+  # ---------------------------------------------------------------------------
+  # 4b. Build + push FRONTEND image tagged "uat-*" — only on push to uat.
+  # ---------------------------------------------------------------------------
+  docker-web:
+    name: Docker image · frontend
+    needs: [frontend, audit]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/uat'
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      environment: uat
+      push: true
+      dockerfile: docker/production/Dockerfile.frontend
+      context: Frontend
+      image-name: web
 
   # ---------------------------------------------------------------------------
   # 5. Deploy to UAT — auto, but still gated by "uat" Environment reviewers

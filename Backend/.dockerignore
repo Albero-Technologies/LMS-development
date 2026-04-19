@@ -12,8 +12,8 @@ coverage
 .vscode
 .idea
 .DS_Store
+# docker/ and nginx/ now live at the repo root, not in Backend/. No-op patterns kept for safety.
 docker/**/README*
-nginx/*.bak
 test-results
 playwright-report
 README.md

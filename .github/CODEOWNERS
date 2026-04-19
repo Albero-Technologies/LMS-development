@@ -16,9 +16,10 @@
 # --- Frontend ---
 /Frontend/                  @LearnHub-Engineering/frontend
 
-# --- Infra ---
-/Backend/docker/            @LearnHub-Engineering/devops
-/Backend/nginx/             @LearnHub-Engineering/devops
+# --- Infra (moved to repo root so it covers both backend & frontend) ---
+/docker/                    @LearnHub-Engineering/devops
+/nginx/                     @LearnHub-Engineering/devops
+/observability/             @LearnHub-Engineering/devops
 /.github/                   @LearnHub-Engineering/devops @LearnHub-Engineering/leads
 
 # --- Docs / PRD / tracker ---

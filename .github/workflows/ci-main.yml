@@ -71,11 +71,15 @@ jobs:
               - 'Frontend/**'
               - '.github/workflows/_frontend-checks.yml'
             docker:
-              - 'Backend/docker/**'
-              - 'Backend/Dockerfile*'
+              - 'docker/**'
+              - 'nginx/**'
               - 'Backend/package*.json'
               - 'Backend/prisma/**'
               - 'Backend/src/**'
+              - 'Frontend/package*.json'
+              - 'Frontend/src/**'
+              - 'Frontend/index.html'
+              - 'Frontend/vite.config.ts'
             workflows:
               - '.github/workflows/**'
 
@@ -173,19 +177,34 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
   # ---------------------------------------------------------------------------
-  # 7. Build + push Docker image to GHCR — only on push to main.
+  # 7a. Build + push BACKEND image to GHCR — only on push to main.
   # ---------------------------------------------------------------------------
   docker:
-    name: Docker image
+    name: Docker image · backend
     needs: [backend, audit]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/_docker-build.yml
     with:
       environment: production
       push: true
-      dockerfile: Backend/docker/production/Dockerfile
+      dockerfile: docker/production/Dockerfile.backend
       context: Backend
       image-name: backend
+
+  # ---------------------------------------------------------------------------
+  # 7b. Build + push FRONTEND image to GHCR — only on push to main.
+  # ---------------------------------------------------------------------------
+  docker-web:
+    name: Docker image · frontend
+    needs: [frontend, audit]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      environment: production
+      push: true
+      dockerfile: docker/production/Dockerfile.frontend
+      context: Frontend
+      image-name: web
 
   # ---------------------------------------------------------------------------
   # 8. Prisma migration dry-run — guards against risky schema changes.

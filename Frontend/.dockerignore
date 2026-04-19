@@ -1,0 +1,21 @@
+# Dockerfile.frontend uses this context (./Frontend). Shrink the build context
+# so `npm ci` layer cache isn't invalidated by host-only artefacts.
+
+node_modules
+dist
+build
+coverage
+.vite
+*.log
+.git
+.gitignore
+.husky
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+.DS_Store
+test-results
+playwright-report
+README.md

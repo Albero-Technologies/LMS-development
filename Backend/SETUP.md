@@ -44,6 +44,10 @@ Only create `.env.development.local` if you want to override a specific value (e
 
 ## 3 · Start Postgres + Redis (Docker)
 
+> **Note:** docker-compose files moved to the **repo root** (not `Backend/`) so one
+> stack can orchestrate backend + frontend together. Run `docker compose` commands
+> from the repo root: `cd ..` if you're currently in `Backend/`.
+
 ```bash
 docker compose -f docker/development/docker-compose.yml up -d postgres redis
 ```

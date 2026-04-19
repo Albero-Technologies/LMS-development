@@ -44,7 +44,7 @@ Pre-provisioned in Grafana on first boot:
 ## 2 · Start the stack
 
 ```bash
-cd Backend
+# Run from the repo root (docker/ lives there now, not under Backend/).
 
 # one-time: pull images + bring everything up
 docker compose -f docker/development/docker-compose.yml \

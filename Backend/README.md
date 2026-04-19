@@ -73,12 +73,23 @@ Users:       super@acme.dev, admin@acme.dev, trainer@acme.dev,
              student@acme.dev, counsellor@acme.dev, support@acme.dev, client@acme.dev
 ```
 
-### Docker Compose (local stack: Postgres + Redis + API + Worker + Nginx)
+### Docker Compose (full stack: Postgres + Redis + API + Worker + Web + Nginx)
+
+The compose files moved to the **repo root** so one stack runs backend + frontend
+together. Run from the repo root:
 
 ```bash
 docker compose -f docker/development/docker-compose.yml up --build
-# API:       http://localhost:3000/api/v1/
-# Via Nginx: http://localhost:8080/api/v1/
+# Edge:      http://localhost:8080/            → frontend SPA
+#            http://localhost:8080/api/v1/*    → backend API
+# Direct:    http://localhost:3000/api/v1/     → backend
+#            http://localhost:5173/            → frontend
+```
+
+Data-plane only (when running `npm run dev` on the host):
+
+```bash
+docker compose -f docker/development/docker-compose.yml up -d postgres redis
 ```
 
 ---

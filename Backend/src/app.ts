@@ -12,6 +12,7 @@ import pino from 'pino'
 import requestId from './middleware/requestId'
 import rateLimit from './middleware/rateLimit'
 import metrics from './middleware/metrics'
+import autoAudit from './middleware/autoAudit'
 import webhookRouter from './modules/enrollments/webhook.router'
 import config from './config/config'
 
@@ -72,6 +73,7 @@ app.use(cookieParser())
 app.use(requestId)
 app.use(httpLogger)
 app.use(metrics)
+app.use(autoAudit)
 app.use(express.static(path.join(__dirname, '../', 'public')))
 
 // ---- Global IP-based rate limit ----

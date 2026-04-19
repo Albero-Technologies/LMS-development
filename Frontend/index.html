@@ -1,18 +1,65 @@
 <!doctype html>
-<html lang="en">
+<html
+    lang="en"
+    class="scroll-smooth">
     <head>
         <meta charset="UTF-8" />
         <link
             rel="icon"
             type="image/svg+xml"
-            href="/vite.svg" />
+            href="/favicon.svg" />
+        <link
+            rel="apple-touch-icon"
+            href="/icons/icon-192.png" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0" />
-        <title>Vite + React + TS</title>
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta
+            name="theme-color"
+            content="#0B0B14" />
+        <meta
+            name="description"
+            content="LearnHub — modern multi-role LMS for live classes, courses, quizzes, and certifications." />
+        <meta
+            property="og:title"
+            content="LearnHub — Modern Learning Platform" />
+        <meta
+            property="og:description"
+            content="Run your institute end-to-end: batches, live classes, quizzes, payments, certificates." />
+        <meta
+            property="og:type"
+            content="website" />
+        <link
+            rel="manifest"
+            href="/manifest.webmanifest" />
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com" />
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet" />
+        <script>
+            // Theme bootstrap — read the persisted theme BEFORE React renders
+            // so the first paint already matches, no flash of wrong theme.
+            (function () {
+                try {
+                    var stored = localStorage.getItem('learnhub.theme')
+                    var theme = stored === 'dark' || stored === 'light' ? stored : 'light'
+                    document.documentElement.setAttribute('data-theme', theme)
+                } catch (_) {
+                    document.documentElement.setAttribute('data-theme', 'light')
+                }
+            })()
+        </script>
+        <title>LearnHub — Run classes. Not software.</title>
     </head>
-    <body>
+    <body class="antialiased">
         <div id="root"></div>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
         <script
             type="module"
             src="/src/main.tsx"></script>

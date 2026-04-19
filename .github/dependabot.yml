@@ -64,9 +64,9 @@ updates:
       - dependency-name: vite
         update-types: [version-update:semver-major]
 
-  # ---- Docker base images ----
+  # ---- Docker base images (moved to repo root so both stacks update together) ----
   - package-ecosystem: docker
-    directory: /Backend/docker/development
+    directory: /docker/development
     schedule:
       interval: monthly
     labels: ['dependencies', 'docker']
@@ -75,7 +75,7 @@ updates:
       prefix: 'chore(docker)'
 
   - package-ecosystem: docker
-    directory: /Backend/docker/production
+    directory: /docker/production
     schedule:
       interval: monthly
     labels: ['dependencies', 'docker']

@@ -1,62 +1,16 @@
 {
-    // ---------------------------------------------------------------
-    // Prisma extension — use the workspace's pinned Prisma version.
-    // Without this, the VS Code extension ships its own Prisma CLI
-    // (currently v7) and surfaces v7-only warnings like:
-    //   - "datasource.url is no longer supported in schema files"
-    //   - "fullTextSearch has been renamed to fullTextSearchPostgres"
-    // against a project pinned to Prisma 5.x.
-    // ---------------------------------------------------------------
+    "prisma.prismaPath": "./Backend/node_modules/prisma/build/index.js",
     "prisma.fileWatcher": true,
-    "prisma.useLocalPlugin": true,
-    "prisma.prismaPluginPath": "Backend/node_modules/prisma",
-
-    // Auto-format schema.prisma on save using the local prisma binary.
     "[prisma]": {
         "editor.defaultFormatter": "Prisma.prisma",
-        "editor.formatOnSave": true,
-        "editor.tabSize": 2
+        "editor.formatOnSave": true
     },
-
-    // ---------------------------------------------------------------
-    // Workspace-wide TypeScript — use the version in Backend/node_modules.
-    // Fixes "different TS version" red squigglies in editor.
-    // ---------------------------------------------------------------
     "typescript.tsdk": "Backend/node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": true,
-
-    // ---------------------------------------------------------------
-    // ESLint / Prettier config lives inside Backend/ — tell each
-    // extension where to find it so they don't fall back to a root config
-    // that doesn't exist.
-    // ---------------------------------------------------------------
     "eslint.workingDirectories": [
         { "directory": "Backend", "changeProcessCWD": true },
         { "directory": "Frontend", "changeProcessCWD": true }
     ],
-    "prettier.configPath": "Backend/.prettierrc",
-
-    // ---------------------------------------------------------------
-    // Exclude noise from the file watcher + search.
-    // ---------------------------------------------------------------
-    "files.watcherExclude": {
-        "**/node_modules/**": true,
-        "**/dist/**": true,
-        "**/coverage/**": true,
-        "**/logs/**": true,
-        "**/public/uploads/**": true
-    },
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/coverage": true,
-        "**/logs": true,
-        "**/package-lock.json": true,
-        "**/public/uploads": true
-    },
     "files.associations": {
-        ".env.example": "properties",
-        ".env.development": "properties",
-        ".env.production": "properties"
+        "*.pen": "plaintext"
     }
 }

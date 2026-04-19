@@ -1,13 +1,17 @@
 // LearnHub LMS — Phase 1 Prisma schema
 // Multi-tenant by design: tenant_id on every domain row.
-// Soft-delete via deleted_at (enforced in Prisma extension).
+// Soft-delete via deleted_at (enforced in Prisma middleware — see db.ts).
+//
+// KNOWN WARNING: VSCode's Prisma extension ships a Prisma 7 LSP that flags
+// `url = env("DATABASE_URL")` below as "no longer supported". We intentionally
+// stay on Prisma 5 for Phase 1 — Prisma 7 removed `$use` middleware which our
+// soft-delete + tenant-scoping depends on (would require a Client Extensions
+// rewrite). The warning is editor-only and does not affect generate, migrate,
+// or runtime. To silence the editor warning, downgrade the Prisma VSCode
+// extension to a 5.x-compatible build until we migrate.
 
 generator client {
   provider = "prisma-client-js"
-  // previewFeatures intentionally empty.
-  // Full-text search is GA on Postgres and no longer needs a preview flag.
-  // If you start using it, add:
-  //   previewFeatures = ["fullTextSearchPostgres"]   // Prisma 5+
 }
 
 datasource db {
@@ -125,6 +129,13 @@ enum StudentSignupStatus {
   ENROLLED
 }
 
+enum EnquiryStage {
+  NEW
+  DEMO_SCHEDULED
+  CONVERTED
+  LOST
+}
+
 enum CounsellorTaskStatus {
   OPEN
   IN_PROGRESS
@@ -196,6 +207,7 @@ model Tenant {
   tickets               Ticket[]
   notifications         Notification[]
   auditLogs             AuditLog[]
+  enquiries             Enquiry[]
 
   @@index([slug])
   @@map("tenants")
@@ -243,6 +255,7 @@ model User {
   directReports              User[]                 @relation("CounsellorManagement")
   tasksAssigned              CounsellorTask[]       @relation("CounsellorTaskAssignee")
   tasksCreated               CounsellorTask[]       @relation("CounsellorTaskCreator")
+  enquiriesAssigned          Enquiry[]              @relation("EnquiryCounsellor")
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -713,6 +726,38 @@ model Notification {
 
   @@index([tenantId, userId, status])
   @@map("notifications")
+}
+
+// ---------- Enquiries (public website leads) ----------
+// A student fills the public enquiry form → we drop a row here and auto-assign
+// to the next available counsellor via least-loaded round-robin. No user
+// account is created at this stage; that happens after the counsellor converts.
+
+model Enquiry {
+  id           String       @id @default(uuid())
+  tenantId     String
+  name         String
+  email        String
+  phone        String
+  course       String
+  language     String?
+  city         String?
+  message      String?
+  source       String       @default("website")
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  stage        EnquiryStage @default(NEW)
+  assignedToId String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  assignedTo User?  @relation("EnquiryCounsellor", fields: [assignedToId], references: [id])
+
+  @@index([tenantId, stage, createdAt])
+  @@index([tenantId, assignedToId, stage])
+  @@map("enquiries")
 }
 
 // ---------- Audit log (cross-tenant traceable) ----------

@@ -1,0 +1,105 @@
+# syntax=docker/dockerfile:1.7
+# -----------------------------------------------------------------------------
+# LearnHub Frontend — PRODUCTION image
+# Build context (from repo root): ./Frontend
+#
+# Stage 1 (deps)    : npm ci with dev deps (needed for build)
+# Stage 2 (builder) : vite build → /usr/src/app/dist
+# Stage 3 (runner)  : nginx:alpine serving the built SPA with history-API fallback
+#
+# Build from repo root:
+#   docker build -t learnhub-web:prod -f docker/production/Dockerfile.frontend ./Frontend
+# -----------------------------------------------------------------------------
+
+ARG NODE_VERSION=20-alpine
+
+# ---- Stage 1: deps (full) ---------------------------------------------------
+FROM node:${NODE_VERSION} AS deps
+RUN apk add --no-cache libc6-compat bash
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# ---- Stage 2: builder (vite build) -----------------------------------------
+FROM node:${NODE_VERSION} AS builder
+WORKDIR /usr/src/app
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY . .
+
+# Build-time envs — compose passes these through as build-args.
+ARG VITE_ENV=production
+ARG PORT=5173
+ARG BACKEND_PROXY=https://api.learnhub.in
+ARG SENTRY_TOKEN=""
+ENV VITE_ENV=$VITE_ENV \
+    PORT=$PORT \
+    BACKEND_PROXY=$BACKEND_PROXY \
+    SENTRY_TOKEN=$SENTRY_TOKEN
+
+RUN npm run build
+
+# ---- Stage 3: runner (nginx) ------------------------------------------------
+FROM nginx:1.27-alpine AS runner
+
+# SPA-aware server block, embedded in the image so this Dockerfile is
+# self-contained (no sibling-dir copy needed). If you need per-env tweaks,
+# bind-mount a replacement at /etc/nginx/conf.d/default.conf in compose.
+RUN cat > /etc/nginx/conf.d/default.conf <<'NGINX'
+server {
+    listen       80 default_server;
+    listen       [::]:80 default_server;
+    server_name  _;
+
+    root   /usr/share/nginx/html;
+    index  index.html;
+
+    # Container-local liveness for compose + LBs.
+    location = /health {
+        access_log off;
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+    }
+
+    # Hashed assets — immutable, cache forever.
+    location ~* \.(?:js|css|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|ico|mp4|webm)$ {
+        access_log off;
+        expires    1y;
+        add_header Cache-Control "public, immutable, max-age=31536000";
+        try_files  $uri =404;
+    }
+
+    # PWA files must never be stale.
+    location ~* ^/(manifest\.webmanifest|sw\.js|registerSW\.js|workbox-.+\.js)$ {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        expires    0;
+        try_files  $uri =404;
+    }
+
+    # Everything else: history-API fallback for the SPA router.
+    location / {
+        try_files  $uri $uri/ /index.html;
+    }
+
+    # Baseline security headers (the edge nginx adds more on top).
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    gzip             on;
+    gzip_vary        on;
+    gzip_min_length  512;
+    gzip_types       application/javascript application/json image/svg+xml text/css text/plain;
+}
+NGINX
+
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost/health >/dev/null || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

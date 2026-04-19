@@ -1,1 +1,56 @@
-npx --no -- lint-staged
+#!/usr/bin/env sh
+# shellcheck shell=sh
+# Pre-commit — last-mile local gate before a commit lands.
+# Hard-fails fast so the committer can fix issues without round-tripping to CI.
+# Escape hatch: HUSKY_ALLOW_WIP=1 git commit ...  (emergency only)
+
+set -e
+
+RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[0;33m'; NC='\033[0m'
+log() { printf "${YLW}▸ pre-commit:${NC} %s\n" "$*"; }
+ok()  { printf "${GRN}✓${NC} %s\n" "$*"; }
+die() { printf "${RED}✗ %s${NC}\n" "$*"; exit 1; }
+
+if [ -n "$HUSKY_ALLOW_WIP" ]; then
+    log "HUSKY_ALLOW_WIP set — skipping safety gates"
+else
+    # 1) Secret scan — block common credential leak patterns in staged diffs.
+    log "scanning staged files for secrets"
+    STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -Ev '\.lock$|package-lock\.json$|\.min\.js$' || true)
+    if [ -n "$STAGED" ]; then
+        if echo "$STAGED" | xargs -I{} git show :0:"{}" 2>/dev/null | grep -nE \
+            '(AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36}|xox[baprs]-[0-9A-Za-z-]{10,}|-----BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY-----|sk_live_[0-9a-zA-Z]{20,}|rzp_live_[0-9A-Za-z]{14}|SG\.[0-9A-Za-z_-]{22}\.[0-9A-Za-z_-]{43})' \
+            >/dev/null; then
+            die "Possible secret detected in staged changes. Inspect with 'git diff --cached' and remove before committing."
+        fi
+    fi
+    ok "no obvious secrets"
+
+    # 2) Block committing real-secret env files. Allow committed templates:
+    #    .env.example, .env.development, .env.production. Block everything else.
+    if git diff --cached --name-only \
+        | grep -E '(^|/)\.env($|\.)' \
+        | grep -Ev '(^|/)\.env\.(example|development|production)$' \
+        >/dev/null; then
+        die "A secret-bearing .env file is staged. Only .env.example/.development/.production may be committed."
+    fi
+
+    # 3) Block 'debugger' / console.log sneaking into frontend source.
+    TSX_STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^Frontend/src/.*\.(ts|tsx)$' || true)
+    if [ -n "$TSX_STAGED" ]; then
+        if echo "$TSX_STAGED" | xargs git show :0: 2>/dev/null | grep -nE '^\+.*\b(debugger|console\.(log|debug))\b' >/dev/null; then
+            die "Found 'debugger' or 'console.log/debug' in staged Frontend source."
+        fi
+    fi
+    ok "no debugger / console statements"
+
+    # 4) Merge-conflict marker check.
+    if git diff --cached | grep -E '^\+(<<<<<<<|=======|>>>>>>>)' >/dev/null; then
+        die "Unresolved merge-conflict markers in staged changes."
+    fi
+fi
+
+# 5) lint-staged — format + lint just the staged files.
+log "running lint-staged"
+(cd Frontend && npx --no-install lint-staged)
+ok "lint-staged passed"

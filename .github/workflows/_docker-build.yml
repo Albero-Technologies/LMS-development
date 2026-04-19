@@ -1,6 +1,6 @@
 # Reusable workflow — Docker build + push to GitHub Container Registry.
-# Builds the Backend production image via the multistage Dockerfile.
-# Pushes to ghcr.io/<owner>/<repo>/backend with environment-aware tags.
+# Builds either the backend or frontend production image depending on inputs.
+# Pushes to ghcr.io/<owner>/<repo>/<image-name> with environment-aware tags.
 #
 # Security posture:
 #   - OIDC-based auth only for external registries; GHCR uses GITHUB_TOKEN.
@@ -23,7 +23,7 @@ on:
       dockerfile:
         required: false
         type: string
-        default: 'Backend/docker/production/Dockerfile'
+        default: 'docker/production/Dockerfile.backend'
       context:
         required: false
         type: string

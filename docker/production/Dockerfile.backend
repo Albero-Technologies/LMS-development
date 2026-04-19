@@ -1,15 +1,17 @@
 # syntax=docker/dockerfile:1.7
 # -----------------------------------------------------------------------------
-# LearnHub Backend — PRODUCTION image (multistage, distroless-style)
+# LearnHub Backend — PRODUCTION image (multistage)
+# Build context (from repo root): ./Backend
 #
-# Stage 1 (deps)     : install full deps (dev+prod) + generate Prisma client
+# Stage 1 (deps)     : full deps (dev+prod) + generate Prisma client
 # Stage 2 (builder)  : tsc → dist/
-# Stage 3 (prod-deps): install ONLY production deps for the runtime image
+# Stage 3 (prod-deps): production-only deps for the runtime image
 # Stage 4 (runner)   : minimal Alpine runtime — runs dist/server.js as non-root
 #
-# Build:  docker build -t learnhub-api:prod -f docker/production/Dockerfile .
-# Run  :  docker run -p 3000:3000 --env-file .env learnhub-api:prod
-# Worker: docker run --env-file .env learnhub-api:prod node dist/worker.js
+# Build from repo root:
+#   docker build -t learnhub-api:prod -f docker/production/Dockerfile.backend ./Backend
+#
+# In CI, ci-main.yml / ci-uat.yml invoke _docker-build.yml with these paths.
 # -----------------------------------------------------------------------------
 
 ARG NODE_VERSION=20-alpine
@@ -66,7 +68,6 @@ ENV NODE_ENV=production \
     PORT=3000 \
     NPM_CONFIG_LOGLEVEL=warn
 
-# Copy just what we need — no dev deps, no source, no .cache.
 COPY --from=prod-deps --chown=app:app /usr/src/app/node_modules ./node_modules
 COPY --from=prod-deps --chown=app:app /usr/src/app/prisma ./prisma
 COPY --from=builder   --chown=app:app /usr/src/app/dist ./dist

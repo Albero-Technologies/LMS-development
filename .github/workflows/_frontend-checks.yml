@@ -18,6 +18,10 @@ on:
         required: false
         type: boolean
         default: false
+      skip-build:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -55,13 +59,18 @@ jobs:
         run: npm run test:coverage -- --run
 
       - name: Production build
+        if: ${{ inputs.skip-build == false }}
         env:
           # Keep sourcemaps off unless Sentry release upload is configured.
           VITE_BUILD_MODE: ${{ inputs.build-mode }}
+          # CI-only placeholders so validateEnv() passes without local .env files.
+          PORT: '5173'
+          BACKEND_PROXY: 'http://localhost:3000'
+          VITE_ENV: ${{ inputs.build-mode }}
         run: npm run build
 
       - name: Upload dist artifact
-        if: ${{ inputs.upload-dist == true }}
+        if: ${{ inputs.upload-dist == true && inputs.skip-build == false }}
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist

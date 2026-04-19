@@ -1,1 +1,14 @@
-npx --no -- commitlint --edit $1
+#!/usr/bin/env sh
+# shellcheck shell=sh
+# Commit-message gate — enforces Conventional Commits via commitlint.
+# Reference: https://www.conventionalcommits.org/
+
+set -e
+
+MSG_FILE="$1"
+MSG=$(head -1 "$MSG_FILE" 2>/dev/null || true)
+case "$MSG" in
+    Merge*|merge*|Revert*|revert*|fixup!*|squash!*) exit 0 ;;
+esac
+
+(cd Frontend && npx --no-install commitlint --edit "$MSG_FILE")

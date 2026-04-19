@@ -17,6 +17,7 @@ import counsellorInviteRouter from '../modules/counsellor-invites/counsellor-inv
 import counsellorPublicRouter from '../modules/counsellor-invites/counsellor-public.router'
 import counsellorManagementRouter from '../modules/counsellor-management/counsellor-management.router'
 import paymentRouter from '../modules/payments/payment.router'
+import enquiryRouter from '../modules/enquiries/enquiry.router'
 import swaggerRouter from '../docs/swagger'
 
 const router = Router()
@@ -36,6 +37,7 @@ router.use('/counsellor', counsellorInviteRouter)
 router.use('/counsellor', counsellorManagementRouter)
 router.use('/onboarding', counsellorPublicRouter)
 router.use('/payments', paymentRouter)
+router.use('/enquiries', enquiryRouter)
 router.use('/tickets', ticketRouter)
 router.use('/notifications', notificationRouter)
 router.use('/dashboard', dashboardRouter)
