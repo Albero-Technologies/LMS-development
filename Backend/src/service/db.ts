@@ -14,7 +14,9 @@ const TENANT_SCOPED_MODELS = new Set<string>([
     'PaymentEvent',
     'Quiz',
     'QuizAttempt',
-    'Lead',
+    'CounsellorInviteLink',
+    'StudentSignup',
+    'CounsellorTarget',
     'Ticket',
     'Notification'
 ])
@@ -26,7 +28,7 @@ const SOFT_DELETE_MODELS = new Set<string>([
     'Batch',
     'Enrollment',
     'Quiz',
-    'Lead',
+    'CounsellorInviteLink',
     'Ticket'
 ])
 

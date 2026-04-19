@@ -1,3 +1,4 @@
+.vscode
 build_architecture.py
 build_prd.py
 build_tracker.py

@@ -9,11 +9,13 @@ import courseRouter from '../modules/courses/course.router'
 import enrollmentRouter from '../modules/enrollments/enrollment.router'
 import quizRouter from '../modules/quizzes/quiz.router'
 import batchRouter from '../modules/batches/batch.router'
-import leadRouter from '../modules/leads/lead.router'
 import ticketRouter from '../modules/tickets/ticket.router'
 import notificationRouter from '../modules/notifications/notification.router'
 import dashboardRouter from '../modules/dashboards/dashboard.router'
 import uploadRouter from '../modules/uploads/upload.router'
+import counsellorInviteRouter from '../modules/counsellor-invites/counsellor-invite.router'
+import counsellorPublicRouter from '../modules/counsellor-invites/counsellor-public.router'
+import paymentRouter from '../modules/payments/payment.router'
 import swaggerRouter from '../docs/swagger'
 
 const router = Router()
@@ -29,7 +31,9 @@ router.use('/courses', courseRouter)
 router.use('/enrollments', enrollmentRouter)
 router.use('/quizzes', quizRouter)
 router.use('/batches', batchRouter)
-router.use('/leads', leadRouter)
+router.use('/counsellor', counsellorInviteRouter)
+router.use('/onboarding', counsellorPublicRouter)
+router.use('/payments', paymentRouter)
 router.use('/tickets', ticketRouter)
 router.use('/notifications', notificationRouter)
 router.use('/dashboard', dashboardRouter)

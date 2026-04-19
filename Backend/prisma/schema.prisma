@@ -111,18 +111,17 @@ enum BatchStatus {
   CANCELLED
 }
 
-enum LeadStage {
-  NEW
-  QUALIFIED
-  DEMO_SCHEDULED
-  ENROLLED
+enum CounsellorInviteStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  REVOKED
 }
 
-enum LeadInteractionType {
-  CALL
-  EMAIL
-  WHATSAPP
-  NOTE
+enum StudentSignupStatus {
+  CREATED
+  CREDS_SHARED
+  ENROLLED
 }
 
 enum TicketPriority {
@@ -154,71 +153,74 @@ enum NotificationStatus {
 // ---------- Core tables ----------
 
 model Tenant {
-  id            String        @id @default(uuid())
+  id            String       @id @default(uuid())
   name          String
-  slug          String        @unique
-  plan          TenantPlan    @default(FREE)
-  status        TenantStatus  @default(ACTIVE)
+  slug          String       @unique
+  plan          TenantPlan   @default(FREE)
+  status        TenantStatus @default(ACTIVE)
   brandingLogo  String?
-  brandingColor String?       @default("#2563eb")
-  settings      Json          @default("{}")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  brandingColor String?      @default("#2563eb")
+  settings      Json         @default("{}")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   deletedAt     DateTime?
 
-  users         User[]
-  invites       Invite[]
-  courses       Course[]
-  batches       Batch[]
-  enrollments   Enrollment[]
-  invoices      Invoice[]
-  paymentEvents PaymentEvent[]
-  quizzes       Quiz[]
-  quizAttempts  QuizAttempt[]
-  leads         Lead[]
-  tickets       Ticket[]
-  notifications Notification[]
-  auditLogs     AuditLog[]
+  users                 User[]
+  invites               Invite[]
+  courses               Course[]
+  batches               Batch[]
+  enrollments           Enrollment[]
+  invoices              Invoice[]
+  paymentEvents         PaymentEvent[]
+  quizzes               Quiz[]
+  quizAttempts          QuizAttempt[]
+  counsellorInviteLinks CounsellorInviteLink[]
+  studentSignups        StudentSignup[]
+  counsellorTargets     CounsellorTarget[]
+  tickets               Ticket[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
 
   @@index([slug])
   @@map("tenants")
 }
 
 model User {
-  id             String       @id @default(uuid())
-  tenantId       String
-  email          String
-  phone          String?
-  passwordHash   String?
-  googleSub      String?
-  provider       AuthProvider @default(LOCAL)
-  role           Role
-  firstName      String
-  lastName       String
-  avatarUrl      String?
-  status         UserStatus   @default(PENDING)
-  emailVerified  Boolean      @default(false)
-  tokenVersion   Int          @default(0) // bumps on password change → invalidates JWTs
-  lastLoginAt    DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
+  id            String       @id @default(uuid())
+  tenantId      String
+  email         String
+  phone         String?
+  passwordHash  String?
+  googleSub     String?
+  provider      AuthProvider @default(LOCAL)
+  role          Role
+  firstName     String
+  lastName      String
+  avatarUrl     String?
+  status        UserStatus   @default(PENDING)
+  emailVerified Boolean      @default(false)
+  tokenVersion  Int          @default(0) // bumps on password change → invalidates JWTs
+  lastLoginAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
 
-  tenant         Tenant        @relation(fields: [tenantId], references: [id])
-  refreshTokens  RefreshToken[]
-  coursesTaught  Course[]       @relation("CourseTrainer")
-  enrollments    Enrollment[]
-  quizAttempts   QuizAttempt[]
-  invoices       Invoice[]
-  leadsAssigned  Lead[]         @relation("LeadAssignee")
-  leadsCreated   Lead[]         @relation("LeadCreator")
-  ticketsOpened  Ticket[]       @relation("TicketOpener")
-  ticketsAssigned Ticket[]      @relation("TicketAssignee")
-  ticketComments TicketComment[]
-  notifications  Notification[]
-  auditLogs      AuditLog[]
-  leadInteractions LeadInteraction[]
-  batchesLed     Batch[]        @relation("BatchTrainer")
+  tenant                     Tenant                 @relation(fields: [tenantId], references: [id])
+  refreshTokens              RefreshToken[]
+  coursesTaught              Course[]               @relation("CourseTrainer")
+  enrollments                Enrollment[]
+  quizAttempts               QuizAttempt[]
+  invoices                   Invoice[]
+  ticketsOpened              Ticket[]               @relation("TicketOpener")
+  ticketsAssigned            Ticket[]               @relation("TicketAssignee")
+  ticketComments             TicketComment[]
+  notifications              Notification[]
+  auditLogs                  AuditLog[]
+  batchesLed                 Batch[]                @relation("BatchTrainer")
+  counsellorInviteLinks      CounsellorInviteLink[] @relation("CounsellorInviteCreator")
+  studentSignupsAsCounsellor StudentSignup[]        @relation("StudentSignupCounsellor")
+  studentSignup              StudentSignup?         @relation("StudentSignupUser")
+  counsellorTargets          CounsellorTarget[]     @relation("CounsellorTargetOwner")
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -227,18 +229,18 @@ model User {
 }
 
 model RefreshToken {
-  id            String   @id @default(uuid())
-  userId        String
-  tenantId      String
-  tokenHash     String   @unique
-  userAgent     String?
-  ipAddress     String?
-  expiresAt     DateTime
-  revokedAt     DateTime?
-  replacedById  String?
-  createdAt     DateTime @default(now())
+  id           String    @id @default(uuid())
+  userId       String
+  tenantId     String
+  tokenHash    String    @unique
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  createdAt    DateTime  @default(now())
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("refresh_tokens")
@@ -256,7 +258,7 @@ model Invite {
   acceptedAt  DateTime?
   createdAt   DateTime     @default(now())
 
-  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId, email])
   @@map("invites")
@@ -265,29 +267,30 @@ model Invite {
 // ---------- Courses & Lessons ----------
 
 model Course {
-  id            String             @id @default(uuid())
-  tenantId      String
-  title         String
-  slug          String
-  description   String?
-  thumbnailUrl  String?
-  price         Int                @default(0) // smallest currency unit (paise)
-  currency      String             @default("INR")
-  gstPercent    Int                @default(18)
-  trainerId     String?
-  publishState  CoursePublishState @default(DRAFT)
-  tags          String[]           @default([])
-  curriculumJson Json              @default("{}") // section → lesson tree
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  deletedAt     DateTime?
+  id             String             @id @default(uuid())
+  tenantId       String
+  title          String
+  slug           String
+  description    String?
+  thumbnailUrl   String?
+  price          Int                @default(0) // smallest currency unit (paise)
+  currency       String             @default("INR")
+  gstPercent     Int                @default(18)
+  trainerId      String?
+  publishState   CoursePublishState @default(DRAFT)
+  tags           String[]           @default([])
+  curriculumJson Json               @default("{}") // section → lesson tree
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
 
-  tenant        Tenant             @relation(fields: [tenantId], references: [id])
-  trainer       User?              @relation("CourseTrainer", fields: [trainerId], references: [id])
-  sections      CourseSection[]
-  enrollments   Enrollment[]
-  quizzes       Quiz[]
-  batches       Batch[]
+  tenant                Tenant                 @relation(fields: [tenantId], references: [id])
+  trainer               User?                  @relation("CourseTrainer", fields: [trainerId], references: [id])
+  sections              CourseSection[]
+  enrollments           Enrollment[]
+  quizzes               Quiz[]
+  batches               Batch[]
+  counsellorInviteLinks CounsellorInviteLink[]
 
   @@unique([tenantId, slug])
   @@index([tenantId, publishState])
@@ -302,44 +305,44 @@ model CourseSection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons   Lesson[]
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
 
   @@index([courseId])
   @@map("course_sections")
 }
 
 model Lesson {
-  id           String     @id @default(uuid())
-  sectionId    String
-  title        String
-  description  String?
-  type         LessonType @default(YOUTUBE)
-  youtubeId    String?
-  externalUrl  String?
-  durationSec  Int        @default(0)
-  order        Int        @default(0)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id          String     @id @default(uuid())
+  sectionId   String
+  title       String
+  description String?
+  type        LessonType @default(YOUTUBE)
+  youtubeId   String?
+  externalUrl String?
+  durationSec Int        @default(0)
+  order       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  section      CourseSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  progress     LessonProgress[]
+  section  CourseSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  progress LessonProgress[]
 
   @@index([sectionId])
   @@map("lessons")
 }
 
 model LessonProgress {
-  id            String   @id @default(uuid())
-  lessonId      String
-  enrollmentId  String
-  watchedSec    Int      @default(0)
-  completed     Boolean  @default(false)
-  completedAt   DateTime?
-  updatedAt     DateTime @updatedAt
+  id           String    @id @default(uuid())
+  lessonId     String
+  enrollmentId String
+  watchedSec   Int       @default(0)
+  completed    Boolean   @default(false)
+  completedAt  DateTime?
+  updatedAt    DateTime  @updatedAt
 
-  lesson        Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  enrollment    Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
 
   @@unique([lessonId, enrollmentId])
   @@map("lesson_progress")
@@ -348,24 +351,24 @@ model LessonProgress {
 // ---------- Batches ----------
 
 model Batch {
-  id           String       @id @default(uuid())
-  tenantId     String
-  courseId     String
-  name         String
-  code         String
-  trainerId    String?
-  startDate    DateTime
-  endDate      DateTime?
-  capacity     Int          @default(50)
-  status       BatchStatus  @default(UPCOMING)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  deletedAt    DateTime?
+  id        String      @id @default(uuid())
+  tenantId  String
+  courseId  String
+  name      String
+  code      String
+  trainerId String?
+  startDate DateTime
+  endDate   DateTime?
+  capacity  Int         @default(50)
+  status    BatchStatus @default(UPCOMING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
 
-  tenant       Tenant       @relation(fields: [tenantId], references: [id])
-  course       Course       @relation(fields: [courseId], references: [id])
-  trainer      User?        @relation("BatchTrainer", fields: [trainerId], references: [id])
-  enrollments  Enrollment[]
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  course      Course       @relation(fields: [courseId], references: [id])
+  trainer     User?        @relation("BatchTrainer", fields: [trainerId], references: [id])
+  enrollments Enrollment[]
 
   @@unique([tenantId, code])
   @@index([tenantId, courseId])
@@ -375,54 +378,56 @@ model Batch {
 // ---------- Enrollment & Payment ----------
 
 model Enrollment {
-  id          String           @id @default(uuid())
-  tenantId    String
-  userId      String
-  courseId    String
-  batchId     String?
-  status      EnrollmentStatus @default(PENDING_PAYMENT)
-  progressPct Int              @default(0)
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  deletedAt   DateTime?
+  id           String           @id @default(uuid())
+  tenantId     String
+  userId       String
+  courseId     String
+  batchId      String?
+  counsellorId String? // tracks attribution for counsellor target rollups
+  status       EnrollmentStatus @default(PENDING_PAYMENT)
+  progressPct  Int              @default(0)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deletedAt    DateTime?
 
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
-  course      Course   @relation(fields: [courseId], references: [id])
-  batch       Batch?   @relation(fields: [batchId], references: [id])
-  invoices    Invoice[]
+  tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
+  course         Course           @relation(fields: [courseId], references: [id])
+  batch          Batch?           @relation(fields: [batchId], references: [id])
+  invoices       Invoice[]
   lessonProgress LessonProgress[]
 
   @@unique([tenantId, userId, courseId])
   @@index([tenantId, status])
+  @@index([tenantId, counsellorId])
   @@map("enrollments")
 }
 
 model Invoice {
-  id            String         @id @default(uuid())
-  tenantId      String
-  userId        String
-  enrollmentId  String?
-  number        String         // tenant-scoped human-readable invoice number
-  amount        Int            // smallest unit
-  currency      String         @default("INR")
-  gstPercent    Int            @default(18)
-  gstAmount     Int            @default(0)
-  totalAmount   Int
-  gateway       PaymentGateway @default(RAZORPAY)
-  gatewayOrderId  String?
+  id               String         @id @default(uuid())
+  tenantId         String
+  userId           String
+  enrollmentId     String?
+  number           String // tenant-scoped human-readable invoice number
+  amount           Int // smallest unit
+  currency         String         @default("INR")
+  gstPercent       Int            @default(18)
+  gstAmount        Int            @default(0)
+  totalAmount      Int
+  gateway          PaymentGateway @default(RAZORPAY)
+  gatewayOrderId   String?
   gatewayPaymentId String?
-  gatewayRef    String?        // legacy ref
-  zohoInvoiceId String?        // set via Zoho Books webhook
-  pdfUrl        String?
-  status        InvoiceStatus  @default(DRAFT)
-  dueAt         DateTime?
-  paidAt        DateTime?
-  refundedAt    DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  gatewayRef       String? // legacy ref
+  zohoInvoiceId    String? // set via Zoho Books webhook
+  pdfUrl           String?
+  status           InvoiceStatus  @default(DRAFT)
+  dueAt            DateTime?
+  paidAt           DateTime?
+  refundedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id])
   user          User           @relation(fields: [userId], references: [id])
@@ -435,21 +440,21 @@ model Invoice {
 }
 
 model PaymentEvent {
-  id              String             @id @default(uuid())
-  tenantId        String
-  invoiceId       String?
-  gateway         PaymentGateway
-  gatewayEventId  String             @unique // idempotency key from webhook
-  gatewayOrderId  String?
+  id               String             @id @default(uuid())
+  tenantId         String
+  invoiceId        String?
+  gateway          PaymentGateway
+  gatewayEventId   String             @unique // idempotency key from webhook
+  gatewayOrderId   String?
   gatewayPaymentId String?
-  status          PaymentEventStatus
-  amount          Int?
-  rawPayload      Json
-  signatureValid  Boolean            @default(false)
-  createdAt       DateTime           @default(now())
+  status           PaymentEventStatus
+  amount           Int?
+  rawPayload       Json
+  signatureValid   Boolean            @default(false)
+  createdAt        DateTime           @default(now())
 
-  tenant          Tenant             @relation(fields: [tenantId], references: [id])
-  invoice         Invoice?           @relation(fields: [invoiceId], references: [id])
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  invoice Invoice? @relation(fields: [invoiceId], references: [id])
 
   @@index([tenantId, invoiceId])
   @@map("payment_events")
@@ -458,133 +463,167 @@ model PaymentEvent {
 // ---------- Quizzes ----------
 
 model Quiz {
-  id              String   @id @default(uuid())
-  tenantId        String
-  courseId        String
-  title           String
-  description     String?
-  durationSec     Int      @default(600)
-  maxAttempts     Int      @default(3)
-  passPercent     Int      @default(60)
-  isPublished     Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  deletedAt       DateTime?
+  id          String    @id @default(uuid())
+  tenantId    String
+  courseId    String
+  title       String
+  description String?
+  durationSec Int       @default(600)
+  maxAttempts Int       @default(3)
+  passPercent Int       @default(60)
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-  tenant          Tenant         @relation(fields: [tenantId], references: [id])
-  course          Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  questions       QuizQuestion[]
-  attempts        QuizAttempt[]
+  tenant    Tenant         @relation(fields: [tenantId], references: [id])
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
 
   @@index([tenantId, courseId])
   @@map("quizzes")
 }
 
 model QuizQuestion {
-  id           String   @id @default(uuid())
-  quizId       String
-  prompt       String
-  options      Json     // array of { id, text }
-  correctIds   String[] // ids of correct option(s); 1 for MCQ, multi for MCQ-multi
-  marks        Int      @default(1)
-  order        Int      @default(0)
+  id         String   @id @default(uuid())
+  quizId     String
+  prompt     String
+  options    Json // array of { id, text }
+  correctIds String[] // ids of correct option(s); 1 for MCQ, multi for MCQ-multi
+  marks      Int      @default(1)
+  order      Int      @default(0)
 
-  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
   @@index([quizId])
   @@map("quiz_questions")
 }
 
 model QuizAttempt {
-  id           String            @id @default(uuid())
-  tenantId     String
-  quizId       String
-  userId       String
-  answers      Json              @default("[]") // [{ questionId, selectedIds }]
-  score        Int               @default(0)
-  maxScore     Int               @default(0)
-  percent      Int               @default(0)
-  passed       Boolean           @default(false)
-  status       QuizAttemptStatus @default(IN_PROGRESS)
-  startedAt    DateTime          @default(now())
-  submittedAt  DateTime?
-  expiresAt    DateTime
+  id          String            @id @default(uuid())
+  tenantId    String
+  quizId      String
+  userId      String
+  answers     Json              @default("[]") // [{ questionId, selectedIds }]
+  score       Int               @default(0)
+  maxScore    Int               @default(0)
+  percent     Int               @default(0)
+  passed      Boolean           @default(false)
+  status      QuizAttemptStatus @default(IN_PROGRESS)
+  startedAt   DateTime          @default(now())
+  submittedAt DateTime?
+  expiresAt   DateTime
 
-  tenant       Tenant            @relation(fields: [tenantId], references: [id])
-  quiz         Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  user         User              @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([tenantId, quizId, userId])
   @@map("quiz_attempts")
 }
 
-// ---------- Leads (Counsellor pipeline) ----------
+// ---------- Counsellor onboarding (replaces lead pipeline) ----------
 
-model Lead {
-  id           String     @id @default(uuid())
+model CounsellorInviteLink {
+  id           String                 @id @default(uuid())
   tenantId     String
-  name         String
-  email        String?
-  phone        String?
-  source       String?    // website, referral, ad, walk-in
-  stage        LeadStage  @default(NEW)
-  assignedToId String?
-  createdById  String?
-  zohoId       String?
-  nextActionAt DateTime?
-  notes        String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  counsellorId String
+  token        String                 @unique // raw token used in public URL
+  label        String? // counsellor's note: "Bangalore drive – Apr"
+  courseId     String? // optional default enrolment after signup
+  maxUses      Int                    @default(1)
+  usesCount    Int                    @default(0)
+  status       CounsellorInviteStatus @default(ACTIVE)
+  expiresAt    DateTime
+  lastUsedAt   DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
   deletedAt    DateTime?
 
-  tenant       Tenant     @relation(fields: [tenantId], references: [id])
-  assignedTo   User?      @relation("LeadAssignee", fields: [assignedToId], references: [id])
-  createdBy    User?      @relation("LeadCreator", fields: [createdById], references: [id])
-  interactions LeadInteraction[]
+  tenant     Tenant          @relation(fields: [tenantId], references: [id])
+  counsellor User            @relation("CounsellorInviteCreator", fields: [counsellorId], references: [id])
+  course     Course?         @relation(fields: [courseId], references: [id])
+  signups    StudentSignup[]
 
-  @@index([tenantId, stage])
-  @@index([tenantId, assignedToId])
-  @@map("leads")
+  @@index([tenantId, counsellorId])
+  @@index([token])
+  @@map("counsellor_invite_links")
 }
 
-model LeadInteraction {
-  id           String              @id @default(uuid())
-  leadId       String
-  userId       String
-  type         LeadInteractionType
-  note         String
-  durationSec  Int?
-  happenedAt   DateTime            @default(now())
+model StudentSignup {
+  id              String              @id @default(uuid())
+  tenantId        String
+  inviteLinkId    String
+  counsellorId    String
+  userId          String?             @unique
+  firstName       String
+  lastName        String
+  email           String
+  phone           String?
+  dateOfBirth     DateTime?
+  city            String?
+  state           String?
+  qualification   String?
+  interest        String?
+  notes           String?
+  // One-time plaintext password generated on submit. Cleared after first login
+  // so it can be re-shown to the counsellor exactly once via the share endpoint.
+  initialPassword String?
+  status          StudentSignupStatus @default(CREATED)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
-  lead         Lead                @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  user         User                @relation(fields: [userId], references: [id])
+  tenant     Tenant               @relation(fields: [tenantId], references: [id])
+  inviteLink CounsellorInviteLink @relation(fields: [inviteLinkId], references: [id])
+  counsellor User                 @relation("StudentSignupCounsellor", fields: [counsellorId], references: [id])
+  user       User?                @relation("StudentSignupUser", fields: [userId], references: [id])
 
-  @@index([leadId])
-  @@map("lead_interactions")
+  @@index([tenantId, counsellorId])
+  @@map("student_signups")
+}
+
+model CounsellorTarget {
+  id               String   @id @default(uuid())
+  tenantId         String
+  counsellorId     String
+  periodStart      DateTime // first day of the month, midnight UTC
+  periodEnd        DateTime // last second of the month
+  targetSignups    Int      @default(0)
+  targetEnrolments Int      @default(0)
+  targetRevenue    Int      @default(0) // smallest currency unit
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  counsellor User   @relation("CounsellorTargetOwner", fields: [counsellorId], references: [id])
+
+  @@unique([tenantId, counsellorId, periodStart])
+  @@map("counsellor_targets")
 }
 
 // ---------- Support tickets ----------
 
 model Ticket {
-  id           String         @id @default(uuid())
-  tenantId     String
-  number       String         // tenant-scoped human ref
-  openerId     String
-  assigneeId   String?
-  subject      String
-  description  String
-  priority     TicketPriority @default(NORMAL)
-  status       TicketStatus   @default(OPEN)
-  slaDueAt     DateTime?
-  resolvedAt   DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  deletedAt    DateTime?
+  id          String         @id @default(uuid())
+  tenantId    String
+  number      String // tenant-scoped human ref
+  openerId    String
+  assigneeId  String?
+  subject     String
+  description String
+  priority    TicketPriority @default(NORMAL)
+  status      TicketStatus   @default(OPEN)
+  slaDueAt    DateTime?
+  resolvedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?
 
-  tenant       Tenant         @relation(fields: [tenantId], references: [id])
-  opener       User           @relation("TicketOpener", fields: [openerId], references: [id])
-  assignee     User?          @relation("TicketAssignee", fields: [assigneeId], references: [id])
-  comments     TicketComment[]
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  opener   User            @relation("TicketOpener", fields: [openerId], references: [id])
+  assignee User?           @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  comments TicketComment[]
 
   @@unique([tenantId, number])
   @@index([tenantId, status])
@@ -592,15 +631,15 @@ model Ticket {
 }
 
 model TicketComment {
-  id         String   @id @default(uuid())
-  ticketId   String
-  authorId   String
-  body       String
-  internal   Boolean  @default(false) // internal notes vs customer-facing
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  body      String
+  internal  Boolean  @default(false) // internal notes vs customer-facing
+  createdAt DateTime @default(now())
 
-  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  author     User     @relation(fields: [authorId], references: [id])
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
 
   @@index([ticketId])
   @@map("ticket_comments")
@@ -609,22 +648,22 @@ model TicketComment {
 // ---------- Notifications ----------
 
 model Notification {
-  id         String             @id @default(uuid())
-  tenantId   String
-  userId     String
-  channel    NotificationChannel @default(IN_APP)
-  template   String
-  subject    String?
-  body       String
-  data       Json                @default("{}")
-  status     NotificationStatus  @default(PENDING)
-  readAt     DateTime?
-  sentAt     DateTime?
-  error      String?
-  createdAt  DateTime            @default(now())
+  id        String              @id @default(uuid())
+  tenantId  String
+  userId    String
+  channel   NotificationChannel @default(IN_APP)
+  template  String
+  subject   String?
+  body      String
+  data      Json                @default("{}")
+  status    NotificationStatus  @default(PENDING)
+  readAt    DateTime?
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime            @default(now())
 
-  tenant     Tenant              @relation(fields: [tenantId], references: [id])
-  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, userId, status])
   @@map("notifications")
@@ -636,7 +675,7 @@ model AuditLog {
   id         String   @id @default(uuid())
   tenantId   String?
   userId     String?
-  action     String   // e.g. auth.login, course.publish, lead.move
+  action     String // e.g. auth.login, course.publish, lead.move
   entityType String?
   entityId   String?
   metadata   Json     @default("{}")
@@ -644,8 +683,8 @@ model AuditLog {
   userAgent  String?
   createdAt  DateTime @default(now())
 
-  tenant     Tenant?  @relation(fields: [tenantId], references: [id])
-  user       User?    @relation(fields: [userId], references: [id])
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+  user   User?   @relation(fields: [userId], references: [id])
 
   @@index([tenantId, createdAt])
   @@index([action, createdAt])

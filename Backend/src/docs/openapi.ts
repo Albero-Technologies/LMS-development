@@ -21,7 +21,9 @@ const spec = {
         { name: 'Enrollments', description: 'Enrolment, Razorpay, invoices' },
         { name: 'Quizzes', description: 'MCQ quizzes + attempts' },
         { name: 'Batches', description: 'Batch CRUD + student assignment' },
-        { name: 'Leads', description: 'Counsellor pipeline (Kanban)' },
+        { name: 'CounsellorInvites', description: 'Counsellor-issued onboarding links + signups' },
+        { name: 'Onboarding', description: 'Public student onboarding form (no auth)' },
+        { name: 'Payments', description: 'Pending invoices + pay flow for students' },
         { name: 'Tickets', description: 'Support ticketing' },
         { name: 'Notifications', description: 'In-app notification inbox' },
         { name: 'Dashboard', description: 'Per-role dashboard aggregates' },
@@ -291,14 +293,23 @@ const spec = {
         },
         '/quizzes/attempts/mine': { get: { tags: ['Quizzes'], summary: 'My attempts', responses: { '200': { description: 'OK' } } } },
 
-        // ---- Batches / Leads / Tickets / Notifications / Dashboard (brief) ----
+        // ---- Batches / Counsellor / Payments / Tickets / Notifications / Dashboard (brief) ----
         '/batches': { get: { tags: ['Batches'], summary: 'List batches', responses: { '200': { description: 'OK' } } }, post: { tags: ['Batches'], summary: 'Create batch', responses: { '201': { description: 'Created' } } } },
         '/batches/{id}/students':   { post: { tags: ['Batches'], summary: 'Assign students', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
         '/batches/{id}/transfer':   { post: { tags: ['Batches'], summary: 'Transfer student to another batch', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
 
-        '/leads':                   { get: { tags: ['Leads'], summary: 'List leads', responses: { '200': { description: 'OK' } } }, post: { tags: ['Leads'], summary: 'Create lead', responses: { '201': { description: 'Created' } } } },
-        '/leads/{id}/stage':        { post: { tags: ['Leads'], summary: 'Move lead stage', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/leads/{id}/interactions': { post: { tags: ['Leads'], summary: 'Log a call / note', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
+        '/counsellor/invites':              { get: { tags: ['CounsellorInvites'], summary: 'List my invite links', responses: { '200': { description: 'OK' } } }, post: { tags: ['CounsellorInvites'], summary: 'Create a new onboarding invite link', responses: { '201': { description: 'Created' } } } },
+        '/counsellor/invites/{id}':         { get: { tags: ['CounsellorInvites'], summary: 'Get invite link with signups + creds', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }, delete: { tags: ['CounsellorInvites'], summary: 'Revoke invite link', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/counsellor/invites/{id}/share':   { post: { tags: ['CounsellorInvites'], summary: 'Re-share student credentials', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/counsellor/students':             { get: { tags: ['CounsellorInvites'], summary: 'My students with progress + payment summary', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/targets':              { get: { tags: ['CounsellorInvites'], summary: 'My target & completion rate', responses: { '200': { description: 'OK' } } } },
+
+        '/onboarding/{token}':              { get: { tags: ['Onboarding'], summary: 'Resolve invite link → tenant branding', parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/onboarding/{token}/submit':       { post: { tags: ['Onboarding'], summary: 'Public student onboarding form submit → returns creds', parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
+
+        '/payments/pending':                { get: { tags: ['Payments'], summary: 'List my pending invoices', responses: { '200': { description: 'OK' } } } },
+        '/payments/invoices':               { get: { tags: ['Payments'], summary: 'List all my invoices (history)', responses: { '200': { description: 'OK' } } } },
+        '/payments/{invoiceId}/pay':        { post: { tags: ['Payments'], summary: 'Create / re-issue Razorpay order for an invoice', parameters: [{ name: 'invoiceId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
 
         '/tickets':                 { get: { tags: ['Tickets'], summary: 'List tickets', responses: { '200': { description: 'OK' } } }, post: { tags: ['Tickets'], summary: 'Create ticket', responses: { '201': { description: 'Created' } } } },
         '/tickets/{id}':            { patch: { tags: ['Tickets'], summary: 'Update (staff)', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
@@ -308,6 +319,7 @@ const spec = {
         '/notifications/{id}/read': { post: { tags: ['Notifications'], summary: 'Mark read', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
 
         '/dashboard/me': { get: { tags: ['Dashboard'], summary: 'Per-role stats + next actions', responses: { '200': { description: 'OK' } } } },
+        '/dashboard/monitoring': { get: { tags: ['Dashboard'], summary: 'Admin-only system monitoring snapshot', responses: { '200': { description: 'OK' }, '503': { description: 'DB down' } } } },
 
         // ---- Uploads ----
         '/uploads/avatars': {

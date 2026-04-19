@@ -1,5 +1,7 @@
-import { EnrollmentStatus, InvoiceStatus, LeadStage, QuizAttemptStatus, Role, TicketStatus } from '@prisma/client'
+import { EnrollmentStatus, InvoiceStatus, QuizAttemptStatus, Role, TicketStatus } from '@prisma/client'
 import db from '../../service/db'
+import quicker from '../../util/quicker'
+import { getCounsellorTarget } from '../counsellor-invites/counsellor-invite.service'
 
 // Per-role dashboards (PRD E5) — stats + next-action list. Each role returns the shape its UI needs.
 
@@ -24,9 +26,19 @@ export const getDashboard = async (tenantId: string, role: Role, userId: string)
 }
 
 const adminDashboard = async (tenantId: string) => {
-    const [totalStudents, totalTrainers, activeEnrollments, coursesPublished, overdueInvoices, paidThisMonth] = await Promise.all([
+    const [
+        totalStudents,
+        totalTrainers,
+        totalCounsellors,
+        activeEnrollments,
+        coursesPublished,
+        overdueInvoices,
+        paidThisMonth,
+        signupsThisMonth
+    ] = await Promise.all([
         db.client.user.count({ where: { tenantId, role: Role.STUDENT } }),
         db.client.user.count({ where: { tenantId, role: Role.TRAINER } }),
+        db.client.user.count({ where: { tenantId, role: Role.COUNSELLOR } }),
         db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.ACTIVE } }),
         db.client.course.count({ where: { tenantId, publishState: 'PUBLISHED' } }),
         db.client.invoice.count({ where: { tenantId, status: InvoiceStatus.DUE } }),
@@ -37,6 +49,9 @@ const adminDashboard = async (tenantId: string) => {
                 status: InvoiceStatus.PAID,
                 paidAt: { gte: firstDayOfMonth() }
             }
+        }),
+        db.client.studentSignup.count({
+            where: { tenantId, createdAt: { gte: firstDayOfMonth() } }
         })
     ])
 
@@ -44,14 +59,18 @@ const adminDashboard = async (tenantId: string) => {
         stats: {
             totalStudents,
             totalTrainers,
+            totalCounsellors,
             activeEnrollments,
             coursesPublished,
             overdueInvoices,
-            revenueThisMonth: paidThisMonth._sum.totalAmount ?? 0
+            revenueThisMonth: paidThisMonth._sum.totalAmount ?? 0,
+            signupsThisMonth
         },
-        nextActions: overdueInvoices > 0
-            ? [{ label: `Follow up on ${overdueInvoices} overdue invoice(s)`, link: '/admin/invoices?status=DUE' }]
-            : [{ label: 'Invite a new trainer', link: '/admin/users/invites' }]
+        monitoring: getMonitoringSnapshot(),
+        nextActions:
+            overdueInvoices > 0
+                ? [{ label: `Follow up on ${overdueInvoices} overdue invoice(s)`, link: '/admin/invoices?status=DUE' }]
+                : [{ label: 'Invite a new trainer', link: '/admin/users/invites' }]
     }
 }
 
@@ -79,11 +98,15 @@ const trainerDashboard = async (tenantId: string, userId: string) => {
 }
 
 const studentDashboard = async (tenantId: string, userId: string) => {
-    const [activeEnrollments, completedCourses, pendingInvoices, quizzesAttempted] = await Promise.all([
+    const [activeEnrollments, completedCourses, pendingInvoices, quizzesAttempted, pendingTotalAgg] = await Promise.all([
         db.client.enrollment.count({ where: { tenantId, userId, status: EnrollmentStatus.ACTIVE } }),
         db.client.enrollment.count({ where: { tenantId, userId, status: EnrollmentStatus.COMPLETED } }),
         db.client.invoice.count({ where: { tenantId, userId, status: InvoiceStatus.DUE } }),
-        db.client.quizAttempt.count({ where: { tenantId, userId, status: QuizAttemptStatus.SUBMITTED } })
+        db.client.quizAttempt.count({ where: { tenantId, userId, status: QuizAttemptStatus.SUBMITTED } }),
+        db.client.invoice.aggregate({
+            _sum: { totalAmount: true },
+            where: { tenantId, userId, status: InvoiceStatus.DUE }
+        })
     ])
 
     const nextLesson = await db.client.enrollment.findFirst({
@@ -92,38 +115,66 @@ const studentDashboard = async (tenantId: string, userId: string) => {
         include: { course: { select: { id: true, title: true } } }
     })
 
-    const actions = []
-    if (pendingInvoices > 0) actions.push({ label: 'Pay pending invoice', link: '/my/invoices' })
+    const actions: { label: string; link: string }[] = []
+    if (pendingInvoices > 0) actions.push({ label: 'Pay pending invoice', link: '/my/payments/pending' })
     if (nextLesson) actions.push({ label: `Continue ${nextLesson.course.title}`, link: `/my/courses/${nextLesson.courseId}` })
-    if (actions.length === 0) actions.push({ label: 'Browse courses', link: '/courses' })
+    if (actions.length === 0) actions.push({ label: 'Browse free courses', link: '/courses?free=1' })
 
     return {
-        stats: { activeEnrollments, completedCourses, pendingInvoices, quizzesAttempted },
+        stats: {
+            activeEnrollments,
+            completedCourses,
+            pendingInvoices,
+            pendingAmount: pendingTotalAgg._sum.totalAmount ?? 0,
+            quizzesAttempted
+        },
         nextActions: actions
     }
 }
 
 const counsellorDashboard = async (tenantId: string, userId: string) => {
-    const [myLeads, newStage, enrolled, dueFollowUps] = await Promise.all([
-        db.client.lead.count({ where: { tenantId, assignedToId: userId } }),
-        db.client.lead.count({ where: { tenantId, assignedToId: userId, stage: LeadStage.NEW } }),
-        db.client.lead.count({ where: { tenantId, assignedToId: userId, stage: LeadStage.ENROLLED } }),
-        db.client.lead.count({
-            where: { tenantId, assignedToId: userId, nextActionAt: { lte: new Date() } }
-        })
+    const [signupsCount, activeStudents, paidThisMonthAgg, pendingAmountAgg, target] = await Promise.all([
+        db.client.studentSignup.count({ where: { tenantId, counsellorId: userId } }),
+        db.client.enrollment.count({
+            where: { tenantId, counsellorId: userId, status: EnrollmentStatus.ACTIVE }
+        }),
+        db.client.invoice.aggregate({
+            _sum: { totalAmount: true },
+            where: {
+                tenantId,
+                status: InvoiceStatus.PAID,
+                paidAt: { gte: firstDayOfMonth() },
+                enrollment: { counsellorId: userId }
+            }
+        }),
+        db.client.invoice.aggregate({
+            _sum: { totalAmount: true },
+            where: {
+                tenantId,
+                status: { in: [InvoiceStatus.DUE, InvoiceStatus.FAILED] },
+                enrollment: { counsellorId: userId }
+            }
+        }),
+        getCounsellorTarget(tenantId, userId)
     ])
 
-    const next = await db.client.lead.findFirst({
-        where: { tenantId, assignedToId: userId, nextActionAt: { lte: new Date() } },
-        orderBy: { nextActionAt: 'asc' },
-        select: { id: true, name: true }
+    const recent = await db.client.studentSignup.findFirst({
+        where: { tenantId, counsellorId: userId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, firstName: true, lastName: true }
     })
 
     return {
-        stats: { myLeads, newStage, enrolled, dueFollowUps },
-        nextActions: next
-            ? [{ label: `Follow up on ${next.name}`, link: `/counsellor/leads/${next.id}` }]
-            : [{ label: 'Add a new lead', link: '/counsellor/leads/new' }]
+        stats: {
+            mySignups: signupsCount,
+            activeStudents,
+            revenueThisMonth: paidThisMonthAgg._sum.totalAmount ?? 0,
+            pendingAmount: pendingAmountAgg._sum.totalAmount ?? 0
+        },
+        target,
+        nextActions: recent
+            ? [{ label: `View ${recent.firstName} ${recent.lastName}'s progress`, link: `/counsellor/students` }]
+            : [{ label: 'Create a new onboarding link', link: '/counsellor/invites/new' }]
     }
 }
 
@@ -152,8 +203,6 @@ const supportDashboard = async (tenantId: string) => {
 }
 
 const clientDashboard = async (tenantId: string, userId: string) => {
-    // B2B clients see aggregate stats for users they own. In Phase 1 we scope by email domain; for now
-    // we show platform-wide read-only counts for their tenant.
     const [activeLearners, completions] = await Promise.all([
         db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.ACTIVE } }),
         db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.COMPLETED } })
@@ -161,6 +210,15 @@ const clientDashboard = async (tenantId: string, userId: string) => {
     return {
         stats: { activeLearners, completions, userId },
         nextActions: [{ label: 'Download latest progress report', link: '/client/reports/latest' }]
+    }
+}
+
+// Admin-only system snapshot. Heavier metrics still come from /metrics (Prometheus).
+export const getMonitoringSnapshot = () => {
+    return {
+        application: quicker.getApplicationHealth(),
+        system: quicker.getSystemHealth(),
+        timestamp: Date.now()
     }
 }
 

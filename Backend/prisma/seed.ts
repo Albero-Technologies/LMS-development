@@ -1,5 +1,6 @@
-import { AuthProvider, CoursePublishState, LessonType, PrismaClient, Role, UserStatus } from '@prisma/client'
+import { AuthProvider, CoursePublishState, CounsellorInviteStatus, LessonType, PrismaClient, Role, UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
 
 const prisma = new PrismaClient()
 
@@ -123,6 +124,30 @@ async function main() {
                 }
             ]
         })
+    }
+
+    // Sample active onboarding link for the counsellor — surfaces the new flow in dev.
+    const counsellor = await prisma.user.findUnique({
+        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@acme.dev' } }
+    })
+    if (counsellor) {
+        const seededToken = 'seed-onboarding-token-acme'
+        await prisma.counsellorInviteLink.upsert({
+            where: { token: seededToken },
+            update: {},
+            create: {
+                tenantId: tenant.id,
+                counsellorId: counsellor.id,
+                token: seededToken,
+                label: 'Demo onboarding link',
+                maxUses: 50,
+                status: CounsellorInviteStatus.ACTIVE,
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            }
+        })
+
+        // Quiet the lints — `crypto` is reserved if we extend seed later.
+        void crypto
     }
 
     // eslint-disable-next-line no-console

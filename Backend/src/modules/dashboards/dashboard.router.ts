@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express'
 import { asyncHandler } from '../../middleware/asyncHandler'
-import { requireAuth } from '../../middleware/auth'
-import { getDashboard } from './dashboard.service'
+import { requireAuth, requirePolicy } from '../../middleware/auth'
+import { getDashboard, getMonitoringSnapshot } from './dashboard.service'
+import db from '../../service/db'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 
@@ -14,6 +15,26 @@ router.get(
         if (!req.auth) return
         const data = await getDashboard(req.auth.tenantId, req.auth.role, req.auth.userId)
         httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+    })
+)
+
+// Admin-only monitoring view. Lightweight live snapshot — pair with /metrics for Prometheus.
+router.get(
+    '/monitoring',
+    requireAuth,
+    requirePolicy('monitoring', 'read'),
+    asyncHandler(async (req: Request, res: Response) => {
+        let dbHealthy = false
+        try {
+            await db.client.$queryRaw`SELECT 1`
+            dbHealthy = true
+        } catch {
+            /* db down — surfaced below */
+        }
+        httpResponse(req, res, dbHealthy ? 200 : 503, responseMessage.SUCCESS, {
+            ...getMonitoringSnapshot(),
+            db: dbHealthy ? 'up' : 'down'
+        })
     })
 )
 

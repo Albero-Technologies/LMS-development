@@ -15,7 +15,9 @@ export type TModule =
     | 'quiz'
     | 'quiz_attempt'
     | 'batch'
-    | 'lead'
+    | 'counsellor_invite'
+    | 'counsellor_target'
+    | 'monitoring'
     | 'ticket'
     | 'notification'
     | 'dashboard'
@@ -65,9 +67,17 @@ export const POLICY: TPolicy = {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.CLIENT, Role.SUPPORT],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
-    lead: {
+    counsellor_invite: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLOR],
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLOR]
+    },
+    counsellor_target: {
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLOR],
+        write: [Role.SUPER_ADMIN, Role.ADMIN]
+    },
+    monitoring: {
+        read: [Role.SUPER_ADMIN, Role.ADMIN],
+        write: []
     },
     ticket: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.STUDENT, Role.TRAINER, Role.CLIENT],
