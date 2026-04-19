@@ -10,7 +10,17 @@ export type TNotifyJobData = {
     userId?: string
     toEmail?: string
     toName?: string
-    template: 'welcome' | 'invite' | 'enrollment' | 'payment' | 'ticket_update'
+    template:
+        | 'welcome'
+        | 'invite'
+        | 'enrollment'
+        | 'payment'
+        | 'ticket_update'
+        | 'counsellor_signup_received'
+        | 'counsellor_task_assigned'
+        | 'counsellor_task_completed'
+        | 'manager_signup_received'
+        | 'manager_target_progress'
     subject?: string
     data: Record<string, unknown>
 }

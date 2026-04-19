@@ -14,6 +14,7 @@ import responseMessage from '../../constant/responseMessage'
 import { hashPassword } from '../../util/password'
 import { randomToken } from '../../util/tokens'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
+import { assertManagerOwnsCounsellor } from '../counsellor-management/counsellor-management.service'
 import { TCreateInviteLinkInput, TSetTargetInput, TSubmitOnboardingInput } from './counsellor-invite.schema'
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
@@ -223,8 +224,8 @@ export const submitOnboarding = async (token: string, input: TSubmitOnboardingIn
     await notifyQueue.add(NOTIFY_JOB, {
         tenantId: link.tenantId,
         userId: link.counsellorId,
-        template: 'welcome',
-        data: { firstName: input.firstName }
+        template: 'counsellor_signup_received',
+        data: { firstName: input.firstName, lastName: input.lastName, email }
     })
     await notifyQueue.add(NOTIFY_JOB, {
         tenantId: link.tenantId,
@@ -232,6 +233,24 @@ export const submitOnboarding = async (token: string, input: TSubmitOnboardingIn
         template: 'welcome',
         data: { firstName: input.firstName }
     })
+
+    // Bubble up to the counsellor's manager so they can monitor pipeline activity.
+    const counsellor = await db.client.user.findUnique({
+        where: { id: link.counsellorId },
+        select: { managerId: true, firstName: true, lastName: true }
+    })
+    if (counsellor?.managerId) {
+        await notifyQueue.add(NOTIFY_JOB, {
+            tenantId: link.tenantId,
+            userId: counsellor.managerId,
+            template: 'manager_signup_received',
+            data: {
+                counsellorName: `${counsellor.firstName} ${counsellor.lastName}`,
+                studentName: `${input.firstName} ${input.lastName}`,
+                studentEmail: email
+            }
+        })
+    }
 
     return {
         student: {
@@ -337,11 +356,18 @@ export const listMyStudents = async (tenantId: string, role: Role, actorId: stri
 
 // ----- Targets -----
 
-export const setCounsellorTarget = async (tenantId: string, input: TSetTargetInput) => {
+export const setCounsellorTarget = async (
+    tenantId: string,
+    role: Role,
+    actorId: string,
+    input: TSetTargetInput
+) => {
     const counsellor = await db.client.user.findFirst({
         where: { id: input.counsellorId, tenantId, role: Role.COUNSELLOR }
     })
     if (!counsellor) throw AppError.notFound(responseMessage.NOT_FOUND('Counsellor'), 'COUNSELLOR_NOT_FOUND')
+    // Managers may only set targets for counsellors directly under them.
+    await assertManagerOwnsCounsellor(tenantId, role, actorId, input.counsellorId)
 
     const periodStart = startOfMonth(input.periodStart)
     const periodEnd = endOfMonth(periodStart)

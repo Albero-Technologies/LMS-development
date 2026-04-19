@@ -28,7 +28,7 @@ const spec = {
         { name: 'Notifications', description: 'In-app notification inbox' },
         { name: 'Dashboard', description: 'Per-role dashboard aggregates' },
         { name: 'Uploads', description: 'Multer file uploads' },
-        { name: 'Webhooks', description: 'Razorpay + Zoho Books callbacks' },
+        { name: 'Webhooks', description: 'Razorpay payment callbacks' },
         { name: 'Ops', description: 'Health, metrics, self' }
     ],
     components: {
@@ -302,7 +302,16 @@ const spec = {
         '/counsellor/invites/{id}':         { get: { tags: ['CounsellorInvites'], summary: 'Get invite link with signups + creds', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }, delete: { tags: ['CounsellorInvites'], summary: 'Revoke invite link', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
         '/counsellor/invites/{id}/share':   { post: { tags: ['CounsellorInvites'], summary: 'Re-share student credentials', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
         '/counsellor/students':             { get: { tags: ['CounsellorInvites'], summary: 'My students with progress + payment summary', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/targets':              { get: { tags: ['CounsellorInvites'], summary: 'My target & completion rate', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/targets':              { get: { tags: ['CounsellorInvites'], summary: 'My target & completion rate', responses: { '200': { description: 'OK' } } }, post: { tags: ['CounsellorInvites'], summary: 'Set target (manager / admin)', responses: { '201': { description: 'Created' } } } },
+
+        '/counsellor/profile/me':                       { get: { tags: ['CounsellorInvites'], summary: 'My profile (employee code, manager)', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/team':                             { get: { tags: ['CounsellorInvites'], summary: 'Manager: list counsellors under me', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/team/assign':                      { post: { tags: ['CounsellorInvites'], summary: 'Assign / unassign a counsellor to a manager', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/reports/me':                       { get: { tags: ['CounsellorInvites'], summary: 'Counsellor: my own report (preset|from/to)', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/reports/counsellors/{counsellorId}': { get: { tags: ['CounsellorInvites'], summary: 'Manager / admin: a single counsellor report', parameters: [{ name: 'counsellorId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/counsellor/reports/team':                     { get: { tags: ['CounsellorInvites'], summary: 'Manager: aggregate team report (admin: ?managerId=)', responses: { '200': { description: 'OK' } } } },
+        '/counsellor/tasks':                            { get: { tags: ['CounsellorInvites'], summary: 'List tasks (counsellor: own; manager: team)', responses: { '200': { description: 'OK' } } }, post: { tags: ['CounsellorInvites'], summary: 'Manager: assign task to a counsellor', responses: { '201': { description: 'Created' } } } },
+        '/counsellor/tasks/{id}':                       { patch: { tags: ['CounsellorInvites'], summary: 'Update task (counsellor: status only)', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }, delete: { tags: ['CounsellorInvites'], summary: 'Manager: delete task', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
 
         '/onboarding/{token}':              { get: { tags: ['Onboarding'], summary: 'Resolve invite link → tenant branding', parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
         '/onboarding/{token}/submit':       { post: { tags: ['Onboarding'], summary: 'Public student onboarding form submit → returns creds', parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
@@ -360,8 +369,7 @@ const spec = {
         '/uploads/assignments': { post: { tags: ['Uploads'], summary: 'Assignment submission (25MB doc)', responses: { '201': { description: 'OK' } } } },
 
         // ---- Webhooks ----
-        '/webhooks/razorpay':   { post: { tags: ['Webhooks'], summary: 'Razorpay payment callback (HMAC verified)', security: [], responses: { '200': { description: 'OK' } } } },
-        '/webhooks/zoho-books': { post: { tags: ['Webhooks'], summary: 'Zoho Books invoice callback (shared secret)', security: [], responses: { '200': { description: 'OK' } } } }
+        '/webhooks/razorpay':   { post: { tags: ['Webhooks'], summary: 'Razorpay payment callback (HMAC verified)', security: [], responses: { '200': { description: 'OK' } } } }
     }
 }
 

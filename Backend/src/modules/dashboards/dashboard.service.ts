@@ -14,6 +14,8 @@ export const getDashboard = async (tenantId: string, role: Role, userId: string)
             return trainerDashboard(tenantId, userId)
         case Role.STUDENT:
             return studentDashboard(tenantId, userId)
+        case Role.COUNSELLING_MANAGER:
+            return managerDashboard(tenantId, userId)
         case Role.COUNSELLOR:
             return counsellorDashboard(tenantId, userId)
         case Role.SUPPORT:
@@ -175,6 +177,55 @@ const counsellorDashboard = async (tenantId: string, userId: string) => {
         nextActions: recent
             ? [{ label: `View ${recent.firstName} ${recent.lastName}'s progress`, link: `/counsellor/students` }]
             : [{ label: 'Create a new onboarding link', link: '/counsellor/invites/new' }]
+    }
+}
+
+const managerDashboard = async (tenantId: string, managerId: string) => {
+    const teamIdsRows = await db.client.user.findMany({
+        where: { tenantId, managerId, role: Role.COUNSELLOR },
+        select: { id: true }
+    })
+    const teamIds = teamIdsRows.map((u) => u.id)
+
+    const monthStart = firstDayOfMonth()
+
+    const [signupsThisMonth, activeStudents, paidThisMonthAgg, openTasks] = await Promise.all([
+        db.client.studentSignup.count({
+            where: { tenantId, counsellorId: { in: teamIds }, createdAt: { gte: monthStart } }
+        }),
+        db.client.enrollment.count({
+            where: {
+                tenantId,
+                counsellorId: { in: teamIds },
+                status: EnrollmentStatus.ACTIVE
+            }
+        }),
+        db.client.invoice.aggregate({
+            _sum: { totalAmount: true },
+            where: {
+                tenantId,
+                status: InvoiceStatus.PAID,
+                paidAt: { gte: monthStart },
+                enrollment: { counsellorId: { in: teamIds } }
+            }
+        }),
+        db.client.counsellorTask.count({
+            where: { tenantId, assigneeId: { in: teamIds }, status: { not: 'DONE' } }
+        })
+    ])
+
+    return {
+        stats: {
+            teamSize: teamIds.length,
+            signupsThisMonth,
+            activeStudents,
+            revenueThisMonth: paidThisMonthAgg._sum.totalAmount ?? 0,
+            openTasks
+        },
+        nextActions: [
+            { label: 'View team report', link: '/counsellor/reports/team' },
+            { label: 'Assign a task', link: '/counsellor/tasks/new' }
+        ]
     }
 }
 

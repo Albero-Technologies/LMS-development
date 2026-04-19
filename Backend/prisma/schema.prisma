@@ -22,6 +22,7 @@ enum Role {
   ADMIN
   TRAINER
   STUDENT
+  COUNSELLING_MANAGER
   COUNSELLOR
   SUPPORT
   CLIENT
@@ -124,6 +125,20 @@ enum StudentSignupStatus {
   ENROLLED
 }
 
+enum CounsellorTaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum CounsellorTaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
 enum TicketPriority {
   LOW
   NORMAL
@@ -177,6 +192,7 @@ model Tenant {
   counsellorInviteLinks CounsellorInviteLink[]
   studentSignups        StudentSignup[]
   counsellorTargets     CounsellorTarget[]
+  counsellorTasks       CounsellorTask[]
   tickets               Ticket[]
   notifications         Notification[]
   auditLogs             AuditLog[]
@@ -201,6 +217,8 @@ model User {
   emailVerified Boolean      @default(false)
   tokenVersion  Int          @default(0) // bumps on password change → invalidates JWTs
   lastLoginAt   DateTime?
+  managerId     String? // self-ref: counsellor → their COUNSELLING_MANAGER
+  employeeCode  String? // optional internal id counsellors can quote to students
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   deletedAt     DateTime?
@@ -221,9 +239,14 @@ model User {
   studentSignupsAsCounsellor StudentSignup[]        @relation("StudentSignupCounsellor")
   studentSignup              StudentSignup?         @relation("StudentSignupUser")
   counsellorTargets          CounsellorTarget[]     @relation("CounsellorTargetOwner")
+  manager                    User?                  @relation("CounsellorManagement", fields: [managerId], references: [id])
+  directReports              User[]                 @relation("CounsellorManagement")
+  tasksAssigned              CounsellorTask[]       @relation("CounsellorTaskAssignee")
+  tasksCreated               CounsellorTask[]       @relation("CounsellorTaskCreator")
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
+  @@index([tenantId, managerId])
   @@index([googleSub])
   @@map("users")
 }
@@ -420,7 +443,6 @@ model Invoice {
   gatewayOrderId   String?
   gatewayPaymentId String?
   gatewayRef       String? // legacy ref
-  zohoInvoiceId    String? // set via Zoho Books webhook
   pdfUrl           String?
   status           InvoiceStatus  @default(DRAFT)
   dueAt            DateTime?
@@ -581,6 +603,30 @@ model StudentSignup {
 
   @@index([tenantId, counsellorId])
   @@map("student_signups")
+}
+
+model CounsellorTask {
+  id          String                 @id @default(uuid())
+  tenantId    String
+  assigneeId  String // counsellor this is for
+  createdById String // manager / admin who created it
+  title       String
+  description String?
+  status      CounsellorTaskStatus   @default(OPEN)
+  priority    CounsellorTaskPriority @default(NORMAL)
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  deletedAt   DateTime?
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  assignee  User   @relation("CounsellorTaskAssignee", fields: [assigneeId], references: [id])
+  createdBy User   @relation("CounsellorTaskCreator", fields: [createdById], references: [id])
+
+  @@index([tenantId, assigneeId, status])
+  @@index([tenantId, createdById])
+  @@map("counsellor_tasks")
 }
 
 model CounsellorTarget {

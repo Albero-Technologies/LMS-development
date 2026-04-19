@@ -1,8 +1,8 @@
 import { Role } from '@prisma/client'
 
-// 12-module × 7-role Verify/Edit matrix from PRD E1.
-// Each module names the roles allowed to READ or WRITE.
-// "OWNER" is handled at row level (not here): e.g. a student reads/writes their OWN enrollment.
+// Module × role read/write matrix.
+// "OWNER" semantics (e.g. counsellor reads only own targets, manager only own team) are enforced
+// inside services after the gate — this matrix is the broad-strokes filter.
 
 export type TModule =
     | 'tenant'
@@ -17,6 +17,9 @@ export type TModule =
     | 'batch'
     | 'counsellor_invite'
     | 'counsellor_target'
+    | 'counsellor_report'
+    | 'counsellor_task'
+    | 'counsellor_team'
     | 'monitoring'
     | 'ticket'
     | 'notification'
@@ -26,17 +29,19 @@ export type TAction = 'read' | 'write'
 
 type TPolicy = Record<TModule, { read: Role[]; write: Role[] }>
 
+const COUNSELLING_ROLES = [Role.COUNSELLING_MANAGER, Role.COUNSELLOR] as const
+
 export const POLICY: TPolicy = {
     tenant: {
         read: [Role.SUPER_ADMIN, Role.ADMIN],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     user: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.COUNSELLOR, Role.TRAINER],
-        write: [Role.SUPER_ADMIN, Role.ADMIN]
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.COUNSELLING_MANAGER, Role.COUNSELLOR, Role.TRAINER],
+        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLING_MANAGER]
     },
     course: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.COUNSELLOR, Role.SUPPORT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT, Role.CLIENT],
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER]
     },
     lesson: {
@@ -68,12 +73,29 @@ export const POLICY: TPolicy = {
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     counsellor_invite: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLOR],
-        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLOR]
+        read: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES],
+        write: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES]
     },
     counsellor_target: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLOR],
-        write: [Role.SUPER_ADMIN, Role.ADMIN]
+        // Counsellors read their own; managers read team; admin reads all (enforced in service).
+        read: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES],
+        // Counsellors cannot set their own targets — managers and admins can.
+        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLING_MANAGER]
+    },
+    counsellor_report: {
+        // Counsellor reads own report; manager reads team reports; admin reads all.
+        read: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES],
+        write: []
+    },
+    counsellor_task: {
+        // Counsellor reads + updates status of own tasks; manager creates / assigns; admin everything.
+        read: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES],
+        write: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES]
+    },
+    counsellor_team: {
+        // Roster of counsellors-under-manager. Managers + admin only.
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLING_MANAGER],
+        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLING_MANAGER]
     },
     monitoring: {
         read: [Role.SUPER_ADMIN, Role.ADMIN],
@@ -84,11 +106,11 @@ export const POLICY: TPolicy = {
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.STUDENT, Role.TRAINER, Role.CLIENT]
     },
     notification: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.COUNSELLOR, Role.SUPPORT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT, Role.CLIENT],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     dashboard: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.COUNSELLOR, Role.SUPPORT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT, Role.CLIENT],
         write: []
     }
 }

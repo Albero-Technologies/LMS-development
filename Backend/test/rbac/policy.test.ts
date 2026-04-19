@@ -30,10 +30,25 @@ describe('RBAC policy matrix', () => {
         expect(can(Role.STUDENT, 'counsellor_invite', 'read')).toBe(false)
     })
 
-    it('counsellors view targets but only admins write them', () => {
+    it('counsellors view targets; managers + admins write them', () => {
         expect(can(Role.COUNSELLOR, 'counsellor_target', 'read')).toBe(true)
         expect(can(Role.COUNSELLOR, 'counsellor_target', 'write')).toBe(false)
+        expect(can(Role.COUNSELLING_MANAGER, 'counsellor_target', 'write')).toBe(true)
         expect(can(Role.ADMIN, 'counsellor_target', 'write')).toBe(true)
+    })
+
+    it('counsellor_team is manager + admin only', () => {
+        expect(can(Role.COUNSELLING_MANAGER, 'counsellor_team', 'read')).toBe(true)
+        expect(can(Role.COUNSELLING_MANAGER, 'counsellor_team', 'write')).toBe(true)
+        expect(can(Role.COUNSELLOR, 'counsellor_team', 'read')).toBe(false)
+        expect(can(Role.STUDENT, 'counsellor_team', 'read')).toBe(false)
+    })
+
+    it('both counselling roles read reports + tasks; counsellor writes own task', () => {
+        expect(can(Role.COUNSELLOR, 'counsellor_report', 'read')).toBe(true)
+        expect(can(Role.COUNSELLING_MANAGER, 'counsellor_report', 'read')).toBe(true)
+        expect(can(Role.STUDENT, 'counsellor_report', 'read')).toBe(false)
+        expect(can(Role.COUNSELLOR, 'counsellor_task', 'write')).toBe(true)
     })
 
     it('only admins read monitoring; nobody writes it', () => {

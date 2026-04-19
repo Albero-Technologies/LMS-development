@@ -18,6 +18,5 @@ const throttle = (req: Request, _: Response, next: NextFunction): void => {
 }
 
 router.post('/razorpay', throttle, asyncHandler(ctrl.razorpayWebhook))
-router.post('/zoho-books', throttle, asyncHandler(ctrl.zohoBooksWebhook))
 
 export default router

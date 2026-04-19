@@ -49,6 +49,44 @@ export const render = ({ template, data, tenantName }: TRenderInput): TRendered 
 <p>${data.pdfUrl ? `<a href="${String(data.pdfUrl)}">Download invoice PDF</a>` : ''}</p>`
             }
 
+        case 'counsellor_signup_received':
+            return {
+                subject: `New student onboarded — ${String(data.firstName ?? '')} ${String(data.lastName ?? '')}`.trim(),
+                text: `A new student (${String(data.firstName ?? '')} ${String(data.lastName ?? '')}, ${String(data.email ?? '')}) just signed up via your link.`,
+                html: `<p>A new student just signed up via your onboarding link.</p>
+<p><strong>${String(data.firstName ?? '')} ${String(data.lastName ?? '')}</strong> (${String(data.email ?? '')})</p>`
+            }
+
+        case 'counsellor_task_assigned':
+            return {
+                subject: `New task: ${String(data.title ?? '')}`,
+                text: `You have a new task: ${String(data.title ?? '')}${data.dueAt ? ` — due ${String(data.dueAt)}` : ''}.`,
+                html: `<p>You have a new task assigned.</p>
+<p><strong>${String(data.title ?? '')}</strong>${data.dueAt ? `<br/>Due: ${String(data.dueAt)}` : ''}<br/>Priority: ${String(data.priority ?? 'NORMAL')}</p>`
+            }
+
+        case 'counsellor_task_completed':
+            return {
+                subject: `Task completed: ${String(data.title ?? '')}`,
+                text: `Task "${String(data.title ?? '')}" was marked complete.`,
+                html: `<p>Task <strong>${String(data.title ?? '')}</strong> has been marked complete.</p>`
+            }
+
+        case 'manager_signup_received':
+            return {
+                subject: `Team activity: ${String(data.counsellorName ?? 'A counsellor')} onboarded a student`,
+                text: `${String(data.counsellorName ?? 'A counsellor')} onboarded ${String(data.studentName ?? 'a new student')} (${String(data.studentEmail ?? '')}).`,
+                html: `<p><strong>${String(data.counsellorName ?? 'A counsellor')}</strong> onboarded a new student.</p>
+<p>${String(data.studentName ?? '')} — ${String(data.studentEmail ?? '')}</p>`
+            }
+
+        case 'manager_target_progress':
+            return {
+                subject: `Target update — ${String(data.counsellorName ?? 'a counsellor')}`,
+                text: `${String(data.counsellorName ?? 'A counsellor')} is at ${String(data.completionPct ?? 0)}% of their ${String(data.metric ?? 'target')} target.`,
+                html: `<p><strong>${String(data.counsellorName ?? 'A counsellor')}</strong> is at <strong>${String(data.completionPct ?? 0)}%</strong> of their ${String(data.metric ?? 'target')} target this period.</p>`
+            }
+
         case 'ticket_update':
             return {
                 subject: `Ticket ${String(data.ticketNumber ?? '')} — ${String(data.status ?? 'updated')}`,

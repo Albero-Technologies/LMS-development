@@ -15,6 +15,7 @@ import dashboardRouter from '../modules/dashboards/dashboard.router'
 import uploadRouter from '../modules/uploads/upload.router'
 import counsellorInviteRouter from '../modules/counsellor-invites/counsellor-invite.router'
 import counsellorPublicRouter from '../modules/counsellor-invites/counsellor-public.router'
+import counsellorManagementRouter from '../modules/counsellor-management/counsellor-management.router'
 import paymentRouter from '../modules/payments/payment.router'
 import swaggerRouter from '../docs/swagger'
 
@@ -32,6 +33,7 @@ router.use('/enrollments', enrollmentRouter)
 router.use('/quizzes', quizRouter)
 router.use('/batches', batchRouter)
 router.use('/counsellor', counsellorInviteRouter)
+router.use('/counsellor', counsellorManagementRouter)
 router.use('/onboarding', counsellorPublicRouter)
 router.use('/payments', paymentRouter)
 router.use('/tickets', ticketRouter)

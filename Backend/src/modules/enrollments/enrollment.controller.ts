@@ -43,10 +43,3 @@ export const razorpayWebhook = async (req: Request, res: Response): Promise<void
     const result = await service.handleRazorpayWebhook(rawBody, signature)
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }
-
-export const zohoBooksWebhook = async (req: Request, res: Response): Promise<void> => {
-    const rawBody = (req as unknown as { rawBody?: string }).rawBody || JSON.stringify(req.body)
-    const provided = (req.headers['x-zoho-signature'] as string) || (req.query.secret as string) || ''
-    const result = await service.handleZohoBooksWebhook(rawBody, provided)
-    httpResponse(req, res, 200, responseMessage.SUCCESS, result)
-}

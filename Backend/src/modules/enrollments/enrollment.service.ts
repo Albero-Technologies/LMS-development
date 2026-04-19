@@ -268,33 +268,6 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
     return { ok: true }
 }
 
-// Zoho Books webhook — attach PDF URL and zoho invoice id to our invoice.
-export const handleZohoBooksWebhook = async (rawBody: string, providedSecret: string) => {
-    // Phase 1 — shared secret comparison (header-based). For production, switch to HMAC.
-    const expected = process.env.ZOHO_BOOKS_WEBHOOK_SECRET || ''
-    if (!expected || providedSecret !== expected) {
-        throw AppError.badRequest(responseMessage.WEBHOOK_SIGNATURE_INVALID, 'WEBHOOK_SIGNATURE_INVALID')
-    }
-
-    const parsed = JSON.parse(rawBody) as {
-        invoice?: { reference_number?: string; invoice_id?: string; invoice_pdf_url?: string }
-    }
-    const ref = parsed.invoice?.reference_number
-    if (!ref) return { ok: true, skipped: true }
-
-    const invoice = await db.client.invoice.findFirst({ where: { number: ref } })
-    if (!invoice) return { ok: true, skipped: true }
-
-    await db.client.invoice.update({
-        where: { id: invoice.id },
-        data: {
-            zohoInvoiceId: parsed.invoice?.invoice_id,
-            pdfUrl: parsed.invoice?.invoice_pdf_url
-        }
-    })
-    return { ok: true }
-}
-
 export const listMyEnrollments = async (tenantId: string, userId: string) => {
     return db.client.enrollment.findMany({
         where: { tenantId, userId },

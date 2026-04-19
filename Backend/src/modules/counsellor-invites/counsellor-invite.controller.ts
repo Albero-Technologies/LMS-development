@@ -71,7 +71,12 @@ export const myTarget = async (req: Request, res: Response): Promise<void> => {
 
 export const setTarget = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const target = await service.setCounsellorTarget(req.auth.tenantId, req.body)
+    const target = await service.setCounsellorTarget(
+        req.auth.tenantId,
+        req.auth.role,
+        req.auth.userId,
+        req.body
+    )
     await writeAudit(
         { action: 'counsellor.target.set', entityType: 'CounsellorTarget', entityId: target.id },
         req

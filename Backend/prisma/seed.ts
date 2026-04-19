@@ -20,12 +20,25 @@ async function main() {
     })
 
     // One user per role — convenient for Phase 1 smoke testing.
-    const roles: { email: string; first: string; last: string; role: Role }[] = [
+    const roles: { email: string; first: string; last: string; role: Role; employeeCode?: string }[] = [
         { email: 'super@acme.dev', first: 'Super', last: 'Admin', role: Role.SUPER_ADMIN },
         { email: 'admin@acme.dev', first: 'Anya', last: 'Admin', role: Role.ADMIN },
         { email: 'trainer@acme.dev', first: 'Tara', last: 'Trainer', role: Role.TRAINER },
         { email: 'student@acme.dev', first: 'Sam', last: 'Student', role: Role.STUDENT },
-        { email: 'counsellor@acme.dev', first: 'Cara', last: 'Counsellor', role: Role.COUNSELLOR },
+        {
+            email: 'manager@acme.dev',
+            first: 'Mira',
+            last: 'Manager',
+            role: Role.COUNSELLING_MANAGER,
+            employeeCode: 'CM-001'
+        },
+        {
+            email: 'counsellor@acme.dev',
+            first: 'Cara',
+            last: 'Counsellor',
+            role: Role.COUNSELLOR,
+            employeeCode: 'C-1001'
+        },
         { email: 'support@acme.dev', first: 'Sid', last: 'Support', role: Role.SUPPORT },
         { email: 'client@acme.dev', first: 'Bee', last: 'Client', role: Role.CLIENT }
     ]
@@ -33,7 +46,7 @@ async function main() {
     for (const r of roles) {
         await prisma.user.upsert({
             where: { tenantId_email: { tenantId: tenant.id, email: r.email } },
-            update: {},
+            update: { employeeCode: r.employeeCode ?? undefined },
             create: {
                 tenantId: tenant.id,
                 email: r.email,
@@ -43,8 +56,23 @@ async function main() {
                 role: r.role,
                 status: UserStatus.ACTIVE,
                 emailVerified: true,
-                provider: AuthProvider.LOCAL
+                provider: AuthProvider.LOCAL,
+                employeeCode: r.employeeCode
             }
+        })
+    }
+
+    // Wire the seed counsellor under the manager so the team flows have data.
+    const seedManager = await prisma.user.findUnique({
+        where: { tenantId_email: { tenantId: tenant.id, email: 'manager@acme.dev' } }
+    })
+    const seedCounsellor = await prisma.user.findUnique({
+        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@acme.dev' } }
+    })
+    if (seedManager && seedCounsellor && seedCounsellor.managerId !== seedManager.id) {
+        await prisma.user.update({
+            where: { id: seedCounsellor.id },
+            data: { managerId: seedManager.id }
         })
     }
 

@@ -122,6 +122,16 @@ export const invite = async (tenantId: string, invitedById: string, input: TInvi
 
 export const allowedRolesToInvite = (actor: Role): Role[] => {
     if (actor === Role.SUPER_ADMIN) return Object.values(Role)
-    if (actor === Role.ADMIN) return [Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.COUNSELLOR, Role.SUPPORT, Role.CLIENT]
+    if (actor === Role.ADMIN)
+        return [
+            Role.ADMIN,
+            Role.TRAINER,
+            Role.STUDENT,
+            Role.COUNSELLING_MANAGER,
+            Role.COUNSELLOR,
+            Role.SUPPORT,
+            Role.CLIENT
+        ]
+    if (actor === Role.COUNSELLING_MANAGER) return [Role.COUNSELLOR]
     return []
 }
