@@ -5,6 +5,9 @@ import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { StatCard, Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
 import { Button } from '@shared/components/ui/Button'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { StudentFeesPage } from './StudentFeesPage'
 
 type Inv = { n: string; who: string; amt: number; st: 'PAID' | 'DUE' | 'REFUNDED'; due: string }
 
@@ -20,7 +23,18 @@ const TONE = {
     REFUNDED: 'default'
 } as const
 
+// Router mounts this at /app/payments for ADMIN / SUPER_ADMIN / STUDENT / CLIENT.
+// Students see a pay-now-centric Fees page; everyone else sees the admin
+// collections view below. Keeping the dispatcher here lets the route stay stable.
 export const PaymentsPage = () => {
+    const role = useAuthStore((s) => s.user?.role)
+    if (role === ROLES.STUDENT) return <StudentFeesPage />
+    return <AdminPaymentsPage />
+}
+
+// ---- Admin / Super Admin collections view ------------------------------------
+
+const AdminPaymentsPage = () => {
     const [invoices, setInvoices] = useState<Inv[]>(INITIAL)
     const [syncing, setSyncing] = useState(false)
 
