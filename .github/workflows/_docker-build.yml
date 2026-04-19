@@ -1,0 +1,137 @@
+# Reusable workflow — Docker build + push to GitHub Container Registry.
+# Builds the Backend production image via the multistage Dockerfile.
+# Pushes to ghcr.io/<owner>/<repo>/backend with environment-aware tags.
+#
+# Security posture:
+#   - OIDC-based auth only for external registries; GHCR uses GITHUB_TOKEN.
+#   - Trivy scan runs AFTER push; failing HIGH/CRITICAL blocks downstream deploy.
+#   - SBOM (CycloneDX) attached as an artifact for supply-chain audit.
+
+name: _docker-build
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'uat or production — used for image tag prefix'
+      push:
+        required: false
+        type: boolean
+        default: true
+      dockerfile:
+        required: false
+        type: string
+        default: 'Backend/docker/production/Dockerfile'
+      context:
+        required: false
+        type: string
+        default: 'Backend'
+      image-name:
+        required: false
+        type: string
+        default: 'backend'
+    outputs:
+      image:
+        description: 'Fully-qualified image reference that was pushed'
+        value: ${{ jobs.build.outputs.image }}
+      digest:
+        description: 'Image digest for pinning in deployments'
+        value: ${{ jobs.build.outputs.digest }}
+
+permissions:
+  contents: read
+  packages: write     # needed to push to GHCR
+  security-events: write  # needed for SARIF upload
+  id-token: write     # needed for cosign OIDC signing (optional)
+
+jobs:
+  build:
+    name: Build · scan · push (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
+      digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: ${{ inputs.push }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ inputs.image-name }}
+          tags: |
+            type=raw,value=${{ inputs.environment }}-latest
+            type=sha,prefix=${{ inputs.environment }}-,format=short
+            type=ref,event=branch,prefix=${{ inputs.environment }}-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          labels: |
+            org.opencontainers.image.title=LearnHub API
+            org.opencontainers.image.vendor=LearnHub
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at }}
+
+      - name: Build + push image (multi-arch)
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: ${{ inputs.push }}
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ inputs.environment }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.environment }}
+          provenance: mode=max
+          sbom: true
+
+      - name: Generate SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository }}/${{ inputs.image-name }}@${{ steps.build.outputs.digest }}
+          format: cyclonedx-json
+          output-file: sbom-${{ inputs.environment }}.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ inputs.environment }}
+          path: sbom-${{ inputs.environment }}.cdx.json
+          retention-days: 30
+
+      - name: Trivy vulnerability scan (image)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/${{ inputs.image-name }}@${{ steps.build.outputs.digest }}
+          format: sarif
+          output: trivy-image.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-${{ inputs.environment }}

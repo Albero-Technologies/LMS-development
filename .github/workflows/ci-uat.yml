@@ -1,0 +1,249 @@
+# =============================================================================
+# LearnHub — UAT PIPELINE (uat branch)
+# =============================================================================
+# Triggers:
+#   - push to uat            → full gate → build image → auto-deploy to UAT
+#   - PR targeting uat       → full gate only (no push, no deploy)
+#   - workflow_dispatch      → operator re-run
+#
+# Purpose: let QA + stakeholders exercise a production-equivalent build before
+# it's promoted to main. UAT is Neon's "uat" branch + a separate Render service.
+#
+# Required secrets (under the "uat" GitHub Environment):
+#   - DATABASE_URL_UAT
+#   - RENDER_DEPLOY_HOOK_UAT
+#   - (optional) SENTRY_AUTH_TOKEN for release tagging
+# =============================================================================
+
+name: CI · uat
+
+on:
+  push:
+    branches: [uat]
+  pull_request:
+    branches: [uat]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  id-token: write
+
+concurrency:
+  group: ci-uat-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Detect changes to avoid re-running irrelevant gates.
+  # ---------------------------------------------------------------------------
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      backend:  ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      docker:   ${{ steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'Backend/**'
+              - '.github/workflows/_backend-checks.yml'
+            frontend:
+              - 'Frontend/**'
+              - '.github/workflows/_frontend-checks.yml'
+            docker:
+              - 'Backend/docker/**'
+              - 'Backend/Dockerfile*'
+              - 'Backend/package*.json'
+              - 'Backend/prisma/**'
+
+  # ---------------------------------------------------------------------------
+  # 2. Conventional Commits for PRs into uat (prevents messy history).
+  # ---------------------------------------------------------------------------
+  commitlint:
+    name: Commitlint
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+      - run: npm ci --include=dev
+      - run: npx commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }} --verbose
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # 3. Reusable quality gates.
+  # ---------------------------------------------------------------------------
+  backend:
+    name: Backend
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/_backend-checks.yml
+    with:
+      node-version: '20'
+      run-coverage: true
+      upload-coverage: false
+
+  frontend:
+    name: Frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/_frontend-checks.yml
+    with:
+      node-version: '20'
+      build-mode: 'staging'
+      upload-dist: true
+
+  audit:
+    name: npm audit (prod deps)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [Backend, Frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+      - run: npm audit --omit=dev --audit-level=high
+
+  # ---------------------------------------------------------------------------
+  # 4. Build + push image tagged "uat-*" to GHCR — only on push to uat.
+  # ---------------------------------------------------------------------------
+  docker:
+    name: Docker image
+    needs: [backend, audit]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/uat'
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      environment: uat
+      push: true
+      dockerfile: Backend/docker/production/Dockerfile
+      context: Backend
+      image-name: backend
+
+  # ---------------------------------------------------------------------------
+  # 5. Deploy to UAT — auto, but still gated by "uat" Environment reviewers
+  #    if configured.
+  # ---------------------------------------------------------------------------
+  deploy-uat:
+    name: Deploy → uat
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/uat'
+    runs-on: ubuntu-latest
+    environment:
+      name: uat
+      url: https://uat.api.learnhub.in
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-uat
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Echo image reference
+        run: echo "Deploying ${{ needs.docker.outputs.image }} (${{ needs.docker.outputs.digest }})"
+
+      - name: Apply Prisma migrations on UAT
+        working-directory: Backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_UAT }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::DATABASE_URL_UAT not set; skipping migrate deploy"
+            exit 0
+          fi
+          npm ci --include=dev
+          npx prisma migrate deploy
+
+      - name: Trigger Render UAT deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_UAT != '' }}
+        run: |
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_UAT }}" \
+            -H 'Content-Type: application/json' \
+            -d '{"imageUrl":"${{ needs.docker.outputs.image }}","sha":"${{ github.sha }}"}' | tee /tmp/deploy.json
+
+      - name: Smoke test UAT
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 10 https://uat.api.learnhub.in/api/v1/health >/dev/null; then
+              echo "✓ uat healthy"
+              exit 0
+            fi
+            echo "waiting for uat to come up… ($i/6)"
+            sleep 20
+          done
+          echo "::error::uat /health did not return 200 in time"
+          exit 1
+
+      - name: Create Sentry release (uat)
+        if: ${{ secrets.SENTRY_AUTH_TOKEN != '' }}
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: learnhub
+          SENTRY_PROJECT: backend
+        with:
+          environment: uat
+          version: ${{ github.sha }}
+
+  # ---------------------------------------------------------------------------
+  # 6. Single status check for branch protection.
+  # ---------------------------------------------------------------------------
+  ci-pass:
+    name: CI passed
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, audit, secret-scan, changes]
+    steps:
+      - name: Summarise outcomes
+        env:
+          RESULTS: ${{ toJson(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          fail=$(echo "$RESULTS" | jq -r '[.[] | select(.result == "failure" or .result == "cancelled" or .result == "timed_out")] | length')
+          if [ "$fail" -gt 0 ]; then
+            echo "::error::one or more required jobs failed"
+            exit 1
+          fi
+          echo "✓ all required jobs passed or skipped"

@@ -1,0 +1,129 @@
+# Reusable workflow — Backend quality gate.
+# Runs: prisma generate → typecheck → lint → unit tests → coverage upload.
+# Callers: ci-main.yml, ci-uat.yml
+#
+# Assumptions:
+#   - Backend lives at Backend/
+#   - Uses npm + package-lock.json
+#   - vitest config at Backend/vitest.config.ts
+#   - Prisma schema at Backend/prisma/schema.prisma
+
+name: _backend-checks
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: '20'
+      run-coverage:
+        required: false
+        type: boolean
+        default: true
+      upload-coverage:
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Backend — typecheck · lint · test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Backend
+
+    services:
+      # Postgres + Redis for integration tests. Unit tests skip these via mocks.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U test" --health-interval=5s
+          --health-timeout=3s --health-retries=10
+
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s
+          --health-timeout=3s --health-retries=10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://test:test@localhost:5432/test?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-access-secret
+      JWT_REFRESH_SECRET: ci-refresh-secret
+      RAZORPAY_WEBHOOK_SECRET: ci-webhook-secret
+      BCRYPT_ROUNDS: '4'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --include=dev
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply Prisma migrations (if any)
+        run: |
+          if [ -d "prisma/migrations" ] && [ -n "$(ls -A prisma/migrations 2>/dev/null)" ]; then
+            npx prisma migrate deploy
+          else
+            echo "No migrations to apply (none present)"
+          fi
+
+      - name: Typecheck (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Lint (ESLint, 0 warnings)
+        run: npx eslint --max-warnings=0 .
+
+      - name: Prettier format check
+        run: npx prettier --check .
+
+      - name: Unit tests
+        if: ${{ inputs.run-coverage == false }}
+        run: npx vitest run --reporter=default
+
+      - name: Unit tests + coverage
+        if: ${{ inputs.run-coverage == true }}
+        run: npx vitest run --coverage --reporter=default
+
+      - name: Upload coverage artifact
+        if: ${{ inputs.run-coverage == true && inputs.upload-coverage == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: Backend/coverage
+          retention-days: 7
+
+      - name: Upload test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-failure-logs
+          path: |
+            Backend/logs/**/*.log
+            Backend/*.tsbuildinfo
+          retention-days: 7
+          if-no-files-found: ignore

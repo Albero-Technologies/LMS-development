@@ -1,0 +1,30 @@
+# Prometheus config — scrapes the LearnHub API + itself.
+# Mounted at /etc/prometheus/prometheus.yml by docker-compose.
+
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    env: dev
+    service: learnhub
+
+scrape_configs:
+  # --- Self-monitoring ------------------------------------------------------
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # --- LearnHub API (Node) --------------------------------------------------
+  - job_name: learnhub-api
+    metrics_path: /api/v1/metrics
+    static_configs:
+      - targets: ['api:3000']
+        labels:
+          service: learnhub-api
+          component: http
+
+  # --- Node exporter (optional; commented out until you add it) -------------
+  # - job_name: node-exporter
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']

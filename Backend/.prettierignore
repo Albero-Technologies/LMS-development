@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+logs
+public/uploads
+prisma/migrations
+*.log
+package-lock.json
+*.min.js
+.env
+.env.*

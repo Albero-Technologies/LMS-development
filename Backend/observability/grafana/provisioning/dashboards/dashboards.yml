@@ -1,0 +1,14 @@
+# Tell Grafana where to find dashboard JSON files on disk.
+apiVersion: 1
+
+providers:
+  - name: LearnHub
+    orgId: 1
+    folder: LearnHub
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
+      foldersFromFilesStructure: true

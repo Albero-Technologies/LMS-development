@@ -1,0 +1,221 @@
+# docker-compose for LOCAL DEV — run from the Backend/ directory:
+#
+#   # core stack only (fastest dev loop)
+#   docker compose -f docker/development/docker-compose.yml up --build
+#
+#   # core stack + observability (Prometheus + Loki + Promtail + Grafana)
+#   docker compose -f docker/development/docker-compose.yml --profile observability up --build
+#
+# Services in the default profile:
+#   postgres  — local Postgres (swap for Neon DATABASE_URL in .env to skip this)
+#   redis     — local Redis (swap for Upstash REDIS_URL in .env to skip this)
+#   api       — Express API with hot-reload (nodemon)
+#   worker    — BullMQ notifications worker
+#   nginx     — reverse proxy on :8080 fronting the api (mirrors prod topology)
+#
+# Services in the "observability" profile (opt-in via --profile):
+#   prometheus — scrapes /api/v1/metrics from api
+#   loki       — log aggregation
+#   promtail   — ships container logs to loki
+#   grafana    — dashboards, pre-provisioned with Prometheus + Loki datasources
+#
+# Once the observability profile is up:
+#   Grafana      http://localhost:3001   (admin / admin)
+#   Prometheus   http://localhost:9090
+#   Loki         http://localhost:3100
+
+name: learnhub-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: learnhub
+      POSTGRES_PASSWORD: learnhub
+      POSTGRES_DB: learnhub
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "learnhub"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../../
+      dockerfile: docker/development/Dockerfile
+    image: learnhub-api:dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENV: development
+      PORT: 3000
+      SERVER_URL: http://localhost:3000
+      CORS_ORIGIN: http://localhost:5173
+      DATABASE_URL: postgresql://learnhub:learnhub@postgres:5432/learnhub?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: dev-access-secret
+      JWT_REFRESH_SECRET: dev-refresh-secret
+      ALLOWED_TENANT_ORIGINS: http://localhost:5173,http://localhost:8080
+    volumes:
+      - ../../src:/usr/src/app/src
+      - ../../prisma:/usr/src/app/prisma
+      - ../../public:/usr/src/app/public
+      - ../../nodemon.json:/usr/src/app/nodemon.json
+      - ../../tsconfig.json:/usr/src/app/tsconfig.json
+      - api_logs:/usr/src/app/logs
+    labels:
+      # Promtail uses these to label log streams.
+      promtail.enable: "true"
+      service: "api"
+    ports:
+      - "3000:3000"
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: docker/development/Dockerfile
+    image: learnhub-api:dev
+    command: ["npm", "run", "worker:dev"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENV: development
+      DATABASE_URL: postgresql://learnhub:learnhub@postgres:5432/learnhub?schema=public
+      REDIS_URL: redis://redis:6379
+      SENDGRID_API_KEY: ""
+      SENDGRID_FROM_EMAIL: no-reply@learnhub.dev
+    volumes:
+      - ../../src:/usr/src/app/src
+      - ../../prisma:/usr/src/app/prisma
+    labels:
+      promtail.enable: "true"
+      service: "worker"
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ../../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../nginx/http.conf:/etc/nginx/conf.d/default.conf:ro
+
+  # ==========================================================================
+  # Observability stack — opt-in via   --profile observability
+  # ==========================================================================
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ["observability"]
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ../../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  loki:
+    image: grafana/loki:3.2.0
+    profiles: ["observability"]
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ../../observability/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  promtail:
+    image: grafana/promtail:3.2.0
+    profiles: ["observability"]
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ../../observability/promtail-config.yml:/etc/promtail/config.yml:ro
+      # Read-only Docker socket + log dir mounts. Promtail discovers containers
+      # via the socket and tails their logs directly from /var/lib/docker/containers.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # Backup file tail — mirrors the winston log volume from api.
+      - api_logs:/var/log/learnhub:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    profiles: ["observability"]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: "logsInExplore"
+      # Disables phone-home + plugin marketplace probes.
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ../../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  api_logs:
+  prometheus_data:
+  loki_data:
+  grafana_data:

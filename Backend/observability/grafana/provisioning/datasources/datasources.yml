@@ -1,0 +1,29 @@
+# Grafana auto-adds these datasources on boot. No clicking required.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST
+    editable: false
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 2000
+      # Link log lines to traces / metrics by requestId
+      derivedFields:
+        - datasourceUid: prometheus
+          matcherRegex: 'requestId=(\w+)'
+          name: requestId
+          url: '$${__value.raw}'
+    editable: false

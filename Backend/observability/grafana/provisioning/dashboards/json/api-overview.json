@@ -1,0 +1,240 @@
+{
+    "annotations": { "list": [] },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 1,
+    "id": null,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+        {
+            "type": "stat",
+            "title": "Request rate (req/s)",
+            "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_requests_total{service=\"learnhub-api\"}[5m]))",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": { "unit": "reqps", "decimals": 2 }
+            },
+            "options": {
+                "reduceOptions": { "calcs": ["lastNotNull"] },
+                "colorMode": "value",
+                "graphMode": "area"
+            }
+        },
+        {
+            "type": "stat",
+            "title": "Error rate (% 5xx)",
+            "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "100 * sum(rate(http_requests_total{service=\"learnhub-api\", status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{service=\"learnhub-api\"}[5m])), 1)",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "decimals": 2,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            { "color": "green", "value": null },
+                            { "color": "yellow", "value": 1 },
+                            { "color": "red", "value": 5 }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "reduceOptions": { "calcs": ["lastNotNull"] },
+                "colorMode": "background",
+                "graphMode": "area"
+            }
+        },
+        {
+            "type": "stat",
+            "title": "p95 latency",
+            "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"learnhub-api\"}[5m])))",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "decimals": 3,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            { "color": "green", "value": null },
+                            { "color": "yellow", "value": 0.5 },
+                            { "color": "red", "value": 1 }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "reduceOptions": { "calcs": ["lastNotNull"] },
+                "colorMode": "background",
+                "graphMode": "area"
+            }
+        },
+        {
+            "type": "stat",
+            "title": "In-flight requests",
+            "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "sum(http_requests_in_flight{service=\"learnhub-api\"})",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "reduceOptions": { "calcs": ["lastNotNull"] },
+                "graphMode": "area"
+            }
+        },
+        {
+            "type": "timeseries",
+            "title": "Request rate by status class",
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "sum by (status_code) (rate(http_requests_total{service=\"learnhub-api\"}[1m]))",
+                    "refId": "A",
+                    "legendFormat": "{{status_code}}"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": { "unit": "reqps", "custom": { "stacking": { "mode": "normal" } } }
+            }
+        },
+        {
+            "type": "timeseries",
+            "title": "Latency percentiles (p50 / p95 / p99)",
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"learnhub-api\"}[5m])))",
+                    "refId": "A",
+                    "legendFormat": "p50"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"learnhub-api\"}[5m])))",
+                    "refId": "B",
+                    "legendFormat": "p95"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"learnhub-api\"}[5m])))",
+                    "refId": "C",
+                    "legendFormat": "p99"
+                }
+            ],
+            "fieldConfig": { "defaults": { "unit": "s" } }
+        },
+        {
+            "type": "timeseries",
+            "title": "Top routes by request rate",
+            "gridPos": { "h": 9, "w": 12, "x": 0, "y": 12 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "topk(10, sum by (route) (rate(http_requests_total{service=\"learnhub-api\"}[5m])))",
+                    "refId": "A",
+                    "legendFormat": "{{route}}"
+                }
+            ],
+            "fieldConfig": { "defaults": { "unit": "reqps" } }
+        },
+        {
+            "type": "timeseries",
+            "title": "Node heap used",
+            "gridPos": { "h": 9, "w": 12, "x": 12, "y": 12 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "nodejs_heap_size_used_bytes{service=\"learnhub-api\"}",
+                    "refId": "A",
+                    "legendFormat": "heap used"
+                },
+                {
+                    "expr": "nodejs_heap_size_total_bytes{service=\"learnhub-api\"}",
+                    "refId": "B",
+                    "legendFormat": "heap total"
+                }
+            ],
+            "fieldConfig": { "defaults": { "unit": "bytes" } }
+        },
+        {
+            "type": "logs",
+            "title": "Recent API logs (Loki)",
+            "gridPos": { "h": 10, "w": 24, "x": 0, "y": 21 },
+            "datasource": { "type": "loki", "uid": "loki" },
+            "targets": [
+                {
+                    "expr": "{service=\"api\"} | json | line_format \"{{.level}} {{.message}} tenant={{.meta_tenantId}} req={{.meta_requestId}}\"",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "showLabels": false,
+                "showTime": true,
+                "wrapLogMessage": true,
+                "sortOrder": "Descending",
+                "dedupStrategy": "none"
+            }
+        },
+        {
+            "type": "timeseries",
+            "title": "Login attempts (success vs failure)",
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "sum by (outcome) (rate(auth_logins_total{service=\"learnhub-api\"}[5m]))",
+                    "refId": "A",
+                    "legendFormat": "{{outcome}}"
+                }
+            ],
+            "fieldConfig": { "defaults": { "unit": "short" } }
+        },
+        {
+            "type": "timeseries",
+            "title": "Notification jobs by outcome",
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [
+                {
+                    "expr": "sum by (template, outcome) (rate(notification_jobs_total{service=\"learnhub-api\"}[5m]))",
+                    "refId": "A",
+                    "legendFormat": "{{template}} · {{outcome}}"
+                }
+            ],
+            "fieldConfig": { "defaults": { "unit": "short" } }
+        }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 38,
+    "tags": ["learnhub", "api"],
+    "templating": { "list": [] },
+    "time": { "from": "now-30m", "to": "now" },
+    "timepicker": {},
+    "timezone": "",
+    "title": "LearnHub · API Overview",
+    "uid": "learnhub-api-overview",
+    "version": 1,
+    "weekStart": ""
+}

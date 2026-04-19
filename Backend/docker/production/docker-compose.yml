@@ -1,0 +1,44 @@
+# docker-compose for PRODUCTION-LIKE deploy — staging / self-hosted.
+# On Render/ECS the nginx layer is typically managed by the platform; this
+# compose is useful for VPS deploys.
+#
+#   docker compose -f docker/production/docker-compose.yml --env-file .env up -d --build
+
+name: learnhub
+
+services:
+  api:
+    build:
+      context: ../../
+      dockerfile: docker/production/Dockerfile
+    image: learnhub-api:prod
+    restart: unless-stopped
+    env_file: ../../.env
+    environment:
+      ENV: production
+      PORT: 3000
+    expose:
+      - "3000"
+
+  worker:
+    image: learnhub-api:prod
+    command: ["node", "dist/worker.js"]
+    restart: unless-stopped
+    env_file: ../../.env
+    environment:
+      ENV: production
+    depends_on:
+      - api
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../nginx/https.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro

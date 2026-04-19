@@ -1,0 +1,22 @@
+export default {
+    SUCCESS: `The operation has been successful`,
+    CREATED: `Resource created successfully`,
+    SOMETHING_WENT_WRONG: `Something went wrong`,
+    NOT_FOUND: (entity: string) => `${entity} not found`,
+    ALREADY_EXISTS: (entity: string) => `${entity} already exists`,
+    INVALID_CREDENTIALS: `Invalid email or password`,
+    EMAIL_NOT_VERIFIED: `Email is not verified`,
+    ACCOUNT_SUSPENDED: `Account is suspended`,
+    UNAUTHORIZED: `Unauthorized`,
+    FORBIDDEN: `You do not have permission to perform this action`,
+    CROSS_TENANT_DENIED: `Cross-tenant access denied`,
+    INVALID_TOKEN: `Invalid or expired token`,
+    VALIDATION_ERROR: `Validation failed`,
+    TOO_MANY_REQUESTS: `Too many requests, please try again later`,
+    TOO_MANY_LOGIN_ATTEMPTS: `Too many failed login attempts, please try again in 15 minutes`,
+    WEBHOOK_SIGNATURE_INVALID: `Webhook signature is invalid`,
+    QUIZ_ATTEMPT_EXPIRED: `Quiz attempt has expired`,
+    QUIZ_ATTEMPTS_EXCEEDED: `You have exceeded the maximum number of attempts for this quiz`,
+    ENROLLMENT_REQUIRED: `Active enrollment required to access this resource`,
+    PAYMENT_VERIFICATION_FAILED: `Payment verification failed`
+}
