@@ -21,7 +21,7 @@ export const AuthShell = ({ title, subtitle, children, footer }: Props) => (
             }}>
             <Link
                 to="/"
-                aria-label="LearnHub home">
+                aria-label="Albero Academy home">
                 <Brand
                     size="md"
                     onDark
@@ -29,26 +29,26 @@ export const AuthShell = ({ title, subtitle, children, footer }: Props) => (
             </Link>
             <div className="text-white">
                 <div className="text-xs uppercase tracking-wider text-white/70 mb-4 font-medium">
-                    Run classes, not software
+                    Learn. Practice. Certify.
                 </div>
                 <p className="text-4xl xl:text-5xl font-bold leading-[1.1] tracking-tight max-w-lg">
-                    One platform.
+                    Live classes.
                     <br />
-                    Seven roles.
+                    Hands-on practice.
                     <br />
-                    <span className="text-white/80">Zero glue code.</span>
+                    <span className="text-white/80">Real outcomes.</span>
                 </p>
                 <p className="mt-6 text-white/80 max-w-md leading-relaxed">
-                    LearnHub powers admissions, classes, quizzes, fees, and certifications from a single
-                    tenant-isolated backend built for Indian institutes.
+                    Expert-led courses, mentor-guided batches, timed quizzes and verifiable certificates —
+                    all in one learning platform built for Indian students.
                 </p>
             </div>
             <div className="flex items-center gap-4 text-xs text-white/60">
-                <span>99.5% uptime</span>
+                <span>Live cohorts</span>
                 <span className="text-white/30">·</span>
-                <span>Razorpay + GST</span>
+                <span>1:1 mentorship</span>
                 <span className="text-white/30">·</span>
-                <span>Offline PWA</span>
+                <span>Verified certificates</span>
             </div>
         </aside>
 

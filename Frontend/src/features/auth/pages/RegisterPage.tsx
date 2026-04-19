@@ -27,7 +27,7 @@ export const RegisterPage = () => {
         mutationFn: registerRequest,
         onSuccess: ({ accessToken, user }) => {
             setAuth(user, accessToken)
-            toast.success('Tenant created — welcome to LearnHub')
+            toast.success('Tenant created — welcome to Albero Academy')
             navigate(ROLE_HOME[user.role], { replace: true })
         },
         onError: (err) => toast.error(toApiError(err).message || 'Registration failed')

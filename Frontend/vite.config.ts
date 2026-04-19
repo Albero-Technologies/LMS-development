@@ -60,9 +60,9 @@ export default defineConfig(({ mode }) => {
                 registerType: 'autoUpdate',
                 includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
                 manifest: {
-                    name: 'LearnHub — Modern Learning Platform',
-                    short_name: 'LearnHub',
-                    description: 'Multi-role LMS: live classes, courses, quizzes, certifications.',
+                    name: 'Albero Academy — Modern Learning Platform',
+                    short_name: 'Albero',
+                    description: 'Live classes, mentor-guided cohorts, and verified certificates.',
                     theme_color: '#0B0B14',
                     background_color: '#0B0B14',
                     display: 'standalone',

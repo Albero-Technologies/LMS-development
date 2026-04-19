@@ -187,11 +187,6 @@ export const WebsiteEditorPage = () => {
                             value={draft.showPricingPage}
                             onChange={(v) => setDraft({ ...draft, showPricingPage: v })}
                         />
-                        <Toggle
-                            label="Show blog"
-                            value={draft.showBlog}
-                            onChange={(v) => setDraft({ ...draft, showBlog: v })}
-                        />
                     </Card>
                 </div>
 

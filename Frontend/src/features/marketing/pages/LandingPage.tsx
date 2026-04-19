@@ -194,7 +194,7 @@ export const LandingPage = () => (
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">
-                        Why LearnHub
+                        Why Albero Academy
                     </div>
                     <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">
                         Learn the way working engineers actually learn
@@ -306,7 +306,7 @@ export const LandingPage = () => (
                         Stories from 10,000+ learners
                     </h2>
                     <p className="mt-3 text-fg-soft">
-                        Real experiences from students who levelled up with LearnHub.
+                        Real experiences from students who levelled up with Albero Academy.
                     </p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-5">

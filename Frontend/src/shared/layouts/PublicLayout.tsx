@@ -11,7 +11,6 @@ import { ROLE_HOME } from '@shared/constants/roles'
 const NAV = [
     { to: '/courses', label: 'Courses' },
     { to: '/pricing', label: 'Pricing' },
-    { to: '/blog', label: 'Blog' },
     { to: '/about', label: 'About' }
 ]
 
@@ -23,7 +22,7 @@ export const PublicLayout = () => {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <Link
                         to="/"
-                        aria-label="LearnHub home">
+                        aria-label="Albero Academy home">
                         <Brand />
                     </Link>
                     <nav className="hidden md:flex items-center gap-0.5">
@@ -95,13 +94,6 @@ export const PublicLayout = () => {
                                     Pricing
                                 </Link>
                             </li>
-                            <li>
-                                <Link
-                                    to="/blog"
-                                    className="hover:text-fg">
-                                    Blog
-                                </Link>
-                            </li>
                         </ul>
                     </div>
                     <div>
@@ -135,8 +127,8 @@ export const PublicLayout = () => {
                 </div>
                 <div className="border-t">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 text-xs text-fg-muted flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <span>© {new Date().getFullYear()} LearnHub</span>
-                        <span>Made in India · support@learnhub.in</span>
+                        <span>© {new Date().getFullYear()} Albero Academy</span>
+                        <span>Made in India · support@albero.academy</span>
                     </div>
                 </div>
             </footer>

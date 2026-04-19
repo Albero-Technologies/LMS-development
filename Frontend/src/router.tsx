@@ -10,7 +10,6 @@ import { NotFoundPage } from '@features/marketing/pages/NotFoundPage'
 import { PublicCoursesPage } from '@features/marketing/pages/PublicCoursesPage'
 import { PublicCourseDetailPage } from '@features/marketing/pages/PublicCourseDetailPage'
 import { PricingPage } from '@features/marketing/pages/PricingPage'
-import { BlogPage, BlogArticlePage } from '@features/marketing/pages/BlogPage'
 import { AboutPage } from '@features/marketing/pages/AboutPage'
 import { EnquiryPage } from '@features/enquiry/pages/EnquiryPage'
 
@@ -61,8 +60,6 @@ export const router = createBrowserRouter([
             { path: '/courses', element: <PublicCoursesPage /> },
             { path: '/courses/:slug/public', element: <PublicCourseDetailPage /> },
             { path: '/pricing', element: <PricingPage /> },
-            { path: '/blog', element: <BlogPage /> },
-            { path: '/blog/:slug', element: <BlogArticlePage /> },
             { path: '/about', element: <AboutPage /> }
         ]
     },
@@ -204,7 +201,7 @@ export const router = createBrowserRouter([
             {
                 path: 'payments',
                 element: (
-                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.STUDENT, ROLES.CLIENT]}>
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TRAINER, ROLES.STUDENT, ROLES.CLIENT]}>
                         <PaymentsPage />
                     </ProtectedRoute>
                 )

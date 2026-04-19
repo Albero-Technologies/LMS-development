@@ -45,11 +45,11 @@ export const LoginPage = () => {
             footer={
                 <div className="flex items-center justify-between">
                     <span>
-                        New to LearnHub?{' '}
+                        New to Albero Academy?{' '}
                         <Link
-                            to="/register"
+                            to="/enquiry"
                             className="text-brand hover:underline font-medium">
-                            Create a tenant
+                            Talk to a counsellor
                         </Link>
                     </span>
                 </div>

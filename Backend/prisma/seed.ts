@@ -19,28 +19,48 @@ async function main() {
         }
     })
 
+    // One-off rename: migrate existing @acme.dev seed users to @albero.academy.
+    // Idempotent — updateMany matching zero rows is a no-op, so re-running the
+    // seed after everyone is already renamed costs nothing.
+    const emailRenames: Array<[string, string]> = [
+        ['super@acme.dev', 'super@albero.academy'],
+        ['admin@acme.dev', 'admin@albero.academy'],
+        ['trainer@acme.dev', 'trainer@albero.academy'],
+        ['student@acme.dev', 'student@albero.academy'],
+        ['manager@acme.dev', 'manager@albero.academy'],
+        ['counsellor@acme.dev', 'counsellor@albero.academy'],
+        ['support@acme.dev', 'support@albero.academy'],
+        ['client@acme.dev', 'client@albero.academy']
+    ]
+    for (const [oldEmail, newEmail] of emailRenames) {
+        await prisma.user.updateMany({
+            where: { tenantId: tenant.id, email: oldEmail },
+            data: { email: newEmail }
+        })
+    }
+
     // One user per role — convenient for Phase 1 smoke testing.
     const roles: { email: string; first: string; last: string; role: Role; employeeCode?: string }[] = [
-        { email: 'super@acme.dev', first: 'Super', last: 'Admin', role: Role.SUPER_ADMIN },
-        { email: 'admin@acme.dev', first: 'Anya', last: 'Admin', role: Role.ADMIN },
-        { email: 'trainer@acme.dev', first: 'Tara', last: 'Trainer', role: Role.TRAINER },
-        { email: 'student@acme.dev', first: 'Sam', last: 'Student', role: Role.STUDENT },
+        { email: 'super@albero.academy', first: 'Super', last: 'Admin', role: Role.SUPER_ADMIN, employeeCode: 'SA-001' },
+        { email: 'admin@albero.academy', first: 'Anya', last: 'Admin', role: Role.ADMIN, employeeCode: 'A-001' },
+        { email: 'trainer@albero.academy', first: 'Tara', last: 'Trainer', role: Role.TRAINER, employeeCode: 'T-1001' },
+        { email: 'student@albero.academy', first: 'Sam', last: 'Student', role: Role.STUDENT },
         {
-            email: 'manager@acme.dev',
+            email: 'manager@albero.academy',
             first: 'Mira',
             last: 'Manager',
             role: Role.COUNSELLING_MANAGER,
             employeeCode: 'CM-001'
         },
         {
-            email: 'counsellor@acme.dev',
+            email: 'counsellor@albero.academy',
             first: 'Cara',
             last: 'Counsellor',
             role: Role.COUNSELLOR,
             employeeCode: 'C-1001'
         },
-        { email: 'support@acme.dev', first: 'Sid', last: 'Support', role: Role.SUPPORT },
-        { email: 'client@acme.dev', first: 'Bee', last: 'Client', role: Role.CLIENT }
+        { email: 'support@albero.academy', first: 'Sid', last: 'Support', role: Role.SUPPORT, employeeCode: 'S-2001' },
+        { email: 'client@albero.academy', first: 'Bee', last: 'Client', role: Role.CLIENT }
     ]
 
     for (const r of roles) {
@@ -64,10 +84,10 @@ async function main() {
 
     // Wire the seed counsellor under the manager so the team flows have data.
     const seedManager = await prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: 'manager@acme.dev' } }
+        where: { tenantId_email: { tenantId: tenant.id, email: 'manager@albero.academy' } }
     })
     const seedCounsellor = await prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@acme.dev' } }
+        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@albero.academy' } }
     })
     if (seedManager && seedCounsellor && seedCounsellor.managerId !== seedManager.id) {
         await prisma.user.update({
@@ -77,7 +97,7 @@ async function main() {
     }
 
     const trainer = await prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: 'trainer@acme.dev' } }
+        where: { tenantId_email: { tenantId: tenant.id, email: 'trainer@albero.academy' } }
     })
 
     // One published course with one YouTube lesson + one quiz.
@@ -156,7 +176,7 @@ async function main() {
 
     // Sample active onboarding link for the counsellor — surfaces the new flow in dev.
     const counsellor = await prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@acme.dev' } }
+        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@albero.academy' } }
     })
     if (counsellor) {
         const seededToken = 'seed-onboarding-token-acme'

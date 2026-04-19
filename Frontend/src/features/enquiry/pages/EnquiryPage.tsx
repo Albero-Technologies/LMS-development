@@ -136,7 +136,7 @@ export const EnquiryPage = () => {
                 }}>
                 <Link
                     to="/"
-                    aria-label="LearnHub home">
+                    aria-label="Albero Academy home">
                     <Brand
                         size="md"
                         onDark

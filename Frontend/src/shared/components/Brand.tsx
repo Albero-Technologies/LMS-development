@@ -1,11 +1,13 @@
-// LearnHub wordmark — professional, sans-serif only, no italic flourishes.
-// The graphite chevron sits beside the word; both scale via the `size` prop.
+// Albero Academy wordmark — professional, sans-serif only, no italic flourishes.
+// The brand cube sits beside the wordmark; both scale via the `size` prop.
+// Pass `iconOnly` (e.g. when the sidebar is collapsed) to render just the cube.
 import { cn } from '@shared/helpers/cn'
 
 type Props = {
     className?: string
     size?: 'sm' | 'md' | 'lg'
     onDark?: boolean
+    iconOnly?: boolean
 }
 
 const SIZE = {
@@ -14,7 +16,7 @@ const SIZE = {
     lg: { cube: 'w-9 h-9', text: 'text-lg', iconSize: 20 }
 } as const
 
-export const Brand = ({ className, size = 'md', onDark = false }: Props) => {
+export const Brand = ({ className, size = 'md', onDark = false, iconOnly = false }: Props) => {
     const s = SIZE[size]
     return (
         <div className={cn('flex items-center gap-2.5 select-none', className)}>
@@ -33,19 +35,20 @@ export const Brand = ({ className, size = 'md', onDark = false }: Props) => {
                     strokeWidth="2.2"
                     strokeLinecap="round"
                     strokeLinejoin="round">
-                    {/* graduation cap — readable at any size */}
                     <path d="M3 9l9-4 9 4-9 4-9-4z" />
                     <path d="M7 11v4c0 1 2.5 2.5 5 2.5s5-1.5 5-2.5v-4" />
                 </svg>
             </div>
-            <span
-                className={cn(
-                    'font-semibold tracking-tight leading-none',
-                    s.text,
-                    onDark ? 'text-white' : 'text-fg'
-                )}>
-                LearnHub
-            </span>
+            {!iconOnly && (
+                <span
+                    className={cn(
+                        'font-semibold tracking-tight leading-none whitespace-nowrap',
+                        s.text,
+                        onDark ? 'text-white' : 'text-fg'
+                    )}>
+                    Albero Academy
+                </span>
+            )}
         </div>
     )
 }

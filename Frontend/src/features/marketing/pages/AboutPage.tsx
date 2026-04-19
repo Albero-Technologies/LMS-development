@@ -31,7 +31,7 @@ export const AboutPage = () => (
                     Practical courses. Real mentorship. Lasting careers.
                 </h1>
                 <p className="mt-4 text-fg-soft max-w-2xl mx-auto leading-relaxed">
-                    LearnHub started because the existing options forced learners to compromise: too slow, too
+                    Albero Academy started because the existing options forced learners to compromise: too slow, too
                     theoretical, or too expensive. We built the platform we wished we had when we started.
                 </p>
             </div>

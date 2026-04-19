@@ -69,8 +69,9 @@ npm run worker:dev
 ```
 Tenant slug: acme-institute
 Password:    Password123
-Users:       super@acme.dev, admin@acme.dev, trainer@acme.dev,
-             student@acme.dev, counsellor@acme.dev, support@acme.dev, client@acme.dev
+Users:       super@albero.academy, admin@albero.academy, trainer@albero.academy,
+             student@albero.academy, counsellor@albero.academy, manager@albero.academy,
+             support@albero.academy, client@albero.academy
 ```
 
 ### Docker Compose (full stack: Postgres + Redis + API + Worker + Web + Nginx)

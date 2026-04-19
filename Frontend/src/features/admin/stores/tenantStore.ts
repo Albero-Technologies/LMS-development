@@ -37,7 +37,6 @@ export type TWebsiteContent = {
     primaryCta: string
     featuredCourseSlugs: string[]
     showPricingPage: boolean
-    showBlog: boolean
 }
 
 export type TSeoMeta = {
@@ -118,8 +117,7 @@ const makeDefaultWebsite = (tenantId: string, name: string): TWebsiteContent => 
         'Expert-led courses in engineering, design, and data. Live cohorts, 1:1 mentorship, and verifiable certificates.',
     primaryCta: 'Talk to counsellor',
     featuredCourseSlugs: ['sys-design', 'ts-fs', 'dsa-30'],
-    showPricingPage: true,
-    showBlog: true
+    showPricingPage: true
 })
 
 const makeDefaultSeo = (tenantId: string, name: string): TSeoMeta => ({
@@ -246,7 +244,7 @@ export const useTenantStore = create<Store>()(
                 const existing = s.seos.find((x) => x.tenantId === tenantId)
                 if (existing) return existing
                 const tenant = s.tenants.find((t) => t.id === tenantId)
-                return makeDefaultSeo(tenantId, tenant?.name ?? 'LearnHub')
+                return makeDefaultSeo(tenantId, tenant?.name ?? 'Albero Academy')
             },
 
             saveSeo: (seo) =>

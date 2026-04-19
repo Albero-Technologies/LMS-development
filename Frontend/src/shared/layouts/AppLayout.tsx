@@ -52,6 +52,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/admin/seo-builder', label: 'SEO Builder', icon: Telescope },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/users', label: 'Users', icon: Users },
+        { to: '/app/payments', label: 'Client Payments', icon: CreditCard },
         { to: '/app/reports', label: 'Analytics', icon: LineChart },
         { to: '/app/audit-logs', label: 'Activity Logs', icon: Activity }
     ],
@@ -69,7 +70,8 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/quizzes', label: 'Quizzes', icon: ClipboardList },
-        { to: '/app/users', label: 'Students', icon: GraduationCap }
+        { to: '/app/users', label: 'Students', icon: GraduationCap },
+        { to: '/app/payments', label: 'Payments', icon: CreditCard }
     ],
     STUDENT: [
         { to: '/app/student', label: 'Dashboard', icon: LayoutDashboard },
@@ -161,12 +163,13 @@ export const AppLayout = () => {
                     <div className={cn('flex items-center justify-between px-4 h-16', collapsed && 'justify-center px-2')}>
                         <Link
                             to="/"
-                            aria-label="LearnHub home"
-                            className="flex items-center">
+                            aria-label="Albero Academy home"
+                            className="flex items-center min-w-0">
                             {collapsed ? (
                                 <Brand
-                                    size="sm"
+                                    size="md"
                                     onDark
+                                    iconOnly
                                 />
                             ) : (
                                 <Brand

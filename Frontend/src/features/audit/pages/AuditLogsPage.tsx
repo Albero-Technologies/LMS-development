@@ -20,7 +20,7 @@ const SEED: Log[] = [
     { id: 'a1', action: 'auth.login', entity: 'User', actor: 'priya@ascend.in', tenant: 'Ascend Academy', ip: '::1', at: '2m' },
     { id: 'a2', action: 'course.publish', entity: 'Course · DSA', actor: 'rohan@ascend.in', tenant: 'Ascend Academy', ip: '203.0.113.12', at: '10m' },
     { id: 'a3', action: 'invoice.refund', entity: 'INV-2403-099', actor: 'priya@ascend.in', tenant: 'Ascend Academy', ip: '203.0.113.12', at: '1h' },
-    { id: 'a4', action: 'tenant.create', entity: 'Kintsu', actor: 'super@learnhub.in', tenant: 'LearnHub', ip: '198.51.100.9', at: '3h' }
+    { id: 'a4', action: 'tenant.create', entity: 'Kintsu', actor: 'super@albero.academy', tenant: 'Albero Academy', ip: '198.51.100.9', at: '3h' }
 ]
 
 export const AuditLogsPage = () => {
