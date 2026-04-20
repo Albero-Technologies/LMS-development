@@ -27,7 +27,7 @@
         "@sentry/react": "^10.0.0",
         "@tanstack/react-query": "^5.62.2",
         "@tanstack/react-query-devtools": "^5.62.2",
-        "axios": "^1.7.9",
+        "axios": "^1.15.1",
         "clsx": "^2.1.1",
         "framer-motion": "^12.0.0",
         "lucide-react": "^0.469.0",
