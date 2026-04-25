@@ -4,6 +4,7 @@ import { Card, StatCard } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
 import { Button } from '@shared/components/ui/Button'
 import { useAuthStore } from '@shared/stores/authStore'
+import { DemoModeBanner } from '@features/dashboards/components/DemoModeBanner'
 
 const IN_PROGRESS = [
     { id: 'c1', title: 'System Design Foundations', pct: 46, nextLesson: 'L3.2 — Consistent hashing' },
@@ -23,6 +24,8 @@ export const StudentDashboard = () => {
 
     return (
         <>
+            <DemoModeBanner />
+
             {/* Gradient welcome banner — mirrors lms.pen student dashboard */}
             <div
                 className="rounded-lg p-6 sm:p-8 mb-6 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
