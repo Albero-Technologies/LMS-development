@@ -51,6 +51,7 @@ import { WebsiteEditorPage } from '@features/admin/pages/WebsiteEditorPage'
 import { UtmBuilderPage } from '@features/admin/pages/UtmBuilderPage'
 import { SeoBuilderPage } from '@features/admin/pages/SeoBuilderPage'
 import { DemoControlPage } from '@features/admin/pages/DemoControlPage'
+import { IntegrationsPage } from '@features/admin/pages/IntegrationsPage'
 
 export const router = createBrowserRouter([
     // -------------------------------------------------------------- Public --
@@ -170,6 +171,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <DemoControlPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'admin/integrations',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <IntegrationsPage />
                     </ProtectedRoute>
                 )
             },

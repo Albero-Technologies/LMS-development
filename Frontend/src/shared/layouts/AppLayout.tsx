@@ -65,7 +65,8 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck },
         { to: '/app/reports', label: 'Reports', icon: LineChart },
-        { to: '/app/admin/demo-control', label: 'Demo Mode', icon: Eye }
+        { to: '/app/admin/demo-control', label: 'Demo Mode', icon: Eye },
+        { to: '/app/admin/integrations', label: 'Integrations', icon: Link2 }
     ],
     TRAINER: [
         { to: '/app/trainer', label: 'Dashboard', icon: LayoutDashboard },

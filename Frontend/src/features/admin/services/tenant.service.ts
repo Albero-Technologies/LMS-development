@@ -4,6 +4,8 @@ type Envelope<T> = { success: boolean; message: string; data: T }
 
 export type TenantSettings = Record<string, unknown> & {
     demoMode?: DemoModeConfig
+    googleSheetId?: string
+    googleSheetRange?: string
 }
 
 export type DemoModeConfig = {

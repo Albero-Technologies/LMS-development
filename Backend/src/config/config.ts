@@ -62,6 +62,12 @@ export default {
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || '',
 
+    // Google Sheets (Phase 2 §9.2). Service-account credentials are platform-wide;
+    // each tenant chooses which sheet to push to via tenant.settings.googleSheetId.
+    // Leave both blank to disable the Sheets push (fire-and-forget no-op).
+    GOOGLE_SHEETS_CLIENT_EMAIL: process.env.GOOGLE_SHEETS_CLIENT_EMAIL || '',
+    GOOGLE_SHEETS_PRIVATE_KEY: process.env.GOOGLE_SHEETS_PRIVATE_KEY || '',
+
     BCRYPT_ROUNDS: num('BCRYPT_ROUNDS', 12),
 
     ALLOWED_TENANT_ORIGINS: csv('ALLOWED_TENANT_ORIGINS')

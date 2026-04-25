@@ -2,6 +2,8 @@ import { EnquiryStage, Role, UserStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
+import logger from '../../util/logger'
+import { appendRow } from './google-sheets.client'
 import type { TCreateEnquiryInput } from './enquiry.schema'
 
 // Resolve tenant from payload slug first, then fall back to sub-domain parsing
@@ -86,7 +88,7 @@ export const pickCounsellor = async (tenantId: string): Promise<string | null> =
 
 export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput) => {
     const assignedToId = await pickCounsellor(tenantId)
-    return db.client.enquiry.create({
+    const enquiry = await db.client.enquiry.create({
         data: {
             tenantId,
             name: input.name,
@@ -103,6 +105,41 @@ export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput
             assignedToId
         },
         include: { assignedTo: { select: { id: true, firstName: true, lastName: true } } }
+    })
+
+    // Fire-and-forget push to the tenant's Google Sheet (§9.2). The marketing
+    // team's existing spreadsheet stays in sync without blocking the public
+    // form's response. Errors are logged, never surfaced to the prospect.
+    void pushEnquiryToSheet(tenantId, enquiry).catch((err: unknown) => {
+        logger.error('SHEETS_PUSH_FAILED', { meta: { enquiryId: enquiry.id, err: (err as Error).message } })
+    })
+
+    return enquiry
+}
+
+const pushEnquiryToSheet = async (tenantId: string, enquiry: Awaited<ReturnType<typeof db.client.enquiry.create>>): Promise<void> => {
+    const tenant = await db.client.tenant.findUnique({ where: { id: tenantId } })
+    const settings = tenant?.settings as { googleSheetId?: string; googleSheetRange?: string } | null
+    const sheetId = settings?.googleSheetId
+    if (!sheetId) return
+
+    await appendRow({
+        sheetId,
+        range: settings?.googleSheetRange ?? 'Sheet1!A1',
+        values: [
+            new Date().toISOString(),
+            enquiry.name,
+            enquiry.email,
+            enquiry.phone,
+            enquiry.course,
+            enquiry.city ?? '',
+            enquiry.language ?? '',
+            enquiry.message ?? '',
+            enquiry.utmSource ?? '',
+            enquiry.utmMedium ?? '',
+            enquiry.utmCampaign ?? '',
+            enquiry.assignedToId ?? ''
+        ]
     })
 }
 
