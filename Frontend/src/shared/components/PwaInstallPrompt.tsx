@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
+import { useAuthStore } from '@shared/stores/authStore'
 
 // Custom install banner. The browser fires `beforeinstallprompt` once when the
 // PWA is installable; we capture the event, hold it, and surface our own UI
 // instead of relying on each browser's mini-bar (Chrome's address-bar icon is
 // easy to miss, Safari iOS doesn't have one at all).
 //
+// Only shown to authenticated users — public marketing visitors get a sign-up
+// path first, not an "install this app" pitch they don't have context for.
 // Dismiss persists for 30 days so we don't nag every visit.
 
 interface BeforeInstallPromptEvent extends Event {
@@ -31,10 +34,12 @@ const isDismissed = (): boolean => {
 }
 
 export const PwaInstallPrompt = () => {
+    const isAuthed = useAuthStore((s) => !!s.user)
     const [event, setEvent] = useState<BeforeInstallPromptEvent | null>(null)
     const [visible, setVisible] = useState(false)
 
     useEffect(() => {
+        if (!isAuthed) return
         if (isDismissed()) return
 
         let timer: ReturnType<typeof setTimeout> | undefined
@@ -58,9 +63,9 @@ export const PwaInstallPrompt = () => {
             window.removeEventListener('appinstalled', installedHandler)
             if (timer) clearTimeout(timer)
         }
-    }, [])
+    }, [isAuthed])
 
-    if (!visible || !event) return null
+    if (!isAuthed || !visible || !event) return null
 
     const handleInstall = async () => {
         try {

@@ -11,3 +11,15 @@ UPDATE "users"
 SET "tenantId" = (SELECT "id" FROM "tenants" WHERE "slug" = 'platform')
 WHERE "role" = 'SUPER_ADMIN'
   AND "tenantId" <> (SELECT "id" FROM "tenants" WHERE "slug" = 'platform');
+
+-- Rename historical SA emails (super@acme.dev, super@albero.academy) to the
+-- platform-neutral address. The SA must not appear to belong to any tenant's
+-- email domain. Skipped if the new address already exists (re-runs are safe).
+UPDATE "users"
+SET "email" = 'superadmin@albero.platform'
+WHERE "role" = 'SUPER_ADMIN'
+  AND "email" IN ('super@acme.dev', 'super@albero.academy')
+  AND NOT EXISTS (
+      SELECT 1 FROM "users" u2
+      WHERE u2."email" = 'superadmin@albero.platform' AND u2."tenantId" = "users"."tenantId"
+  );

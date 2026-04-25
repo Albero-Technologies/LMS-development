@@ -5,7 +5,6 @@ import { ProtectedRoute } from '@shared/components/ProtectedRoute'
 import { ROLES } from '@shared/constants/roles'
 
 // Public marketing + enquiry
-import { LandingPage } from '@features/marketing/pages/LandingPage'
 import { NotFoundPage } from '@features/marketing/pages/NotFoundPage'
 import { PublicCoursesPage } from '@features/marketing/pages/PublicCoursesPage'
 import { PublicCourseDetailPage } from '@features/marketing/pages/PublicCourseDetailPage'
@@ -58,11 +57,17 @@ import { TenantLandingPage } from '@features/marketing/pages/TenantLandingPage'
 import { TenantBrandingProvider } from '@shared/contexts/TenantBrandingContext'
 
 export const router = createBrowserRouter([
+    // Root has no platform-level marketing surface — the only landings that
+    // exist live under /t/:slug. Hitting `/` directly drops you on the login
+    // screen so SAs and tenant users have one obvious entry point.
+    { path: '/', element: <Navigate to="/login" replace /> },
+
     // -------------------------------------------------------------- Public --
+    // Platform-level marketing pages (kept for direct links — courses listing,
+    // pricing, about). The root landing is intentionally NOT here.
     {
         element: <PublicLayout />,
         children: [
-            { path: '/', element: <LandingPage /> },
             { path: '/courses', element: <PublicCoursesPage /> },
             { path: '/courses/:slug/public', element: <PublicCourseDetailPage /> },
             { path: '/pricing', element: <PricingPage /> },

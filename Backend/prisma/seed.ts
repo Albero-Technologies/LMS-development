@@ -33,9 +33,24 @@ async function main() {
         }
     })
 
-    // One-off: migrate any existing SUPER_ADMIN that's still pinned to a
-    // customer tenant onto the platform tenant. Idempotent — moving a user
-    // who's already on the platform tenant is a no-op.
+    // SUPER_ADMIN identity is platform-level: not tied to any tenant's email
+    // domain. It uses a domain-neutral address (`superadmin@albero.platform`)
+    // and lives in the platform tenant. Tenant creation is the SA's job — the
+    // user-facing flow is `POST /tenants`, gated to SUPER_ADMIN only.
+    const SUPER_ADMIN_EMAIL = 'superadmin@albero.platform'
+
+    // One-off: any historical SA email under a tenant domain (acme.dev,
+    // albero.academy) gets renamed to the new platform-neutral address and
+    // moved onto the platform tenant. Idempotent — re-running matches zero
+    // rows once everyone is already migrated.
+    const SA_LEGACY_EMAILS = ['super@acme.dev', 'super@albero.academy']
+    for (const legacy of SA_LEGACY_EMAILS) {
+        await prisma.user.updateMany({
+            where: { role: Role.SUPER_ADMIN, email: legacy },
+            data: { email: SUPER_ADMIN_EMAIL, tenantId: platformTenant.id }
+        })
+    }
+    // Also re-peg any other SUPER_ADMIN that's still on a customer tenant.
     await prisma.user.updateMany({
         where: { role: Role.SUPER_ADMIN, NOT: { tenantId: platformTenant.id } },
         data: { tenantId: platformTenant.id }
@@ -45,7 +60,6 @@ async function main() {
     // Idempotent — updateMany matching zero rows is a no-op, so re-running the
     // seed after everyone is already renamed costs nothing.
     const emailRenames: [string, string][] = [
-        ['super@acme.dev', 'super@albero.academy'],
         ['admin@acme.dev', 'admin@albero.academy'],
         ['trainer@acme.dev', 'trainer@albero.academy'],
         ['student@acme.dev', 'student@albero.academy'],
@@ -60,9 +74,12 @@ async function main() {
         })
     }
 
-    // One user per role — convenient for Phase 1 smoke testing.
+    // One user per role — convenient for Phase 1 smoke testing. The SA email
+    // is intentionally tenant-domain-free (it's not a member of any tenant's
+    // user directory); everyone else lives under albero.academy as a stand-in
+    // for "the customer tenant's domain".
     const roles: { email: string; first: string; last: string; role: Role; employeeCode?: string }[] = [
-        { email: 'super@albero.academy', first: 'Super', last: 'Admin', role: Role.SUPER_ADMIN, employeeCode: 'SA-001' },
+        { email: SUPER_ADMIN_EMAIL, first: 'Platform', last: 'Admin', role: Role.SUPER_ADMIN, employeeCode: 'SA-001' },
         { email: 'admin@albero.academy', first: 'Anya', last: 'Admin', role: Role.ADMIN, employeeCode: 'A-001' },
         { email: 'trainer@albero.academy', first: 'Tara', last: 'Trainer', role: Role.TRAINER, employeeCode: 'T-1001' },
         { email: 'student@albero.academy', first: 'Sam', last: 'Student', role: Role.STUDENT },
