@@ -117,12 +117,43 @@ export const listEnquiries = async (tenantId: string, filter: { stage?: EnquiryS
         include: { assignedTo: { select: { id: true, firstName: true, lastName: true } } }
     })
 
-export const updateEnquiryStage = async (tenantId: string, id: string, stage: EnquiryStage) => {
+// Allowed stage transitions for the enquiry/lead pipeline.
+// CONVERTED and LOST are terminal — once an enquiry lands there it stays there
+// (a fresh enquiry is the right fix for someone who returns later). NEW can
+// route forward to a demo, straight to a sale, or to LOST. DEMO_SCHEDULED can
+// roll back to NEW if the demo gets cancelled, otherwise progresses or drops.
+const STAGE_TRANSITIONS: Record<EnquiryStage, readonly EnquiryStage[]> = {
+    NEW: [EnquiryStage.DEMO_SCHEDULED, EnquiryStage.CONVERTED, EnquiryStage.LOST],
+    DEMO_SCHEDULED: [EnquiryStage.NEW, EnquiryStage.CONVERTED, EnquiryStage.LOST],
+    CONVERTED: [],
+    LOST: []
+}
+
+export const assertValidStageTransition = (from: EnquiryStage, to: EnquiryStage): void => {
+    if (from === to) {
+        throw AppError.badRequest(`Enquiry is already in stage ${to}`, 'ENQUIRY_STAGE_NOOP')
+    }
+    if (!STAGE_TRANSITIONS[from].includes(to)) {
+        throw AppError.badRequest(
+            `Cannot transition enquiry from ${from} to ${to}. Allowed next stages: ${STAGE_TRANSITIONS[from].join(', ') || '(terminal — none)'}`,
+            'ENQUIRY_STAGE_INVALID'
+        )
+    }
+}
+
+export interface TStageUpdateResult {
+    enquiry: Awaited<ReturnType<typeof db.client.enquiry.update>>
+    previousStage: EnquiryStage
+}
+
+export const updateEnquiryStage = async (tenantId: string, id: string, stage: EnquiryStage): Promise<TStageUpdateResult> => {
     const enquiry = await db.client.enquiry.findUnique({ where: { id } })
     if (!enquiry || enquiry.tenantId !== tenantId) {
         throw AppError.notFound(responseMessage.NOT_FOUND('Enquiry'), 'ENQUIRY_NOT_FOUND')
     }
-    return db.client.enquiry.update({ where: { id }, data: { stage } })
+    assertValidStageTransition(enquiry.stage, stage)
+    const updated = await db.client.enquiry.update({ where: { id }, data: { stage } })
+    return { enquiry: updated, previousStage: enquiry.stage }
 }
 
 export const reassignEnquiry = async (tenantId: string, id: string, counsellorId: string) => {

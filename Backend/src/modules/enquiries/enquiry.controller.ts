@@ -47,9 +47,17 @@ export const updateStage = async (req: Request, res: Response): Promise<void> =>
     if (!req.auth) return
     const id = req.params.id
     const { stage } = req.body as { stage: EnquiryStage }
-    const updated = await service.updateEnquiryStage(req.auth.tenantId, id, stage)
-    await writeAudit({ action: 'enquiry.stage_update', entityType: 'Enquiry', entityId: id, metadata: { stage } }, req)
-    httpResponse(req, res, 200, responseMessage.SUCCESS, updated)
+    const { enquiry, previousStage } = await service.updateEnquiryStage(req.auth.tenantId, id, stage)
+    await writeAudit(
+        {
+            action: 'enquiry.stage_update',
+            entityType: 'Enquiry',
+            entityId: id,
+            metadata: { from: previousStage, to: stage }
+        },
+        req
+    )
+    httpResponse(req, res, 200, responseMessage.SUCCESS, enquiry)
 }
 
 export const reassign = async (req: Request, res: Response): Promise<void> => {

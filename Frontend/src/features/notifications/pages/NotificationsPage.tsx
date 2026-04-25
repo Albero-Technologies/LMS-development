@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Bell, CheckCheck, DollarSign, ClipboardCheck, TicketCheck, UserPlus } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Bell, CheckCheck, DollarSign, ClipboardCheck, TicketCheck, UserPlus, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ComponentType } from 'react'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
@@ -8,48 +9,64 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { Empty } from '@shared/components/ui/Empty'
+import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
+import { listNotifications, markNotificationRead, type NotificationItem } from '../services/notification.service'
 
-type N = {
-    id: string
-    title: string
-    body: string
-    when: string
-    kind: 'payment' | 'quiz' | 'ticket' | 'signup'
-    read: boolean
-}
-
-const KIND_ICON: Record<N['kind'], ComponentType<{ size?: number }>> = {
+// Map a backend template name to an icon. Falls back to a generic mail icon.
+const TEMPLATE_ICON: Record<string, ComponentType<{ size?: number }>> = {
     payment: DollarSign,
-    quiz: ClipboardCheck,
-    ticket: TicketCheck,
-    signup: UserPlus
+    enrollment: ClipboardCheck,
+    ticket_update: TicketCheck,
+    counsellor_signup_received: UserPlus,
+    manager_signup_received: UserPlus,
+    counsellor_task_assigned: ClipboardCheck,
+    counsellor_task_completed: ClipboardCheck,
+    welcome: Mail,
+    invite: Mail
 }
 
-const SEED: N[] = [
-    { id: '1', title: 'Payment received', body: 'Ishaan Mehra paid ₹4,999', when: '2m', kind: 'payment', read: false },
-    { id: '2', title: 'Quiz published', body: 'DSA Week 5 · live for Batch 2026', when: '1h', kind: 'quiz', read: false },
-    { id: '3', title: 'Ticket SLA breach', body: 'T-201 · 2h open', when: '2h', kind: 'ticket', read: false },
-    { id: '4', title: 'Counsellor signup', body: 'Sneha Patil filled the onboarding form', when: '5h', kind: 'signup', read: true }
-]
+const formatRelative = (iso: string): string => {
+    const ms = Date.now() - new Date(iso).getTime()
+    if (ms < 60_000) return `${Math.max(1, Math.floor(ms / 1000))}s`
+    if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m`
+    if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h`
+    return `${Math.floor(ms / 86_400_000)}d`
+}
 
 type Tab = 'ALL' | 'UNREAD'
 
 export const NotificationsPage = () => {
-    const [items, setItems] = useState<N[]>(SEED)
     const [tab, setTab] = useState<Tab>('ALL')
+    const queryClient = useQueryClient()
 
-    const visible = tab === 'ALL' ? items : items.filter((i) => !i.read)
-    const unreadCount = items.filter((i) => !i.read).length
+    const query = useQuery({
+        queryKey: ['notifications'],
+        queryFn: () => listNotifications(1, 50),
+        staleTime: 15_000
+    })
 
-    const markAll = () => {
-        setItems((xs) => xs.map((x) => ({ ...x, read: true })))
-        toast.success('All marked read')
-    }
+    // Memoise items so the useMemo below sees a stable reference.
+    const items = useMemo(() => query.data?.items ?? [], [query.data?.items])
+    const unreadCount = query.data?.unread ?? 0
+    const visible = useMemo(() => (tab === 'ALL' ? items : items.filter((i) => !i.readAt)), [items, tab])
 
-    const toggleRead = (id: string) => {
-        setItems((xs) => xs.map((x) => (x.id === id ? { ...x, read: !x.read } : x)))
-    }
+    const markRead = useMutation({
+        mutationFn: markNotificationRead,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    })
+
+    const markAll = useMutation({
+        mutationFn: async () => {
+            // Backend exposes mark-one-read; fan out concurrently for the unread set.
+            const targets = items.filter((i) => !i.readAt)
+            await Promise.all(targets.map((n) => markNotificationRead(n.id)))
+        },
+        onSuccess: () => {
+            toast.success('All marked read')
+            void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+        }
+    })
 
     return (
         <>
@@ -63,7 +80,8 @@ export const NotificationsPage = () => {
                             size="sm"
                             variant="ghost"
                             leftIcon={<CheckCheck size={14} />}
-                            onClick={markAll}>
+                            loading={markAll.isPending}
+                            onClick={() => markAll.mutate()}>
                             Mark all read
                         </Button>
                     ) : null
@@ -72,7 +90,7 @@ export const NotificationsPage = () => {
 
             <Tabs
                 tabs={[
-                    { value: 'ALL', label: 'All', count: items.length },
+                    { value: 'ALL', label: 'All', count: query.data?.total ?? 0 },
                     { value: 'UNREAD', label: 'Unread', count: unreadCount }
                 ]}
                 value={tab}
@@ -80,7 +98,21 @@ export const NotificationsPage = () => {
                 className="mb-4"
             />
 
-            {visible.length === 0 ? (
+            {query.isLoading ? (
+                <Card padded={false}>
+                    <div className="p-5 space-y-3">
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-2/3" />
+                    </div>
+                </Card>
+            ) : query.isError ? (
+                <Empty
+                    icon={<Bell size={36} />}
+                    title="Couldn't load notifications"
+                    description="Try again in a moment."
+                />
+            ) : visible.length === 0 ? (
                 <Empty
                     icon={<Bell size={36} />}
                     title="You're all caught up"
@@ -89,39 +121,50 @@ export const NotificationsPage = () => {
             ) : (
                 <Card padded={false}>
                     <ul className="divide-y">
-                        {visible.map((n) => {
-                            const Icon = KIND_ICON[n.kind]
-                            return (
-                                <li
-                                    key={n.id}
-                                    className={cn(
-                                        'p-5 flex items-start gap-4 cursor-pointer transition-colors',
-                                        !n.read && 'bg-[var(--color-brand-50)]'
-                                    )}
-                                    onClick={() => toggleRead(n.id)}>
-                                    <div className="w-9 h-9 rounded-md bg-surface-2 border flex items-center justify-center text-fg-soft shrink-0">
-                                        <Icon size={16} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-fg font-medium">{n.title}</span>
-                                            {!n.read && (
-                                                <span
-                                                    className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand-500)]"
-                                                    aria-label="Unread"
-                                                />
-                                            )}
-                                            <Badge>{n.kind}</Badge>
-                                        </div>
-                                        <div className="text-sm text-fg-soft mt-0.5">{n.body}</div>
-                                    </div>
-                                    <div className="text-xs text-fg-muted font-mono">{n.when}</div>
-                                </li>
-                            )
-                        })}
+                        {visible.map((n) => (
+                            <NotificationRow
+                                key={n.id}
+                                item={n}
+                                onClick={() => {
+                                    if (!n.readAt) markRead.mutate(n.id)
+                                }}
+                            />
+                        ))}
                     </ul>
                 </Card>
             )}
         </>
+    )
+}
+
+const NotificationRow = ({ item, onClick }: { item: NotificationItem; onClick: () => void }) => {
+    const Icon = TEMPLATE_ICON[item.template] ?? Mail
+    const unread = item.readAt === null
+    return (
+        <li
+            className={cn('p-5 flex items-start gap-4 cursor-pointer transition-colors', unread && 'bg-[var(--color-brand-50)]')}
+            onClick={onClick}>
+            <div className="w-9 h-9 rounded-md bg-surface-2 border flex items-center justify-center text-fg-soft shrink-0">
+                <Icon size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                    <span className="text-fg font-medium">{item.subject ?? item.template}</span>
+                    {unread && (
+                        <span
+                            className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand-500)]"
+                            aria-label="Unread"
+                        />
+                    )}
+                    <Badge>{item.template}</Badge>
+                </div>
+                {item.body && <div className="text-sm text-fg-soft mt-0.5 whitespace-pre-wrap">{item.body}</div>}
+            </div>
+            <div
+                className="text-xs text-fg-muted font-mono"
+                title={new Date(item.createdAt).toLocaleString()}>
+                {formatRelative(item.createdAt)}
+            </div>
+        </li>
     )
 }

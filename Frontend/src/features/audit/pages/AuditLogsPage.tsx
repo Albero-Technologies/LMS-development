@@ -1,64 +1,101 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Search, Activity } from 'lucide-react'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Input } from '@shared/components/ui/Input'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
+import { Skeleton } from '@shared/components/ui/Skeleton'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { listAuditLogs } from '../services/audit.service'
 
-type Log = {
-    id: string
-    action: string
-    entity: string
-    actor: string
-    tenant: string
-    ip: string
-    at: string
+const PAGE_SIZE = 50
+
+const useDebounced = <T,>(value: T, delay = 300): T => {
+    const [debounced, setDebounced] = useState(value)
+    useEffect(() => {
+        const t = setTimeout(() => setDebounced(value), delay)
+        return () => clearTimeout(t)
+    }, [value, delay])
+    return debounced
 }
 
-const SEED: Log[] = [
-    { id: 'a1', action: 'auth.login', entity: 'User', actor: 'priya@ascend.in', tenant: 'Ascend Academy', ip: '::1', at: '2m' },
-    { id: 'a2', action: 'course.publish', entity: 'Course · DSA', actor: 'rohan@ascend.in', tenant: 'Ascend Academy', ip: '203.0.113.12', at: '10m' },
-    { id: 'a3', action: 'invoice.refund', entity: 'INV-2403-099', actor: 'priya@ascend.in', tenant: 'Ascend Academy', ip: '203.0.113.12', at: '1h' },
-    { id: 'a4', action: 'tenant.create', entity: 'Kintsu', actor: 'super@albero.academy', tenant: 'Albero Academy', ip: '198.51.100.9', at: '3h' }
-]
+const formatRelative = (iso: string): string => {
+    const ms = Date.now() - new Date(iso).getTime()
+    if (ms < 60_000) return `${Math.max(1, Math.floor(ms / 1000))}s`
+    if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m`
+    if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h`
+    return `${Math.floor(ms / 86_400_000)}d`
+}
 
 export const AuditLogsPage = () => {
-    const [q, setQ] = useState('')
-    const filtered = useMemo(() => {
-        const needle = q.trim().toLowerCase()
-        if (!needle) return SEED
-        return SEED.filter(
-            (l) =>
-                l.action.toLowerCase().includes(needle) ||
-                l.entity.toLowerCase().includes(needle) ||
-                l.actor.toLowerCase().includes(needle) ||
-                l.tenant.toLowerCase().includes(needle)
-        )
-    }, [q])
+    const role = useAuthStore((s) => s.user?.role)
+    const isSuperAdmin = role === ROLES.SUPER_ADMIN
+
+    const [searchInput, setSearchInput] = useState('')
+    const search = useDebounced(searchInput)
+    const [page, setPage] = useState(1)
+
+    const query = useQuery({
+        queryKey: ['audit-logs', { page, search }],
+        queryFn: () => listAuditLogs({ page, pageSize: PAGE_SIZE, search: search || undefined }),
+        staleTime: 30_000
+    })
+
+    const items = query.data?.items ?? []
+    const total = query.data?.total ?? 0
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+    // Reset page when the search changes so we don't end up on a now-empty page.
+    const lastSearch = useMemo(() => search, [search])
+    useEffect(() => {
+        setPage(1)
+    }, [lastSearch])
 
     return (
         <>
             <PageHeader
-                eyebrow="Super Admin"
+                eyebrow={isSuperAdmin ? 'Super Admin' : 'Tenant'}
                 title="Activity logs"
-                description="Every authenticated mutation is recorded — who, what, when, from where."
+                description={
+                    isSuperAdmin
+                        ? 'Every authenticated mutation across all tenants — who, what, when, from where.'
+                        : 'Every authenticated mutation in your tenant — who, what, when, from where.'
+                }
                 actions={
                     <div className="w-72">
                         <Input
-                            placeholder="Search action, entity, actor"
+                            placeholder="Search action, entity, id"
                             leftIcon={<Search size={14} />}
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)}
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
                             aria-label="Search audit logs"
                         />
                     </div>
                 }
             />
-            {filtered.length === 0 ? (
+
+            {query.isLoading ? (
+                <Card padded={false}>
+                    <div className="p-5 space-y-3">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                    </div>
+                </Card>
+            ) : query.isError ? (
                 <Empty
                     icon={<Activity size={32} />}
-                    title="No matches"
+                    title="Couldn't load activity"
+                    description="Try refreshing in a moment."
+                />
+            ) : items.length === 0 ? (
+                <Empty
+                    icon={<Activity size={32} />}
+                    title={search ? 'No matches' : 'No activity yet'}
+                    description={search ? 'Try a different search term.' : 'Mutations will appear here as users act in the platform.'}
                 />
             ) : (
                 <Card padded={false}>
@@ -70,28 +107,57 @@ export const AuditLogsPage = () => {
                                     <th className="py-3 px-5">Action</th>
                                     <th className="py-3 px-5">Entity</th>
                                     <th className="py-3 px-5">Actor</th>
-                                    <th className="py-3 px-5">Tenant</th>
+                                    {isSuperAdmin && <th className="py-3 px-5">Tenant</th>}
                                     <th className="py-3 px-5">IP</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
-                                {filtered.map((l) => (
+                                {items.map((l) => (
                                     <tr
                                         key={l.id}
                                         className="hover:bg-surface-hover">
-                                        <td className="py-3 px-5 text-xs text-fg-muted font-mono">{l.at} ago</td>
+                                        <td
+                                            className="py-3 px-5 text-xs text-fg-muted font-mono"
+                                            title={new Date(l.createdAt).toLocaleString()}>
+                                            {formatRelative(l.createdAt)} ago
+                                        </td>
                                         <td className="py-3 px-5">
                                             <Badge tone="brand">{l.action}</Badge>
                                         </td>
-                                        <td className="py-3 px-5 text-fg-soft">{l.entity}</td>
-                                        <td className="py-3 px-5 text-fg">{l.actor}</td>
-                                        <td className="py-3 px-5 text-fg-soft">{l.tenant}</td>
-                                        <td className="py-3 px-5 text-xs font-mono text-fg-muted">{l.ip}</td>
+                                        <td className="py-3 px-5 text-fg-soft">
+                                            {l.entityType ? `${l.entityType}${l.entityId ? ` · ${l.entityId.slice(0, 8)}` : ''}` : '—'}
+                                        </td>
+                                        <td className="py-3 px-5 text-fg">{l.actor ? `${l.actor.name} (${l.actor.email})` : '—'}</td>
+                                        {isSuperAdmin && <td className="py-3 px-5 text-fg-soft">{l.tenant?.name ?? '—'}</td>}
+                                        <td className="py-3 px-5 text-xs font-mono text-fg-muted">{l.ipAddress ?? '—'}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between border-t px-5 py-3 text-xs text-fg-muted">
+                            <span>
+                                Page {page} of {totalPages} · {total} total
+                            </span>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                    disabled={page <= 1}
+                                    className="rounded border px-2 py-1 disabled:opacity-50 hover:bg-surface-hover">
+                                    Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={page >= totalPages}
+                                    className="rounded border px-2 py-1 disabled:opacity-50 hover:bg-surface-hover">
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </Card>
             )}
         </>
