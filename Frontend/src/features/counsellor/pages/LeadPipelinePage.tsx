@@ -1,15 +1,15 @@
 import { useMemo, useState, type DragEvent } from 'react'
-import { Plus, Phone, Mail, MessageCircle, Trash2, Calendar, MoreHorizontal, ChevronRight } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Phone, Mail, MessageCircle, Calendar, MoreHorizontal, ChevronRight, LayoutGrid, Table2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
-import { Modal } from '@shared/components/ui/Modal'
-import { Input } from '@shared/components/ui/Input'
-import { Select } from '@shared/components/ui/Select'
+import { Empty } from '@shared/components/ui/Empty'
+import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
-import { useLeadStore, STAGE_LABEL, STAGE_ORDER, STAGE_TONE, type TLead, type TStage } from '../stores/leadStore'
+import { listMyLeads, STAGE_LABEL, STAGE_ORDER, STAGE_TONE, updateLeadStage, type Lead, type LeadStage } from '../services/lead.service'
 
 const timeAgo = (iso: string): string => {
     const diff = Date.now() - new Date(iso).getTime()
@@ -20,39 +20,75 @@ const timeAgo = (iso: string): string => {
     return `${Math.round(hr / 24)}d ago`
 }
 
-export const LeadPipelinePage = () => {
-    const leads = useLeadStore((s) => s.leads)
-    const moveLead = useLeadStore((s) => s.moveLead)
-    const deleteLead = useLeadStore((s) => s.deleteLead)
+const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 
-    const [addOpen, setAddOpen] = useState(false)
-    const [dragOverStage, setDragOverStage] = useState<TStage | null>(null)
+type ViewMode = 'kanban' | 'table'
+
+export const LeadPipelinePage = () => {
+    const queryClient = useQueryClient()
+    const [view, setView] = useState<ViewMode>('kanban')
+    const [tableStageFilter, setTableStageFilter] = useState<LeadStage | 'ALL'>('ALL')
+    const [dragOverStage, setDragOverStage] = useState<LeadStage | null>(null)
+
+    const leadsQuery = useQuery({
+        queryKey: ['leads'],
+        queryFn: () => listMyLeads(),
+        staleTime: 30_000
+    })
+
+    const stageMutation = useMutation({
+        mutationFn: ({ id, stage }: { id: string; stage: LeadStage }) => updateLeadStage(id, stage),
+        // Optimistically move the card so the kanban feels instant.
+        onMutate: async ({ id, stage }) => {
+            await queryClient.cancelQueries({ queryKey: ['leads'] })
+            const previous = queryClient.getQueryData<Lead[]>(['leads'])
+            if (previous) {
+                queryClient.setQueryData<Lead[]>(
+                    ['leads'],
+                    previous.map((l) => (l.id === id ? { ...l, stage } : l))
+                )
+            }
+            return { previous }
+        },
+        onError: (err: unknown, _vars, ctx) => {
+            if (ctx?.previous) queryClient.setQueryData(['leads'], ctx.previous)
+            const msg = err instanceof Error ? err.message : 'Could not update stage'
+            toast.error(msg)
+        },
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ['leads'] })
+    })
+
+    const leads = useMemo(() => leadsQuery.data ?? [], [leadsQuery.data])
 
     const columns = useMemo(() => {
-        const buckets = Object.fromEntries(STAGE_ORDER.map((s) => [s, [] as TLead[]])) as Record<TStage, TLead[]>
+        const buckets = Object.fromEntries(STAGE_ORDER.map((s) => [s, [] as Lead[]])) as Record<LeadStage, Lead[]>
         for (const lead of leads) buckets[lead.stage].push(lead)
         return buckets
     }, [leads])
 
-    const onDragStart = (e: DragEvent<HTMLElement>, lead: TLead) => {
+    const tableRows = useMemo(() => {
+        if (tableStageFilter === 'ALL') return leads
+        return leads.filter((l) => l.stage === tableStageFilter)
+    }, [leads, tableStageFilter])
+
+    const onDragStart = (e: DragEvent<HTMLElement>, lead: Lead) => {
         e.dataTransfer.setData('text/lead-id', lead.id)
         e.dataTransfer.setData('text/from-stage', lead.stage)
         e.dataTransfer.effectAllowed = 'move'
     }
-    const onDragOver = (e: DragEvent<HTMLElement>, stage: TStage) => {
+    const onDragOver = (e: DragEvent<HTMLElement>, stage: LeadStage) => {
         e.preventDefault()
         e.dataTransfer.dropEffect = 'move'
         setDragOverStage(stage)
     }
     const onDragLeave = () => setDragOverStage(null)
-    const onDrop = (e: DragEvent<HTMLElement>, stage: TStage) => {
+    const onDrop = (e: DragEvent<HTMLElement>, stage: LeadStage) => {
         e.preventDefault()
         setDragOverStage(null)
         const id = e.dataTransfer.getData('text/lead-id')
-        const from = e.dataTransfer.getData('text/from-stage') as TStage
+        const from = e.dataTransfer.getData('text/from-stage') as LeadStage
         if (!id || from === stage) return
-        moveLead(id, stage)
-        toast.success(`Moved to ${STAGE_LABEL[stage]}`)
+        stageMutation.mutate({ id, stage })
     }
 
     return (
@@ -60,72 +96,99 @@ export const LeadPipelinePage = () => {
             <PageHeader
                 eyebrow="Admissions"
                 title="Lead pipeline"
-                description="Drag cards across stages. Call / WhatsApp / email directly from each card."
+                description="Drag cards across stages, or switch to the table for filtering and bulk review."
                 actions={
-                    <Button
-                        size="sm"
-                        leftIcon={<Plus size={14} />}
-                        onClick={() => setAddOpen(true)}>
-                        New lead
-                    </Button>
+                    <div className="inline-flex rounded-md border border-[var(--color-border)] bg-surface-2 p-1">
+                        <button
+                            type="button"
+                            onClick={() => setView('kanban')}
+                            className={cn(
+                                'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs',
+                                view === 'kanban' ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+                            )}>
+                            <LayoutGrid size={12} /> Kanban
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setView('table')}
+                            className={cn(
+                                'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs',
+                                view === 'table' ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+                            )}>
+                            <Table2 size={12} /> Table
+                        </button>
+                    </div>
                 }
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                {STAGE_ORDER.map((stage) => {
-                    const bucket = columns[stage]
-                    const isDragOver = dragOverStage === stage
-                    return (
-                        <Card
-                            key={stage}
-                            padded={false}
-                            className={cn('flex flex-col min-h-[420px] transition-colors', isDragOver && 'ring-2 ring-[var(--color-brand-500)]')}>
-                            <header
-                                className="p-4 border-b flex items-center justify-between"
-                                onDragOver={(e) => onDragOver(e, stage)}
-                                onDragLeave={onDragLeave}
-                                onDrop={(e) => onDrop(e, stage)}>
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-sm font-semibold text-fg">{STAGE_LABEL[stage]}</h3>
-                                    <Badge tone={STAGE_TONE[stage]}>{bucket.length}</Badge>
+            {leadsQuery.isLoading ? (
+                <Card>
+                    <div className="space-y-3">
+                        <Skeleton className="h-5 w-1/3" />
+                        <Skeleton className="h-5 w-2/3" />
+                        <Skeleton className="h-5 w-full" />
+                    </div>
+                </Card>
+            ) : leadsQuery.isError ? (
+                <Empty
+                    icon={<LayoutGrid size={32} />}
+                    title="Couldn't load leads"
+                    description="Please try again."
+                />
+            ) : view === 'kanban' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {STAGE_ORDER.map((stage) => {
+                        const bucket = columns[stage]
+                        const isDragOver = dragOverStage === stage
+                        return (
+                            <Card
+                                key={stage}
+                                padded={false}
+                                className={cn('flex flex-col min-h-[420px] transition-colors', isDragOver && 'ring-2 ring-[var(--color-brand-500)]')}>
+                                <header
+                                    className="p-4 border-b flex items-center justify-between"
+                                    onDragOver={(e) => onDragOver(e, stage)}
+                                    onDragLeave={onDragLeave}
+                                    onDrop={(e) => onDrop(e, stage)}>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-sm font-semibold text-fg">{STAGE_LABEL[stage]}</h3>
+                                        <Badge tone={STAGE_TONE[stage]}>{bucket.length}</Badge>
+                                    </div>
+                                </header>
+
+                                <div
+                                    className="p-3 space-y-2.5 flex-1 overflow-y-auto"
+                                    onDragOver={(e) => onDragOver(e, stage)}
+                                    onDragLeave={onDragLeave}
+                                    onDrop={(e) => onDrop(e, stage)}>
+                                    {bucket.length === 0 && (
+                                        <div className="text-xs text-fg-muted px-2 py-6 text-center border border-dashed rounded-md">
+                                            Drop leads here
+                                        </div>
+                                    )}
+                                    {bucket.map((lead) => (
+                                        <LeadCard
+                                            key={lead.id}
+                                            lead={lead}
+                                            onDragStart={(e) => onDragStart(e, lead)}
+                                            onMove={(s) => stageMutation.mutate({ id: lead.id, stage: s })}
+                                        />
+                                    ))}
                                 </div>
-                                <Button
-                                    size="icon-sm"
-                                    variant="ghost"
-                                    aria-label="Stage actions">
-                                    <MoreHorizontal size={14} />
-                                </Button>
-                            </header>
-
-                            <div
-                                className="p-3 space-y-2.5 flex-1 overflow-y-auto"
-                                onDragOver={(e) => onDragOver(e, stage)}
-                                onDragLeave={onDragLeave}
-                                onDrop={(e) => onDrop(e, stage)}>
-                                {bucket.length === 0 && (
-                                    <div className="text-xs text-fg-muted px-2 py-6 text-center border border-dashed rounded-md">Drop leads here</div>
-                                )}
-                                {bucket.map((lead) => (
-                                    <LeadCard
-                                        key={lead.id}
-                                        lead={lead}
-                                        onDragStart={(e) => onDragStart(e, lead)}
-                                        onDelete={() => {
-                                            if (window.confirm(`Delete ${lead.name}?`)) deleteLead(lead.id)
-                                        }}
-                                        onMove={(s) => moveLead(lead.id, s)}
-                                    />
-                                ))}
-                            </div>
-                        </Card>
-                    )
-                })}
-            </div>
-
-            <AddLeadModal
-                open={addOpen}
-                onClose={() => setAddOpen(false)}
-            />
+                            </Card>
+                        )
+                    })}
+                </div>
+            ) : (
+                <LeadTable
+                    leads={tableRows}
+                    stageFilter={tableStageFilter}
+                    onStageFilter={setTableStageFilter}
+                    counts={columns}
+                    totalLeads={leads.length}
+                    onMove={(id, stage) => stageMutation.mutate({ id, stage })}
+                />
+            )}
         </>
     )
 }
@@ -133,13 +196,11 @@ export const LeadPipelinePage = () => {
 const LeadCard = ({
     lead,
     onDragStart,
-    onDelete,
     onMove
 }: {
-    lead: TLead
+    lead: Lead
     onDragStart: (e: DragEvent<HTMLElement>) => void
-    onDelete: () => void
-    onMove: (s: TStage) => void
+    onMove: (s: LeadStage) => void
 }) => {
     const [menuOpen, setMenuOpen] = useState(false)
     return (
@@ -186,16 +247,6 @@ const LeadCard = ({
                                         <ChevronRight size={12} />
                                     </button>
                                 ))}
-                                <div className="my-1 border-t" />
-                                <button
-                                    type="button"
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-[var(--color-danger)] hover:bg-surface-hover"
-                                    onClick={() => {
-                                        setMenuOpen(false)
-                                        onDelete()
-                                    }}>
-                                    <Trash2 size={12} /> Delete
-                                </button>
                             </div>
                         </>
                     )}
@@ -203,14 +254,14 @@ const LeadCard = ({
             </div>
 
             <div className="mt-2 flex items-center gap-2 text-[11px] text-fg-muted">
-                <span>{lead.source}</span>
-                <span>·</span>
+                {lead.source && <span>{lead.source}</span>}
+                {lead.source && <span>·</span>}
                 <span>{timeAgo(lead.createdAt)}</span>
             </div>
 
-            {lead.nextActionAt && (
-                <div className="mt-2 text-[11px] text-[var(--color-warn)] inline-flex items-center gap-1.5">
-                    <Calendar size={11} /> Follow up {timeAgo(lead.nextActionAt).replace(' ago', '')}
+            {lead.assignedTo && (
+                <div className="mt-2 text-[11px] text-fg-muted inline-flex items-center gap-1.5">
+                    <Calendar size={11} /> {lead.assignedTo.firstName} {lead.assignedTo.lastName}
                 </div>
             )}
 
@@ -231,114 +282,159 @@ const LeadCard = ({
                     onClick={(e) => e.stopPropagation()}>
                     <MessageCircle size={13} />
                 </a>
-                {lead.email && (
-                    <a
-                        href={`mailto:${lead.email}`}
-                        className="btn btn-ghost btn-sm flex-1"
-                        aria-label={`Email ${lead.name}`}
-                        onClick={(e) => e.stopPropagation()}>
-                        <Mail size={13} />
-                    </a>
-                )}
+                <a
+                    href={`mailto:${lead.email}`}
+                    className="btn btn-ghost btn-sm flex-1"
+                    aria-label={`Email ${lead.name}`}
+                    onClick={(e) => e.stopPropagation()}>
+                    <Mail size={13} />
+                </a>
             </div>
         </div>
     )
 }
 
-const AddLeadModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-    const add = useLeadStore((s) => s.addLead)
-    const [name, setName] = useState('')
-    const [phone, setPhone] = useState('')
-    const [email, setEmail] = useState('')
-    const [course, setCourse] = useState('System Design Foundations')
-    const [source, setSource] = useState('WhatsApp')
-
-    const reset = () => {
-        setName('')
-        setPhone('')
-        setEmail('')
-        setCourse('System Design Foundations')
-        setSource('WhatsApp')
-    }
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault()
-        add({ name: name.trim(), phone: phone.trim(), email: email.trim() || undefined, course, source })
-        toast.success('Lead added to the pipeline')
-        reset()
-        onClose()
-    }
-
+const LeadTable = ({
+    leads,
+    stageFilter,
+    onStageFilter,
+    counts,
+    totalLeads,
+    onMove
+}: {
+    leads: Lead[]
+    stageFilter: LeadStage | 'ALL'
+    onStageFilter: (s: LeadStage | 'ALL') => void
+    counts: Record<LeadStage, Lead[]>
+    totalLeads: number
+    onMove: (id: string, stage: LeadStage) => void
+}) => {
     return (
-        <Modal
-            open={open}
-            onClose={() => {
-                reset()
-                onClose()
-            }}
-            title="New lead"
-            description="Capture just enough to call — the rest comes later."
-            footer={
+        <>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+                <FilterChip
+                    label="All"
+                    count={totalLeads}
+                    active={stageFilter === 'ALL'}
+                    onClick={() => onStageFilter('ALL')}
+                />
+                {STAGE_ORDER.map((s) => (
+                    <FilterChip
+                        key={s}
+                        label={STAGE_LABEL[s]}
+                        count={counts[s].length}
+                        active={stageFilter === s}
+                        onClick={() => onStageFilter(s)}
+                    />
+                ))}
+            </div>
+
+            {leads.length === 0 ? (
+                <Empty
+                    icon={<Table2 size={32} />}
+                    title="No leads in this stage"
+                    description="Drag cards in the kanban or wait for new enquiries to land here."
+                />
+            ) : (
+                <Card padded={false}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
+                                    <th className="py-3 px-5">Name</th>
+                                    <th className="py-3 px-5">Course</th>
+                                    <th className="py-3 px-5">Phone</th>
+                                    <th className="py-3 px-5">Stage</th>
+                                    <th className="py-3 px-5">Assigned</th>
+                                    <th className="py-3 px-5">Created</th>
+                                    <th className="py-3 px-5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                                {leads.map((l) => (
+                                    <tr
+                                        key={l.id}
+                                        className="hover:bg-surface-hover">
+                                        <td className="py-3 px-5">
+                                            <div className="text-fg font-medium">{l.name}</div>
+                                            <div className="text-xs text-fg-muted">{l.email}</div>
+                                        </td>
+                                        <td className="py-3 px-5 text-fg-soft">{l.course}</td>
+                                        <td className="py-3 px-5 font-mono text-xs text-fg-soft">{l.phone}</td>
+                                        <td className="py-3 px-5">
+                                            <Badge tone={STAGE_TONE[l.stage]}>{STAGE_LABEL[l.stage]}</Badge>
+                                        </td>
+                                        <td className="py-3 px-5 text-fg-soft">
+                                            {l.assignedTo ? `${l.assignedTo.firstName} ${l.assignedTo.lastName}` : '—'}
+                                        </td>
+                                        <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(l.createdAt)}</td>
+                                        <td className="py-3 px-5 text-right">
+                                            <StageMenu
+                                                current={l.stage}
+                                                onPick={(s) => onMove(l.id, s)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
+        </>
+    )
+}
+
+const FilterChip = ({ label, count, active, onClick }: { label: string; count: number; active: boolean; onClick: () => void }) => (
+    <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+            'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors',
+            active
+                ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)] text-[var(--color-brand-700)]'
+                : 'border-[var(--color-border)] text-fg-soft hover:bg-surface-hover'
+        )}>
+        {label}
+        <span className="font-mono text-[11px] text-fg-muted">{count}</span>
+    </button>
+)
+
+const StageMenu = ({ current, onPick }: { current: LeadStage; onPick: (s: LeadStage) => void }) => {
+    const [open, setOpen] = useState(false)
+    return (
+        <div className="relative inline-block">
+            <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setOpen((v) => !v)}>
+                Move
+            </Button>
+            {open && (
                 <>
-                    <Button
-                        variant="ghost"
-                        onClick={() => {
-                            reset()
-                            onClose()
-                        }}>
-                        Cancel
-                    </Button>
-                    <Button
-                        form="new-lead-form"
-                        type="submit"
-                        disabled={name.trim().length < 2 || phone.trim().length < 6}>
-                        Add to pipeline
-                    </Button>
+                    <button
+                        type="button"
+                        aria-label="Close menu"
+                        className="fixed inset-0 z-10"
+                        onClick={() => setOpen(false)}
+                    />
+                    <div className="absolute right-0 top-9 z-20 bg-surface border rounded-md shadow-lift text-sm py-1 w-48">
+                        {STAGE_ORDER.filter((s) => s !== current).map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-surface-hover text-left"
+                                onClick={() => {
+                                    onPick(s)
+                                    setOpen(false)
+                                }}>
+                                {STAGE_LABEL[s]}
+                                <ChevronRight size={12} />
+                            </button>
+                        ))}
+                    </div>
                 </>
-            }>
-            <form
-                id="new-lead-form"
-                onSubmit={submit}
-                className="space-y-4">
-                <Input
-                    label="Name"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <Input
-                    label="Phone"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+91 ..."
-                />
-                <Input
-                    label="Email (optional)"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <Select
-                    label="Course"
-                    value={course}
-                    onChange={(e) => setCourse(e.target.value)}>
-                    <option>System Design Foundations</option>
-                    <option>Full-stack TypeScript</option>
-                    <option>DSA in 30 days</option>
-                    <option>React for Production</option>
-                </Select>
-                <Select
-                    label="Source"
-                    value={source}
-                    onChange={(e) => setSource(e.target.value)}>
-                    <option>WhatsApp</option>
-                    <option>Instagram</option>
-                    <option>Referral</option>
-                    <option>Organic</option>
-                    <option>Cold call</option>
-                </Select>
-            </form>
-        </Modal>
+            )}
+        </div>
     )
 }

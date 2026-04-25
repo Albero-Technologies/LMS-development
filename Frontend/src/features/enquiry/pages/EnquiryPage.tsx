@@ -17,7 +17,10 @@ import { Input, Textarea } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
-import { useLeadStore } from '@features/counsellor/stores/leadStore'
+import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { submitPublicEnquiry } from '@features/counsellor/services/lead.service'
+import { toApiError } from '@shared/libs/api'
 
 const schema = z.object({
     name: z.string().min(2, 'Please enter your full name'),
@@ -42,13 +45,12 @@ const COURSE_OPTIONS = [
 
 export const EnquiryPage = () => {
     const [params] = useSearchParams()
-    const addEnquiry = useLeadStore((s) => s.addEnquiry)
     const [submitted, setSubmitted] = useState<{ counsellor?: string } | null>(null)
 
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<TForm>({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -60,12 +62,19 @@ export const EnquiryPage = () => {
     const utmSource = params.get('utm_source') ?? undefined
     const utmMedium = params.get('utm_medium') ?? undefined
     const utmCampaign = params.get('utm_campaign') ?? undefined
+    const tenantSlug = params.get('tenant') ?? undefined
 
-    const submit = async (data: TForm) => {
-        // In the real app this posts to /api/v1/enquiries. The server does the
-        // round-robin; we mirror its behaviour locally so the UX works standalone.
-        await new Promise((r) => setTimeout(r, 300))
-        const created = addEnquiry({
+    const mutation = useMutation({
+        mutationFn: submitPublicEnquiry,
+        onSuccess: (res) => {
+            setSubmitted({ counsellor: res.assignedCounsellor?.name })
+        },
+        onError: (err) => toast.error(toApiError(err).message)
+    })
+
+    const submit = (data: TForm) => {
+        mutation.mutate({
+            tenantSlug,
             name: data.name,
             email: data.email,
             phone: data.phone,
@@ -73,12 +82,10 @@ export const EnquiryPage = () => {
             language: data.language,
             city: data.city,
             message: data.message,
-            source: utmSource ? `${utmSource}${utmMedium ? ' · ' + utmMedium : ''}` : 'Website enquiry',
             utmSource,
             utmMedium,
             utmCampaign
         })
-        setSubmitted({ counsellor: created.assignedToName })
     }
 
     if (submitted) {
@@ -242,7 +249,7 @@ export const EnquiryPage = () => {
                                 type="submit"
                                 size="lg"
                                 className="w-full"
-                                loading={isSubmitting}
+                                loading={mutation.isPending}
                                 rightIcon={<ArrowRight size={16} />}>
                                 Request a callback
                             </Button>
