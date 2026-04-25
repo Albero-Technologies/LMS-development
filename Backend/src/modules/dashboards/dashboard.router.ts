@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth, requirePolicy } from '../../middleware/auth'
-import { getDashboard, getMonitoringSnapshot } from './dashboard.service'
+import { getDashboard, getMonitoringSnapshot, getReports } from './dashboard.service'
 import db from '../../service/db'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
@@ -14,6 +14,17 @@ router.get(
     asyncHandler(async (req: Request, res: Response) => {
         if (!req.auth) return
         const data = await getDashboard(req.auth.tenantId, req.auth.role, req.auth.userId)
+        httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+    })
+)
+
+router.get(
+    '/reports',
+    requireAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+        if (!req.auth) return
+        const tenantSlug = typeof req.query.tenantSlug === 'string' ? req.query.tenantSlug : undefined
+        const data = await getReports(req.auth.tenantId, req.auth.role, tenantSlug)
         httpResponse(req, res, 200, responseMessage.SUCCESS, data)
     })
 )

@@ -1,32 +1,34 @@
 import { Link } from 'react-router-dom'
-import { Play, CalendarCheck, Trophy, Flame, ArrowRight, ClipboardList } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { CalendarCheck, ArrowRight, ClipboardList, GraduationCap, IndianRupee, FileText, BookOpen } from 'lucide-react'
 import { Card, StatCard } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
 import { Button } from '@shared/components/ui/Button'
+import { Skeleton } from '@shared/components/ui/Skeleton'
+import { Empty } from '@shared/components/ui/Empty'
 import { useAuthStore } from '@shared/stores/authStore'
 import { DemoModeBanner } from '@features/dashboards/components/DemoModeBanner'
+import { getMyDashboard } from '../services/dashboard.service'
+import { listMyEnrollments, type Enrollment } from '@features/courses/services/enrollment.service'
+import { fmtPaiseINR } from '@shared/libs/pdf'
 
-const IN_PROGRESS = [
-    { id: 'c1', title: 'System Design Foundations', pct: 46, nextLesson: 'L3.2 — Consistent hashing' },
-    { id: 'c2', title: 'Full-stack TypeScript', pct: 78, nextLesson: 'L8 — tRPC + Zod end-to-end' },
-    { id: 'c3', title: 'Data Structures in 30 days', pct: 22, nextLesson: 'L5 — Stacks, in depth' }
-]
-
-const UPCOMING = [
-    { when: 'Today · 6:00 PM', title: 'Live doubt class — SQL', tone: 'brand' as const },
-    { when: 'Tomorrow', title: 'Quiz · DSA Week 5', tone: 'warn' as const },
-    { when: 'Thu', title: 'Assignment due · REST APIs', tone: 'default' as const }
-]
-
+// Real-data student dashboard. Stats come from `/dashboard/me`; the
+// "Continue learning" list is fetched from `/enrollments/mine`.
 export const StudentDashboard = () => {
     const user = useAuthStore((s) => s.user)
     const firstName = user?.name?.split(' ')[0] ?? 'there'
+
+    const dashQuery = useQuery({ queryKey: ['dashboard', 'me'], queryFn: getMyDashboard, staleTime: 60_000 })
+    const enrollmentsQuery = useQuery({ queryKey: ['enrollments', 'mine'], queryFn: listMyEnrollments, staleTime: 60_000 })
+
+    const stats = dashQuery.data?.stats ?? {}
+    const nextActions = dashQuery.data?.nextActions ?? []
+    const enrollments = enrollmentsQuery.data ?? []
 
     return (
         <>
             <DemoModeBanner />
 
-            {/* Gradient welcome banner — mirrors lms.pen student dashboard */}
             <div
                 className="rounded-lg p-6 sm:p-8 mb-6 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
                 style={{
@@ -35,7 +37,11 @@ export const StudentDashboard = () => {
                 <div>
                     <div className="text-xs font-medium uppercase tracking-wider text-white/70">Welcome back</div>
                     <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight">Hi {firstName} 👋</h1>
-                    <p className="mt-1.5 text-white/85 text-sm">Pick up where you left off. 3 lessons queued for today.</p>
+                    <p className="mt-1.5 text-white/85 text-sm">
+                        {(stats.activeEnrollments ?? 0) > 0
+                            ? `${stats.activeEnrollments} active course(s) — pick up where you left off.`
+                            : 'Browse the catalogue to enrol in your first course.'}
+                    </p>
                 </div>
                 <Link to="/app/courses">
                     <Button
@@ -50,30 +56,26 @@ export const StudentDashboard = () => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <StatCard
                     label="Active enrollments"
-                    value={3}
+                    value={stats.activeEnrollments ?? 0}
                     icon={<CalendarCheck size={18} />}
                     accent="brand"
                 />
                 <StatCard
-                    label="Lessons this week"
-                    value={12}
-                    delta="+4 vs last week"
-                    tone="up"
-                    icon={<Play size={18} />}
+                    label="Completed courses"
+                    value={stats.completedCourses ?? 0}
+                    icon={<GraduationCap size={18} />}
                     accent="purple"
                 />
                 <StatCard
-                    label="Quiz average"
-                    value="84%"
-                    delta="+6 pts"
-                    tone="up"
-                    icon={<Trophy size={18} />}
+                    label="Quizzes attempted"
+                    value={stats.quizzesAttempted ?? 0}
+                    icon={<ClipboardList size={18} />}
                     accent="orange"
                 />
                 <StatCard
-                    label="Streak"
-                    value="9 days"
-                    icon={<Flame size={18} />}
+                    label="Pending fees"
+                    value={fmtPaiseINR(stats.pendingAmount)}
+                    icon={<IndianRupee size={18} />}
                     accent="pink"
                 />
             </div>
@@ -91,60 +93,85 @@ export const StudentDashboard = () => {
                             </Button>
                         </Link>
                     </div>
-                    <ul className="divide-y">
-                        {IN_PROGRESS.map((c) => (
-                            <li
-                                key={c.id}
-                                className="py-4 flex items-center gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-fg truncate">{c.title}</div>
-                                    <div className="text-xs text-fg-muted mt-0.5">Next · {c.nextLesson}</div>
-                                    <div className="mt-2 h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-[var(--color-brand-500)] transition-all"
-                                            style={{ width: `${c.pct}%` }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="text-right shrink-0">
-                                    <div className="font-mono text-xs text-fg-muted">{c.pct}%</div>
-                                    <Link to={`/app/courses/${c.id}`}>
-                                        <Button
-                                            size="sm"
-                                            className="mt-2">
-                                            Resume
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    {enrollmentsQuery.isLoading ? (
+                        <div className="space-y-3">
+                            <Skeleton className="h-12" />
+                            <Skeleton className="h-12" />
+                        </div>
+                    ) : enrollments.length === 0 ? (
+                        <Empty
+                            icon={<BookOpen size={28} />}
+                            title="No enrolments yet"
+                            description="Browse the catalogue and enrol in a course to get started."
+                        />
+                    ) : (
+                        <ul className="divide-y">
+                            {enrollments.slice(0, 5).map((e) => (
+                                <EnrollmentRow
+                                    key={e.id}
+                                    enrollment={e}
+                                />
+                            ))}
+                        </ul>
+                    )}
                 </Card>
 
                 <Card>
-                    <h2 className="text-base font-semibold text-fg mb-4">Upcoming</h2>
-                    <ul className="space-y-3">
-                        {UPCOMING.map((e) => (
-                            <li
-                                key={e.title}
-                                className="border rounded-md p-3 flex items-start gap-3">
-                                <Badge tone={e.tone}>{e.when}</Badge>
-                                <div className="text-sm text-fg">{e.title}</div>
-                            </li>
-                        ))}
-                    </ul>
-                    <Link
-                        to="/app/quizzes"
-                        className="mt-5 block">
-                        <Button
-                            variant="ghost"
-                            className="w-full"
-                            leftIcon={<ClipboardList size={14} />}>
-                            My quizzes
-                        </Button>
-                    </Link>
+                    <h2 className="text-base font-semibold text-fg mb-4">Next actions</h2>
+                    {dashQuery.isLoading ? (
+                        <Skeleton className="h-16" />
+                    ) : nextActions.length === 0 ? (
+                        <div className="text-sm text-fg-soft py-4 text-center">All caught up.</div>
+                    ) : (
+                        <ul className="space-y-3">
+                            {nextActions.map((a, i) => (
+                                <li
+                                    key={i}
+                                    className="border rounded-md p-3">
+                                    <Link
+                                        to={a.link.startsWith('/app') ? a.link : `/app${a.link}`}
+                                        className="flex items-start gap-3">
+                                        <Badge tone="brand">Open</Badge>
+                                        <div className="text-sm text-fg">{a.label}</div>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {(stats.pendingInvoices ?? 0) > 0 && (
+                        <Link
+                            to="/app/payments"
+                            className="mt-5 block">
+                            <Button
+                                variant="ghost"
+                                className="w-full"
+                                leftIcon={<FileText size={14} />}>
+                                Pay {stats.pendingInvoices} pending invoice(s)
+                            </Button>
+                        </Link>
+                    )}
                 </Card>
             </div>
         </>
+    )
+}
+
+const EnrollmentRow = ({ enrollment }: { enrollment: Enrollment }) => {
+    const courseId = enrollment.course?.id
+    const title = enrollment.course?.title ?? 'Untitled course'
+    return (
+        <li className="py-4 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-fg truncate">{title}</div>
+                <div className="text-xs text-fg-muted mt-0.5">Status · {enrollment.status}</div>
+            </div>
+            <div className="text-right shrink-0">
+                {courseId && (
+                    <Link to={`/app/courses/${courseId}`}>
+                        <Button size="sm">Resume</Button>
+                    </Link>
+                )}
+            </div>
+        </li>
     )
 }

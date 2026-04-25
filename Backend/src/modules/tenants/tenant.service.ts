@@ -78,10 +78,52 @@ export const getPublicTenantBySlug = async (slug: string) => {
     }
 }
 
+// SUPER_ADMIN client-payments aggregate (§4.4). Returns one row per tenant
+// with their total outstanding TenantPayment balance + last paid date so the
+// SA can chase up overdue tenants from a single view.
+export const listClientPaymentsSummary = async () => {
+    const tenants = await db.client.tenant.findMany({
+        where: { slug: { not: PLATFORM_TENANT_SLUG } },
+        select: {
+            id: true,
+            name: true,
+            slug: true,
+            settings: true,
+            saasPayments: { select: { amount: true, status: true, paidAt: true, periodEnd: true, createdAt: true } }
+        },
+        orderBy: { createdAt: 'desc' }
+    })
+
+    const now = Date.now()
+    return tenants.map((t) => {
+        const payments = t.saasPayments
+        const outstanding = payments.filter((p) => p.status === 'PENDING' || p.status === 'FAILED').reduce((n, p) => n + p.amount, 0)
+        const overdueCount = payments.filter(
+            (p) => (p.status === 'PENDING' || p.status === 'FAILED') && p.periodEnd && p.periodEnd.getTime() < now
+        ).length
+        const pendingCount = payments.filter((p) => p.status === 'PENDING').length
+        const lastPaid = payments
+            .filter((p): p is typeof p & { paidAt: Date } => p.status === 'PAID' && p.paidAt !== null)
+            .sort((a, b) => b.paidAt.getTime() - a.paidAt.getTime())[0]
+        const contacts = (t.settings as { contacts?: { primaryEmail?: string; primaryPhone?: string } } | null)?.contacts
+        return {
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+            outstanding,
+            overdueCount,
+            pendingCount,
+            lastPaidAt: lastPaid ? lastPaid.paidAt.toISOString() : null,
+            contactEmail: contacts?.primaryEmail ?? null,
+            contactPhone: contacts?.primaryPhone ?? null
+        }
+    })
+}
+
 // SUPER_ADMIN cross-tenant listing — used by the SA panel (§4.1). Includes
 // counts so the table can show "X users / Y courses" without N+1 round-trips.
-// The platform tenant is filtered out — SAs don't manage their own tenant
-// from this UI.
+// The platform tenant is filtered out — SAs aren't supposed to see their own
+// internal tenant in the customer-tenant pickers.
 export const listAllTenants = async () => {
     const rows = await db.client.tenant.findMany({
         where: { slug: { not: PLATFORM_TENANT_SLUG } },

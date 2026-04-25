@@ -6,8 +6,26 @@ import { type TInviteUserInput, type TListUsersQuery, type TUpdateUserInput } fr
 import { createInvite } from '../auth/auth.service'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 
-export const listUsers = async (tenantId: string, actorId: string, query: TListUsersQuery) => {
-    const where: Prisma.UserWhereInput = { tenantId }
+export const listUsers = async (
+    tenantId: string,
+    actorId: string,
+    actorRole: Role,
+    query: TListUsersQuery & { tenantSlug?: string }
+) => {
+    // SUPER_ADMIN can scope to any tenant via ?tenantSlug=foo, or pass
+    // tenantSlug=__all__ to list across every customer tenant (the platform
+    // tenant — where the SA themselves lives — is excluded so it stays
+    // hidden from the customer-tenant management view). Everyone else is
+    // locked to their own tenant by the auth context.
+    let where: Prisma.UserWhereInput = { tenantId, deletedAt: null }
+    if (actorRole === Role.SUPER_ADMIN) {
+        if (query.tenantSlug === '__all__') {
+            where = { deletedAt: null, tenant: { slug: { not: 'platform' } } }
+        } else if (query.tenantSlug) {
+            const t = await db.client.tenant.findUnique({ where: { slug: query.tenantSlug }, select: { id: true } })
+            where = { tenantId: t?.id ?? '__none__', deletedAt: null }
+        }
+    }
     if (query.role) where.role = query.role
     if (query.status) where.status = query.status
     if (query.q) {
@@ -30,24 +48,34 @@ export const listUsers = async (tenantId: string, actorId: string, query: TListU
         where.managerId = actorId
     }
 
+    // Prisma rejects `false` in a `select` block for relations — you either
+    // include the key with a select object or omit it entirely. So we build
+    // the select as a Prisma type and add the tenant join only for SAs.
+    const baseSelect = {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        avatarUrl: true,
+        lastLoginAt: true,
+        createdAt: true
+    } satisfies Prisma.UserSelect
+
+    const userSelect: Prisma.UserSelect =
+        actorRole === Role.SUPER_ADMIN
+            ? { ...baseSelect, tenant: { select: { id: true, name: true, slug: true } } }
+            : baseSelect
+
     const [items, total] = await Promise.all([
         db.client.user.findMany({
             where,
             skip: (query.page - 1) * query.pageSize,
             take: query.pageSize,
             orderBy: { createdAt: 'desc' },
-            select: {
-                id: true,
-                email: true,
-                role: true,
-                status: true,
-                firstName: true,
-                lastName: true,
-                phone: true,
-                avatarUrl: true,
-                lastLoginAt: true,
-                createdAt: true
-            }
+            select: userSelect
         }),
         db.client.user.count({ where })
     ])
@@ -75,9 +103,15 @@ export const getUser = async (tenantId: string, id: string) => {
     return user
 }
 
-export const updateUser = async (tenantId: string, id: string, input: TUpdateUserInput) => {
+export const updateUser = async (tenantId: string, id: string, actorId: string, input: TUpdateUserInput) => {
     const existing = await db.client.user.findFirst({ where: { id, tenantId } })
     if (!existing) throw AppError.notFound(responseMessage.NOT_FOUND('User'), 'USER_NOT_FOUND')
+
+    // A user cannot suspend or downgrade themselves — that's a fast way to
+    // lock yourself out of your own tenant.
+    if (id === actorId && (input.status === 'SUSPENDED' || (input.role && input.role !== existing.role))) {
+        throw AppError.badRequest('You cannot change your own role or status', 'SELF_MODIFY_FORBIDDEN')
+    }
 
     // Role or status changes invalidate active sessions.
     const bumpTokenVersion = input.role !== undefined || input.status !== undefined

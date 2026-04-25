@@ -1,7 +1,8 @@
-// UTM builder — mirrors lms.pen frame 23 (SA UTM Builder). Used by the super
-// admin to generate tagged URLs for paid campaigns. Once the backend lands,
-// redirect clicks on short URLs through /r/:id so click counts are accurate.
-import { useMemo, useState } from 'react'
+// UTM builder (§4.1). Backend-backed: tenant list comes from `listAllTenants`,
+// links live in `tenant.settings.utmLinks`. SAs generate a tagged URL, save
+// it onto the tenant, and the list re-renders from the real settings JSON.
+import { useEffect, useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link2, Copy, Check, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
@@ -10,15 +11,38 @@ import { Button } from '@shared/components/ui/Button'
 import { Input } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Empty } from '@shared/components/ui/Empty'
-import { useTenantStore } from '../stores/tenantStore'
+import { Skeleton } from '@shared/components/ui/Skeleton'
+import {
+    getTenantDetail,
+    listAllTenants,
+    readUtmLinks,
+    updateTenantById,
+    type TenantSettings,
+    type UtmLink
+} from '../services/tenant.service'
 
 export const UtmBuilderPage = () => {
-    const tenants = useTenantStore((s) => s.tenants)
-    const links = useTenantStore((s) => s.utmLinks)
-    const addLink = useTenantStore((s) => s.addUtmLink)
-    const deleteLink = useTenantStore((s) => s.deleteUtmLink)
+    const queryClient = useQueryClient()
+    const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
+    const [tenantId, setTenantId] = useState('')
 
-    const [tenantId, setTenantId] = useState(tenants[0]?.id ?? '')
+    useEffect(() => {
+        if (!tenantId && tenantsQuery.data && tenantsQuery.data.length > 0) {
+            setTenantId(tenantsQuery.data[0].id)
+        }
+    }, [tenantId, tenantsQuery.data])
+
+    const detailQuery = useQuery({
+        queryKey: ['tenants', tenantId],
+        queryFn: () => getTenantDetail(tenantId),
+        enabled: tenantId.length > 0,
+        staleTime: 60_000
+    })
+
+    const tenants = tenantsQuery.data ?? []
+    const tenant = detailQuery.data
+    const links = useMemo(() => readUtmLinks(tenant), [tenant])
+
     const [label, setLabel] = useState('')
     const [destination, setDestination] = useState('/enquiry')
     const [source, setSource] = useState('instagram')
@@ -28,10 +52,7 @@ export const UtmBuilderPage = () => {
     const [content, setContent] = useState('')
     const [copied, setCopied] = useState<string | null>(null)
 
-    const tenantLinks = useMemo(() => links.filter((l) => l.tenantId === tenantId), [links, tenantId])
-
     const preview = useMemo(() => {
-        if (!tenantId) return ''
         const params = new URLSearchParams()
         params.set('utm_source', source || 'src')
         params.set('utm_medium', medium || 'med')
@@ -42,7 +63,17 @@ export const UtmBuilderPage = () => {
         const dest = destination.startsWith('http') ? destination : `${origin}${destination}`
         const sep = dest.includes('?') ? '&' : '?'
         return `${dest}${sep}${params.toString()}`
-    }, [tenantId, destination, source, medium, campaign, term, content])
+    }, [destination, source, medium, campaign, term, content])
+
+    const persistMutation = useMutation({
+        mutationFn: (next: UtmLink[]) => {
+            if (!tenant) throw new Error('Tenant not loaded')
+            const settings: TenantSettings = { ...(tenant.settings ?? {}), utmLinks: next }
+            return updateTenantById(tenantId, { settings })
+        },
+        onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['tenants', tenantId] }),
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save UTM link')
+    })
 
     const copy = (id: string, url: string) => {
         navigator.clipboard.writeText(url)
@@ -52,8 +83,9 @@ export const UtmBuilderPage = () => {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault()
-        if (!tenantId) return
-        const created = addLink({
+        if (!tenant) return
+        const created: UtmLink = {
+            id: crypto.randomUUID(),
             tenantId,
             label: label.trim() || `${source}/${medium}`,
             destination,
@@ -61,13 +93,42 @@ export const UtmBuilderPage = () => {
             medium,
             campaign,
             term: term || undefined,
-            content: content || undefined
+            content: content || undefined,
+            fullUrl: preview,
+            createdAt: new Date().toISOString(),
+            clickCount: 0
+        } as UtmLink
+        persistMutation.mutate([created, ...links], {
+            onSuccess: () => {
+                toast.success('UTM link saved')
+                setLabel('')
+                setTerm('')
+                setContent('')
+                copy(created.id, created.fullUrl)
+            }
         })
-        toast.success('UTM link created')
-        setLabel('')
-        setTerm('')
-        setContent('')
-        copy(created.id, created.fullUrl)
+    }
+
+    const remove = (id: string) => {
+        if (!window.confirm('Delete this UTM link?')) return
+        persistMutation.mutate(links.filter((l) => l.id !== id), {
+            onSuccess: () => toast.success('UTM link deleted')
+        })
+    }
+
+    if (tenantsQuery.isLoading) {
+        return (
+            <>
+                <PageHeader
+                    eyebrow="Super Admin"
+                    title="UTM builder"
+                />
+                <Card>
+                    <Skeleton className="h-5 w-1/3 mb-2" />
+                    <Skeleton className="h-5 w-2/3" />
+                </Card>
+            </>
+        )
     }
 
     if (tenants.length === 0) {
@@ -102,7 +163,7 @@ export const UtmBuilderPage = () => {
                                 <option
                                     key={t.id}
                                     value={t.id}>
-                                    {t.name}
+                                    {t.name} (/{t.slug})
                                 </option>
                             ))}
                         </Select>
@@ -167,7 +228,9 @@ export const UtmBuilderPage = () => {
                         <Button
                             type="submit"
                             className="w-full"
-                            leftIcon={<Link2 size={14} />}>
+                            leftIcon={<Link2 size={14} />}
+                            loading={persistMutation.isPending}
+                            disabled={!tenant}>
                             Create UTM link
                         </Button>
                     </form>
@@ -176,9 +239,9 @@ export const UtmBuilderPage = () => {
                 <Card padded={false}>
                     <div className="p-4 border-b flex items-center justify-between">
                         <h3 className="text-sm font-semibold text-fg">UTM links</h3>
-                        <span className="text-xs text-fg-muted">{tenantLinks.length} total</span>
+                        <span className="text-xs text-fg-muted">{links.length} total</span>
                     </div>
-                    {tenantLinks.length === 0 ? (
+                    {links.length === 0 ? (
                         <Empty
                             icon={<Link2 size={28} />}
                             title="No UTM links yet"
@@ -186,7 +249,7 @@ export const UtmBuilderPage = () => {
                         />
                     ) : (
                         <ul className="divide-y">
-                            {tenantLinks.map((l) => (
+                            {links.map((l) => (
                                 <li
                                     key={l.id}
                                     className="p-4 flex items-start gap-3">
@@ -197,7 +260,8 @@ export const UtmBuilderPage = () => {
                                         </div>
                                         <code className="block font-mono text-xs text-fg-soft mt-2 break-all">{l.fullUrl}</code>
                                         <div className="mt-2 text-[11px] text-fg-muted font-mono">
-                                            {l.clickCount} click{l.clickCount === 1 ? '' : 's'} · {new Date(l.createdAt).toLocaleDateString()}
+                                            {(l.clickCount ?? 0)} click{(l.clickCount ?? 0) === 1 ? '' : 's'} ·{' '}
+                                            {new Date(l.createdAt).toLocaleDateString()}
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1 shrink-0">
@@ -213,10 +277,7 @@ export const UtmBuilderPage = () => {
                                             variant="ghost"
                                             aria-label="Delete"
                                             className="!text-[var(--color-danger)]"
-                                            onClick={() => {
-                                                if (!window.confirm('Delete this UTM link?')) return
-                                                deleteLink(l.id)
-                                            }}>
+                                            onClick={() => remove(l.id)}>
                                             <Trash2 size={13} />
                                         </Button>
                                     </div>

@@ -1,37 +1,39 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { UserPlus, Link2, Target, TrendingUp, Copy, Check } from 'lucide-react'
-import { toast } from 'sonner'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { UserPlus, Link2, Target, IndianRupee, ArrowRight, Users, ClipboardList } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { Card, StatCard } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
-import { Modal } from '@shared/components/ui/Modal'
-import { Input } from '@shared/components/ui/Input'
-import { Select } from '@shared/components/ui/Select'
+import { Skeleton } from '@shared/components/ui/Skeleton'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { getMyDashboard } from '../services/dashboard.service'
+import { fmtPaiseINR } from '@shared/libs/pdf'
 
-const RECENT = [
-    { name: 'Ishaan Mehra', course: 'DSA in 30 days', source: 'WhatsApp', status: 'new' as const },
-    { name: 'Sneha Patil', course: 'Full-stack TS', source: 'Instagram', status: 'sent' as const },
-    { name: 'Rohit Gupta', course: 'System Design', source: 'Referral', status: 'paid' as const }
-]
-
-const STATUS_TONE = {
-    new: 'brand' as const,
-    sent: 'warn' as const,
-    paid: 'ok' as const
-}
-
+// Real-data dashboard for both COUNSELLOR and COUNSELLING_MANAGER.
+// Backend returns different stat shapes per role; we render the cards that
+// match what came back so a manager doesn't see "My signups: 0".
 export const CounsellorDashboard = () => {
     const navigate = useNavigate()
-    const [inviteOpen, setInviteOpen] = useState(false)
+    const role = useAuthStore((s) => s.user?.role)
+    const isManager = role === ROLES.COUNSELLING_MANAGER
+
+    const dashQuery = useQuery({ queryKey: ['dashboard', 'me'], queryFn: getMyDashboard, staleTime: 60_000 })
+    const stats = dashQuery.data?.stats ?? {}
+    const target = dashQuery.data?.target as { revenuePaise?: number; achievedPaise?: number } | null | undefined
+    const nextActions = dashQuery.data?.nextActions ?? []
+
+    const targetTotal = target?.revenuePaise ?? 0
+    const targetDone = target?.achievedPaise ?? stats.revenueThisMonth ?? 0
+    const pct = targetTotal > 0 ? Math.min(100, Math.round((targetDone / targetTotal) * 100)) : 0
 
     return (
         <>
             <PageHeader
-                eyebrow="Admissions"
-                title="Counsellor console"
-                description="Create an invite link, share it, and the system takes it from there."
+                eyebrow={isManager ? 'Counselling team' : 'Admissions'}
+                title={isManager ? 'Manager console' : 'Counsellor console'}
+                description={isManager ? 'Aggregate totals across your direct reports.' : 'Real-time totals from your pipeline.'}
                 actions={
                     <>
                         <Button
@@ -43,187 +45,108 @@ export const CounsellorDashboard = () => {
                         <Button
                             size="sm"
                             leftIcon={<Link2 size={14} />}
-                            onClick={() => setInviteOpen(true)}>
+                            onClick={() => navigate('/app/counsellor/invites')}>
                             New invite link
                         </Button>
                     </>
                 }
             />
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <StatCard
-                    label="Signups this month"
-                    value={42}
-                    delta="+9 vs last month"
-                    tone="up"
-                    icon={<UserPlus size={18} />}
-                    accent="brand"
-                />
-                <StatCard
-                    label="Target progress"
-                    value="63%"
-                    delta="₹2.4L / ₹3.8L"
-                    icon={<Target size={18} />}
-                    accent="purple"
-                />
-                <StatCard
-                    label="Active invite links"
-                    value={6}
-                    icon={<Link2 size={18} />}
-                    accent="teal"
-                />
-                <StatCard
-                    label="Conversion rate"
-                    value="31%"
-                    delta="+4 pts"
-                    tone="up"
-                    icon={<TrendingUp size={18} />}
-                    accent="orange"
-                />
-            </div>
-
-            <Card padded={false}>
-                <div className="flex items-center justify-between p-5 border-b">
-                    <h2 className="text-base font-semibold text-fg">Recent signups</h2>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => navigate('/app/counsellor/pipeline')}>
-                        View all
-                    </Button>
+            {dashQuery.isLoading ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {[0, 1, 2, 3].map((i) => (
+                        <Skeleton
+                            key={i}
+                            className="h-24"
+                        />
+                    ))}
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
-                                <th className="py-2.5 px-5">Name</th>
-                                <th className="py-2.5 px-5">Course</th>
-                                <th className="py-2.5 px-5">Source</th>
-                                <th className="py-2.5 px-5">Status</th>
-                                <th className="py-2.5 px-5 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {RECENT.map((r) => (
-                                <tr
-                                    key={r.name}
-                                    className="hover:bg-surface-hover">
-                                    <td className="py-3 px-5 text-fg font-medium">{r.name}</td>
-                                    <td className="py-3 px-5 text-fg-soft">{r.course}</td>
-                                    <td className="py-3 px-5 text-fg-muted">{r.source}</td>
-                                    <td className="py-3 px-5">
-                                        <Badge tone={STATUS_TONE[r.status]}>{r.status}</Badge>
-                                    </td>
-                                    <td className="py-3 px-5 text-right">
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => toast.success(`Credentials re-shared to ${r.name}`)}>
-                                            Share creds
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
-
-            <NewInviteModal
-                open={inviteOpen}
-                onClose={() => setInviteOpen(false)}
-            />
-        </>
-    )
-}
-
-const NewInviteModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-    const [course, setCourse] = useState('System Design Foundations')
-    const [label, setLabel] = useState('')
-    const [link, setLink] = useState<string | null>(null)
-    const [copied, setCopied] = useState(false)
-
-    const createLink = (e: React.FormEvent) => {
-        e.preventDefault()
-        // TODO: wire to POST /counsellor/invites — server returns real token.
-        const token = Math.random().toString(36).slice(2, 10)
-        const url = `${window.location.origin}/onboarding/${token}`
-        setLink(url)
-        toast.success('Invite link ready — share it with your lead.')
-    }
-
-    const copy = () => {
-        if (!link) return
-        navigator.clipboard.writeText(link)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-    }
-
-    const close = () => {
-        setLink(null)
-        setLabel('')
-        onClose()
-    }
-
-    return (
-        <Modal
-            open={open}
-            onClose={close}
-            title="New counsellor invite link"
-            description="Each link is single-tenant and expires after use."
-            footer={
-                link ? (
-                    <Button onClick={close}>Done</Button>
-                ) : (
-                    <>
-                        <Button
-                            variant="ghost"
-                            onClick={close}>
-                            Cancel
-                        </Button>
-                        <Button
-                            form="invite-link-form"
-                            type="submit">
-                            Generate link
-                        </Button>
-                    </>
-                )
-            }>
-            {link ? (
-                <div className="space-y-3">
-                    <label className="block text-xs font-medium text-fg-soft">Share this with your lead</label>
-                    <div className="flex items-center gap-2">
-                        <code className="flex-1 font-mono text-xs bg-surface-2 border rounded-md px-3 py-2 truncate">{link}</code>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={copy}
-                            aria-label="Copy link">
-                            {copied ? <Check size={14} /> : <Copy size={14} />}
-                        </Button>
-                    </div>
+            ) : isManager ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <StatCard
+                        label="Team size"
+                        value={stats.teamSize ?? 0}
+                        icon={<Users size={18} />}
+                        accent="brand"
+                    />
+                    <StatCard
+                        label="Signups · MTD"
+                        value={stats.signupsThisMonth ?? 0}
+                        icon={<UserPlus size={18} />}
+                        accent="purple"
+                    />
+                    <StatCard
+                        label="Active students"
+                        value={stats.activeStudents ?? 0}
+                        icon={<Users size={18} />}
+                        accent="teal"
+                    />
+                    <StatCard
+                        label="Open tasks"
+                        value={stats.openTasks ?? 0}
+                        icon={<ClipboardList size={18} />}
+                        accent="orange"
+                    />
                 </div>
             ) : (
-                <form
-                    id="invite-link-form"
-                    onSubmit={createLink}
-                    className="space-y-4">
-                    <Select
-                        label="Course"
-                        value={course}
-                        onChange={(e) => setCourse(e.target.value)}>
-                        <option>System Design Foundations</option>
-                        <option>Full-stack TypeScript</option>
-                        <option>DSA in 30 days</option>
-                    </Select>
-                    <Input
-                        label="Internal label (optional)"
-                        value={label}
-                        onChange={(e) => setLabel(e.target.value)}
-                        placeholder="Instagram campaign · March"
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <StatCard
+                        label="My signups"
+                        value={stats.mySignups ?? 0}
+                        icon={<UserPlus size={18} />}
+                        accent="brand"
                     />
-                </form>
+                    <StatCard
+                        label="Target progress"
+                        value={`${pct}%`}
+                        delta={targetTotal > 0 ? `${fmtPaiseINR(targetDone)} / ${fmtPaiseINR(targetTotal)}` : 'No target set'}
+                        icon={<Target size={18} />}
+                        accent="purple"
+                    />
+                    <StatCard
+                        label="Revenue · MTD"
+                        value={fmtPaiseINR(stats.revenueThisMonth)}
+                        icon={<IndianRupee size={18} />}
+                        accent="teal"
+                    />
+                    <StatCard
+                        label="Active students"
+                        value={stats.activeStudents ?? 0}
+                        icon={<UserPlus size={18} />}
+                        accent="orange"
+                    />
+                </div>
             )}
-        </Modal>
+
+            <Card>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold text-fg">Next actions</h2>
+                    <Link to="/app/counsellor/pipeline">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            rightIcon={<ArrowRight size={14} />}>
+                            Pipeline
+                        </Button>
+                    </Link>
+                </div>
+                {nextActions.length === 0 ? (
+                    <div className="text-sm text-fg-soft py-4 text-center">All caught up.</div>
+                ) : (
+                    <ul className="space-y-2.5">
+                        {nextActions.map((a, i) => (
+                            <li key={i}>
+                                <Link
+                                    to={a.link.startsWith('/app') ? a.link : `/app${a.link}`}
+                                    className="w-full border rounded-md p-3 flex items-center justify-between hover:bg-surface-hover transition-colors text-left">
+                                    <span className="text-sm text-fg">{a.label}</span>
+                                    <Badge tone="brand">Open</Badge>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </Card>
+        </>
     )
 }

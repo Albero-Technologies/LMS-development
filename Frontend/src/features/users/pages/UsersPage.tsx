@@ -15,6 +15,7 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES, type TRole } from '@shared/constants/roles'
 import { inviteUser, listUsers, updateUserStatus, type UserRow, type UserStatus } from '../services/user.service'
+import { listAllTenants } from '@features/admin/services/tenant.service'
 
 const TAB_ORDER = ['ALL', 'ADMIN', 'TRAINER', 'STUDENT', 'COUNSELLOR', 'COUNSELLING_MANAGER', 'SUPPORT'] as const
 type Tab = (typeof TAB_ORDER)[number]
@@ -37,7 +38,7 @@ const HEADER_BY_ROLE: Partial<Record<TRole, { eyebrow: string; title: string; de
     SUPER_ADMIN: {
         eyebrow: 'Super Admin',
         title: 'Users',
-        description: 'Every account in the active tenant. Cross-tenant view arrives with multi-tenant routing.'
+        description: "Every account across all tenants. Pick a tenant from the dropdown to drill in, or leave on 'All tenants' for the platform-wide view."
     },
     ADMIN: {
         eyebrow: 'Tenant',
@@ -79,15 +80,27 @@ const PAGE_SIZE = 25
 
 export const UsersPage = () => {
     const role = useAuthStore((s) => s.user?.role) as TRole | undefined
+    const currentUserId = useAuthStore((s) => s.user?.id)
     const header = role ? HEADER_BY_ROLE[role] : undefined
+    const isSuperAdmin = role === ROLES.SUPER_ADMIN
 
     const [tab, setTab] = useState<Tab>(role === ROLES.TRAINER || role === ROLES.SUPPORT ? 'STUDENT' : 'ALL')
     const [searchInput, setSearchInput] = useState('')
     const search = useDebounced(searchInput)
     const [page, setPage] = useState(1)
     const [inviteOpen, setInviteOpen] = useState(false)
+    // SA-only: which tenant to scope the user list to. '__all__' = cross-tenant.
+    const [saTenantSlug, setSaTenantSlug] = useState<string>('__all__')
 
     const queryClient = useQueryClient()
+
+    // SA needs the full tenant list to populate the scope picker.
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        enabled: isSuperAdmin,
+        staleTime: 60_000
+    })
 
     // Role-aware scope (§5.3 Phase B): backend auto-filters via the actor's id.
     //   TRAINER             → STUDENTs enrolled in the actor's courses
@@ -97,7 +110,7 @@ export const UsersPage = () => {
     const managerScope = role === ROLES.COUNSELLING_MANAGER ? 'me' : undefined
 
     const usersQuery = useQuery({
-        queryKey: ['users', { tab, search, page, trainerScope, managerScope }],
+        queryKey: ['users', { tab, search, page, trainerScope, managerScope, saTenantSlug: isSuperAdmin ? saTenantSlug : undefined }],
         queryFn: () =>
             listUsers({
                 page,
@@ -106,7 +119,8 @@ export const UsersPage = () => {
                 role: trainerScope || managerScope ? undefined : tab === 'ALL' ? undefined : tab,
                 q: search || undefined,
                 trainerScope,
-                managerScope
+                managerScope,
+                tenantSlug: isSuperAdmin ? saTenantSlug : undefined
             }),
         staleTime: 30_000
     })
@@ -165,6 +179,23 @@ export const UsersPage = () => {
                 description={header?.description ?? 'Invite staff and students. Roles control what each user sees and can do.'}
                 actions={
                     <>
+                        {isSuperAdmin && (
+                            <div className="w-56 hidden sm:block">
+                                <Select
+                                    aria-label="Scope tenant"
+                                    value={saTenantSlug}
+                                    onChange={(e) => setSaTenantSlug(e.target.value)}>
+                                    <option value="__all__">All tenants</option>
+                                    {(tenantsQuery.data ?? []).map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.slug}>
+                                            {t.name} (/{t.slug})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
                         <div className="w-64 hidden sm:block">
                             <Input
                                 placeholder="Search users"
@@ -227,6 +258,7 @@ export const UsersPage = () => {
                                 <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
                                     <th className="py-3 px-5">User</th>
                                     <th className="py-3 px-5">Role</th>
+                                    {isSuperAdmin && <th className="py-3 px-5">Tenant</th>}
                                     <th className="py-3 px-5">Status</th>
                                     <th className="py-3 px-5 text-right">Actions</th>
                                 </tr>
@@ -236,7 +268,9 @@ export const UsersPage = () => {
                                     <UserListRow
                                         key={u.id}
                                         user={u}
+                                        showTenant={isSuperAdmin}
                                         canManage={canInvite}
+                                        isSelf={u.id === currentUserId}
                                         onSetStatus={(status) => statusMutation.mutate({ id: u.id, status })}
                                     />
                                 ))}
@@ -280,7 +314,19 @@ export const UsersPage = () => {
     )
 }
 
-const UserListRow = ({ user, canManage, onSetStatus }: { user: UserRow; canManage: boolean; onSetStatus: (s: UserStatus) => void }) => {
+const UserListRow = ({
+    user,
+    canManage,
+    showTenant,
+    isSelf,
+    onSetStatus
+}: {
+    user: UserRow
+    canManage: boolean
+    showTenant?: boolean
+    isSelf?: boolean
+    onSetStatus: (s: UserStatus) => void
+}) => {
     const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email
     return (
         <tr className="hover:bg-surface-hover">
@@ -296,37 +342,51 @@ const UserListRow = ({ user, canManage, onSetStatus }: { user: UserRow; canManag
                 </div>
             </td>
             <td className="py-3 px-5 font-mono text-xs text-fg-soft">{user.role}</td>
+            {showTenant && (
+                <td className="py-3 px-5 text-xs">
+                    <div className="text-fg">{user.tenant?.name ?? '—'}</div>
+                    {user.tenant?.slug && <div className="text-fg-muted font-mono">/{user.tenant.slug}</div>}
+                </td>
+            )}
             <td className="py-3 px-5">
                 <Badge tone={user.status === 'ACTIVE' ? 'ok' : user.status === 'PENDING' ? 'warn' : 'danger'}>{user.status}</Badge>
             </td>
             <td className="py-3 px-5 text-right">
-                {canManage && user.status === 'PENDING' && (
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onSetStatus('ACTIVE')}>
-                        Activate
-                    </Button>
-                )}
-                {canManage && user.status !== 'SUSPENDED' && (
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                            if (!window.confirm(`Suspend ${fullName}?`)) return
-                            onSetStatus('SUSPENDED')
-                        }}
-                        className="!text-[var(--color-danger)]">
-                        Suspend
-                    </Button>
-                )}
-                {canManage && user.status === 'SUSPENDED' && (
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onSetStatus('ACTIVE')}>
-                        Reinstate
-                    </Button>
+                {/* Self-suspend is blocked: an admin who suspends themselves
+                    would lock the tenant out of admin operations. */}
+                {isSelf ? (
+                    <span className="text-xs text-fg-muted italic">You</span>
+                ) : (
+                    <>
+                        {canManage && user.status === 'PENDING' && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => onSetStatus('ACTIVE')}>
+                                Activate
+                            </Button>
+                        )}
+                        {canManage && user.status !== 'SUSPENDED' && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                    if (!window.confirm(`Suspend ${fullName}?`)) return
+                                    onSetStatus('SUSPENDED')
+                                }}
+                                className="!text-[var(--color-danger)]">
+                                Suspend
+                            </Button>
+                        )}
+                        {canManage && user.status === 'SUSPENDED' && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => onSetStatus('ACTIVE')}>
+                                Reinstate
+                            </Button>
+                        )}
+                    </>
                 )}
             </td>
         </tr>

@@ -43,11 +43,14 @@ import { ROLES, ROLE_LABEL, type TRole } from '@shared/constants/roles'
 // set so "Users" etc. never render a dead link for a Student.
 // -----------------------------------------------------------------------------
 
-type NavItem = { to: string; label: string; icon: ComponentType<{ size?: number }> }
+// `end: true` means "highlight only on exact match" — we set it on dashboard
+// roots so they don't light up when the user is on a child route (e.g.
+// `/app/admin` shouldn't highlight while sitting on `/app/admin/tenants`).
+type NavItem = { to: string; label: string; icon: ComponentType<{ size?: number }>; end?: boolean }
 
 const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
     SUPER_ADMIN: [
-        { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/admin/tenants', label: 'Tenants', icon: Building2 },
         { to: '/app/admin/website-editor', label: 'Website Editor', icon: Globe },
         { to: '/app/admin/utm-builder', label: 'UTM Builder', icon: Link2 },
@@ -59,7 +62,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/audit-logs', label: 'Activity Logs', icon: Activity }
     ],
     ADMIN: [
-        { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/users', label: 'Students', icon: Users },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
@@ -71,7 +74,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/admin/integrations', label: 'Integrations', icon: Link2 }
     ],
     TRAINER: [
-        { to: '/app/trainer', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/trainer', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/quizzes', label: 'Quizzes', icon: ClipboardList },
@@ -79,7 +82,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/payments', label: 'Payments', icon: CreditCard }
     ],
     STUDENT: [
-        { to: '/app/student', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/student', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/quizzes', label: 'Quizzes', icon: ClipboardList },
         { to: '/app/enrollments', label: 'My Enrollments', icon: GraduationCap },
@@ -87,21 +90,21 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
     ],
     COUNSELLOR: [
-        { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
     ],
     COUNSELLING_MANAGER: [
-        { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/reports', label: 'Team Reports', icon: LineChart },
         { to: '/app/users', label: 'Team', icon: Users }
     ],
     SUPPORT: [
-        { to: '/app/support', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/app/support', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/tickets', label: 'Tickets', icon: TicketCheck },
         { to: '/app/users', label: 'Students', icon: Users },
         { to: '/app/courses', label: 'Courses', icon: BookOpen }
@@ -213,7 +216,7 @@ export const AppLayout = () => {
                                 <NavLink
                                     key={item.to}
                                     to={item.to}
-                                    end={item.to === '/app/counsellor'}
+                                    end={item.end}
                                     onClick={() => setOpenMobile(false)}
                                     className={({ isActive }) =>
                                         cn(

@@ -96,11 +96,15 @@ export const CourseDetailPage = () => {
                                 </Button>
                             </Link>
                         )}
-                        <Button
-                            size="sm"
-                            onClick={() => toast.success(`Enrolled — ₹${course.price.toLocaleString('en-IN')} charged (demo).`)}>
-                            Enroll · ₹{course.price.toLocaleString('en-IN')}
-                        </Button>
+                        {/* Enroll is only meaningful for STUDENTs — admins/trainers
+                            who land here are managing the course, not buying it. */}
+                        {!canEdit && (
+                            <Button
+                                size="sm"
+                                onClick={() => toast.success(`Enrolled — ₹${course.price.toLocaleString('en-IN')} charged (demo).`)}>
+                                Enroll · ₹{course.price.toLocaleString('en-IN')}
+                            </Button>
+                        )}
                     </>
                 }
             />

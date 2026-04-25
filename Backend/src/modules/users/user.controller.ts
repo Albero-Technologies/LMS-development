@@ -7,7 +7,7 @@ import { writeAudit } from '../../util/audit'
 
 export const list = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const result = await service.listUsers(req.auth.tenantId, req.auth.userId, req.query as never)
+    const result = await service.listUsers(req.auth.tenantId, req.auth.userId, req.auth.role, req.query as never)
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }
 
@@ -19,7 +19,7 @@ export const get = async (req: Request, res: Response): Promise<void> => {
 
 export const update = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const user = await service.updateUser(req.auth.tenantId, req.params.id, req.body)
+    const user = await service.updateUser(req.auth.tenantId, req.params.id, req.auth.userId, req.body)
     await writeAudit({ action: 'user.update', entityType: 'User', entityId: user.id }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, user)
 }

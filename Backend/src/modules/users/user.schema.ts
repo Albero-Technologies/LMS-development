@@ -16,7 +16,10 @@ export const listUsersQuerySchema = z.object({
     //   trainerScope=me  → STUDENT users enrolled in courses owned by the actor.
     //   managerScope=me  → COUNSELLOR users whose managerId = actor.
     trainerScope: z.literal('me').optional(),
-    managerScope: z.literal('me').optional()
+    managerScope: z.literal('me').optional(),
+    // SUPER_ADMIN-only: scope to a specific tenant slug, or '__all__' for the
+    // platform-wide cross-tenant view. Ignored for non-SA roles by the service.
+    tenantSlug: z.string().min(1).max(80).optional()
 })
 
 export const updateUserSchema = z.object({

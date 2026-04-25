@@ -22,3 +22,19 @@ export const pay = async (req: Request, res: Response): Promise<void> => {
     await writeAudit({ action: 'payment.order_created', entityType: 'Invoice', entityId: result.invoiceId }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }
+
+// ADMIN / SUPER_ADMIN / TRAINER — collections view across all students in
+// the tenant. Trainers are auto-scoped to their own courses on the server.
+export const adminInvoices = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const trainerId = req.auth.role === 'TRAINER' ? req.auth.userId : undefined
+    const rows = await service.adminListInvoices(req.auth.tenantId, { trainerId })
+    httpResponse(req, res, 200, responseMessage.SUCCESS, rows)
+}
+
+export const refund = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const invoice = await service.refundInvoice(req.auth.tenantId, req.params.invoiceId)
+    await writeAudit({ action: 'payment.refunded', entityType: 'Invoice', entityId: invoice.id }, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, invoice)
+}

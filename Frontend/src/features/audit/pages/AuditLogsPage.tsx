@@ -4,12 +4,14 @@ import { Search, Activity } from 'lucide-react'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Input } from '@shared/components/ui/Input'
+import { Select } from '@shared/components/ui/Select'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
 import { listAuditLogs } from '../services/audit.service'
+import { listAllTenants } from '@features/admin/services/tenant.service'
 
 const PAGE_SIZE = 50
 
@@ -37,10 +39,25 @@ export const AuditLogsPage = () => {
     const [searchInput, setSearchInput] = useState('')
     const search = useDebounced(searchInput)
     const [page, setPage] = useState(1)
+    const [saTenantId, setSaTenantId] = useState<string>('__all__')
+
+    // SA gets a tenant picker so they can drill into one institute's history.
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        enabled: isSuperAdmin,
+        staleTime: 60_000
+    })
 
     const query = useQuery({
-        queryKey: ['audit-logs', { page, search }],
-        queryFn: () => listAuditLogs({ page, pageSize: PAGE_SIZE, search: search || undefined }),
+        queryKey: ['audit-logs', { page, search, saTenantId: isSuperAdmin ? saTenantId : undefined }],
+        queryFn: () =>
+            listAuditLogs({
+                page,
+                pageSize: PAGE_SIZE,
+                search: search || undefined,
+                tenantId: isSuperAdmin && saTenantId !== '__all__' ? saTenantId : undefined
+            }),
         staleTime: 30_000
     })
 
@@ -65,15 +82,34 @@ export const AuditLogsPage = () => {
                         : 'Every authenticated mutation in your tenant — who, what, when, from where.'
                 }
                 actions={
-                    <div className="w-72">
-                        <Input
-                            placeholder="Search action, entity, id"
-                            leftIcon={<Search size={14} />}
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            aria-label="Search audit logs"
-                        />
-                    </div>
+                    <>
+                        {isSuperAdmin && (
+                            <div className="w-56">
+                                <Select
+                                    aria-label="Scope tenant"
+                                    value={saTenantId}
+                                    onChange={(e) => setSaTenantId(e.target.value)}>
+                                    <option value="__all__">All tenants</option>
+                                    {(tenantsQuery.data ?? []).map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.id}>
+                                            {t.name}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                        <div className="w-72">
+                            <Input
+                                placeholder="Search action, entity, id"
+                                leftIcon={<Search size={14} />}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                aria-label="Search audit logs"
+                            />
+                        </div>
+                    </>
                 }
             />
 

@@ -169,6 +169,14 @@ export const submitOnboarding = async (token: string, input: TSubmitOnboardingIn
             }
         })
 
+        // Pack the structured nested blocks into one JSON column. Keeps the
+        // signup form open-ended — adding new sections only changes the Zod
+        // schema + this object, no migration.
+        const extra =
+            input.education || input.professional || input.gap
+                ? { education: input.education, professional: input.professional, gap: input.gap }
+                : undefined
+
         const signup = await tx.studentSignup.create({
             data: {
                 tenantId: link.tenantId,
@@ -182,9 +190,11 @@ export const submitOnboarding = async (token: string, input: TSubmitOnboardingIn
                 dateOfBirth: input.dateOfBirth,
                 city: input.city,
                 state: input.state,
+                address: input.address,
                 qualification: input.qualification,
                 interest: input.interest,
                 notes: input.notes,
+                extra: extra as Prisma.InputJsonValue | undefined,
                 initialPassword: plainPassword,
                 status: StudentSignupStatus.CREATED
             }

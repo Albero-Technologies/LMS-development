@@ -49,6 +49,36 @@ export const listMyInvoices = async (tenantId: string, userId: string) => {
     })
 }
 
+// ADMIN / TRAINER — all invoices in the tenant. Trainers see only invoices
+// for their own courses; admins see everything.
+export const adminListInvoices = async (tenantId: string, opts: { trainerId?: string }) => {
+    const where: Prisma.InvoiceWhereInput = { tenantId }
+    if (opts.trainerId) where.enrollment = { course: { trainerId: opts.trainerId } }
+    return db.client.invoice.findMany({
+        where,
+        select: {
+            ...baseInvoiceSelect,
+            user: { select: { id: true, firstName: true, lastName: true, email: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 200
+    })
+}
+
+// ADMIN — soft refund. Marks invoice as REFUNDED; the actual gateway-side
+// refund is initiated separately (Razorpay dashboard / webhook).
+export const refundInvoice = async (tenantId: string, invoiceId: string) => {
+    const invoice = await db.client.invoice.findFirst({ where: { id: invoiceId, tenantId } })
+    if (!invoice) throw AppError.notFound(responseMessage.NOT_FOUND('Invoice'), 'INVOICE_NOT_FOUND')
+    if (invoice.status !== InvoiceStatus.PAID) {
+        throw AppError.badRequest('Only paid invoices can be refunded', 'INVOICE_NOT_PAID')
+    }
+    return db.client.invoice.update({
+        where: { id: invoiceId },
+        data: { status: InvoiceStatus.REFUNDED }
+    })
+}
+
 // Issue / re-issue a Razorpay order for an invoice the caller owns.
 // Reuses an existing order if the invoice already has one to keep handshake signatures stable.
 export const createOrderForInvoice = async (tenantId: string, userId: string, invoiceId: string) => {

@@ -16,6 +16,8 @@ export type UserRow = {
     avatarUrl: string | null
     lastLoginAt: string | null
     createdAt: string
+    // Only populated for SUPER_ADMIN cross-tenant listing.
+    tenant?: { id: string; name: string; slug: string }
 }
 
 export type UserListResponse = {
@@ -35,6 +37,8 @@ export type UserListQuery = {
     trainerScope?: 'me'
     /** Manager scope — auto-filters to counsellors reporting to the actor. */
     managerScope?: 'me'
+    /** SUPER_ADMIN-only: scope to a specific tenant slug, or '__all__' for cross-tenant. */
+    tenantSlug?: string
 }
 
 export const listUsers = async (query: UserListQuery): Promise<UserListResponse> => {

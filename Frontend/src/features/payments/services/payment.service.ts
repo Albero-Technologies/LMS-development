@@ -56,3 +56,19 @@ export const createPaymentOrder = async (invoiceId: string): Promise<RazorpayOrd
 // Convenience derived flags. Backend statuses are DRAFT|DUE|PAID|FAILED|REFUNDED.
 // "Overdue" is a UI concept = status DUE with dueAt in the past.
 export const isOverdue = (inv: Invoice): boolean => inv.status === 'DUE' && inv.dueAt !== null && new Date(inv.dueAt).getTime() < Date.now()
+
+// Admin collections view — every invoice in the tenant. Trainers are
+// auto-scoped server-side to their own courses.
+export type AdminInvoiceRow = Invoice & {
+    user: { id: string; firstName: string; lastName: string; email: string } | null
+}
+
+export const listAdminInvoices = async (): Promise<AdminInvoiceRow[]> => {
+    const { data } = await api.get<Envelope<AdminInvoiceRow[]>>('/payments/admin/invoices')
+    return data.data
+}
+
+export const refundInvoice = async (invoiceId: string): Promise<Invoice> => {
+    const { data } = await api.post<Envelope<Invoice>>(`/payments/admin/${invoiceId}/refund`)
+    return data.data
+}

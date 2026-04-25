@@ -27,6 +27,7 @@ router.post('/me/payments/:id/verify', requireAuth, requireRole(Role.ADMIN, Role
 // SUPER_ADMIN cross-tenant routes (§4.1). Mounted after /me so the literal
 // "me" isn't shadowed by the /:id pattern.
 router.get('/', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.listAllTenants))
+router.get('/payments/summary', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.listClientPaymentsSummary))
 router.get('/:id', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.getTenantDetail))
 router.patch('/:id/status', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.setStatus))
 router.post('/:id/reminders', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.sendBillingReminder))

@@ -126,6 +126,24 @@ export const listAllTenants = async (): Promise<TenantListRow[]> => {
     return data.data
 }
 
+// SUPER_ADMIN Client Payments rollup (§4.4). One row per tenant.
+export type ClientPaymentSummary = {
+    id: string
+    name: string
+    slug: string
+    outstanding: number // paise
+    overdueCount: number
+    pendingCount: number
+    lastPaidAt: string | null
+    contactEmail: string | null
+    contactPhone: string | null
+}
+
+export const listClientPaymentsSummary = async (): Promise<ClientPaymentSummary[]> => {
+    const { data } = await api.get<Envelope<ClientPaymentSummary[]>>('/tenants/payments/summary')
+    return data.data
+}
+
 export const getTenantDetail = async (id: string): Promise<TenantDetail> => {
     const { data } = await api.get<Envelope<TenantDetail>>(`/tenants/${id}`)
     return data.data
@@ -364,17 +382,111 @@ export const FEATURE_FLAGS: readonly FeatureFlagDef[] = [
     }
 ]
 
+// ---- Per-tenant UTM links (settings.utmLinks) -----------------------------
+//
+// Stored in tenant.settings.utmLinks so the SA can manage campaign URLs per
+// tenant without a dedicated table. Click counts are local-only for now;
+// real attribution would land alongside a `/r/:id` redirect endpoint.
+export type UtmLink = {
+    id: string
+    label: string
+    destination: string
+    source: string
+    medium: string
+    campaign: string
+    term?: string
+    content?: string
+    fullUrl: string
+    createdAt: string
+    clickCount?: number
+}
+
+export const readUtmLinks = (tenant: { settings: TenantSettings | null } | undefined): UtmLink[] => {
+    const arr = tenant?.settings?.utmLinks
+    return Array.isArray(arr) ? (arr as UtmLink[]) : []
+}
+
+// ---- Per-tenant SEO (settings.seo) ----------------------------------------
+//
+// What the per-tenant public pages render in <head>. Edited via the SEO
+// Builder (§4.1). Stored verbatim in tenant.settings.seo so the public landing
+// can pull it in one round-trip alongside branding/landing.
+export type TenantSeo = {
+    metaTitle?: string
+    metaDescription?: string
+    canonicalUrl?: string
+    ogImageUrl?: string
+    faviconUrl?: string
+    robots?: string
+    keywords?: string[]
+}
+
+export const readTenantSeo = (tenant: { settings: TenantSettings | null } | undefined): TenantSeo => {
+    const s = tenant?.settings?.seo as TenantSeo | undefined
+    return {
+        metaTitle: s?.metaTitle ?? '',
+        metaDescription: s?.metaDescription ?? '',
+        canonicalUrl: s?.canonicalUrl ?? '',
+        ogImageUrl: s?.ogImageUrl ?? '',
+        faviconUrl: s?.faviconUrl ?? '',
+        robots: s?.robots ?? 'index, follow',
+        keywords: s?.keywords ?? []
+    }
+}
+
 // ---- Per-tenant landing content (settings.landing) ------------------------
 //
-// What the per-tenant public landing page (`/t/:slug`) renders. SAs edit this
-// in the Website Editor (§11). Pillar/CTA copy is intentionally simple — a
-// fuller drag-and-drop section model would land in a follow-up.
+// WordPress-style block model (§11). The landing page is a typed, ordered
+// array of sections. Each section has a `type` (which variant template to
+// render), a `variant` (visual style within that type), and a `data` blob
+// shaped for that type. The Website Editor lets SAs reorder sections, swap
+// variants, and edit per-section copy. The TenantLandingPage renders sections
+// in order.
+//
+// Adding a new section type is three places:
+//   1. Add the type to SectionData below
+//   2. Add the template to LANDING_TEMPLATES
+//   3. Add the renderer in TenantLandingPage's section switch
 export type LandingPillar = {
     title: string
     description: string
 }
 
+export type HeroSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    primaryCtaLabel?: string
+    primaryCtaLink?: string
+}
+
+export type FeaturesSectionData = {
+    title?: string
+    pillars?: LandingPillar[]
+}
+
+export type CtaSectionData = {
+    title?: string
+    subtitle?: string
+    buttonLabel?: string
+    buttonLink?: string
+}
+
+export type CalloutSectionData = {
+    title?: string
+    body?: string
+}
+
+export type LandingSection =
+    | { id: string; type: 'hero'; variant: 'split' | 'centered' | 'gradient'; data: HeroSectionData }
+    | { id: string; type: 'features'; variant: 'three-up' | 'four-up' | 'list'; data: FeaturesSectionData }
+    | { id: string; type: 'cta'; variant: 'banner' | 'card'; data: CtaSectionData }
+    | { id: string; type: 'callout'; variant: 'info' | 'success'; data: CalloutSectionData }
+
 export type LandingContent = {
+    sections?: LandingSection[]
+    // Legacy single-block fields (kept so historical tenants render). New
+    // tenants persist exclusively into `sections`.
     heroTag?: string
     heroTitle?: string
     heroSubtitle?: string
@@ -386,9 +498,173 @@ export type LandingContent = {
     showPricingPage?: boolean
 }
 
+// Template catalog — each entry is "an empty block of this type/variant".
+// The Editor presents these in the Add Section picker and instantiates one
+// when the SA clicks. ID is generated on insert so duplicate templates work.
+export type LandingTemplate = {
+    label: string
+    description: string
+    section: Omit<LandingSection, 'id'>
+}
+
+export const LANDING_TEMPLATES: LandingTemplate[] = [
+    {
+        label: 'Hero · Split',
+        description: 'Headline + sub on the left, image card on the right.',
+        section: {
+            type: 'hero',
+            variant: 'split',
+            data: {
+                eyebrow: 'Now enrolling',
+                title: 'Master new skills with mentor-led cohorts',
+                subtitle: 'Live classes, hands-on projects, and 1:1 counselling.',
+                primaryCtaLabel: 'Talk to a counsellor',
+                primaryCtaLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'Hero · Centered',
+        description: 'Big centered headline with two CTAs underneath.',
+        section: {
+            type: 'hero',
+            variant: 'centered',
+            data: {
+                eyebrow: 'Welcome',
+                title: 'Learn at your pace.',
+                subtitle: 'Industry-grade curriculum delivered live.',
+                primaryCtaLabel: 'Start enquiry',
+                primaryCtaLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'Hero · Gradient',
+        description: 'Brand-color gradient banner with white text.',
+        section: {
+            type: 'hero',
+            variant: 'gradient',
+            data: {
+                eyebrow: 'Bestseller',
+                title: 'Become a full-stack engineer in 12 weeks',
+                subtitle: 'Project-based, mentor-led, placement-assisted.',
+                primaryCtaLabel: 'Apply now',
+                primaryCtaLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'Features · 3-up cards',
+        description: 'Three side-by-side feature cards.',
+        section: {
+            type: 'features',
+            variant: 'three-up',
+            data: {
+                title: 'Why students pick us',
+                pillars: [
+                    { title: 'Live cohorts', description: 'Small batches, real mentors, weekly office hours.' },
+                    { title: '1:1 counselling', description: 'Talk to an admissions counsellor before you commit.' },
+                    { title: 'Industry projects', description: 'Ship real work — not toy assignments.' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Features · 4-up cards',
+        description: 'Four feature cards in a 2×2 (or 4-wide on desktop).',
+        section: {
+            type: 'features',
+            variant: 'four-up',
+            data: {
+                title: 'What you get',
+                pillars: [
+                    { title: 'Live mentorship', description: 'Direct access to working professionals.' },
+                    { title: 'Hands-on labs', description: 'Code from day one, no theory dumps.' },
+                    { title: 'Placement help', description: 'Resume reviews, mock interviews, referrals.' },
+                    { title: 'Lifetime access', description: 'Recordings + community for as long as you need.' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Features · Vertical list',
+        description: 'Short bullet list. Good for trust badges.',
+        section: {
+            type: 'features',
+            variant: 'list',
+            data: {
+                title: 'Quick highlights',
+                pillars: [
+                    { title: 'Verified certificates', description: 'NSDC + tenant co-branded.' },
+                    { title: 'EMI options', description: 'No-cost EMI on most major banks.' },
+                    { title: 'Lifetime support', description: 'Career help even after you graduate.' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'CTA · Brand banner',
+        description: 'Full-width brand-color banner with a single button.',
+        section: {
+            type: 'cta',
+            variant: 'banner',
+            data: {
+                title: 'Ready to start?',
+                subtitle: 'Book a free 15-min counselling call to design your roadmap.',
+                buttonLabel: 'Talk to a counsellor',
+                buttonLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'CTA · Card',
+        description: 'Inset card with quieter styling.',
+        section: {
+            type: 'cta',
+            variant: 'card',
+            data: {
+                title: 'Have questions?',
+                subtitle: 'Our team responds within one working day.',
+                buttonLabel: 'Get in touch',
+                buttonLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'Callout · Info',
+        description: 'Soft notice strip — good for "Limited seats" type lines.',
+        section: {
+            type: 'callout',
+            variant: 'info',
+            data: {
+                title: 'Limited seats',
+                body: 'Each cohort is capped at 25 students for high-touch mentorship.'
+            }
+        }
+    },
+    {
+        label: 'Callout · Success',
+        description: 'Green success-tone strip.',
+        section: {
+            type: 'callout',
+            variant: 'success',
+            data: {
+                title: 'Now hiring',
+                body: 'Top performers from each cohort are referred to our 40+ partner companies.'
+            }
+        }
+    }
+]
+
+const newSectionId = (): string =>
+    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `sec_${Math.random().toString(36).slice(2, 10)}`
+
+export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() } as LandingSection)
+
 export const readLandingContent = (tenant: { settings: TenantSettings | null } | undefined): LandingContent => {
     const l = tenant?.settings?.landing as LandingContent | undefined
     return {
+        sections: l?.sections && l.sections.length > 0 ? l.sections : undefined,
         heroTag: l?.heroTag ?? 'Now enrolling',
         heroTitle: l?.heroTitle ?? '',
         heroSubtitle: l?.heroSubtitle ?? 'Mentor-led cohorts, hands-on projects, and 1:1 counselling — designed to take you from curious to confident.',
@@ -405,6 +681,40 @@ const DEFAULT_PILLARS: LandingPillar[] = [
     { title: 'Live cohorts', description: 'Small batches, real mentors, weekly office hours.' },
     { title: '1:1 counselling', description: 'Talk to an admissions counsellor before you commit.' },
     { title: 'Industry projects', description: "Ship real work — not toy assignments — to your portfolio." }
+]
+
+// Default block layout for tenants who haven't customised yet — produces the
+// same visual as the legacy hard-coded landing.
+export const defaultLandingSections = (tenantName: string): LandingSection[] => [
+    {
+        id: newSectionId(),
+        type: 'hero',
+        variant: 'split',
+        data: {
+            eyebrow: 'Now enrolling',
+            title: `Learn with ${tenantName}`,
+            subtitle: 'Mentor-led cohorts, hands-on projects, and 1:1 counselling — designed to take you from curious to confident.',
+            primaryCtaLabel: 'Talk to a counsellor',
+            primaryCtaLink: 'enquiry'
+        }
+    },
+    {
+        id: newSectionId(),
+        type: 'features',
+        variant: 'three-up',
+        data: { title: 'Why students pick us', pillars: DEFAULT_PILLARS }
+    },
+    {
+        id: newSectionId(),
+        type: 'cta',
+        variant: 'banner',
+        data: {
+            title: 'Ready to start?',
+            subtitle: `Tell us what you're looking for and a ${tenantName} counsellor will reach out within a working day.`,
+            buttonLabel: 'Start enquiry',
+            buttonLink: 'enquiry'
+        }
+    }
 ]
 
 // ---- Per-tenant credentials (settings.environment) -------------------------

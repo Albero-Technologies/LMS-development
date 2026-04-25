@@ -1,34 +1,25 @@
-import { useMemo, useState } from 'react'
-import { CreditCard, FileText, RefreshCw, Download, AlertTriangle, Building2, Mail, Phone } from 'lucide-react'
+import { useMemo } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CreditCard, FileText, Download, AlertTriangle, Building2, Mail, Phone, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { StatCard, Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
 import { Button } from '@shared/components/ui/Button'
+import { Empty } from '@shared/components/ui/Empty'
+import { Skeleton } from '@shared/components/ui/Skeleton'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES, type TRole } from '@shared/constants/roles'
 import { StudentFeesPage } from './StudentFeesPage'
-
-type Inv = { n: string; who: string; amt: number; st: 'PAID' | 'DUE' | 'OVERDUE' | 'REFUNDED'; due: string; daysOverdue?: number }
-
-const INITIAL: Inv[] = [
-    { n: 'INV-2404-001', who: 'Ishaan Mehra', amt: 4999, st: 'PAID', due: 'Apr 04' },
-    { n: 'INV-2404-002', who: 'Sneha Patil', amt: 5999, st: 'DUE', due: 'Apr 22' },
-    { n: 'INV-2404-003', who: 'Rahul Nair', amt: 3499, st: 'OVERDUE', due: 'Apr 08', daysOverdue: 11 },
-    { n: 'INV-2404-004', who: 'Priya Shah', amt: 7499, st: 'OVERDUE', due: 'Apr 12', daysOverdue: 7 },
-    { n: 'INV-2403-099', who: 'Rohit Gupta', amt: 2999, st: 'REFUNDED', due: 'Mar 30' }
-]
-
-const TONE = {
-    PAID: 'ok',
-    DUE: 'warn',
-    OVERDUE: 'danger',
-    REFUNDED: 'default'
-} as const
+import { listAdminInvoices, refundInvoice, type AdminInvoiceRow, type InvoiceStatus } from '../services/payment.service'
+import { listClientPaymentsSummary, listTenantPayments, type ClientPaymentSummary, type TenantPayment } from '@features/admin/services/tenant.service'
+import { downloadTablePdf, viewTablePdf, fmtPaiseINR, fmtDate, type PdfTableInput } from '@shared/libs/pdf'
 
 // Router mounts this at /app/payments for ADMIN / SUPER_ADMIN / TRAINER / STUDENT.
-// Dispatch by role — SuperAdmin gets the tenant-billing overview, Student gets
-// the pay-now Fees page, everyone else sees the admin collections view.
+// Dispatch by role:
+//   STUDENT      → pay-now Fees page (Razorpay checkout)
+//   SUPER_ADMIN  → cross-tenant SaaS billing rollup
+//   ADMIN/TRAINER → student-fee invoices for their tenant
 export const PaymentsPage = () => {
     const role = useAuthStore((s) => s.user?.role)
     if (role === ROLES.STUDENT) return <StudentFeesPage />
@@ -36,72 +27,24 @@ export const PaymentsPage = () => {
     return <AdminPaymentsPage role={role} />
 }
 
-// ---- Super Admin: client (B2B) payment pending ------------------------------
-
-type ClientRow = {
-    id: string
-    name: string
-    contact: string
-    email: string
-    phone: string
-    outstanding: number
-    overdueCount: number
-    pendingCount: number
-    lastPaidAt: string | null
+const TONE: Record<InvoiceStatus, 'ok' | 'warn' | 'danger' | 'default'> = {
+    PAID: 'ok',
+    DUE: 'warn',
+    FAILED: 'danger',
+    REFUNDED: 'default',
+    DRAFT: 'default'
 }
 
-const CLIENT_PENDING: ClientRow[] = [
-    {
-        id: 'cl-1',
-        name: 'Nimbus Corp',
-        contact: 'Aarti Rao',
-        email: 'finance@nimbus.io',
-        phone: '+91 98200 12345',
-        outstanding: 124000,
-        overdueCount: 2,
-        pendingCount: 3,
-        lastPaidAt: '2026-03-08'
-    },
-    {
-        id: 'cl-2',
-        name: 'Bluefin Labs',
-        contact: 'Rohan Desai',
-        email: 'accounts@bluefin.dev',
-        phone: '+91 98111 55432',
-        outstanding: 58900,
-        overdueCount: 1,
-        pendingCount: 1,
-        lastPaidAt: '2026-04-01'
-    },
-    {
-        id: 'cl-3',
-        name: 'Orbit Edtech',
-        contact: 'Meera Iyer',
-        email: 'meera@orbit.edu',
-        phone: '+91 99100 77888',
-        outstanding: 32000,
-        overdueCount: 0,
-        pendingCount: 2,
-        lastPaidAt: '2026-04-14'
-    },
-    {
-        id: 'cl-4',
-        name: 'Acme Consulting',
-        contact: 'Sid Kapoor',
-        email: 'billing@acme-con.com',
-        phone: '+91 98765 43210',
-        outstanding: 0,
-        overdueCount: 0,
-        pendingCount: 0,
-        lastPaidAt: '2026-04-17'
-    }
-]
-
-const fmtINR = (n: number) => `₹${n.toLocaleString('en-IN')}`
-const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
+// ---- SUPER_ADMIN: client (B2B) SaaS-billing rollup --------------------------
 
 const SuperAdminClientPaymentsPage = () => {
-    const [clients] = useState<ClientRow[]>(CLIENT_PENDING)
+    const summaryQuery = useQuery({
+        queryKey: ['client-payments-summary'],
+        queryFn: listClientPaymentsSummary,
+        staleTime: 30_000
+    })
+
+    const clients = useMemo(() => summaryQuery.data ?? [], [summaryQuery.data])
 
     const totals = useMemo(() => {
         const outstanding = clients.reduce((n, c) => n + c.outstanding, 0)
@@ -110,27 +53,91 @@ const SuperAdminClientPaymentsPage = () => {
         return { outstanding, overdueClients, pendingClients }
     }, [clients])
 
+    const buildSummaryInput = (): PdfTableInput => ({
+        title: 'Client payments — outstanding balances',
+        subtitle: 'Tenants with open SaaS invoices',
+        summary: [
+            { label: 'Total outstanding', value: fmtPaiseINR(totals.outstanding) },
+            { label: 'Clients overdue', value: String(totals.overdueClients) },
+            { label: 'Clients with pending', value: String(totals.pendingClients) }
+        ],
+        head: [['Tenant', 'Slug', 'Outstanding', 'Pending', 'Overdue', 'Last paid']],
+        body: clients.map((c) => [c.name, `/${c.slug}`, fmtPaiseINR(c.outstanding), c.pendingCount, c.overdueCount, fmtDate(c.lastPaidAt)])
+    })
+
+    const previewPdf = () => viewTablePdf(buildSummaryInput())
+    const exportPdf = () => {
+        downloadTablePdf(`client-payments-${new Date().toISOString().slice(0, 10)}.pdf`, buildSummaryInput())
+        toast.success('PDF downloaded')
+    }
+
+    // Per-tenant statement: View opens a preview tab; Download saves the PDF.
+    const buildStatementInput = (client: ClientPaymentSummary, payments: TenantPayment[]): PdfTableInput => {
+        const paid = payments.filter((p) => p.status === 'PAID').reduce((n, p) => n + p.amount, 0)
+        const pending = payments.filter((p) => p.status === 'PENDING' || p.status === 'FAILED').reduce((n, p) => n + p.amount, 0)
+        return {
+            title: `${client.name} — SaaS Statement`,
+            subtitle: `Tenant /${client.slug}`,
+            summary: [
+                { label: 'Paid (lifetime)', value: fmtPaiseINR(paid) },
+                { label: 'Outstanding', value: fmtPaiseINR(pending) },
+                { label: 'Invoices', value: String(payments.length) }
+            ],
+            head: [['Issued', 'Plan / period', 'Amount', 'Status', 'Paid on']],
+            body: payments.map((p) => [fmtDate(p.createdAt), p.planLabel ?? '—', fmtPaiseINR(p.amount), p.status, fmtDate(p.paidAt)])
+        }
+    }
+
+    const viewStatement = async (client: ClientPaymentSummary) => {
+        try {
+            const payments = await listTenantPayments(client.id)
+            viewTablePdf(buildStatementInput(client, payments))
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Could not open statement')
+        }
+    }
+
+    const downloadStatement = async (client: ClientPaymentSummary) => {
+        try {
+            const payments = await listTenantPayments(client.id)
+            downloadTablePdf(`statement-${client.slug}-${new Date().toISOString().slice(0, 10)}.pdf`, buildStatementInput(client, payments))
+            toast.success(`${client.name} statement downloaded`)
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Could not download statement')
+        }
+    }
+
     return (
         <>
             <PageHeader
                 eyebrow="Finance"
                 title="Client payments"
-                description="Outstanding balances across client (B2B) accounts. Follow up on overdue invoices first."
+                description="Outstanding SaaS balances per tenant. Drill into a tenant from the Tenants page to issue or reconcile a payment."
                 actions={
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        leftIcon={<Download size={14} />}
-                        onClick={() => toast.success('Client statement exported')}>
-                        Export
-                    </Button>
+                    <>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            leftIcon={<Eye size={14} />}
+                            disabled={clients.length === 0}
+                            onClick={previewPdf}>
+                            View
+                        </Button>
+                        <Button
+                            size="sm"
+                            leftIcon={<Download size={14} />}
+                            disabled={clients.length === 0}
+                            onClick={exportPdf}>
+                            Download
+                        </Button>
+                    </>
                 }
             />
 
             <div className="grid sm:grid-cols-3 gap-4 mb-6">
                 <StatCard
                     label="Total outstanding"
-                    value={fmtINR(totals.outstanding)}
+                    value={fmtPaiseINR(totals.outstanding)}
                     tone="down"
                     icon={<FileText size={18} />}
                     accent="orange"
@@ -138,7 +145,7 @@ const SuperAdminClientPaymentsPage = () => {
                 <StatCard
                     label="Clients overdue"
                     value={`${totals.overdueClients}`}
-                    tone="down"
+                    tone={totals.overdueClients > 0 ? 'down' : 'neutral'}
                     icon={<AlertTriangle size={18} />}
                     accent="orange"
                 />
@@ -151,116 +158,157 @@ const SuperAdminClientPaymentsPage = () => {
                 />
             </div>
 
-            <Card padded={false}>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
-                                <th className="py-3 px-5">Client</th>
-                                <th className="py-3 px-5">Finance contact</th>
-                                <th className="py-3 px-5">Outstanding</th>
-                                <th className="py-3 px-5">Pending</th>
-                                <th className="py-3 px-5">Last paid</th>
-                                <th className="py-3 px-5 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {clients.map((c) => {
-                                const isClear = c.outstanding === 0
-                                return (
-                                    <tr
-                                        key={c.id}
-                                        className="hover:bg-surface-hover">
-                                        <td className="py-3 px-5">
-                                            <div className="font-medium text-fg">{c.name}</div>
-                                            <div className="text-xs text-fg-muted">{c.id.toUpperCase()}</div>
-                                        </td>
-                                        <td className="py-3 px-5">
-                                            <div className="text-fg">{c.contact}</div>
-                                            <div className="text-xs text-fg-muted inline-flex items-center gap-1">
-                                                <Mail size={10} /> {c.email}
-                                            </div>
-                                            <div className="text-xs text-fg-muted inline-flex items-center gap-1">
-                                                <Phone size={10} /> {c.phone}
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-5 font-mono">
-                                            {isClear ? (
-                                                <span className="text-fg-muted">—</span>
-                                            ) : (
-                                                <span className="font-semibold text-fg">{fmtINR(c.outstanding)}</span>
-                                            )}
-                                        </td>
-                                        <td className="py-3 px-5">
-                                            {c.overdueCount > 0 && <Badge tone="danger">{c.overdueCount} overdue</Badge>}
-                                            {c.pendingCount > 0 && c.overdueCount === 0 && <Badge tone="warn">{c.pendingCount} due</Badge>}
-                                            {isClear && <Badge tone="ok">All paid</Badge>}
-                                        </td>
-                                        <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(c.lastPaidAt)}</td>
-                                        <td className="py-3 px-5 text-right space-x-1">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => toast.success(`Opened ${c.name} statement`)}>
-                                                Statement
-                                            </Button>
-                                            {!isClear && (
+            {summaryQuery.isLoading ? (
+                <Card>
+                    <Skeleton className="h-5 w-1/3 mb-2" />
+                    <Skeleton className="h-5 w-2/3" />
+                </Card>
+            ) : clients.length === 0 ? (
+                <Empty
+                    icon={<Building2 size={32} />}
+                    title="No tenants yet"
+                    description="Issue an invoice from a tenant's Payments tab once you've onboarded one."
+                />
+            ) : (
+                <Card padded={false}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
+                                    <th className="py-3 px-5">Tenant</th>
+                                    <th className="py-3 px-5">Contact</th>
+                                    <th className="py-3 px-5">Outstanding</th>
+                                    <th className="py-3 px-5">Pending</th>
+                                    <th className="py-3 px-5">Last paid</th>
+                                    <th className="py-3 px-5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                                {clients.map((c) => {
+                                    const isClear = c.outstanding === 0
+                                    return (
+                                        <tr
+                                            key={c.id}
+                                            className="hover:bg-surface-hover">
+                                            <td className="py-3 px-5">
+                                                <div className="font-medium text-fg">{c.name}</div>
+                                                <div className="text-xs text-fg-muted font-mono">/{c.slug}</div>
+                                            </td>
+                                            <td className="py-3 px-5">
+                                                {c.contactEmail ? (
+                                                    <div className="text-xs text-fg-muted inline-flex items-center gap-1">
+                                                        <Mail size={10} /> {c.contactEmail}
+                                                    </div>
+                                                ) : null}
+                                                {c.contactPhone ? (
+                                                    <div className="text-xs text-fg-muted inline-flex items-center gap-1">
+                                                        <Phone size={10} /> {c.contactPhone}
+                                                    </div>
+                                                ) : null}
+                                                {!c.contactEmail && !c.contactPhone && <span className="text-xs text-fg-muted">—</span>}
+                                            </td>
+                                            <td className="py-3 px-5 font-mono">
+                                                {isClear ? <span className="text-fg-muted">—</span> : <span className="font-semibold text-fg">{fmtPaiseINR(c.outstanding)}</span>}
+                                            </td>
+                                            <td className="py-3 px-5">
+                                                {c.overdueCount > 0 && <Badge tone="danger">{c.overdueCount} overdue</Badge>}
+                                                {c.pendingCount > 0 && c.overdueCount === 0 && <Badge tone="warn">{c.pendingCount} due</Badge>}
+                                                {isClear && <Badge tone="ok">All paid</Badge>}
+                                            </td>
+                                            <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(c.lastPaidAt)}</td>
+                                            <td className="py-3 px-5 text-right space-x-1">
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    onClick={() => toast.success(`Reminder sent to ${c.contact}`)}>
-                                                    Remind
+                                                    leftIcon={<Eye size={12} />}
+                                                    onClick={() => void viewStatement(c)}>
+                                                    View
                                                 </Button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    leftIcon={<Download size={12} />}
+                                                    onClick={() => void downloadStatement(c)}>
+                                                    PDF
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
         </>
     )
 }
 
-// ---- Admin / Trainer / Client collections view -------------------------------
-// Admin & Trainer see overdue + all invoice activity. Client sees their own
-// billing (same layout, handled on the backend via scoping in Phase 2).
+// ---- ADMIN / TRAINER: collections view (real invoices) ----------------------
 
 const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
-    const [invoices, setInvoices] = useState<Inv[]>(INITIAL)
-    const [syncing, setSyncing] = useState(false)
-
+    const queryClient = useQueryClient()
     const isTrainer = role === ROLES.TRAINER
 
-    const sync = async () => {
-        setSyncing(true)
-        await new Promise((r) => setTimeout(r, 700))
-        setSyncing(false)
-        toast.success('Synced with Razorpay — 0 new payments')
-    }
+    const invoicesQuery = useQuery({
+        queryKey: ['admin-invoices'],
+        queryFn: listAdminInvoices,
+        staleTime: 30_000
+    })
 
-    const refund = (n: string) => {
-        if (!window.confirm(`Refund ${n}? This cannot be undone.`)) return
-        setInvoices((xs) => xs.map((i) => (i.n === n ? { ...i, st: 'REFUNDED' } : i)))
-        toast.success(`${n} refunded`)
-    }
+    const invoices = useMemo(() => invoicesQuery.data ?? [], [invoicesQuery.data])
 
-    const overdue = invoices.filter((i) => i.st === 'OVERDUE')
-    const overdueTotal = overdue.reduce((n, i) => n + i.amt, 0)
-    const collected = invoices.filter((i) => i.st === 'PAID').reduce((n, i) => n + i.amt, 0)
+    const refundMutation = useMutation({
+        mutationFn: refundInvoice,
+        onSuccess: () => {
+            toast.success('Invoice refunded')
+            void queryClient.invalidateQueries({ queryKey: ['admin-invoices'] })
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not refund')
+    })
+
+    const overdue = useMemo(
+        () => invoices.filter((i) => i.status === 'DUE' && i.dueAt && new Date(i.dueAt).getTime() < Date.now()),
+        [invoices]
+    )
+    const overdueTotal = overdue.reduce((n, i) => n + i.totalAmount, 0)
+    const collected = invoices.filter((i) => i.status === 'PAID').reduce((n, i) => n + i.totalAmount, 0)
+
+    const buildInvoicesInput = (): PdfTableInput => ({
+        title: 'Payments & overdue',
+        subtitle: isTrainer ? 'Invoices for your batches' : 'Tenant invoice activity',
+        summary: [
+            { label: 'Collected', value: fmtPaiseINR(collected) },
+            { label: 'Overdue count', value: String(overdue.length) },
+            { label: 'Overdue total', value: fmtPaiseINR(overdueTotal) }
+        ],
+        head: [['Invoice', 'Student', 'Amount', 'Status', 'Due', 'Paid']],
+        body: invoices.map((i) => [
+            i.number,
+            i.user ? `${i.user.firstName} ${i.user.lastName}`.trim() || i.user.email : '—',
+            fmtPaiseINR(i.totalAmount),
+            i.status,
+            fmtDate(i.dueAt),
+            fmtDate(i.paidAt)
+        ])
+    })
+
+    const previewPdf = () => viewTablePdf(buildInvoicesInput())
+    const exportPdf = () => {
+        downloadTablePdf(`payments-${new Date().toISOString().slice(0, 10)}.pdf`, buildInvoicesInput())
+        toast.success('PDF downloaded')
+    }
 
     const headerProps = isTrainer
         ? {
               eyebrow: 'Batch finance',
               title: 'Payments & overdue',
-              description: 'Payment activity for your batches. Flag overdue learners so the admin team can follow up.'
+              description: 'Payment activity for your batches.'
           }
         : {
               eyebrow: 'Finance',
               title: 'Payments & overdue',
-              description: 'Razorpay + GST invoices. Follow up on overdue, refund in one click with an audit note.'
+              description: "Razorpay + GST invoices. Follow up on overdue, refund in one click with an audit note."
           }
 
     return (
@@ -268,111 +316,134 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
             <PageHeader
                 {...headerProps}
                 actions={
-                    !isTrainer && (
-                        <>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                leftIcon={<RefreshCw size={14} />}
-                                onClick={sync}
-                                loading={syncing}>
-                                Sync Razorpay
-                            </Button>
-                            <Button
-                                size="sm"
-                                leftIcon={<Download size={14} />}
-                                onClick={() => toast.success('Statement downloaded')}>
-                                Statement
-                            </Button>
-                        </>
-                    )
+                    <>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            leftIcon={<Eye size={14} />}
+                            disabled={invoices.length === 0}
+                            onClick={previewPdf}>
+                            View
+                        </Button>
+                        <Button
+                            size="sm"
+                            leftIcon={<Download size={14} />}
+                            disabled={invoices.length === 0}
+                            onClick={exportPdf}>
+                            Download
+                        </Button>
+                    </>
                 }
             />
 
             <div className="grid sm:grid-cols-3 gap-4 mb-6">
                 <StatCard
-                    label="Collected (30d)"
-                    value={fmtINR(collected)}
+                    label="Collected"
+                    value={fmtPaiseINR(collected)}
                     tone="up"
-                    delta="+24%"
                     icon={<CreditCard size={18} />}
                     accent="teal"
                 />
                 <StatCard
                     label={`Overdue · ${overdue.length}`}
-                    value={fmtINR(overdueTotal)}
-                    tone="down"
+                    value={fmtPaiseINR(overdueTotal)}
+                    tone={overdue.length > 0 ? 'down' : 'neutral'}
                     icon={<AlertTriangle size={18} />}
                     accent="orange"
                 />
                 <StatCard
-                    label="Payment success"
-                    value="97.4%"
-                    tone="up"
-                    icon={<CreditCard size={18} />}
+                    label="Total invoices"
+                    value={String(invoices.length)}
+                    tone="neutral"
+                    icon={<FileText size={18} />}
                     accent="brand"
                 />
             </div>
 
-            <Card padded={false}>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
-                                <th className="py-3 px-5">Invoice</th>
-                                <th className="py-3 px-5">Student</th>
-                                <th className="py-3 px-5">Amount</th>
-                                <th className="py-3 px-5">Status</th>
-                                <th className="py-3 px-5">Due</th>
-                                <th className="py-3 px-5 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {invoices.map((i) => (
-                                <tr
-                                    key={i.n}
-                                    className="hover:bg-surface-hover">
-                                    <td className="py-3 px-5 font-mono text-xs">{i.n}</td>
-                                    <td className="py-3 px-5 text-fg font-medium">{i.who}</td>
-                                    <td className="py-3 px-5 font-mono">{fmtINR(i.amt)}</td>
-                                    <td className="py-3 px-5">
-                                        <Badge tone={TONE[i.st]}>{i.st}</Badge>
-                                        {i.st === 'OVERDUE' && i.daysOverdue && (
-                                            <span className="ml-2 text-[11px] text-[var(--color-danger)]">{i.daysOverdue}d late</span>
-                                        )}
-                                    </td>
-                                    <td className="py-3 px-5 text-xs text-fg-muted">{i.due}</td>
-                                    <td className="py-3 px-5 text-right space-x-1">
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => toast.success(`Opened ${i.n}.pdf`)}>
-                                            PDF
-                                        </Button>
-                                        {i.st === 'OVERDUE' && (
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => toast.success(`Reminder sent for ${i.n}`)}>
-                                                Remind
-                                            </Button>
-                                        )}
-                                        {i.st === 'PAID' && !isTrainer && (
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="!text-[var(--color-danger)]"
-                                                onClick={() => refund(i.n)}>
-                                                Refund
-                                            </Button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
+            {invoicesQuery.isLoading ? (
+                <Card>
+                    <Skeleton className="h-5 w-1/3 mb-2" />
+                    <Skeleton className="h-5 w-2/3" />
+                </Card>
+            ) : invoices.length === 0 ? (
+                <Empty
+                    icon={<FileText size={32} />}
+                    title="No invoices yet"
+                    description="Invoices are generated automatically when students enrol in a paid course."
+                />
+            ) : (
+                <InvoiceTable
+                    invoices={invoices}
+                    isTrainer={isTrainer}
+                    onRefund={(id) => {
+                        if (!window.confirm('Refund this invoice? This cannot be undone.')) return
+                        refundMutation.mutate(id)
+                    }}
+                />
+            )}
         </>
     )
 }
+
+const InvoiceTable = ({
+    invoices,
+    isTrainer,
+    onRefund
+}: {
+    invoices: AdminInvoiceRow[]
+    isTrainer: boolean
+    onRefund: (id: string) => void
+}) => (
+    <Card padded={false}>
+        <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+                <thead>
+                    <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
+                        <th className="py-3 px-5">Invoice</th>
+                        <th className="py-3 px-5">Student</th>
+                        <th className="py-3 px-5">Amount</th>
+                        <th className="py-3 px-5">Status</th>
+                        <th className="py-3 px-5">Due</th>
+                        <th className="py-3 px-5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y">
+                    {invoices.map((i) => {
+                        const isOverdue = i.status === 'DUE' && i.dueAt && new Date(i.dueAt).getTime() < Date.now()
+                        return (
+                            <tr
+                                key={i.id}
+                                className="hover:bg-surface-hover">
+                                <td className="py-3 px-5 font-mono text-xs">{i.number}</td>
+                                <td className="py-3 px-5">
+                                    <div className="text-fg font-medium">
+                                        {i.user ? `${i.user.firstName} ${i.user.lastName}`.trim() || i.user.email : '—'}
+                                    </div>
+                                    {i.user?.email && <div className="text-xs text-fg-muted">{i.user.email}</div>}
+                                </td>
+                                <td className="py-3 px-5 font-mono">{fmtPaiseINR(i.totalAmount)}</td>
+                                <td className="py-3 px-5">
+                                    <Badge tone={TONE[i.status]}>{i.status}</Badge>
+                                    {isOverdue && <span className="ml-2 text-[11px] text-[var(--color-danger)]">Overdue</span>}
+                                </td>
+                                <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(i.dueAt)}</td>
+                                <td className="py-3 px-5 text-right space-x-1">
+                                    {i.status === 'PAID' && !isTrainer && (
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="!text-[var(--color-danger)]"
+                                            onClick={() => onRefund(i.id)}>
+                                            Refund
+                                        </Button>
+                                    )}
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
+        </div>
+    </Card>
+)
+

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Palette, Monitor, Moon, Sun, Shield, User, KeyRound, Bell, Save } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { Palette, Monitor, Moon, Sun, User, KeyRound, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -10,12 +10,13 @@ import { Tabs } from '@shared/components/ui/Tabs'
 import { cn } from '@shared/helpers/cn'
 import { useThemeStore } from '@shared/stores/themeStore'
 import { useAuthStore } from '@shared/stores/authStore'
-import { ROLES, ROLE_LABEL, type TRole } from '@shared/constants/roles'
+import { ROLES, ROLE_LABEL } from '@shared/constants/roles'
 
 // Settings splits by role:
 //   - Admin: institute branding + appearance + plan (they own the tenant).
-//   - Everyone else (SuperAdmin, operators, learners, clients): personal
-//     profile, security, notification prefs, appearance.
+//   - Everyone else: profile + security + appearance.
+// The Notifications tab was dummy state with no backend persistence; the
+// /app/notifications page is the canonical inbox view.
 export const SettingsPage = () => {
     const role = useAuthStore((s) => s.user?.role)
     if (role === ROLES.ADMIN) return <TenantSettings />
@@ -24,19 +25,18 @@ export const SettingsPage = () => {
 
 // ----- Personal settings (all non-Admin roles) -------------------------------
 
-type PersonalTab = 'profile' | 'security' | 'notifications' | 'appearance'
+type PersonalTab = 'profile' | 'security' | 'appearance'
 
 const PersonalSettings = () => {
     const user = useAuthStore((s) => s.user)
     const setUser = useAuthStore((s) => s.setUser)
     const [tab, setTab] = useState<PersonalTab>('profile')
 
-    // Profile form — split the persisted `name` back into first/last for editing.
     const [first, last] = (user?.name ?? '').split(' ')
     const [firstName, setFirstName] = useState(first ?? '')
     const [lastName, setLastName] = useState(last ?? '')
     const [email, setEmail] = useState(user?.email ?? '')
-    const [phone, setPhone] = useState('+91 98000 00000')
+    const [phone, setPhone] = useState('')
 
     const saveProfile = () => {
         if (user) setUser({ ...user, name: `${firstName} ${lastName}`.trim(), email })
@@ -55,7 +55,6 @@ const PersonalSettings = () => {
                 tabs={[
                     { value: 'profile', label: 'Profile' },
                     { value: 'security', label: 'Security' },
-                    { value: 'notifications', label: 'Notifications' },
                     { value: 'appearance', label: 'Appearance' }
                 ]}
                 value={tab}
@@ -91,6 +90,7 @@ const PersonalSettings = () => {
                             label="Phone"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+91 98000 00000"
                         />
                         <div className="flex justify-end pt-2">
                             <Button
@@ -127,8 +127,6 @@ const PersonalSettings = () => {
 
             {tab === 'security' && <SecurityPanel />}
 
-            {tab === 'notifications' && <NotificationsPanel role={user?.role} />}
-
             {tab === 'appearance' && <AppearancePanel />}
         </>
     )
@@ -138,7 +136,6 @@ const SecurityPanel = () => {
     const [current, setCurrent] = useState('')
     const [next, setNext] = useState('')
     const [confirm, setConfirm] = useState('')
-    const [twoFa, setTwoFa] = useState(false)
 
     const submit = () => {
         if (!current || !next) return toast.error('Enter your current and new password')
@@ -151,135 +148,30 @@ const SecurityPanel = () => {
     }
 
     return (
-        <div className="grid lg:grid-cols-2 gap-4">
-            <Card className="space-y-4">
-                <h2 className="text-sm font-semibold text-fg inline-flex items-center gap-2">
-                    <KeyRound size={14} /> Change password
-                </h2>
-                <Input
-                    label="Current password"
-                    type="password"
-                    value={current}
-                    onChange={(e) => setCurrent(e.target.value)}
-                />
-                <Input
-                    label="New password"
-                    type="password"
-                    value={next}
-                    onChange={(e) => setNext(e.target.value)}
-                />
-                <Input
-                    label="Confirm new password"
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                />
-                <div className="flex justify-end">
-                    <Button onClick={submit}>Update password</Button>
-                </div>
-            </Card>
-
-            <Card className="space-y-4">
-                <h2 className="text-sm font-semibold text-fg inline-flex items-center gap-2">
-                    <Shield size={14} /> Two-factor authentication
-                </h2>
-                <p className="text-sm text-fg-soft">
-                    Add an extra layer to sign-in with an authenticator app. Recommended for any account that touches student data, payments, or
-                    grades.
-                </p>
-                <div className="flex items-center justify-between rounded-md border p-3 bg-surface-2">
-                    <div>
-                        <div className="text-sm font-medium text-fg">Authenticator app</div>
-                        <div className="text-xs text-fg-muted">{twoFa ? 'Enabled' : 'Not configured'}</div>
-                    </div>
-                    <Button
-                        size="sm"
-                        variant={twoFa ? 'ghost' : 'primary'}
-                        onClick={() => {
-                            setTwoFa((v) => !v)
-                            toast.success(twoFa ? '2FA disabled' : '2FA enabled')
-                        }}>
-                        {twoFa ? 'Disable' : 'Enable'}
-                    </Button>
-                </div>
-            </Card>
-        </div>
-    )
-}
-
-// Role-specific notification preferences — every role gets Weekly digest +
-// Security alerts, plus two domain-specific prefs tuned to what they actually
-// act on day to day. Keeps the screen relevant and short.
-const NOTIF_OPTIONS: Record<TRole, { key: string; label: string; hint: string }[]> = {
-    SUPER_ADMIN: [
-        { key: 'newTenant', label: 'New tenant signups', hint: 'A new institute just signed up.' },
-        { key: 'failedPayment', label: 'Failed client payments', hint: 'Invoice marked FAILED by Razorpay.' }
-    ],
-    ADMIN: [
-        { key: 'overdueInvoice', label: 'Overdue invoices', hint: 'A learner invoice has crossed its due date.' },
-        { key: 'newEnrollment', label: 'New enrollments', hint: 'A student joined one of your batches.' }
-    ],
-    TRAINER: [
-        { key: 'newSubmission', label: 'New quiz submissions', hint: 'A learner submitted a quiz that needs review.' },
-        { key: 'batchQuestion', label: 'Batch questions', hint: 'A student posted a question in your batch.' }
-    ],
-    STUDENT: [
-        { key: 'classReminder', label: 'Live class reminders', hint: 'Get a nudge 15 min before your class starts.' },
-        { key: 'feesDue', label: 'Fee due reminders', hint: 'Upcoming and overdue fee invoices.' }
-    ],
-    COUNSELLOR: [
-        { key: 'newLead', label: 'New leads assigned', hint: 'A fresh enquiry landed in your pipeline.' },
-        { key: 'taskDue', label: 'Task reminders', hint: 'Follow-ups due today or tomorrow.' }
-    ],
-    COUNSELLING_MANAGER: [
-        { key: 'teamPerf', label: 'Team performance', hint: 'Daily summary of your counsellors\u2019 conversions.' },
-        { key: 'slaMiss', label: 'SLA misses', hint: 'A lead stayed idle past the response SLA.' }
-    ],
-    SUPPORT: [
-        { key: 'newTicket', label: 'New tickets', hint: 'A learner or client opened a support ticket.' },
-        { key: 'ticketReply', label: 'Ticket replies', hint: 'Someone replied on a ticket assigned to you.' }
-    ]
-}
-
-const NotificationsPanel = ({ role }: { role: TRole | undefined }) => {
-    const options = role ? NOTIF_OPTIONS[role] : []
-    const [prefs, setPrefs] = useState<Record<string, boolean>>(() => {
-        const init: Record<string, boolean> = { weeklyDigest: false, securityAlerts: true }
-        for (const o of options) init[o.key] = true
-        return init
-    })
-
-    const allOptions = [
-        ...options,
-        { key: 'weeklyDigest', label: 'Weekly digest', hint: 'A short summary of what happened this week.' },
-        { key: 'securityAlerts', label: 'Security alerts', hint: 'Suspicious login attempts on your account.' }
-    ]
-
-    return (
-        <Card>
-            <h2 className="text-sm font-semibold text-fg mb-4 inline-flex items-center gap-2">
-                <Bell size={14} /> Email notifications
+        <Card className="space-y-4 max-w-xl">
+            <h2 className="text-sm font-semibold text-fg inline-flex items-center gap-2">
+                <KeyRound size={14} /> Change password
             </h2>
-            <div className="divide-y">
-                {allOptions.map((o) => (
-                    <label
-                        key={o.key}
-                        className="flex items-start justify-between gap-4 py-3 cursor-pointer">
-                        <div className="min-w-0">
-                            <div className="text-sm font-medium text-fg">{o.label}</div>
-                            <div className="text-xs text-fg-muted">{o.hint}</div>
-                        </div>
-                        <input
-                            type="checkbox"
-                            checked={!!prefs[o.key]}
-                            onChange={(e) => {
-                                setPrefs((p) => ({ ...p, [o.key]: e.target.checked }))
-                                toast.success('Preference saved')
-                            }}
-                            className="accent-[var(--color-brand-500)] w-4 h-4 mt-1"
-                        />
-                    </label>
-                ))}
+            <Input
+                label="Current password"
+                type="password"
+                value={current}
+                onChange={(e) => setCurrent(e.target.value)}
+            />
+            <Input
+                label="New password"
+                type="password"
+                value={next}
+                onChange={(e) => setNext(e.target.value)}
+            />
+            <Input
+                label="Confirm new password"
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+            />
+            <div className="flex justify-end">
+                <Button onClick={submit}>Update password</Button>
             </div>
         </Card>
     )
@@ -289,16 +181,17 @@ const AppearancePanel = () => {
     const theme = useThemeStore((s) => s.theme)
     const setTheme = useThemeStore((s) => s.setTheme)
 
+    const options = [
+        { k: 'light' as const, label: 'Light', Icon: Sun, hint: 'Bright surfaces, high contrast. Great for projector demos.' },
+        { k: 'dark' as const, label: 'Dark', Icon: Moon, hint: 'Low-glare surfaces. Easier on the eyes for long sessions.' },
+        { k: 'system' as const, label: 'System', Icon: Monitor, hint: 'Follow your OS preference automatically.' }
+    ]
+
     return (
         <Card>
             <h2 className="text-sm font-semibold text-fg mb-4">Theme</h2>
-            <div className="grid grid-cols-3 gap-3 max-w-xl">
-                {(
-                    [
-                        { k: 'light', label: 'Light', Icon: Sun },
-                        { k: 'dark', label: 'Dark', Icon: Moon }
-                    ] as const
-                ).map((opt) => {
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+                {options.map((opt) => {
                     const active = theme === opt.k
                     return (
                         <button
@@ -316,36 +209,24 @@ const AppearancePanel = () => {
                                 <opt.Icon size={14} />
                                 <span className="text-sm font-medium">{opt.label}</span>
                             </div>
-                            <p className="mt-2 text-xs text-fg-muted">
-                                {opt.k === 'light'
-                                    ? 'Bright surfaces, high contrast. Great for projector demos.'
-                                    : 'Low-glare surfaces. Easier on the eyes for long sessions.'}
-                            </p>
+                            <p className="mt-2 text-xs text-fg-muted">{opt.hint}</p>
                         </button>
                     )
                 })}
-                <div className="rounded-md border p-4 bg-surface-2">
-                    <div className="flex items-center gap-2">
-                        <Monitor size={14} />
-                        <span className="text-sm font-medium">System</span>
-                        <Badge>Coming soon</Badge>
-                    </div>
-                    <p className="mt-2 text-xs text-fg-muted">Follow your OS preference automatically.</p>
-                </div>
             </div>
         </Card>
     )
 }
 
-// ----- Tenant settings (Admin + operators) -----------------------------------
+// ----- Tenant settings (Admin) -----------------------------------------------
 
 type TenantTab = 'branding' | 'appearance' | 'plan'
 
 const TenantSettings = () => {
     const [tab, setTab] = useState<TenantTab>('branding')
-    const [name, setName] = useState('Ascend Academy')
+    const [name, setName] = useState('Acme Institute')
     const [color, setColor] = useState('#0062FF')
-    const [subdomain] = useState('ascend.albero.academy')
+    const [subdomain] = useState('acme.albero.academy')
 
     const save = () => toast.success('Settings saved')
 
@@ -452,7 +333,7 @@ const TenantSettings = () => {
     )
 }
 
-const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
+const Row = ({ label, value }: { label: string; value: ReactNode }) => (
     <div className="flex items-center justify-between gap-4">
         <span className="text-fg-muted">{label}</span>
         <span className="text-fg">{value}</span>

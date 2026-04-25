@@ -91,6 +91,13 @@ export const listTenantPayments = async (req: Request, res: Response): Promise<v
     httpResponse(req, res, 200, responseMessage.SUCCESS, rows)
 }
 
+// SUPER_ADMIN — Client Payments rollup. One row per tenant with their
+// outstanding SaaS balance, overdue count, last paid date.
+export const listClientPaymentsSummary = async (req: Request, res: Response): Promise<void> => {
+    const rows = await service.listClientPaymentsSummary()
+    httpResponse(req, res, 200, responseMessage.SUCCESS, rows)
+}
+
 // SUPER_ADMIN — issue a SaaS invoice for a tenant. Razorpay order creation
 // happens on the tenant-admin side when they actually pay (next batch).
 export const createTenantPayment = async (req: Request, res: Response): Promise<void> => {

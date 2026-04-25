@@ -639,9 +639,14 @@ model StudentSignup {
   dateOfBirth     DateTime?
   city            String?
   state           String?
+  address         String?
   qualification   String?
   interest        String?
   notes           String?
+  // Free-form structured details (education, professional, gap, etc.). Stored
+  // as JSON so the onboarding form can grow without a migration per field.
+  // Schema is enforced at the API layer via Zod in counsellor-invite.schema.ts.
+  extra           Json?
   // One-time plaintext password generated on submit. Cleared after first login
   // so it can be re-shown to the counsellor exactly once via the share endpoint.
   initialPassword String?

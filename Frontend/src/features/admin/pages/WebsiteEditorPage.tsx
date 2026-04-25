@@ -1,36 +1,71 @@
-// Website editor (§11). Picks any tenant and edits their landing page copy.
-// Fields are persisted in `tenant.settings.landing` and read back by the
-// per-tenant public landing page (`/t/:slug`). The right-hand panel is a live
-// preview that re-renders as the SA types — saving is just one PATCH.
+// Website editor (§11). WordPress-lite block editor:
+//  - Left panel: ordered list of sections + add-section template picker
+//  - Right panel: live preview rendered by the same component used by the
+//    public landing page, so what you see is what you ship
+//  - Each section has its own inline form (variant picker + per-field copy)
+//  - Reorder via up/down buttons; full HTML5 drag-and-drop is a follow-up
 //
-// This is the simple, copy-only iteration. Drag-and-drop section ordering and
-// per-section visibility live in a follow-up; today the layout is fixed and
-// the SA controls only the content.
+// Persistence: the entire `landing.sections` array gets saved on Save Changes.
+// Tenants who haven't customised yet see the default layout pre-populated.
+
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save, Eye, Globe, Plus, X, ExternalLink } from 'lucide-react'
+import {
+    Save,
+    Eye,
+    Plus,
+    Trash2,
+    ChevronUp,
+    ChevronDown,
+    LayoutTemplate,
+    PencilLine,
+    X,
+    Sparkles,
+    LayoutGrid,
+    Megaphone,
+    Info as InfoIcon
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
-import { Badge } from '@shared/components/ui/Badge'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { Modal } from '@shared/components/ui/Modal'
 import {
+    LANDING_TEMPLATES,
+    defaultLandingSections,
     getTenantDetail,
+    instantiateTemplate,
     listAllTenants,
     readLandingContent,
     updateTenantById,
-    type LandingContent,
     type LandingPillar,
+    type LandingSection,
+    type LandingTemplate,
     type TenantSettings
 } from '../services/tenant.service'
+import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
+
+const SECTION_ICON: Record<LandingSection['type'], typeof Sparkles> = {
+    hero: Sparkles,
+    features: LayoutGrid,
+    cta: Megaphone,
+    callout: InfoIcon
+}
+
+const SECTION_LABEL: Record<LandingSection['type'], string> = {
+    hero: 'Hero',
+    features: 'Features',
+    cta: 'CTA',
+    callout: 'Callout'
+}
 
 export const WebsiteEditorPage = () => {
     const queryClient = useQueryClient()
     const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
-    const [tenantId, setTenantId] = useState<string>('')
+    const [tenantId, setTenantId] = useState('')
 
     useEffect(() => {
         if (!tenantId && tenantsQuery.data && tenantsQuery.data.length > 0) {
@@ -45,48 +80,81 @@ export const WebsiteEditorPage = () => {
         staleTime: 60_000
     })
 
-    const initial = useMemo(() => readLandingContent(detailQuery.data), [detailQuery.data])
-    const [draft, setDraft] = useState<LandingContent>(initial)
-    useEffect(() => setDraft(initial), [initial])
+    const tenant = detailQuery.data
+    const initialContent = useMemo(() => readLandingContent(tenant), [tenant])
+
+    const [sections, setSections] = useState<LandingSection[]>([])
+    const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [pickerOpen, setPickerOpen] = useState(false)
+
+    // Reset draft whenever the loaded tenant changes.
+    useEffect(() => {
+        if (!tenant) return
+        const next = initialContent.sections ?? defaultLandingSections(tenant.name)
+        setSections(next)
+        setSelectedId(next[0]?.id ?? null)
+    }, [tenant, initialContent.sections])
+
+    const dirty = useMemo(
+        () => JSON.stringify(sections) !== JSON.stringify(initialContent.sections ?? (tenant ? defaultLandingSections(tenant.name) : [])),
+        [sections, initialContent.sections, tenant]
+    )
 
     const saveMutation = useMutation({
         mutationFn: () => {
-            if (!detailQuery.data) throw new Error('Tenant not loaded')
-            const settings: TenantSettings = { ...(detailQuery.data.settings ?? {}), landing: draft }
+            if (!tenant) throw new Error('Tenant not loaded')
+            const settings: TenantSettings = {
+                ...(tenant.settings ?? {}),
+                landing: { ...(tenant.settings?.landing as object | undefined ?? {}), sections }
+            }
             return updateTenantById(tenantId, { settings })
         },
         onSuccess: () => {
             toast.success('Landing page saved')
             void queryClient.invalidateQueries({ queryKey: ['tenants', tenantId] })
+            void queryClient.invalidateQueries({ queryKey: ['public', 'tenant'] })
         },
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save')
     })
 
-    const dirty = JSON.stringify(draft) !== JSON.stringify(initial)
-    const tenants = tenantsQuery.data ?? []
-    const tenant = detailQuery.data
-    const previewUrl = tenant ? `/t/${tenant.slug}` : '/'
+    const updateSection = (id: string, patch: Partial<LandingSection['data']>) => {
+        setSections((xs) => xs.map((s) => (s.id === id ? ({ ...s, data: { ...s.data, ...patch } } as LandingSection) : s)))
+    }
+    const updateVariant = (id: string, variant: string) => {
+        setSections((xs) => xs.map((s) => (s.id === id ? ({ ...s, variant } as LandingSection) : s)))
+    }
+    const moveSection = (id: string, dir: -1 | 1) => {
+        setSections((xs) => {
+            const idx = xs.findIndex((s) => s.id === id)
+            if (idx < 0) return xs
+            const next = [...xs]
+            const swap = idx + dir
+            if (swap < 0 || swap >= next.length) return xs
+            ;[next[idx], next[swap]] = [next[swap], next[idx]]
+            return next
+        })
+    }
+    const removeSection = (id: string) => {
+        setSections((xs) => xs.filter((s) => s.id !== id))
+        if (selectedId === id) setSelectedId(null)
+    }
+    const insertTemplate = (t: LandingTemplate) => {
+        const inst = instantiateTemplate(t)
+        setSections((xs) => [...xs, inst])
+        setSelectedId(inst.id)
+        setPickerOpen(false)
+    }
 
-    const updatePillar = (i: number, patch: Partial<LandingPillar>) => {
-        const next = [...(draft.pillars ?? [])]
-        next[i] = { ...next[i], ...patch }
-        setDraft({ ...draft, pillars: next })
-    }
-    const addPillar = () => {
-        if ((draft.pillars?.length ?? 0) >= 6) return
-        setDraft({ ...draft, pillars: [...(draft.pillars ?? []), { title: 'New pillar', description: '' }] })
-    }
-    const removePillar = (i: number) => {
-        const next = (draft.pillars ?? []).filter((_, idx) => idx !== i)
-        setDraft({ ...draft, pillars: next })
-    }
+    const tenants = tenantsQuery.data ?? []
+    const selectedSection = sections.find((s) => s.id === selectedId) ?? null
+    const previewUrl = tenant ? `/t/${tenant.slug}` : '/'
 
     return (
         <>
             <PageHeader
                 eyebrow="Super Admin"
                 title="Website editor"
-                description="Edit any tenant's public landing page. Changes go live as soon as you save."
+                description="Drag-friendly block editor. Pick from the template library, drop blocks onto the page, edit copy in place."
                 actions={
                     <>
                         <div className="w-64">
@@ -114,7 +182,7 @@ export const WebsiteEditorPage = () => {
                         <Button
                             size="sm"
                             leftIcon={<Save size={14} />}
-                            disabled={!dirty}
+                            disabled={!dirty || !tenant}
                             loading={saveMutation.isPending}
                             onClick={() => saveMutation.mutate()}>
                             Save changes
@@ -129,163 +197,391 @@ export const WebsiteEditorPage = () => {
                     <Skeleton className="h-5 w-2/3" />
                 </Card>
             ) : (
-                <div className="grid lg:grid-cols-[420px_1fr] gap-4">
-                    {/* Edit panel */}
+                <div className="grid lg:grid-cols-[420px_1fr] gap-4 items-start">
+                    {/* Left panel — section list + selected section editor */}
                     <div className="space-y-4">
-                        <Card>
-                            <h3 className="text-sm font-semibold text-fg mb-3">Hero</h3>
-                            <div className="space-y-3">
-                                <Input
-                                    label="Eyebrow tag"
-                                    value={draft.heroTag ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, heroTag: e.target.value })}
-                                    hint="Small badge above the headline."
-                                />
-                                <Input
-                                    label="Headline"
-                                    value={draft.heroTitle ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, heroTitle: e.target.value })}
-                                    placeholder={`Learn with ${tenant.name}`}
-                                />
-                                <Textarea
-                                    label="Sub-headline"
-                                    rows={3}
-                                    value={draft.heroSubtitle ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, heroSubtitle: e.target.value })}
-                                />
-                                <Input
-                                    label="Primary CTA label"
-                                    value={draft.primaryCtaLabel ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, primaryCtaLabel: e.target.value })}
-                                />
-                            </div>
-                        </Card>
-
-                        <Card>
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm font-semibold text-fg">Pillars</h3>
+                        <Card padded={false}>
+                            <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
+                                <h3 className="text-sm font-semibold text-fg">Sections</h3>
                                 <Button
                                     size="sm"
-                                    variant="ghost"
                                     leftIcon={<Plus size={12} />}
-                                    onClick={addPillar}
-                                    disabled={(draft.pillars?.length ?? 0) >= 6}>
+                                    onClick={() => setPickerOpen(true)}>
                                     Add
                                 </Button>
                             </div>
-                            <div className="space-y-3">
-                                {(draft.pillars ?? []).map((p, i) => (
-                                    <div
-                                        key={i}
-                                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
-                                        <div className="flex items-start gap-2">
-                                            <Input
-                                                label={`Pillar ${i + 1} title`}
-                                                value={p.title}
-                                                onChange={(e) => updatePillar(i, { title: e.target.value })}
-                                            />
+                            <ul className="divide-y">
+                                {sections.length === 0 && (
+                                    <li className="p-4 text-sm text-fg-muted text-center">No sections yet — add one to get started.</li>
+                                )}
+                                {sections.map((s, i) => {
+                                    const Icon = SECTION_ICON[s.type]
+                                    const active = s.id === selectedId
+                                    return (
+                                        <li
+                                            key={s.id}
+                                            className={
+                                                'p-3 flex items-center gap-2 transition-colors ' +
+                                                (active ? 'bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover')
+                                            }>
                                             <button
                                                 type="button"
-                                                aria-label="Remove pillar"
-                                                onClick={() => removePillar(i)}
-                                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
-                                                <X size={14} />
+                                                onClick={() => setSelectedId(s.id)}
+                                                className="flex-1 flex items-center gap-2 text-left min-w-0">
+                                                <span
+                                                    className={
+                                                        'h-7 w-7 rounded-md grid place-items-center shrink-0 ' +
+                                                        (active ? 'bg-[var(--color-brand-500)] text-white' : 'bg-surface-2 text-fg-soft')
+                                                    }>
+                                                    <Icon size={14} />
+                                                </span>
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="text-sm font-medium text-fg block truncate">
+                                                        {SECTION_LABEL[s.type]} · {s.variant}
+                                                    </span>
+                                                    <span className="text-[11px] text-fg-muted truncate">{getSectionPreviewText(s)}</span>
+                                                </span>
                                             </button>
-                                        </div>
-                                        <Textarea
-                                            label="Description"
-                                            rows={2}
-                                            value={p.description}
-                                            onChange={(e) => updatePillar(i, { description: e.target.value })}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
+                                            <div className="flex shrink-0">
+                                                <button
+                                                    type="button"
+                                                    aria-label="Move up"
+                                                    disabled={i === 0}
+                                                    onClick={() => moveSection(s.id, -1)}
+                                                    className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                                    <ChevronUp size={14} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-label="Move down"
+                                                    disabled={i === sections.length - 1}
+                                                    onClick={() => moveSection(s.id, 1)}
+                                                    className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                                    <ChevronDown size={14} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-label="Remove section"
+                                                    onClick={() => {
+                                                        if (window.confirm('Remove this section?')) removeSection(s.id)
+                                                    }}
+                                                    className="p-1 text-fg-muted hover:text-[var(--color-danger)]">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
                         </Card>
 
-                        <Card>
-                            <h3 className="text-sm font-semibold text-fg mb-3">Closing CTA</h3>
-                            <div className="space-y-3">
-                                <Input
-                                    label="Title"
-                                    value={draft.ctaTitle ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, ctaTitle: e.target.value })}
-                                />
-                                <Textarea
-                                    label="Sub-title"
-                                    rows={2}
-                                    value={draft.ctaSubtitle ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, ctaSubtitle: e.target.value })}
-                                />
-                                <Input
-                                    label="Button label"
-                                    value={draft.ctaButtonLabel ?? ''}
-                                    onChange={(e) => setDraft({ ...draft, ctaButtonLabel: e.target.value })}
-                                />
-                            </div>
-                        </Card>
+                        {selectedSection && (
+                            <SectionEditor
+                                section={selectedSection}
+                                onUpdateData={(patch) => updateSection(selectedSection.id, patch)}
+                                onUpdateVariant={(v) => updateVariant(selectedSection.id, v)}
+                            />
+                        )}
                     </div>
 
-                    {/* Live preview */}
+                    {/* Right panel — live preview rendered with the same component the public site uses */}
                     <Card padded={false}>
                         <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2 text-xs text-fg-muted">
-                            <Globe size={14} />
+                            <PencilLine size={14} />
                             <span className="font-mono">/t/{tenant.slug}</span>
-                            <a
-                                href={previewUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="ml-1 inline-flex items-center gap-1 text-fg-soft hover:text-fg">
-                                <ExternalLink size={11} /> open
-                            </a>
-                            <Badge className="ml-auto">Preview</Badge>
+                            <span className="ml-auto inline-flex items-center gap-1 text-fg-soft">
+                                <Eye size={11} /> Live preview
+                            </span>
                         </div>
-
-                        <div
-                            className="p-8 sm:p-12 text-center border-b border-[var(--color-border)]"
-                            style={{
-                                background: `linear-gradient(160deg, ${tenant.brandingColor || '#0062ff'}20 0%, transparent 50%)`
-                            }}>
-                            <Badge tone="brand">{draft.heroTag}</Badge>
-                            <h1 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-fg max-w-2xl mx-auto">
-                                {draft.heroTitle || `Learn with ${tenant.name}`}
-                            </h1>
-                            <p className="mt-3 text-sm text-fg-soft max-w-xl mx-auto leading-relaxed">{draft.heroSubtitle}</p>
-                            <div className="mt-5 flex justify-center gap-2">
-                                <Button size="sm">{draft.primaryCtaLabel}</Button>
-                                <Button
-                                    size="sm"
-                                    variant="ghost">
-                                    Browse courses
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="p-6 grid sm:grid-cols-3 gap-3">
-                            {(draft.pillars ?? []).map((p, i) => (
-                                <div
-                                    key={i}
-                                    className="rounded-md border border-[var(--color-border)] p-4">
-                                    <div className="text-sm font-semibold text-fg">{p.title || 'Untitled'}</div>
-                                    <p className="mt-1 text-xs text-fg-soft">{p.description || '—'}</p>
+                        <div className="bg-bg overflow-hidden">
+                            {sections.length === 0 ? (
+                                <div className="grid place-items-center h-96 text-fg-muted">
+                                    <div className="text-center">
+                                        <LayoutTemplate
+                                            size={36}
+                                            className="mx-auto mb-3 opacity-40"
+                                        />
+                                        <div className="text-sm">Empty page — pick a template to begin.</div>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-
-                        <div className="p-8 m-6 mt-0 rounded-md text-center text-white bg-[var(--color-brand-500)]">
-                            <h2 className="text-xl font-semibold tracking-tight">{draft.ctaTitle}</h2>
-                            <p className="mt-2 text-white/85 text-sm max-w-md mx-auto">{draft.ctaSubtitle}</p>
-                            <div className="mt-4">
-                                <Button
-                                    size="sm"
-                                    className="!bg-white !text-[var(--color-brand-700)] hover:!bg-white/90">
-                                    {draft.ctaButtonLabel}
-                                </Button>
-                            </div>
+                            ) : (
+                                sections.map((s) => (
+                                    <LandingSectionRenderer
+                                        key={s.id}
+                                        section={s}
+                                        slugBase={`/t/${tenant.slug}`}
+                                        tenantName={tenant.name}
+                                    />
+                                ))
+                            )}
                         </div>
                     </Card>
                 </div>
             )}
+
+            <TemplatePicker
+                open={pickerOpen}
+                onClose={() => setPickerOpen(false)}
+                onPick={insertTemplate}
+            />
         </>
+    )
+}
+
+const getSectionPreviewText = (s: LandingSection): string => {
+    switch (s.type) {
+        case 'hero':
+            return s.data.title || 'Untitled hero'
+        case 'features':
+            return s.data.title || `${s.data.pillars?.length ?? 0} features`
+        case 'cta':
+            return s.data.title || 'CTA'
+        case 'callout':
+            return s.data.title || 'Callout'
+    }
+}
+
+// ---- Per-section editor — variant picker + form fields ----------------------
+
+const SectionEditor = ({
+    section,
+    onUpdateData,
+    onUpdateVariant
+}: {
+    section: LandingSection
+    onUpdateData: (patch: Partial<LandingSection['data']>) => void
+    onUpdateVariant: (v: string) => void
+}) => {
+    const variantOptions = VARIANTS_BY_TYPE[section.type]
+    return (
+        <Card>
+            <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-fg">Edit {SECTION_LABEL[section.type]}</h3>
+                <Select
+                    aria-label="Variant"
+                    value={section.variant}
+                    onChange={(e) => onUpdateVariant(e.target.value)}
+                    className="!w-32">
+                    {variantOptions.map((v) => (
+                        <option
+                            key={v}
+                            value={v}>
+                            {v}
+                        </option>
+                    ))}
+                </Select>
+            </div>
+
+            {section.type === 'hero' && (
+                <HeroFields
+                    data={section.data}
+                    onChange={onUpdateData}
+                />
+            )}
+            {section.type === 'features' && (
+                <FeaturesFields
+                    data={section.data}
+                    onChange={onUpdateData}
+                />
+            )}
+            {section.type === 'cta' && (
+                <CtaFields
+                    data={section.data}
+                    onChange={onUpdateData}
+                />
+            )}
+            {section.type === 'callout' && (
+                <CalloutFields
+                    data={section.data}
+                    onChange={onUpdateData}
+                />
+            )}
+        </Card>
+    )
+}
+
+const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
+    hero: ['split', 'centered', 'gradient'],
+    features: ['three-up', 'four-up', 'list'],
+    cta: ['banner', 'card'],
+    callout: ['info', 'success']
+}
+
+const HeroFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'hero' }>['data']; onChange: (p: object) => void }) => (
+    <div className="space-y-3">
+        <Input
+            label="Eyebrow"
+            value={data.eyebrow ?? ''}
+            onChange={(e) => onChange({ eyebrow: e.target.value })}
+        />
+        <Input
+            label="Title"
+            value={data.title ?? ''}
+            onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <Textarea
+            label="Subtitle"
+            rows={2}
+            value={data.subtitle ?? ''}
+            onChange={(e) => onChange({ subtitle: e.target.value })}
+        />
+        <Input
+            label="Primary CTA label"
+            value={data.primaryCtaLabel ?? ''}
+            onChange={(e) => onChange({ primaryCtaLabel: e.target.value })}
+        />
+        <Input
+            label="Primary CTA link (path or URL)"
+            value={data.primaryCtaLink ?? ''}
+            onChange={(e) => onChange({ primaryCtaLink: e.target.value })}
+            hint="Use a relative path like 'enquiry' to stay inside this tenant."
+        />
+    </div>
+)
+
+const FeaturesFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'features' }>['data']; onChange: (p: object) => void }) => {
+    const pillars = data.pillars ?? []
+    const update = (i: number, patch: Partial<LandingPillar>) => {
+        const next = pillars.map((p, idx) => (idx === i ? { ...p, ...patch } : p))
+        onChange({ pillars: next })
+    }
+    const add = () => onChange({ pillars: [...pillars, { title: 'New feature', description: '' }] })
+    const remove = (i: number) => onChange({ pillars: pillars.filter((_, idx) => idx !== i) })
+
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Section title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <div className="space-y-2">
+                {pillars.map((p, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                            <Input
+                                label={`Feature ${i + 1}`}
+                                value={p.title}
+                                onChange={(e) => update(i, { title: e.target.value })}
+                            />
+                            <button
+                                type="button"
+                                aria-label="Remove feature"
+                                onClick={() => remove(i)}
+                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                                <X size={14} />
+                            </button>
+                        </div>
+                        <Textarea
+                            label="Description"
+                            rows={2}
+                            value={p.description}
+                            onChange={(e) => update(i, { description: e.target.value })}
+                        />
+                    </div>
+                ))}
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<Plus size={12} />}
+                    onClick={add}>
+                    Add feature
+                </Button>
+            </div>
+        </div>
+    )
+}
+
+const CtaFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'cta' }>['data']; onChange: (p: object) => void }) => (
+    <div className="space-y-3">
+        <Input
+            label="Title"
+            value={data.title ?? ''}
+            onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <Textarea
+            label="Subtitle"
+            rows={2}
+            value={data.subtitle ?? ''}
+            onChange={(e) => onChange({ subtitle: e.target.value })}
+        />
+        <Input
+            label="Button label"
+            value={data.buttonLabel ?? ''}
+            onChange={(e) => onChange({ buttonLabel: e.target.value })}
+        />
+        <Input
+            label="Button link"
+            value={data.buttonLink ?? ''}
+            onChange={(e) => onChange({ buttonLink: e.target.value })}
+            hint="Path or URL."
+        />
+    </div>
+)
+
+const CalloutFields = ({
+    data,
+    onChange
+}: {
+    data: Extract<LandingSection, { type: 'callout' }>['data']
+    onChange: (p: object) => void
+}) => (
+    <div className="space-y-3">
+        <Input
+            label="Title"
+            value={data.title ?? ''}
+            onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <Textarea
+            label="Body"
+            rows={3}
+            value={data.body ?? ''}
+            onChange={(e) => onChange({ body: e.target.value })}
+        />
+    </div>
+)
+
+// ---- Template picker — modal with grouped templates ------------------------
+
+const TemplatePicker = ({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick: (t: LandingTemplate) => void }) => {
+    const grouped = useMemo(() => {
+        const m = new Map<LandingSection['type'], LandingTemplate[]>()
+        for (const t of LANDING_TEMPLATES) {
+            const list = m.get(t.section.type) ?? []
+            list.push(t)
+            m.set(t.section.type, list)
+        }
+        return Array.from(m.entries())
+    }, [])
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Pick a template"
+            description="Add a pre-built section to the page. You can edit copy after inserting."
+            size="lg">
+            <div className="space-y-5">
+                {grouped.map(([type, templates]) => (
+                    <div key={type}>
+                        <h4 className="text-xs font-semibold uppercase text-fg-muted tracking-wider mb-2">{SECTION_LABEL[type]}</h4>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {templates.map((t, i) => (
+                                <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => onPick(t)}
+                                    className="rounded-md border border-[var(--color-border)] p-4 text-left hover:bg-surface-hover hover:border-[var(--color-brand-500)] transition-colors">
+                                    <div className="text-sm font-semibold text-fg">{t.label}</div>
+                                    <div className="text-xs text-fg-soft mt-1 line-clamp-2">{t.description}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </Modal>
     )
 }
