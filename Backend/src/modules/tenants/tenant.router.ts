@@ -19,5 +19,6 @@ router.patch('/me', requireAuth, requirePolicy('tenant', 'write'), validate(upda
 router.get('/', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.listAllTenants))
 router.get('/:id', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.getTenantDetail))
 router.patch('/:id/status', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.setStatus))
+router.patch('/:id', requireAuth, requireRole(Role.SUPER_ADMIN), validate(updateTenantBrandingSchema), asyncHandler(ctrl.updateTenantById))
 
 export default router

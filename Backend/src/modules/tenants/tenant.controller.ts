@@ -37,6 +37,13 @@ export const getTenantDetail = async (req: Request, res: Response): Promise<void
     httpResponse(req, res, 200, responseMessage.SUCCESS, detail)
 }
 
+// SUPER_ADMIN — update branding/settings of any tenant (Phase B).
+export const updateTenantById = async (req: Request, res: Response): Promise<void> => {
+    const tenant = await service.updateBranding(req.params.id, req.body)
+    await writeAudit({ action: 'tenant.update', entityType: 'Tenant', entityId: tenant.id, tenantId: tenant.id }, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
+}
+
 // SUPER_ADMIN — flip status (suspend / reinstate). The accompanying audit log
 // is what makes this action accountable.
 export const setStatus = async (req: Request, res: Response): Promise<void> => {

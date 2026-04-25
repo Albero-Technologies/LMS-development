@@ -118,6 +118,43 @@ export const setTenantStatus = async (id: string, status: TenantStatus): Promise
     return data.data
 }
 
+// SUPER_ADMIN — update any tenant's branding + settings (Phase B sub-tabs).
+export const updateTenantById = async (id: string, payload: UpdateTenantPayload): Promise<Tenant> => {
+    const { data } = await api.patch<Envelope<Tenant>>(`/tenants/${id}`, payload)
+    return data.data
+}
+
+// ---- Per-tenant contacts + notes (settings sub-keys) -----------------------
+
+export type TenantContacts = {
+    primaryEmail?: string
+    primaryPhone?: string
+    secondaryEmail?: string
+    secondaryPhone?: string
+}
+
+export type TenantNote = {
+    id: string
+    body: string
+    createdAt: string
+    createdBy?: { id: string; name: string }
+}
+
+export const readContacts = (tenant: { settings: TenantSettings | null } | undefined): TenantContacts => {
+    const c = tenant?.settings?.contacts as TenantContacts | undefined
+    return {
+        primaryEmail: c?.primaryEmail ?? '',
+        primaryPhone: c?.primaryPhone ?? '',
+        secondaryEmail: c?.secondaryEmail ?? '',
+        secondaryPhone: c?.secondaryPhone ?? ''
+    }
+}
+
+export const readNotes = (tenant: { settings: TenantSettings | null } | undefined): TenantNote[] => {
+    const arr = tenant?.settings?.notes
+    return Array.isArray(arr) ? (arr as TenantNote[]) : []
+}
+
 export type CreateTenantPayload = {
     name: string
     slug: string
