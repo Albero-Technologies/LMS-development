@@ -22,6 +22,7 @@ import {
     PanelLeftOpen,
     Kanban,
     Activity,
+    Eye,
     Briefcase,
     Building2,
     Globe,
@@ -63,7 +64,8 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck },
-        { to: '/app/reports', label: 'Reports', icon: LineChart }
+        { to: '/app/reports', label: 'Reports', icon: LineChart },
+        { to: '/app/admin/demo-control', label: 'Demo Mode', icon: Eye }
     ],
     TRAINER: [
         { to: '/app/trainer', label: 'Dashboard', icon: LayoutDashboard },
@@ -84,12 +86,14 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
     COUNSELLOR: [
         { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
+        { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
     ],
     COUNSELLING_MANAGER: [
         { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
+        { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/reports', label: 'Team Reports', icon: LineChart },
         { to: '/app/users', label: 'Team', icon: Users }
     ],

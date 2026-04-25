@@ -42,6 +42,7 @@ import { SettingsPage } from '@features/settings/pages/SettingsPage'
 import { ReportsPage } from '@features/reports/pages/ReportsPage'
 import { OnboardingPage } from '@features/onboarding/pages/OnboardingPage'
 import { LeadPipelinePage } from '@features/counsellor/pages/LeadPipelinePage'
+import { CounsellorLinksPage } from '@features/counsellor/pages/CounsellorLinksPage'
 import { AuditLogsPage } from '@features/audit/pages/AuditLogsPage'
 
 // Super Admin · internal tooling
@@ -49,6 +50,7 @@ import { TenantsPage } from '@features/admin/pages/TenantsPage'
 import { WebsiteEditorPage } from '@features/admin/pages/WebsiteEditorPage'
 import { UtmBuilderPage } from '@features/admin/pages/UtmBuilderPage'
 import { SeoBuilderPage } from '@features/admin/pages/SeoBuilderPage'
+import { DemoControlPage } from '@features/admin/pages/DemoControlPage'
 
 export const router = createBrowserRouter([
     // -------------------------------------------------------------- Public --
@@ -152,6 +154,22 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <LeadPipelinePage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'counsellor/invites',
+                element: (
+                    <ProtectedRoute roles={[ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <CounsellorLinksPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'admin/demo-control',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <DemoControlPage />
                     </ProtectedRoute>
                 )
             },
