@@ -53,6 +53,7 @@ import { UtmBuilderPage } from '@features/admin/pages/UtmBuilderPage'
 import { SeoBuilderPage } from '@features/admin/pages/SeoBuilderPage'
 import { DemoControlPage } from '@features/admin/pages/DemoControlPage'
 import { IntegrationsPage } from '@features/admin/pages/IntegrationsPage'
+import { TenantBillingPage } from '@features/admin/pages/TenantBillingPage'
 
 export const router = createBrowserRouter([
     // -------------------------------------------------------------- Public --
@@ -180,6 +181,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <IntegrationsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'admin/billing',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <TenantBillingPage />
                     </ProtectedRoute>
                 )
             },

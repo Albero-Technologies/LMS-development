@@ -144,6 +144,59 @@ export const setTenantPaymentStatus = async (req: Request, res: Response): Promi
     httpResponse(req, res, 200, responseMessage.SUCCESS, payment)
 }
 
+// Tenant ADMIN — list this tenant's own SaaS invoices (§10.2).
+export const getMyTenantPayments = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const rows = await service.listMyTenantPayments(req.auth.tenantId)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, rows)
+}
+
+// Tenant ADMIN — create / fetch a Razorpay order for one of THEIR pending SaaS
+// invoices, so they can pay via the embedded checkout (§10.2).
+export const payTenantPayment = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const result = await service.createTenantPaymentOrder(req.auth.tenantId, req.params.id)
+    await writeAudit(
+        {
+            action: 'tenant.payment_order_created',
+            entityType: 'TenantPayment',
+            entityId: req.params.id,
+            metadata: { orderId: result.order.id }
+        },
+        req
+    )
+    httpResponse(req, res, 200, responseMessage.SUCCESS, result)
+}
+
+// Tenant ADMIN — verify the Razorpay signature after checkout success (§10.2).
+export const verifyTenantPayment = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const body = req.body as {
+        razorpayOrderId?: string
+        razorpayPaymentId?: string
+        razorpaySignature?: string
+    }
+    if (!body.razorpayOrderId || !body.razorpayPaymentId || !body.razorpaySignature) {
+        httpResponse(req, res, 400, 'razorpayOrderId, razorpayPaymentId and razorpaySignature are required')
+        return
+    }
+    const payment = await service.verifyTenantPaymentSignature(req.auth.tenantId, req.params.id, {
+        razorpayOrderId: body.razorpayOrderId,
+        razorpayPaymentId: body.razorpayPaymentId,
+        razorpaySignature: body.razorpaySignature
+    })
+    await writeAudit(
+        {
+            action: 'tenant.payment_paid',
+            entityType: 'TenantPayment',
+            entityId: payment.id,
+            metadata: { gatewayPaymentId: payment.gatewayPaymentId }
+        },
+        req
+    )
+    httpResponse(req, res, 200, responseMessage.SUCCESS, payment)
+}
+
 // SUPER_ADMIN — flip status (suspend / reinstate). The accompanying audit log
 // is what makes this action accountable.
 export const setStatus = async (req: Request, res: Response): Promise<void> => {

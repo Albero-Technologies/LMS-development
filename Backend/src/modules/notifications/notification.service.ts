@@ -47,6 +47,7 @@ export const processNotificationJob = async (job: TNotifyJobData): Promise<void>
 
     try {
         await sendEmail({
+            tenantId: job.tenantId,
             to: recipient.email,
             toName: recipient.firstName,
             subject: rendered.subject,

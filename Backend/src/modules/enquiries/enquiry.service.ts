@@ -119,13 +119,18 @@ export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput
 
 const pushEnquiryToSheet = async (tenantId: string, enquiry: Awaited<ReturnType<typeof db.client.enquiry.create>>): Promise<void> => {
     const tenant = await db.client.tenant.findUnique({ where: { id: tenantId } })
-    const settings = tenant?.settings as { googleSheetId?: string; googleSheetRange?: string } | null
+    const settings = tenant?.settings as {
+        googleSheetId?: string
+        googleSheetRange?: string
+        environment?: { googleSheets?: { serviceAccountJson?: string } }
+    } | null
     const sheetId = settings?.googleSheetId
     if (!sheetId) return
 
     await appendRow({
         sheetId,
         range: settings?.googleSheetRange ?? 'Sheet1!A1',
+        serviceAccountJson: settings?.environment?.googleSheets?.serviceAccountJson,
         values: [
             new Date().toISOString(),
             enquiry.name,

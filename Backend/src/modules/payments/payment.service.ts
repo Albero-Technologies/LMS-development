@@ -2,7 +2,7 @@ import { InvoiceStatus, PaymentGateway, type Prisma } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
-import { getRazorpay } from './razorpay.client'
+import { resolveRazorpay } from './razorpay.client'
 
 const baseInvoiceSelect = {
     id: true,
@@ -67,9 +67,9 @@ export const createOrderForInvoice = async (tenantId: string, userId: string, in
     let orderId = invoice.gatewayOrderId
     let amount = invoice.totalAmount
 
+    const rp = await resolveRazorpay(tenantId)
     if (!orderId) {
-        const rp = getRazorpay()
-        const order = await rp.orders.create({
+        const order = await rp.client.orders.create({
             amount: invoice.totalAmount,
             currency: invoice.currency,
             receipt: invoice.number,
@@ -94,7 +94,7 @@ export const createOrderForInvoice = async (tenantId: string, userId: string, in
             id: orderId,
             amount,
             currency: invoice.currency,
-            keyId: process.env.RAZORPAY_KEY_ID
+            keyId: rp.keyId
         }
     }
 }

@@ -239,9 +239,7 @@ export const listTenantPayments = async (tenantId: string) => {
     })
 }
 
-// Manual status flip (e.g. mark a wire transfer as PAID without going through
-// Razorpay). The Razorpay-driven happy path will update via webhook + a
-// separate verify endpoint in the next batch.
+// Manual status flip (e.g. mark a wire transfer as PAID outside Razorpay).
 export const setTenantPaymentStatus = async (
     tenantId: string,
     paymentId: string,
@@ -256,6 +254,84 @@ export const setTenantPaymentStatus = async (
             status,
             paidAt: status === 'PAID' ? (payment.paidAt ?? new Date()) : null
         }
+    })
+}
+
+// Tenant ADMIN flow (§10.2). Creates a Razorpay order for one of THEIR PENDING
+// SaaS invoices so they can pay via the embedded checkout. Reuses an existing
+// order if one has already been issued (idempotent).
+export const createTenantPaymentOrder = async (tenantId: string, paymentId: string) => {
+    const payment = await db.client.tenantPayment.findFirst({ where: { id: paymentId, tenantId } })
+    if (!payment) throw AppError.notFound(responseMessage.NOT_FOUND('Payment'), 'PAYMENT_NOT_FOUND')
+    if (payment.status === 'PAID') throw AppError.conflict('Already paid', 'PAYMENT_PAID')
+    if (payment.status === 'CANCELLED' || payment.status === 'REFUNDED') {
+        throw AppError.badRequest('This payment is no longer collectable', 'PAYMENT_CLOSED')
+    }
+    if (payment.amount <= 0) throw AppError.badRequest('Nothing to charge', 'PAYMENT_ZERO')
+
+    // Lazy-import the Razorpay client to keep the tenants module decoupled.
+    const { getRazorpay } = await import('../payments/razorpay.client')
+    const rp = getRazorpay()
+
+    let orderId = payment.gatewayOrderId
+    if (!orderId) {
+        const order = await rp.orders.create({
+            amount: payment.amount,
+            currency: payment.currency,
+            receipt: `saas-${payment.id.slice(0, 12)}`,
+            notes: { tenantId, paymentId, kind: 'tenant_saas' }
+        })
+        orderId = order.id
+        await db.client.tenantPayment.update({
+            where: { id: paymentId },
+            data: { gatewayOrderId: orderId, gateway: 'RAZORPAY' }
+        })
+    }
+
+    return {
+        paymentId: payment.id,
+        order: {
+            id: orderId,
+            amount: payment.amount,
+            currency: payment.currency,
+            keyId: process.env.RAZORPAY_KEY_ID
+        }
+    }
+}
+
+// Tenant ADMIN: verify the Razorpay handshake after the user completes checkout.
+export const verifyTenantPaymentSignature = async (
+    tenantId: string,
+    paymentId: string,
+    input: { razorpayOrderId: string; razorpayPaymentId: string; razorpaySignature: string }
+) => {
+    const payment = await db.client.tenantPayment.findFirst({ where: { id: paymentId, tenantId } })
+    if (!payment) throw AppError.notFound(responseMessage.NOT_FOUND('Payment'), 'PAYMENT_NOT_FOUND')
+    if (payment.status === 'PAID') return payment
+    if (payment.gatewayOrderId !== input.razorpayOrderId) {
+        throw AppError.badRequest('Order id mismatch', 'PAYMENT_ORDER_MISMATCH')
+    }
+
+    const { verifyPaymentSignature } = await import('../payments/razorpay.client')
+    // SaaS billing always uses the platform Razorpay account, so no tenantId here.
+    const ok = await verifyPaymentSignature(input.razorpayOrderId, input.razorpayPaymentId, input.razorpaySignature)
+    if (!ok) throw AppError.badRequest(responseMessage.PAYMENT_VERIFICATION_FAILED, 'SIGNATURE_INVALID')
+
+    return db.client.tenantPayment.update({
+        where: { id: paymentId },
+        data: {
+            status: 'PAID',
+            gatewayPaymentId: input.razorpayPaymentId,
+            paidAt: new Date()
+        }
+    })
+}
+
+// List the current tenant's own SaaS invoices (for tenant ADMIN's billing page).
+export const listMyTenantPayments = async (tenantId: string) => {
+    return db.client.tenantPayment.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' }
     })
 }
 

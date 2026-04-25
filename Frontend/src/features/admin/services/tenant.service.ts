@@ -186,6 +186,31 @@ export const setTenantPaymentStatus = async (tenantId: string, paymentId: string
     return data.data
 }
 
+// Tenant ADMIN-side billing (§10.2). Lists their own SaaS invoices, creates a
+// Razorpay order for one, and verifies the handshake after checkout success.
+export type TenantPaymentOrder = {
+    paymentId: string
+    order: { id: string; amount: number; currency: string; keyId?: string }
+}
+
+export const listMyTenantPayments = async (): Promise<TenantPayment[]> => {
+    const { data } = await api.get<Envelope<TenantPayment[]>>('/tenants/me/payments')
+    return data.data
+}
+
+export const payMyTenantPayment = async (paymentId: string): Promise<TenantPaymentOrder> => {
+    const { data } = await api.post<Envelope<TenantPaymentOrder>>(`/tenants/me/payments/${paymentId}/pay`)
+    return data.data
+}
+
+export const verifyMyTenantPayment = async (
+    paymentId: string,
+    payload: { razorpayOrderId: string; razorpayPaymentId: string; razorpaySignature: string }
+): Promise<TenantPayment> => {
+    const { data } = await api.post<Envelope<TenantPayment>>(`/tenants/me/payments/${paymentId}/verify`, payload)
+    return data.data
+}
+
 // Billing plan settings live in tenant.settings.billing — separate from the
 // Plan column on the tenant row (which is more like a tier name).
 export type BillingPlan = {
@@ -320,6 +345,39 @@ export const FEATURE_FLAGS: readonly FeatureFlagDef[] = [
         default: true
     }
 ]
+
+// ---- Per-tenant credentials (settings.environment) -------------------------
+//
+// What's stored here: tenant-specific keys for email / payments / sheets /
+// social. Stored as plaintext JSON for now; in a follow-up these get encrypted
+// at rest with a KMS-managed key. The shape is open-ended so adding a new
+// integration doesn't require a migration.
+export type TenantEnvironment = {
+    smtp?: {
+        host?: string
+        port?: number
+        user?: string
+        password?: string
+        from?: string
+        secure?: boolean
+    }
+    razorpay?: {
+        keyId?: string
+        keySecret?: string
+        webhookSecret?: string
+    }
+    googleSheets?: {
+        // The service-account JSON pasted in by the tenant. Stored verbatim;
+        // the backend parses it on each push.
+        serviceAccountJson?: string
+    }
+}
+
+export const readEnvironment = (tenant: { settings: TenantSettings | null } | undefined): TenantEnvironment => {
+    const env = tenant?.settings?.environment
+    if (!env || typeof env !== 'object') return {}
+    return env as TenantEnvironment
+}
 
 export const readFeatureFlags = (tenant: { settings: TenantSettings | null } | undefined): FeatureFlags => {
     const f = tenant?.settings?.features

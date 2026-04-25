@@ -2,26 +2,52 @@ import { JWT } from 'google-auth-library'
 import config from '../../config/config'
 import logger from '../../util/logger'
 
-// Single platform-wide service account is shared across tenants. Each tenant
-// punches in their own Google Sheet ID + must add this service account email
-// as an "Editor" on their sheet. Per-tenant service accounts (where each
-// tenant uploads their own credentials) will arrive in §4.1.
+// Per-tenant Google Sheets push (§4.1). Tenants can paste their own service
+// account JSON in the Environment tab — when present we instantiate a tenant-
+// scoped JWT client and write to their sheet under their own credentials.
+// Tenants without a service account fall back to the platform-wide one.
 
-let cachedClient: JWT | null = null
+interface ServiceAccountJson {
+    client_email?: string
+    private_key?: string
+}
 
-const getClient = (): JWT | null => {
-    if (cachedClient) return cachedClient
+let platformClient: JWT | null = null
+const tenantClients = new Map<string, JWT>()
+
+const getPlatformClient = (): JWT | null => {
+    if (platformClient) return platformClient
     const email = config.GOOGLE_SHEETS_CLIENT_EMAIL
     const key = config.GOOGLE_SHEETS_PRIVATE_KEY
     if (!email || !key) return null
 
-    cachedClient = new JWT({
+    platformClient = new JWT({
         email,
         // Newlines in env vars are typically escaped — restore them.
         key: key.replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/spreadsheets']
     })
-    return cachedClient
+    return platformClient
+}
+
+const getTenantClient = (rawJson: string): JWT | null => {
+    const cached = tenantClients.get(rawJson)
+    if (cached) return cached
+    let parsed: ServiceAccountJson
+    try {
+        parsed = JSON.parse(rawJson) as ServiceAccountJson
+    } catch {
+        logger.warn('SHEETS_TENANT_JSON_INVALID')
+        return null
+    }
+    if (!parsed.client_email || !parsed.private_key) return null
+    const client = new JWT({
+        email: parsed.client_email,
+        key: parsed.private_key.replace(/\\n/g, '\n'),
+        scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    })
+    tenantClients.set(rawJson, client)
+    return client
 }
 
 interface AppendInput {
@@ -29,13 +55,16 @@ interface AppendInput {
     // Tab name + range. Default appends to the first tab starting at A1.
     range?: string
     values: (string | number | null)[]
+    // Optional tenant-owned service account JSON. When set, this client is used
+    // instead of the platform service account.
+    serviceAccountJson?: string
 }
 
 // Appends a single row to the configured spreadsheet. Fails silently in dev
 // (returns false) if credentials or sheetId are missing — the enquiry create
 // must never break because a marketing integration is misconfigured.
-export const appendRow = async ({ sheetId, range = 'Sheet1!A1', values }: AppendInput): Promise<boolean> => {
-    const client = getClient()
+export const appendRow = async ({ sheetId, range = 'Sheet1!A1', values, serviceAccountJson }: AppendInput): Promise<boolean> => {
+    const client = serviceAccountJson ? getTenantClient(serviceAccountJson) : getPlatformClient()
     if (!client || !sheetId) {
         logger.info('SHEETS_SKIPPED', { meta: { reason: client ? 'no_sheet_id' : 'not_configured', sheetId } })
         return false

@@ -2,7 +2,7 @@ import { CoursePublishState, EnrollmentStatus, InvoiceStatus, PaymentEventStatus
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
-import { getRazorpay, verifyPaymentSignature, verifyWebhookSignature } from '../payments/razorpay.client'
+import { resolveRazorpay, verifyPaymentSignature, verifyWebhookSignature } from '../payments/razorpay.client'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 import logger from '../../util/logger'
 
@@ -83,9 +83,10 @@ export const startEnrollment = async (tenantId: string, userId: string, courseId
             return { enrollment, invoice, free: true as const, order: null }
         }
 
-        // Paid course — create Razorpay order.
-        const rp = getRazorpay()
-        const order = await rp.orders.create({
+        // Paid course — create Razorpay order using the tenant's own keys
+        // when configured, otherwise the platform default.
+        const rp = await resolveRazorpay(tenantId)
+        const order = await rp.client.orders.create({
             amount: totalAmount,
             currency: course.currency,
             receipt: number,
@@ -118,7 +119,7 @@ export const startEnrollment = async (tenantId: string, userId: string, courseId
                 id: order.id,
                 amount: order.amount,
                 currency: order.currency,
-                keyId: process.env.RAZORPAY_KEY_ID
+                keyId: rp.keyId
             }
         }
     })
@@ -136,7 +137,7 @@ export const verifyPayment = async (
     if (!invoice) throw AppError.notFound(responseMessage.NOT_FOUND('Invoice'))
     if (invoice.status === InvoiceStatus.PAID) return invoice
 
-    const ok = verifyPaymentSignature(input.razorpayOrderId, input.razorpayPaymentId, input.razorpaySignature)
+    const ok = await verifyPaymentSignature(input.razorpayOrderId, input.razorpayPaymentId, input.razorpaySignature, tenantId)
     if (!ok) throw AppError.badRequest(responseMessage.PAYMENT_VERIFICATION_FAILED, 'SIGNATURE_INVALID')
 
     const updated = await db.client.$transaction(async (tx) => {
@@ -201,20 +202,43 @@ export const verifyPayment = async (
 
 // Razorpay webhook — idempotent via (gatewayEventId) unique on PaymentEvent.
 export const handleRazorpayWebhook = async (rawBody: string, signature: string) => {
-    if (!verifyWebhookSignature(rawBody, signature)) {
+    // Webhook delivery is from a single endpoint; we accept the platform secret
+    // here. Tenant-specific webhook secrets are validated downstream when we
+    // know which tenant the order belongs to.
+    if (!(await verifyWebhookSignature(rawBody, signature))) {
         throw AppError.badRequest(responseMessage.WEBHOOK_SIGNATURE_INVALID, 'WEBHOOK_SIGNATURE_INVALID')
     }
 
     const parsed = JSON.parse(rawBody) as {
         event: string
         id: string
-        payload: { payment?: { entity: { id: string; order_id: string; amount: number; status: string } } }
+        payload: { payment?: { entity: { id: string; order_id: string; amount: number; status: string; notes?: Record<string, string> } } }
     }
     const payment = parsed.payload?.payment?.entity
     const eventId = parsed.id
     if (!payment || !eventId) return { ok: true, skipped: true }
 
-    // Dedupe via unique gatewayEventId.
+    // Tenant SaaS invoices live in TenantPayment, not Invoice. Razorpay order
+    // notes carry `kind: 'tenant_saas'` so we can route the webhook to the
+    // right table without scanning both unconditionally.
+    if (payment.notes?.kind === 'tenant_saas') {
+        const tenantPayment = await db.client.tenantPayment.findFirst({ where: { gatewayOrderId: payment.order_id } })
+        if (!tenantPayment) {
+            logger.warn('WEBHOOK_TENANT_PAYMENT_NOT_FOUND', { meta: { orderId: payment.order_id } })
+            return { ok: true, skipped: true }
+        }
+        if (parsed.event === 'payment.captured' && tenantPayment.status !== 'PAID') {
+            await db.client.tenantPayment.update({
+                where: { id: tenantPayment.id },
+                data: { status: 'PAID', gatewayPaymentId: payment.id, paidAt: new Date() }
+            })
+        } else if (parsed.event === 'payment.failed' && tenantPayment.status === 'PENDING') {
+            await db.client.tenantPayment.update({ where: { id: tenantPayment.id }, data: { status: 'FAILED' } })
+        }
+        return { ok: true, kind: 'tenant_saas' }
+    }
+
+    // Student course fees — original flow.
     const invoice = await db.client.invoice.findFirst({ where: { gatewayOrderId: payment.order_id } })
     if (!invoice) {
         logger.warn('WEBHOOK_INVOICE_NOT_FOUND', { meta: { orderId: payment.order_id } })

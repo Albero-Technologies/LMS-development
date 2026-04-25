@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -15,7 +15,10 @@ import {
     Play,
     Save,
     Plus,
-    Trash2
+    Trash2,
+    Eye,
+    EyeOff,
+    KeyRound
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
@@ -37,6 +40,7 @@ import {
     listTenantPayments,
     readBillingPlan,
     readContacts,
+    readEnvironment,
     readFeatureFlags,
     readNotes,
     sendBillingReminder,
@@ -48,6 +52,7 @@ import {
     type FeatureFlags,
     type TenantContacts,
     type TenantDetail,
+    type TenantEnvironment,
     type TenantNote,
     type TenantPaymentStatus,
     type TenantSettings,
@@ -60,13 +65,14 @@ const STATUS_TONE: Record<TenantStatus, 'ok' | 'warn' | 'default'> = {
     SUSPENDED: 'default'
 }
 
-type Tab = 'overview' | 'features' | 'billing' | 'payments' | 'contacts' | 'notes'
+type Tab = 'overview' | 'features' | 'billing' | 'payments' | 'environment' | 'contacts' | 'notes'
 
 const TAB_DEFS = [
     { value: 'overview' as const, label: 'Overview' },
     { value: 'features' as const, label: 'Features' },
     { value: 'billing' as const, label: 'Billing' },
     { value: 'payments' as const, label: 'Payments' },
+    { value: 'environment' as const, label: 'Environment' },
     { value: 'contacts' as const, label: 'Contacts' },
     { value: 'notes' as const, label: 'Notes' }
 ]
@@ -180,6 +186,12 @@ export const TenantDetailPage = () => {
                 />
             )}
             {tab === 'payments' && <PaymentsTab tenantId={id} />}
+            {tab === 'environment' && (
+                <EnvironmentTab
+                    tenant={tenant}
+                    queryKey={['tenants', id]}
+                />
+            )}
             {tab === 'contacts' && (
                 <ContactsTab
                     tenant={tenant}
@@ -1141,3 +1153,171 @@ const AdminCard = ({ admin }: { admin: NonNullable<TenantDetail['admin']> }) => 
         </div>
     </div>
 )
+
+// -----------------------------------------------------------------------------
+// Environment tab (§4.1) — per-tenant credentials store.
+//
+// Stored in `tenant.settings.environment`. SUPER_ADMIN-only — these are secrets.
+// Plaintext for now; encryption-at-rest with a KMS key is a follow-up. Fields
+// are intentionally collapsed by default and obscured behind a reveal toggle so
+// nothing leaks if someone walks past the SA's screen.
+// -----------------------------------------------------------------------------
+
+const EnvironmentTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: readonly unknown[] }) => {
+    const queryClient = useQueryClient()
+    const initial = useMemo(() => readEnvironment(tenant), [tenant])
+    const [env, setEnv] = useState<TenantEnvironment>(initial)
+    useEffect(() => setEnv(initial), [initial])
+    const [reveal, setReveal] = useState(false)
+
+    const dirty = JSON.stringify(env) !== JSON.stringify(initial)
+
+    const saveMutation = useMutation({
+        mutationFn: () => {
+            const settings: TenantSettings = { ...(tenant.settings ?? {}), environment: env }
+            return updateTenantById(tenant.id, { settings })
+        },
+        onSuccess: () => {
+            toast.success('Environment saved')
+            void queryClient.invalidateQueries({ queryKey })
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save environment')
+    })
+
+    const updateSmtp = (patch: Partial<NonNullable<TenantEnvironment['smtp']>>) =>
+        setEnv((e) => ({ ...e, smtp: { ...(e.smtp ?? {}), ...patch } }))
+    const updateRzp = (patch: Partial<NonNullable<TenantEnvironment['razorpay']>>) =>
+        setEnv((e) => ({ ...e, razorpay: { ...(e.razorpay ?? {}), ...patch } }))
+    const updateGS = (patch: Partial<NonNullable<TenantEnvironment['googleSheets']>>) =>
+        setEnv((e) => ({ ...e, googleSheets: { ...(e.googleSheets ?? {}), ...patch } }))
+
+    const inputType = reveal ? 'text' : 'password'
+
+    return (
+        <div className="space-y-4">
+            <Card className="!p-4 flex items-start gap-3 bg-[var(--color-warning-soft)]">
+                <KeyRound
+                    size={18}
+                    className="text-[var(--color-warning)] mt-0.5"
+                />
+                <div className="flex-1 text-xs">
+                    <div className="font-semibold text-fg mb-0.5">Sensitive — secrets store</div>
+                    <p className="text-fg-soft">
+                        Per-tenant credentials. Leaving a section blank falls back to the platform-wide defaults set in environment variables. Stored
+                        plaintext today; encryption-at-rest is queued for a follow-up.
+                    </p>
+                </div>
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={reveal ? <EyeOff size={12} /> : <Eye size={12} />}
+                    onClick={() => setReveal((v) => !v)}>
+                    {reveal ? 'Hide' : 'Reveal'} secrets
+                </Button>
+            </Card>
+
+            <Card>
+                <h3 className="text-sm font-semibold text-fg mb-3">SMTP — outgoing email</h3>
+                <p className="text-xs text-fg-muted mb-4">
+                    When set, this tenant's emails (welcome, invites, billing reminders) are sent through these credentials instead of the platform
+                    SMTP. Use a verified sender domain for best deliverability.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <Input
+                        label="Host"
+                        value={env.smtp?.host ?? ''}
+                        onChange={(e) => updateSmtp({ host: e.target.value })}
+                        placeholder="smtp.gmail.com"
+                    />
+                    <Input
+                        label="Port"
+                        type="number"
+                        value={env.smtp?.port?.toString() ?? ''}
+                        onChange={(e) => updateSmtp({ port: e.target.value ? Number(e.target.value) : undefined })}
+                        placeholder="587"
+                    />
+                    <Input
+                        label="Username"
+                        value={env.smtp?.user ?? ''}
+                        onChange={(e) => updateSmtp({ user: e.target.value })}
+                    />
+                    <Input
+                        label="Password / app password"
+                        type={inputType}
+                        value={env.smtp?.password ?? ''}
+                        onChange={(e) => updateSmtp({ password: e.target.value })}
+                    />
+                    <Input
+                        label="From address"
+                        value={env.smtp?.from ?? ''}
+                        onChange={(e) => updateSmtp({ from: e.target.value })}
+                        placeholder="hello@yourdomain.com"
+                    />
+                    <Select
+                        label="Connection security"
+                        value={env.smtp?.secure ? 'tls' : 'starttls'}
+                        onChange={(e) => updateSmtp({ secure: e.target.value === 'tls' })}>
+                        <option value="starttls">STARTTLS (port 587)</option>
+                        <option value="tls">TLS (port 465)</option>
+                    </Select>
+                </div>
+            </Card>
+
+            <Card>
+                <h3 className="text-sm font-semibold text-fg mb-3">Razorpay</h3>
+                <p className="text-xs text-fg-muted mb-4">
+                    Tenant-specific Razorpay keys. When configured, course payments go straight to this tenant's Razorpay account. Webhook secret
+                    must match the one set on the Razorpay dashboard for this account.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <Input
+                        label="Key ID"
+                        value={env.razorpay?.keyId ?? ''}
+                        onChange={(e) => updateRzp({ keyId: e.target.value })}
+                        placeholder="rzp_live_..."
+                    />
+                    <Input
+                        label="Key secret"
+                        type={inputType}
+                        value={env.razorpay?.keySecret ?? ''}
+                        onChange={(e) => updateRzp({ keySecret: e.target.value })}
+                    />
+                    <Input
+                        label="Webhook secret"
+                        type={inputType}
+                        value={env.razorpay?.webhookSecret ?? ''}
+                        onChange={(e) => updateRzp({ webhookSecret: e.target.value })}
+                        className="sm:col-span-2"
+                    />
+                </div>
+            </Card>
+
+            <Card>
+                <h3 className="text-sm font-semibold text-fg mb-3">Google Sheets — service account</h3>
+                <p className="text-xs text-fg-muted mb-4">
+                    Paste the full service-account JSON here to use a tenant-owned account for enquiry sync. The Sheet ID itself is set per-tenant on
+                    the Integrations page.
+                </p>
+                <Textarea
+                    label="Service account JSON"
+                    rows={8}
+                    value={env.googleSheets?.serviceAccountJson ?? ''}
+                    onChange={(e) => updateGS({ serviceAccountJson: e.target.value })}
+                    placeholder='{"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----..."}'
+                    style={reveal ? undefined : ({ WebkitTextSecurity: 'disc' } as unknown as CSSProperties)}
+                />
+            </Card>
+
+            <div className="flex justify-end">
+                <Button
+                    size="sm"
+                    leftIcon={<Save size={14} />}
+                    disabled={!dirty}
+                    loading={saveMutation.isPending}
+                    onClick={() => saveMutation.mutate()}>
+                    Save environment
+                </Button>
+            </div>
+        </div>
+    )
+}
