@@ -54,6 +54,32 @@ export const getTenant = async (tenantId: string) => {
 // slug endpoint, and never be reachable by tenant-scoped business logic.
 export const PLATFORM_TENANT_SLUG = 'platform'
 
+// Public read for the website renderer — given a tenant slug + collection
+// slug, return only published items (no drafts). No auth; the tenant slug
+// in the URL is the only access control needed for content marked public.
+export const listPublicCollectionItems = async (tenantSlug: string, collectionSlug: string) => {
+    if (tenantSlug === PLATFORM_TENANT_SLUG) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+    const tenant = await db.client.tenant.findUnique({ where: { slug: tenantSlug }, select: { id: true } })
+    if (!tenant) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+    const collection = await db.client.collection.findUnique({
+        where: { tenantId_slug: { tenantId: tenant.id, slug: collectionSlug } },
+        include: {
+            items: {
+                where: { published: true },
+                orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }]
+            }
+        }
+    })
+    if (!collection) throw AppError.notFound(responseMessage.NOT_FOUND('Collection'), 'COLLECTION_NOT_FOUND')
+    return {
+        id: collection.id,
+        slug: collection.slug,
+        name: collection.name,
+        fields: collection.fields,
+        items: collection.items
+    }
+}
+
 // Public lookup by slug. Returns only the safe-to-expose subset that the
 // per-tenant landing page needs to render branding without leaking SA-only
 // fields (settings, plan, status). The `landing` JSON sub-key IS surfaced

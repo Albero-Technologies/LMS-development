@@ -41,7 +41,7 @@ const DOC_MIME = new Set([
     'text/plain'
 ])
 
-type TUploadKind = 'avatars' | 'course-thumbnails' | 'assignments' | 'branding' | 'ticket-attachments'
+type TUploadKind = 'avatars' | 'course-thumbnails' | 'assignments' | 'branding' | 'ticket-attachments' | 'media'
 
 interface TUploadOpts {
     kind: TUploadKind

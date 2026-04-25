@@ -462,6 +462,94 @@ body {
     }
 }
 
+/* Scroll-in animations for the website editor's per-section animation
+ * tokens. The renderer adds .anim-<token> on the wrapper, then toggles
+ * .anim-in via IntersectionObserver on first viewport entry. Each animation
+ * is a `from` state (rendered immediately) → `to` state (applied when .anim-in
+ * lands). prefers-reduced-motion users skip the from-state entirely. */
+.anim-pending {
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.anim-fadeIn.anim-pending {
+    opacity: 0;
+}
+.anim-fadeIn.anim-in {
+    animation: la-fadein var(--anim-dur, 700ms) ease both;
+    animation-delay: var(--anim-delay, 0ms);
+}
+
+.anim-fadeUp.anim-pending {
+    opacity: 0;
+    transform: translateY(24px);
+}
+.anim-fadeUp.anim-in {
+    animation: la-fadeup var(--anim-dur, 700ms) cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    animation-delay: var(--anim-delay, 0ms);
+}
+
+.anim-fadeDown.anim-pending {
+    opacity: 0;
+    transform: translateY(-24px);
+}
+.anim-fadeDown.anim-in {
+    animation: la-fadedown var(--anim-dur, 700ms) cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    animation-delay: var(--anim-delay, 0ms);
+}
+
+.anim-slideLeft.anim-pending {
+    opacity: 0;
+    transform: translateX(40px);
+}
+.anim-slideLeft.anim-in {
+    animation: la-slideleft var(--anim-dur, 700ms) cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    animation-delay: var(--anim-delay, 0ms);
+}
+
+.anim-slideRight.anim-pending {
+    opacity: 0;
+    transform: translateX(-40px);
+}
+.anim-slideRight.anim-in {
+    animation: la-slideright var(--anim-dur, 700ms) cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    animation-delay: var(--anim-delay, 0ms);
+}
+
+.anim-zoomIn.anim-pending {
+    opacity: 0;
+    transform: scale(0.92);
+}
+.anim-zoomIn.anim-in {
+    animation: la-zoomin var(--anim-dur, 700ms) cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    animation-delay: var(--anim-delay, 0ms);
+}
+
+@keyframes la-fadein {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes la-fadeup {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes la-fadedown {
+    from { opacity: 0; transform: translateY(-24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes la-slideleft {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes la-slideright {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes la-zoomin {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 /* Reduce motion for accessibility. */
 @media (prefers-reduced-motion: reduce) {
     *,

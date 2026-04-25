@@ -11,6 +11,8 @@ const router = Router()
 // Public lookup by slug (§9.1). No auth — surfaces only brand info so the
 // per-tenant landing page can paint correctly before login.
 router.get('/by-slug/:slug', asyncHandler(ctrl.getPublicTenant))
+// Public CMS read — published items only. Used by the Collection-list section.
+router.get('/by-slug/:slug/collections/:collectionSlug', asyncHandler(ctrl.getPublicCollectionItems))
 
 // Create — reserved for SUPER_ADMIN of the platform.
 router.post('/', requireAuth, requireRole(Role.SUPER_ADMIN), validate(createTenantSchema), asyncHandler(ctrl.createTenant))

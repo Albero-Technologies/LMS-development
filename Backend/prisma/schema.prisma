@@ -210,6 +210,8 @@ model Tenant {
   auditLogs             AuditLog[]
   enquiries             Enquiry[]
   saasPayments          TenantPayment[]
+  mediaAssets           MediaAsset[]
+  collections           Collection[]
 
   @@index([slug])
   @@map("tenants")
@@ -296,6 +298,7 @@ model User {
   tasksAssigned              CounsellorTask[]       @relation("CounsellorTaskAssignee")
   tasksCreated               CounsellorTask[]       @relation("CounsellorTaskCreator")
   enquiriesAssigned          Enquiry[]              @relation("EnquiryCounsellor")
+  mediaUploads               MediaAsset[]           @relation("MediaUploader")
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -808,6 +811,80 @@ model Enquiry {
   @@index([tenantId, stage, createdAt])
   @@index([tenantId, assignedToId, stage])
   @@map("enquiries")
+}
+
+// ---------- CMS / dynamic collections (per-tenant) ----------
+//
+// Generic per-tenant content collections (Blog, Press, Events). Each tenant
+// defines its own `fields` schema; items store `data` as JSON validated
+// against that schema at the API boundary. Lets non-engineers spin up new
+// content types without a migration.
+
+model Collection {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String // human label, e.g. "Blog posts"
+  slug        String // URL-safe, unique per tenant: "blog"
+  description String?
+  // Field definitions — each entry: { key, label, type, required?, options?[] }
+  // Types: 'text' | 'longtext' | 'richtext' | 'number' | 'boolean' | 'date' | 'image' | 'select'
+  fields      Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  items  CollectionItem[]
+
+  @@unique([tenantId, slug])
+  @@map("collections")
+}
+
+model CollectionItem {
+  id           String    @id @default(uuid())
+  tenantId     String
+  collectionId String
+  slug         String
+  data         Json      @default("{}")
+  published    Boolean   @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, slug])
+  @@index([tenantId, collectionId, published])
+  @@map("collection_items")
+}
+
+// ---------- Media library (per-tenant) ----------
+//
+// Tracks every media upload so the website editor's image picker can list
+// what's available without scanning disk. Per-tenant — uploads belong to the
+// tenant whose user uploaded them. The actual file lives in `public/uploads`
+// (or whichever storage backend the upload middleware writes to); `url` is
+// the canonical public path.
+
+model MediaAsset {
+  id           String   @id @default(uuid())
+  tenantId     String
+  uploadedById String?
+  filename     String
+  originalName String
+  mimetype     String
+  sizeBytes    Int
+  url          String
+  // Free-form bucket so editors can group ("hero", "blog", etc.). The upload
+  // route's `kind` param sets this by default.
+  kind         String   @default("media")
+  altText      String?
+  createdAt    DateTime @default(now())
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  uploadedBy User?  @relation("MediaUploader", fields: [uploadedById], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@map("media_assets")
 }
 
 // ---------- Audit log (cross-tenant traceable) ----------

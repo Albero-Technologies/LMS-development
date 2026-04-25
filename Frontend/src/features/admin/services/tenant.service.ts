@@ -477,16 +477,108 @@ export type CalloutSectionData = {
     body?: string
 }
 
+export type ImageSectionData = {
+    src?: string
+    alt?: string
+    caption?: string
+    rounded?: boolean
+}
+
+// Custom HTML embeds — rendered inside a sandboxed iframe so injected
+// scripts can't access the parent document. Useful for YouTube/Vimeo embeds,
+// Calendly widgets, etc.
+export type EmbedSectionData = {
+    html?: string
+    height?: number // px, default 480
+    title?: string
+}
+
+// Collection-list section — pulls published items from a CMS collection by
+// slug. titleField / summaryField / imageField pick which schema fields the
+// renderer surfaces for each card. limit caps the rendered count.
+export type CollectionListSectionData = {
+    collectionSlug?: string
+    title?: string
+    titleField?: string
+    summaryField?: string
+    imageField?: string
+    limit?: number
+}
+
+// Per-section style overrides — applied via inline CSS at render time.
+// Layout knobs (background / text-color / alignment / max-width / padding) +
+// typography knobs (font family, size, weight, line-height, letter-spacing).
+//
+// Headings vs body are kept on the same SectionStyle but applied separately
+// at render time (h1/h2 cascade for headings, .body class for paragraphs).
+// Font families are picked from a curated list — letting users type any
+// font-family CSS string would silently break when the font isn't installed.
+export type FontFamilyToken = 'inter' | 'sans' | 'serif' | 'mono' | 'display'
+export type FontWeightToken = 'normal' | 'medium' | 'semibold' | 'bold' | 'extrabold'
+export type FontSizeToken = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl'
+
+export type Typography = {
+    fontFamily?: FontFamilyToken
+    fontSize?: FontSizeToken
+    fontWeight?: FontWeightToken
+    lineHeight?: 'tight' | 'snug' | 'normal' | 'relaxed' | 'loose'
+    letterSpacing?: 'tighter' | 'tight' | 'normal' | 'wide' | 'wider'
+}
+
+// Scroll-in animation tokens — runtime triggers on first viewport entry via
+// IntersectionObserver. `delay` is in milliseconds; the renderer respects
+// `prefers-reduced-motion` automatically (skipped entirely in that case).
+export type AnimationToken = 'none' | 'fadeIn' | 'fadeUp' | 'fadeDown' | 'slideLeft' | 'slideRight' | 'zoomIn'
+
+export type SectionStyle = {
+    background?: string
+    textColor?: string
+    paddingY?: 'sm' | 'md' | 'lg' | 'xl'
+    align?: 'left' | 'center' | 'right'
+    maxWidth?: 'narrow' | 'normal' | 'wide' | 'full'
+    headingType?: Typography
+    bodyType?: Typography
+    animation?: AnimationToken
+    animationDelay?: number // ms
+    animationDuration?: number // ms, default 700
+}
+
 export type LandingSection =
-    | { id: string; type: 'hero'; variant: 'split' | 'centered' | 'gradient'; data: HeroSectionData }
-    | { id: string; type: 'features'; variant: 'three-up' | 'four-up' | 'list'; data: FeaturesSectionData }
-    | { id: string; type: 'cta'; variant: 'banner' | 'card'; data: CtaSectionData }
-    | { id: string; type: 'callout'; variant: 'info' | 'success'; data: CalloutSectionData }
+    | { id: string; type: 'hero'; variant: 'split' | 'centered' | 'gradient'; data: HeroSectionData; style?: SectionStyle }
+    | { id: string; type: 'features'; variant: 'three-up' | 'four-up' | 'list'; data: FeaturesSectionData; style?: SectionStyle }
+    | { id: string; type: 'cta'; variant: 'banner' | 'card'; data: CtaSectionData; style?: SectionStyle }
+    | { id: string; type: 'callout'; variant: 'info' | 'success'; data: CalloutSectionData; style?: SectionStyle }
+    | { id: string; type: 'image'; variant: 'full' | 'contained'; data: ImageSectionData; style?: SectionStyle }
+    | { id: string; type: 'embed'; variant: 'iframe'; data: EmbedSectionData; style?: SectionStyle }
+    | {
+          id: string
+          type: 'collectionList'
+          variant: 'cards' | 'list'
+          data: CollectionListSectionData
+          style?: SectionStyle
+      }
+
+// Per-page metadata (slug, title, SEO). The home page is identified by
+// `isHome: true`; missing or zero pages falls back to legacy `sections`.
+export type LandingPage = {
+    id: string
+    slug: string // '/' for home; otherwise '/about', '/blog/post', etc.
+    name: string
+    isHome?: boolean
+    sections: LandingSection[]
+    seo?: {
+        title?: string
+        description?: string
+        ogImageUrl?: string
+    }
+}
 
 export type LandingContent = {
     sections?: LandingSection[]
+    pages?: LandingPage[]
     // Legacy single-block fields (kept so historical tenants render). New
-    // tenants persist exclusively into `sections`.
+    // tenants persist exclusively into `sections` (or `pages` once they
+    // upgrade past one-page sites).
     heroTag?: string
     heroTitle?: string
     heroSubtitle?: string
@@ -653,13 +745,97 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
                 body: 'Top performers from each cohort are referred to our 40+ partner companies.'
             }
         }
+    },
+    {
+        label: 'Image · Contained',
+        description: 'Single image, max-width container. Drop in a hero shot or screenshot.',
+        section: {
+            type: 'image',
+            variant: 'contained',
+            data: {
+                src: '',
+                alt: 'Tenant image',
+                rounded: true
+            }
+        }
+    },
+    {
+        label: 'Image · Full bleed',
+        description: 'Full-width image, edge-to-edge.',
+        section: {
+            type: 'image',
+            variant: 'full',
+            data: {
+                src: '',
+                alt: 'Tenant image',
+                rounded: false
+            }
+        }
+    },
+    {
+        label: 'Embed · Custom HTML',
+        description: 'Drop in a YouTube embed, Calendly widget, or any iframe-compatible snippet.',
+        section: {
+            type: 'embed',
+            variant: 'iframe',
+            data: {
+                html: '<iframe width="100%" height="480" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>',
+                height: 480,
+                title: 'Embed'
+            }
+        }
+    },
+    {
+        label: 'Collection list · Cards',
+        description: 'Render published items from a CMS collection as a card grid. Pick the collection in the editor.',
+        section: {
+            type: 'collectionList',
+            variant: 'cards',
+            data: {
+                title: 'Latest posts',
+                titleField: 'title',
+                summaryField: 'summary',
+                imageField: 'coverImage',
+                limit: 6
+            }
+        }
+    },
+    {
+        label: 'Collection list · Vertical list',
+        description: 'Render items as a vertical list. Good for press releases, changelogs, etc.',
+        section: {
+            type: 'collectionList',
+            variant: 'list',
+            data: {
+                title: 'Press',
+                titleField: 'title',
+                summaryField: 'summary',
+                limit: 10
+            }
+        }
     }
 ]
 
-const newSectionId = (): string =>
+export const newSectionId = (): string =>
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `sec_${Math.random().toString(36).slice(2, 10)}`
 
+const newPageId = (): string =>
+    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pg_${Math.random().toString(36).slice(2, 10)}`
+
 export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() } as LandingSection)
+
+// Create a new empty page. Slugs are normalised to lowercase with leading
+// slash so the renderer can match URLs cleanly.
+export const createBlankPage = (name: string, slug: string, isHome = false): LandingPage => {
+    const cleanSlug = slug.startsWith('/') ? slug : `/${slug}`
+    return {
+        id: newPageId(),
+        slug: cleanSlug.toLowerCase(),
+        name,
+        isHome,
+        sections: []
+    }
+}
 
 export const readLandingContent = (tenant: { settings: TenantSettings | null } | undefined): LandingContent => {
     const l = tenant?.settings?.landing as LandingContent | undefined

@@ -25,6 +25,14 @@ export const getPublicTenant = async (req: Request, res: Response): Promise<void
     httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
 }
 
+// Public read for the CMS — published items only. The renderer's
+// Collection-list section calls this so the public site can show blog posts
+// / events / press without needing auth.
+export const getPublicCollectionItems = async (req: Request, res: Response): Promise<void> => {
+    const data = await service.listPublicCollectionItems(req.params.slug, req.params.collectionSlug)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+}
+
 export const updateMyTenantBranding = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     const tenant = await service.updateBranding(req.auth.tenantId, req.body)

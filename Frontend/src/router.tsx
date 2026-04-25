@@ -55,6 +55,7 @@ import { DemoControlPage } from '@features/admin/pages/DemoControlPage'
 import { IntegrationsPage } from '@features/admin/pages/IntegrationsPage'
 import { TenantBillingPage } from '@features/admin/pages/TenantBillingPage'
 import { TenantLandingPage } from '@features/marketing/pages/TenantLandingPage'
+import { CmsPage } from '@features/admin/pages/CmsPage'
 import { TenantBrandingProvider } from '@shared/contexts/TenantBrandingContext'
 
 export const router = createBrowserRouter([
@@ -226,6 +227,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <IntegrationsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'admin/cms',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <CmsPage />
                     </ProtectedRoute>
                 )
             },

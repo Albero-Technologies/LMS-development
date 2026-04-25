@@ -1,20 +1,49 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@shared/components/ui/Button'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
-import { defaultLandingSections, type LandingSection } from '@features/admin/services/tenant.service'
+import { defaultLandingSections, type LandingPage, type LandingSection } from '@features/admin/services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
 
-// Per-tenant public landing page (§9.1, §11). Renders ordered sections from
-// `tenant.settings.landing.sections`. Tenants who haven't customised yet get
-// a sensible default layout.
+// Per-tenant public landing page (§9.1, §11). Renders the home page from
+// `tenant.settings.landing.pages` if present (multi-page mode), falling back
+// to the legacy single `sections` array, then to a default layout.
 export const TenantLandingPage = () => {
     const { tenant } = useTenantBranding()
     const slugBase = `/t/${tenant.slug}`
 
-    const sections: LandingSection[] = (tenant.landing?.sections && tenant.landing.sections.length > 0)
-        ? tenant.landing.sections
-        : defaultLandingSections(tenant.name)
+    const pages: LandingPage[] = tenant.landing?.pages ?? []
+    const homePage = pages.find((p) => p.isHome) ?? pages[0]
+    const sections: LandingSection[] = homePage?.sections
+        ?? (tenant.landing?.sections && tenant.landing.sections.length > 0
+            ? tenant.landing.sections
+            : defaultLandingSections(tenant.name))
+
+    // Per-page SEO — set document.title + meta description for the home page
+    // when the tenant configures them. A real SSR setup would inject these
+    // server-side; for the SPA we patch them on mount.
+    useEffect(() => {
+        const seo = homePage?.seo
+        const prevTitle = document.title
+        if (seo?.title) document.title = seo.title
+        let metaDesc: HTMLMetaElement | null = null
+        let prevDesc: string | null = null
+        if (seo?.description) {
+            metaDesc = document.querySelector('meta[name="description"]')
+            if (!metaDesc) {
+                metaDesc = document.createElement('meta')
+                metaDesc.setAttribute('name', 'description')
+                document.head.appendChild(metaDesc)
+            }
+            prevDesc = metaDesc.getAttribute('content')
+            metaDesc.setAttribute('content', seo.description)
+        }
+        return () => {
+            document.title = prevTitle
+            if (metaDesc && prevDesc !== null) metaDesc.setAttribute('content', prevDesc)
+        }
+    }, [homePage?.seo])
 
     return (
         <div className="min-h-screen bg-bg text-fg">

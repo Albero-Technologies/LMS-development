@@ -27,7 +27,8 @@ import {
     Building2,
     Globe,
     Link2,
-    Telescope
+    Telescope,
+    Database
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
@@ -53,6 +54,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/admin/tenants', label: 'Tenants', icon: Building2 },
         { to: '/app/admin/website-editor', label: 'Website Editor', icon: Globe },
+        { to: '/app/admin/cms', label: 'CMS', icon: Database },
         { to: '/app/admin/utm-builder', label: 'UTM Builder', icon: Link2 },
         { to: '/app/admin/seo-builder', label: 'SEO Builder', icon: Telescope },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
@@ -68,6 +70,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
+        { to: '/app/admin/cms', label: 'Content', icon: Database },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/admin/billing', label: 'Subscription', icon: Briefcase },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck },

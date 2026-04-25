@@ -19,6 +19,8 @@ import counsellorManagementRouter from '../modules/counsellor-management/counsel
 import paymentRouter from '../modules/payments/payment.router'
 import enquiryRouter from '../modules/enquiries/enquiry.router'
 import auditRouter from '../modules/audit/audit.router'
+import mediaRouter from '../modules/media/media.router'
+import cmsRouter from '../modules/cms/cms.router'
 import swaggerRouter from '../docs/swagger'
 
 const router = Router()
@@ -43,6 +45,8 @@ router.use('/tickets', ticketRouter)
 router.use('/notifications', notificationRouter)
 router.use('/dashboard', dashboardRouter)
 router.use('/uploads', uploadRouter)
+router.use('/media', mediaRouter)
+router.use('/cms', cmsRouter)
 router.use('/audit-logs', auditRouter)
 
 // Swagger UI + raw OpenAPI JSON at /api/v1/docs and /api/v1/openapi.json

@@ -1,9 +1,221 @@
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, Sparkles, MessageCircle, CheckCircle2, Info } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowRight, BookOpen, Sparkles, MessageCircle, CheckCircle2, Info, ImageIcon, Database } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
-import type { LandingSection as Section } from '@features/admin/services/tenant.service'
+import type { LandingSection as Section, SectionStyle, Typography } from '@features/admin/services/tenant.service'
+import { getPublicCollection } from '@features/admin/services/cms.service'
+import { useTenantBranding } from '@shared/contexts/useTenantBranding'
+
+// Map abstract style tokens onto Tailwind utility class names. Editors expose
+// the tokens (sm/md/lg, narrow/wide, …) so non-technical users get sensible
+// values instead of raw CSS strings.
+const PADDING_CLASS: Record<NonNullable<SectionStyle['paddingY']>, string> = {
+    sm: 'py-6',
+    md: 'py-12',
+    lg: 'py-16',
+    xl: 'py-24'
+}
+
+const MAX_WIDTH_CLASS: Record<NonNullable<SectionStyle['maxWidth']>, string> = {
+    narrow: 'max-w-3xl',
+    normal: 'max-w-6xl',
+    wide: 'max-w-7xl',
+    full: 'max-w-none'
+}
+
+const ALIGN_CLASS: Record<NonNullable<SectionStyle['align']>, string> = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right'
+}
+
+// Typography token → CSS map. Keep these tight + sensible — letting users
+// type any font-family CSS string would silently break when the font isn't
+// installed. The 5 tokens cover 99% of marketing-page typography needs.
+const FONT_FAMILY: Record<NonNullable<Typography['fontFamily']>, string> = {
+    inter: '"Inter", system-ui, sans-serif',
+    sans: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+    serif: 'Georgia, "Times New Roman", serif',
+    mono: 'ui-monospace, "Cascadia Code", "Source Code Pro", monospace',
+    display: '"Plus Jakarta Sans", "Inter", sans-serif'
+}
+
+const FONT_SIZE: Record<NonNullable<Typography['fontSize']>, string> = {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+    '4xl': '2.5rem',
+    '5xl': '3.5rem'
+}
+
+const FONT_WEIGHT: Record<NonNullable<Typography['fontWeight']>, number> = {
+    normal: 400,
+    medium: 500,
+    semibold: 600,
+    bold: 700,
+    extrabold: 800
+}
+
+const LINE_HEIGHT: Record<NonNullable<Typography['lineHeight']>, number> = {
+    tight: 1.1,
+    snug: 1.25,
+    normal: 1.5,
+    relaxed: 1.65,
+    loose: 1.85
+}
+
+const LETTER_SPACING: Record<NonNullable<Typography['letterSpacing']>, string> = {
+    tighter: '-0.05em',
+    tight: '-0.025em',
+    normal: '0',
+    wide: '0.025em',
+    wider: '0.05em'
+}
+
+const typographyToCss = (t: Typography | undefined): React.CSSProperties => {
+    if (!t) return {}
+    const out: React.CSSProperties = {}
+    if (t.fontFamily) out.fontFamily = FONT_FAMILY[t.fontFamily]
+    if (t.fontSize) out.fontSize = FONT_SIZE[t.fontSize]
+    if (t.fontWeight) out.fontWeight = FONT_WEIGHT[t.fontWeight]
+    if (t.lineHeight) out.lineHeight = LINE_HEIGHT[t.lineHeight]
+    if (t.letterSpacing) out.letterSpacing = LETTER_SPACING[t.letterSpacing]
+    return out
+}
+
+// Slugify a section id for use as a CSS scope class.
+const scopeClass = (id: string): string => `s-${id.replace(/[^a-z0-9_-]/gi, '').slice(0, 32)}`
+
+// Wraps section markup in an IntersectionObserver-driven container that adds
+// `.anim-in` once the element enters the viewport. CSS keyframes (defined in
+// shared/assets/styles/index.css) run from the wrapper class.
+//
+// Honours `prefers-reduced-motion` — users with that preference skip the
+// pre-animation hidden state entirely so content is fully visible at first
+// paint, no transform applied.
+const AnimatedWrapper = ({
+    animation,
+    delay,
+    duration,
+    children
+}: {
+    animation: NonNullable<SectionStyle['animation']>
+    delay?: number
+    duration?: number
+    children: React.ReactNode
+}) => {
+    const ref = useRef<HTMLDivElement | null>(null)
+    const reducedMotion =
+        typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const [visible, setVisible] = useState(reducedMotion)
+
+    useEffect(() => {
+        if (visible) return
+        const node = ref.current
+        if (!node || typeof IntersectionObserver === 'undefined') {
+            setVisible(true)
+            return
+        }
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        setVisible(true)
+                        observer.disconnect()
+                    }
+                }
+            },
+            { threshold: 0.15 }
+        )
+        observer.observe(node)
+        return () => observer.disconnect()
+    }, [visible])
+
+    if (animation === 'none') return <>{children}</>
+
+    const cssVars: CSSProperties & Record<string, string> = {
+        '--anim-dur': `${duration ?? 700}ms`,
+        '--anim-delay': `${delay ?? 0}ms`
+    } as CSSProperties & Record<string, string>
+
+    return (
+        <div
+            ref={ref}
+            className={`anim-${animation} ${visible ? 'anim-in' : 'anim-pending'}`}
+            style={cssVars}>
+            {children}
+        </div>
+    )
+}
+
+// Wrap the section's intrinsic markup in a styled container if any overrides
+// are set. When `style` is empty, returns the children untouched so default
+// rendering (and unique per-variant layouts) keep working.
+//
+// Typography is applied via a scoped `<style>` block: heading rules cascade
+// onto h1/h2/h3 inside the section; body rules onto everything else. Using
+// inline style on the wrapper would let CSS specificity win in unexpected
+// places, so we emit explicit selectors keyed off a per-section class.
+const Styled = ({ id, style, children }: { id: string; style?: SectionStyle; children: React.ReactNode }) => {
+    const hasLayout = !!(style?.background || style?.textColor || style?.paddingY || style?.align || style?.maxWidth)
+    const hasType = !!(style?.headingType || style?.bodyType)
+    const hasAnim = !!(style?.animation && style.animation !== 'none')
+
+    // Compose the layout/typography wrappers first; the animation wrapper
+    // goes on the outside so the in/out classes apply to the entire styled
+    // section rather than just the inner content container.
+    let inner: React.ReactNode = children
+    if (hasLayout || hasType) {
+        const padding = style?.paddingY ? PADDING_CLASS[style.paddingY] : ''
+        const align = style?.align ? ALIGN_CLASS[style.align] : ''
+        const maxw = style?.maxWidth ? MAX_WIDTH_CLASS[style.maxWidth] : ''
+        const cls = scopeClass(id)
+        const headingCss = style?.headingType ? cssBlock(`.${cls} h1, .${cls} h2, .${cls} h3`, typographyToCss(style.headingType)) : ''
+        const bodyCss = style?.bodyType
+            ? cssBlock(`.${cls} p, .${cls} li, .${cls} span:not([class*='font-mono'])`, typographyToCss(style.bodyType))
+            : ''
+        inner = (
+            <>
+                {(headingCss || bodyCss) && <style dangerouslySetInnerHTML={{ __html: headingCss + bodyCss }} />}
+                <div
+                    className={`${cls} ${padding}`}
+                    style={{
+                        background: style?.background,
+                        color: style?.textColor
+                    }}>
+                    {hasLayout ? <div className={`${maxw || 'max-w-6xl'} mx-auto px-4 sm:px-6 ${align}`}>{children}</div> : children}
+                </div>
+            </>
+        )
+    }
+
+    if (hasAnim) {
+        return (
+            <AnimatedWrapper
+                animation={style!.animation!}
+                delay={style?.animationDelay}
+                duration={style?.animationDuration}>
+                {inner}
+            </AnimatedWrapper>
+        )
+    }
+    return <>{inner}</>
+}
+
+// Render a CSS rule block: selector { prop: value; ... }. Skips empty bodies.
+const cssBlock = (selector: string, props: React.CSSProperties): string => {
+    const entries = Object.entries(props).filter(([, v]) => v !== undefined && v !== '')
+    if (entries.length === 0) return ''
+    const body = entries.map(([k, v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}:${String(v)};`).join('')
+    return `${selector}{${body}}`
+}
 
 // Renders a single block of the per-tenant landing page (§11). Used by:
 //  - TenantLandingPage (public, links resolve under /t/:slug/...)
@@ -25,29 +237,44 @@ const resolveLink = (slugBase: string, link: string | undefined): string => {
 }
 
 export const LandingSectionRenderer = ({ section, slugBase, tenantName }: Props) => {
-    switch (section.type) {
-        case 'hero':
-            return (
-                <HeroBlock
-                    section={section}
-                    slugBase={slugBase}
-                    tenantName={tenantName}
-                />
-            )
-        case 'features':
-            return <FeaturesBlock section={section} />
-        case 'cta':
-            return (
-                <CtaBlock
-                    section={section}
-                    slugBase={slugBase}
-                />
-            )
-        case 'callout':
-            return <CalloutBlock section={section} />
-        default:
-            return null
-    }
+    const inner = (() => {
+        switch (section.type) {
+            case 'hero':
+                return (
+                    <HeroBlock
+                        section={section}
+                        slugBase={slugBase}
+                        tenantName={tenantName}
+                    />
+                )
+            case 'features':
+                return <FeaturesBlock section={section} />
+            case 'cta':
+                return (
+                    <CtaBlock
+                        section={section}
+                        slugBase={slugBase}
+                    />
+                )
+            case 'callout':
+                return <CalloutBlock section={section} />
+            case 'image':
+                return <ImageBlock section={section} />
+            case 'embed':
+                return <EmbedBlock section={section} />
+            case 'collectionList':
+                return <CollectionListBlock section={section} />
+            default:
+                return null
+        }
+    })()
+    return (
+        <Styled
+            id={section.id}
+            style={section.style}>
+            {inner}
+        </Styled>
+    )
 }
 
 // ---- Hero variants ----------------------------------------------------------
@@ -243,6 +470,211 @@ const CtaBlock = ({ section, slugBase }: { section: Extract<Section, { type: 'ct
 }
 
 // ---- Callout variants -------------------------------------------------------
+
+// ---- Collection list block --------------------------------------------------
+//
+// Pulls published items from a CMS collection (per-tenant) and renders them
+// in either a card grid or a vertical list. Field mapping (title/summary/
+// image) is configurable per section so the same renderer works for blog
+// posts, press releases, events, etc.
+const CollectionListBlock = ({ section }: { section: Extract<Section, { type: 'collectionList' }> }) => {
+    const { tenant } = useTenantBranding()
+    const slug = section.data.collectionSlug
+    const query = useQuery({
+        queryKey: ['public', 'collection', tenant.slug, slug],
+        queryFn: () => getPublicCollection(tenant.slug, slug!),
+        enabled: !!slug,
+        staleTime: 60_000,
+        retry: false
+    })
+
+    if (!slug) {
+        return (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+                <div className="rounded-md border border-dashed border-[var(--color-border)] bg-surface-2 p-6 text-center text-fg-muted">
+                    <Database
+                        size={32}
+                        className="mx-auto mb-2 opacity-50"
+                    />
+                    <p className="text-sm">Pick a collection in the editor.</p>
+                </div>
+            </section>
+        )
+    }
+
+    if (query.isError || !query.data) {
+        return (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+                <div className="rounded-md border bg-surface-2 p-6 text-center text-fg-muted">
+                    <p className="text-sm">Couldn't load collection &quot;{slug}&quot;.</p>
+                </div>
+            </section>
+        )
+    }
+
+    const items = (query.data.items ?? []).slice(0, section.data.limit ?? 6)
+    const titleField = section.data.titleField ?? 'title'
+    const summaryField = section.data.summaryField ?? 'summary'
+    const imageField = section.data.imageField ?? 'coverImage'
+
+    if (items.length === 0) {
+        return (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+                {section.data.title && <h2 className="text-2xl font-semibold tracking-tight mb-4 text-center">{section.data.title}</h2>}
+                <p className="text-sm text-fg-muted text-center">Nothing published yet.</p>
+            </section>
+        )
+    }
+
+    if (section.variant === 'list') {
+        return (
+            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+                {section.data.title && <h2 className="text-2xl font-semibold tracking-tight mb-5">{section.data.title}</h2>}
+                <ul className="space-y-3">
+                    {items.map((it) => (
+                        <li
+                            key={it.id}
+                            className="rounded-md border border-[var(--color-border)] p-4">
+                            <div className="text-sm font-semibold text-fg">{stringify(it.data[titleField])}</div>
+                            {summaryField && !!it.data[summaryField] && (
+                                <p className="text-xs text-fg-soft mt-1 line-clamp-3">{stringify(it.data[summaryField])}</p>
+                            )}
+                            {it.publishedAt && (
+                                <div className="mt-2 text-[11px] text-fg-muted font-mono">
+                                    {new Date(it.publishedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </div>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        )
+    }
+
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+            {section.data.title && <h2 className="text-2xl font-semibold tracking-tight mb-6 text-center">{section.data.title}</h2>}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {items.map((it) => {
+                    const img = imageField ? stringify(it.data[imageField]) : ''
+                    return (
+                        <Card
+                            key={it.id}
+                            className="!p-0 overflow-hidden">
+                            {img && (
+                                <img
+                                    src={img}
+                                    alt={stringify(it.data[titleField])}
+                                    loading="lazy"
+                                    className="w-full h-40 object-cover"
+                                />
+                            )}
+                            <div className="p-4">
+                                <div className="text-sm font-semibold text-fg">{stringify(it.data[titleField])}</div>
+                                {summaryField && !!it.data[summaryField] && (
+                                    <p className="text-xs text-fg-soft mt-1 line-clamp-3">{stringify(it.data[summaryField])}</p>
+                                )}
+                                {it.publishedAt && (
+                                    <div className="mt-2 text-[11px] text-fg-muted font-mono">
+                                        {new Date(it.publishedAt).toLocaleDateString('en-IN', {
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
+                    )
+                })}
+            </div>
+        </section>
+    )
+}
+
+const stringify = (v: unknown): string => {
+    if (v === null || v === undefined) return ''
+    if (typeof v === 'string') return v
+    return String(v)
+}
+
+// ---- Image block ------------------------------------------------------------
+
+const ImageBlock = ({ section }: { section: Extract<Section, { type: 'image' }> }) => {
+    const { src, alt, caption, rounded } = section.data
+    if (!src) {
+        return (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+                <div className="aspect-video grid place-items-center rounded-md border border-dashed border-[var(--color-border)] bg-surface-2 text-fg-muted">
+                    <div className="text-center">
+                        <ImageIcon
+                            size={32}
+                            className="mx-auto mb-2 opacity-50"
+                        />
+                        <p className="text-sm">No image set yet</p>
+                    </div>
+                </div>
+            </section>
+        )
+    }
+    if (section.variant === 'full') {
+        return (
+            <section className="py-0">
+                <img
+                    src={src}
+                    alt={alt ?? ''}
+                    loading="lazy"
+                    className="w-full h-auto block"
+                />
+                {caption && <p className="mt-2 text-xs text-fg-muted text-center">{caption}</p>}
+            </section>
+        )
+    }
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+            <img
+                src={src}
+                alt={alt ?? ''}
+                loading="lazy"
+                className={`w-full h-auto block ${rounded ? 'rounded-xl' : ''}`}
+            />
+            {caption && <p className="mt-2 text-xs text-fg-muted text-center">{caption}</p>}
+        </section>
+    )
+}
+
+// ---- Embed block ------------------------------------------------------------
+//
+// Custom HTML / iframe embed. Rendered inside a sandboxed iframe with srcdoc
+// so injected scripts can't access the parent window — even if a tenant SA
+// pastes hostile HTML, it's contained. Sandbox flags allow scripts (needed
+// for YouTube, Calendly, etc.) and same-origin to forms but NOT
+// allow-top-navigation or allow-popups, so a malicious embed can't redirect
+// the parent page or open new windows.
+const EmbedBlock = ({ section }: { section: Extract<Section, { type: 'embed' }> }) => {
+    const { html, height, title } = section.data
+    if (!html) {
+        return (
+            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+                <div className="rounded-md border border-dashed border-[var(--color-border)] bg-surface-2 p-6 text-center text-fg-muted">
+                    <p className="text-sm">No embed set — paste HTML in the editor.</p>
+                </div>
+            </section>
+        )
+    }
+    const docHtml = `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>html,body{margin:0;padding:0;font-family:system-ui,sans-serif}img,iframe,video{max-width:100%;display:block}</style></head><body>${html}</body></html>`
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+            <iframe
+                srcDoc={docHtml}
+                title={title || 'Embed'}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                className="w-full rounded-md border border-[var(--color-border)] bg-surface"
+                style={{ height: `${height ?? 480}px` }}
+            />
+        </section>
+    )
+}
 
 const CalloutBlock = ({ section }: { section: Extract<Section, { type: 'callout' }> }) => {
     const { title, body } = section.data
