@@ -55,6 +55,7 @@ import { DemoControlPage } from '@features/admin/pages/DemoControlPage'
 import { IntegrationsPage } from '@features/admin/pages/IntegrationsPage'
 import { TenantBillingPage } from '@features/admin/pages/TenantBillingPage'
 import { TenantLandingPage } from '@features/marketing/pages/TenantLandingPage'
+import { TenantCollectionItemPage } from '@features/marketing/pages/TenantCollectionItemPage'
 import { CmsPage } from '@features/admin/pages/CmsPage'
 import { TenantBrandingProvider } from '@shared/contexts/TenantBrandingContext'
 
@@ -105,6 +106,18 @@ export const router = createBrowserRouter([
         element: (
             <TenantBrandingProvider>
                 <PublicCoursesPage />
+            </TenantBrandingProvider>
+        )
+    },
+    // Generic collection-item detail. Two trailing segments
+    // (:collectionSlug/:itemSlug) keep this from colliding with the static
+    // single-segment routes above (courses/enquiry/login). Renders whichever
+    // landing page is bound to that collection as its detail template.
+    {
+        path: '/t/:slug/:collectionSlug/:itemSlug',
+        element: (
+            <TenantBrandingProvider>
+                <TenantCollectionItemPage />
             </TenantBrandingProvider>
         )
     },

@@ -55,7 +55,11 @@ import {
     Image as ImageIcon,
     Code,
     Type,
-    Database
+    Database,
+    Settings,
+    ChevronUp,
+    ChevronDown,
+    Link2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
@@ -69,18 +73,29 @@ import { cn } from '@shared/helpers/cn'
 import {
     LANDING_TEMPLATES,
     createBlankPage,
+    defaultFooter,
     defaultLandingSections,
+    defaultNavbar,
+    defaultStyleClasses,
     getTenantDetail,
     instantiateTemplate,
     listAllTenants,
+    newLinkId,
     newSectionId,
     readLandingContent,
     updateTenantById,
+    type FooterColumn,
+    type FooterConfig,
+    type LandingContent,
     type LandingPage,
     type LandingPillar,
     type LandingSection,
     type LandingTemplate,
+    type NavLink,
+    type NavbarConfig,
     type SectionStyle,
+    type SiteIdentity,
+    type StyleClass,
     type TenantSettings
 } from '../services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
@@ -135,11 +150,19 @@ export const WebsiteEditorPage = () => {
     const tenant = detailQuery.data
     const initialContent = useMemo(() => readLandingContent(tenant), [tenant])
 
+    // Raw landing JSON — `readLandingContent` strips it down to renderer
+    // fields with defaults applied; the editor needs the source-of-truth
+    // pages/site/navbar/footer blobs as actually persisted.
+    const rawLanding = useMemo<LandingContent>(
+        () => (tenant?.settings?.landing as LandingContent | undefined) ?? {},
+        [tenant?.settings]
+    )
+
     // Multi-page state. If the tenant has historical `sections` but no
     // `pages`, lift the sections into a default 'Home' page so the editor
     // can present a unified pages list.
     const initialPages = useMemo<LandingPage[]>(() => {
-        if (initialContent.pages && initialContent.pages.length > 0) return initialContent.pages
+        if (rawLanding.pages && rawLanding.pages.length > 0) return rawLanding.pages
         const sections = initialContent.sections ?? (tenant ? defaultLandingSections(tenant.name) : [])
         return [
             {
@@ -150,27 +173,66 @@ export const WebsiteEditorPage = () => {
                 sections
             }
         ]
-    }, [initialContent.pages, initialContent.sections, tenant])
+    }, [rawLanding.pages, initialContent.sections, tenant])
+
+    const initialSite = useMemo<SiteIdentity>(() => rawLanding.site ?? {}, [rawLanding.site])
+    const initialNavbar = useMemo<NavbarConfig>(() => rawLanding.navbar ?? defaultNavbar(), [rawLanding.navbar])
+    const initialFooter = useMemo<FooterConfig>(
+        () => rawLanding.footer ?? defaultFooter(tenant?.name ?? ''),
+        [rawLanding.footer, tenant?.name]
+    )
+    const initialStyleClasses = useMemo<StyleClass[]>(
+        () => rawLanding.styleClasses ?? defaultStyleClasses(),
+        [rawLanding.styleClasses]
+    )
 
     const [pages, setPages] = useState<LandingPage[]>(initialPages)
+    const [site, setSite] = useState<SiteIdentity>(initialSite)
+    const [navbar, setNavbar] = useState<NavbarConfig>(initialNavbar)
+    const [footer, setFooter] = useState<FooterConfig>(initialFooter)
+    const [styleClasses, setStyleClasses] = useState<StyleClass[]>(initialStyleClasses)
     const [activePageId, setActivePageId] = useState<string>('')
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
     const [pickerOpen, setPickerOpen] = useState(false)
+    const [siteOpen, setSiteOpen] = useState(false)
     const [device, setDevice] = useState<DeviceView>('desktop')
 
     // Reset draft state when tenant changes.
     useEffect(() => {
         setPages(initialPages)
+        setSite(initialSite)
+        setNavbar(initialNavbar)
+        setFooter(initialFooter)
+        setStyleClasses(initialStyleClasses)
         const home = initialPages.find((p) => p.isHome) ?? initialPages[0]
         setActivePageId(home?.id ?? '')
         setSelectedSectionId(home?.sections[0]?.id ?? null)
-    }, [initialPages])
+    }, [initialPages, initialSite, initialNavbar, initialFooter, initialStyleClasses])
 
     const activePage = pages.find((p) => p.id === activePageId) ?? pages[0]
     const sections = activePage?.sections ?? []
     const selectedSection = sections.find((s) => s.id === selectedSectionId) ?? null
 
-    const dirty = useMemo(() => JSON.stringify(pages) !== JSON.stringify(initialPages), [pages, initialPages])
+    const dirty = useMemo(
+        () =>
+            JSON.stringify(pages) !== JSON.stringify(initialPages) ||
+            JSON.stringify(site) !== JSON.stringify(initialSite) ||
+            JSON.stringify(navbar) !== JSON.stringify(initialNavbar) ||
+            JSON.stringify(footer) !== JSON.stringify(initialFooter) ||
+            JSON.stringify(styleClasses) !== JSON.stringify(initialStyleClasses),
+        [
+            pages,
+            initialPages,
+            site,
+            initialSite,
+            navbar,
+            initialNavbar,
+            footer,
+            initialFooter,
+            styleClasses,
+            initialStyleClasses
+        ]
+    )
 
     const saveMutation = useMutation({
         mutationFn: () => {
@@ -184,7 +246,11 @@ export const WebsiteEditorPage = () => {
                     // Keep `sections` in sync with the home page so existing
                     // single-page renderers don't break for tenants that haven't
                     // upgraded clients.
-                    sections: home?.sections ?? []
+                    sections: home?.sections ?? [],
+                    site,
+                    navbar,
+                    footer,
+                    styleClasses
                 }
             }
             return updateTenantById(tenantId, { settings })
@@ -316,6 +382,14 @@ export const WebsiteEditorPage = () => {
                         <Button
                             variant="ghost"
                             size="sm"
+                            leftIcon={<Settings size={14} />}
+                            disabled={!tenant}
+                            onClick={() => setSiteOpen(true)}>
+                            Site settings
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             leftIcon={<Eye size={14} />}
                             disabled={!tenant}
                             onClick={() => window.open(previewUrl, '_blank')}>
@@ -399,6 +473,7 @@ export const WebsiteEditorPage = () => {
                             {selectedSection && (
                                 <SectionEditor
                                     section={selectedSection}
+                                    styleClasses={styleClasses}
                                     onUpdateData={(patch) => updateSectionData(selectedSection.id, patch)}
                                     onUpdateVariant={(v) => updateSectionVariant(selectedSection.id, v)}
                                     onUpdateStyle={(patch) => updateSectionStyle(selectedSection.id, patch)}
@@ -439,6 +514,7 @@ export const WebsiteEditorPage = () => {
                                                 section={s}
                                                 slugBase={`/t/${tenant.slug}`}
                                                 tenantName={tenant.name}
+                                                styleClasses={styleClasses}
                                             />
                                         ))
                                     )}
@@ -453,6 +529,20 @@ export const WebsiteEditorPage = () => {
                 open={pickerOpen}
                 onClose={() => setPickerOpen(false)}
                 onPick={insertTemplate}
+            />
+
+            <SiteSettingsModal
+                open={siteOpen}
+                onClose={() => setSiteOpen(false)}
+                pages={pages}
+                site={site}
+                navbar={navbar}
+                footer={footer}
+                styleClasses={styleClasses}
+                onChangeSite={setSite}
+                onChangeNavbar={setNavbar}
+                onChangeFooter={setFooter}
+                onChangeStyleClasses={setStyleClasses}
             />
         </>
     )
@@ -667,6 +757,15 @@ const PageSeoModal = ({ page, onClose, onSave }: { page: LandingPage | null; onC
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [og, setOg] = useState('')
+    const [detailCollection, setDetailCollection] = useState('')
+
+    const collectionsQuery = useQuery({
+        queryKey: ['cms', 'collections'],
+        queryFn: () => import('../services/cms.service').then((m) => m.listCollections()),
+        staleTime: 60_000,
+        enabled: !!page
+    })
+    const collections = collectionsQuery.data ?? []
 
     useEffect(() => {
         if (!page) return
@@ -675,6 +774,7 @@ const PageSeoModal = ({ page, onClose, onSave }: { page: LandingPage | null; onC
         setTitle(page.seo?.title ?? '')
         setDescription(page.seo?.description ?? '')
         setOg(page.seo?.ogImageUrl ?? '')
+        setDetailCollection(page.detailTemplate?.collectionSlug ?? '')
     }, [page])
 
     if (!page) return null
@@ -696,7 +796,8 @@ const PageSeoModal = ({ page, onClose, onSave }: { page: LandingPage | null; onC
                             onSave({
                                 name,
                                 slug: slug.startsWith('/') ? slug.toLowerCase() : `/${slug.toLowerCase()}`,
-                                seo: { title, description, ogImageUrl: og }
+                                seo: { title, description, ogImageUrl: og },
+                                detailTemplate: detailCollection ? { collectionSlug: detailCollection } : undefined
                             })
                         }>
                         Save
@@ -735,6 +836,30 @@ const PageSeoModal = ({ page, onClose, onSave }: { page: LandingPage | null; onC
                     onChange={(e) => setOg(e.target.value)}
                     placeholder="https://cdn…/og.png (1200×630)"
                 />
+                <div className="rounded-md border border-[var(--color-border)] p-3 space-y-2 bg-surface-2/40">
+                    <div className="text-xs font-semibold text-fg flex items-center gap-1.5">
+                        <Database size={12} /> Detail template
+                    </div>
+                    <Select
+                        label="Render items from collection"
+                        value={detailCollection}
+                        onChange={(e) => setDetailCollection(e.target.value)}
+                        hint="Bind this page as the detail template. Items render at /t/<slug>/<collection>/<itemSlug>. Use {{item.fieldKey}} in any text field to substitute values.">
+                        <option value="">— not a detail template —</option>
+                        {collections.map((c) => (
+                            <option
+                                key={c.id}
+                                value={c.slug}>
+                                {c.name} (/{c.slug})
+                            </option>
+                        ))}
+                    </Select>
+                    {detailCollection && (
+                        <div className="text-[11px] text-fg-muted">
+                            Tip: each item in this collection should have a unique <code>slug</code> field — that's what the URL uses.
+                        </div>
+                    )}
+                </div>
             </div>
         </Modal>
     )
@@ -839,11 +964,13 @@ const getSectionPreviewText = (s: LandingSection): string => {
 
 const SectionEditor = ({
     section,
+    styleClasses,
     onUpdateData,
     onUpdateVariant,
     onUpdateStyle
 }: {
     section: LandingSection
+    styleClasses: StyleClass[]
     onUpdateData: (patch: Partial<LandingSection['data']>) => void
     onUpdateVariant: (v: string) => void
     onUpdateStyle: (patch: Partial<SectionStyle>) => void
@@ -936,6 +1063,7 @@ const SectionEditor = ({
             {tab === 'design' && (
                 <DesignFields
                     style={section.style}
+                    styleClasses={styleClasses}
                     onChange={onUpdateStyle}
                 />
             )}
@@ -955,8 +1083,30 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
 
 // ---- Design tab: per-section style overrides --------------------------------
 
-const DesignFields = ({ style, onChange }: { style: SectionStyle | undefined; onChange: (p: Partial<SectionStyle>) => void }) => (
+const DesignFields = ({
+    style,
+    styleClasses,
+    onChange
+}: {
+    style: SectionStyle | undefined
+    styleClasses: StyleClass[]
+    onChange: (p: Partial<SectionStyle>) => void
+}) => (
     <div className="space-y-4">
+        <Select
+            label="Style class"
+            value={style?.styleClassId ?? ''}
+            onChange={(e) => onChange({ styleClassId: e.target.value || undefined })}
+            hint="Apply a named class. Per-section overrides below win over class defaults.">
+            <option value="">— none —</option>
+            {styleClasses.map((c) => (
+                <option
+                    key={c.id}
+                    value={c.id}>
+                    {c.name}
+                </option>
+            ))}
+        </Select>
         <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-fg-soft mb-1.5">
                 <Palette size={12} /> Background
@@ -1593,5 +1743,749 @@ const TemplatePicker = ({ open, onClose, onPick }: { open: boolean; onClose: () 
                 ))}
             </div>
         </Modal>
+    )
+}
+
+// ---- Site Settings: identity (favicon + title) + navbar + footer ----------
+//
+// Edits flow up immediately on every change; persistence happens when the SA
+// hits "Save changes" in the page header (same pattern as section edits).
+
+const SiteSettingsModal = ({
+    open,
+    onClose,
+    pages,
+    site,
+    navbar,
+    footer,
+    styleClasses,
+    onChangeSite,
+    onChangeNavbar,
+    onChangeFooter,
+    onChangeStyleClasses
+}: {
+    open: boolean
+    onClose: () => void
+    pages: LandingPage[]
+    site: SiteIdentity
+    navbar: NavbarConfig
+    footer: FooterConfig
+    styleClasses: StyleClass[]
+    onChangeSite: (s: SiteIdentity) => void
+    onChangeNavbar: (n: NavbarConfig) => void
+    onChangeFooter: (f: FooterConfig) => void
+    onChangeStyleClasses: (c: StyleClass[]) => void
+}) => {
+    const [tab, setTab] = useState<'identity' | 'navbar' | 'footer' | 'classes'>('identity')
+    const tabs: { id: typeof tab; label: string }[] = [
+        { id: 'identity', label: 'Identity' },
+        { id: 'navbar', label: 'Navbar' },
+        { id: 'footer', label: 'Footer' },
+        { id: 'classes', label: 'Style classes' }
+    ]
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Site settings"
+            description="Favicon, page title, and global navbar + footer."
+            size="lg"
+            footer={
+                <Button onClick={onClose}>Done</Button>
+            }>
+            <div className="flex border-b border-[var(--color-border)] mb-4 -mx-5 px-5">
+                {tabs.map((t) => (
+                    <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTab(t.id)}
+                        className={cn(
+                            'px-3 py-2 text-xs font-medium border-b-2 transition-colors',
+                            tab === t.id
+                                ? 'border-[var(--color-brand-500)] text-[var(--color-brand-600)]'
+                                : 'border-transparent text-fg-muted hover:text-fg'
+                        )}>
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+
+            {tab === 'identity' && (
+                <IdentityFields
+                    site={site}
+                    onChange={onChangeSite}
+                />
+            )}
+            {tab === 'navbar' && (
+                <NavbarFields
+                    navbar={navbar}
+                    pages={pages}
+                    onChange={onChangeNavbar}
+                />
+            )}
+            {tab === 'footer' && (
+                <FooterFields
+                    footer={footer}
+                    pages={pages}
+                    onChange={onChangeFooter}
+                />
+            )}
+            {tab === 'classes' && (
+                <StyleClassesFields
+                    classes={styleClasses}
+                    onChange={onChangeStyleClasses}
+                />
+            )}
+        </Modal>
+    )
+}
+
+// Style class manager. Each class is a small SectionStyle preset (no animation,
+// no self-reference). Add / rename / edit / delete; sections reference by id
+// from their Design tab.
+const StyleClassesFields = ({ classes, onChange }: { classes: StyleClass[]; onChange: (next: StyleClass[]) => void }) => {
+    const [editingId, setEditingId] = useState<string | null>(classes[0]?.id ?? null)
+    const update = (id: string, patch: Partial<StyleClass>) => onChange(classes.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+    const remove = (id: string) => {
+        onChange(classes.filter((c) => c.id !== id))
+        if (editingId === id) setEditingId(null)
+    }
+    const add = () => {
+        const c: StyleClass = { id: newLinkId(), name: `Class ${classes.length + 1}` }
+        onChange([...classes, c])
+        setEditingId(c.id)
+    }
+    const editing = classes.find((c) => c.id === editingId) ?? null
+
+    return (
+        <div className="grid grid-cols-[200px_1fr] gap-4 min-h-[400px]">
+            <div className="border-r border-[var(--color-border)] pr-3 space-y-1">
+                {classes.length === 0 && (
+                    <div className="text-xs text-fg-muted text-center py-4">No classes yet.</div>
+                )}
+                {classes.map((c) => (
+                    <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setEditingId(c.id)}
+                        className={cn(
+                            'w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors',
+                            editingId === c.id
+                                ? 'bg-[var(--color-brand-50)] text-[var(--color-brand-600)] font-medium'
+                                : 'text-fg-soft hover:bg-surface-hover'
+                        )}>
+                        {c.name}
+                    </button>
+                ))}
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<Plus size={12} />}
+                    onClick={add}
+                    className="w-full justify-start mt-2">
+                    Add class
+                </Button>
+            </div>
+            <div>
+                {editing ? (
+                    <StyleClassEditor
+                        cls={editing}
+                        onChange={(patch) => update(editing.id, patch)}
+                        onDelete={() => remove(editing.id)}
+                    />
+                ) : (
+                    <div className="text-sm text-fg-muted text-center py-12">
+                        Pick a class on the left to edit, or add a new one.
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+const StyleClassEditor = ({
+    cls,
+    onChange,
+    onDelete
+}: {
+    cls: StyleClass
+    onChange: (patch: Partial<StyleClass>) => void
+    onDelete: () => void
+}) => (
+    <div className="space-y-4">
+        <div className="flex items-end gap-2">
+            <Input
+                label="Class name"
+                value={cls.name}
+                onChange={(e) => onChange({ name: e.target.value })}
+                className="flex-1"
+            />
+            <Button
+                size="sm"
+                variant="ghost"
+                leftIcon={<Trash2 size={14} />}
+                onClick={() => {
+                    if (window.confirm(`Delete the "${cls.name}" class? Sections that reference it will fall back to defaults.`)) onDelete()
+                }}>
+                Delete
+            </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+            <div>
+                <label className="block text-xs font-medium text-fg-soft mb-1.5">Background</label>
+                <div className="flex items-center gap-2">
+                    <input
+                        type="color"
+                        value={cls.background ?? '#ffffff'}
+                        onChange={(e) => onChange({ background: e.target.value })}
+                        className="w-10 h-10 rounded-md border cursor-pointer bg-transparent p-1"
+                        aria-label="Background"
+                    />
+                    <Input
+                        value={cls.background ?? ''}
+                        onChange={(e) => onChange({ background: e.target.value || undefined })}
+                        placeholder="#ffffff"
+                        className="font-mono"
+                    />
+                </div>
+            </div>
+            <div>
+                <label className="block text-xs font-medium text-fg-soft mb-1.5">Text colour</label>
+                <div className="flex items-center gap-2">
+                    <input
+                        type="color"
+                        value={cls.textColor ?? '#0c1626'}
+                        onChange={(e) => onChange({ textColor: e.target.value })}
+                        className="w-10 h-10 rounded-md border cursor-pointer bg-transparent p-1"
+                        aria-label="Text colour"
+                    />
+                    <Input
+                        value={cls.textColor ?? ''}
+                        onChange={(e) => onChange({ textColor: e.target.value || undefined })}
+                        placeholder="#0c1626"
+                        className="font-mono"
+                    />
+                </div>
+            </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+            <Select
+                label="Padding"
+                value={cls.paddingY ?? ''}
+                onChange={(e) => onChange({ paddingY: (e.target.value || undefined) as StyleClass['paddingY'] })}>
+                <option value="">Default</option>
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+                <option value="xl">Extra large</option>
+            </Select>
+            <Select
+                label="Alignment"
+                value={cls.align ?? ''}
+                onChange={(e) => onChange({ align: (e.target.value || undefined) as StyleClass['align'] })}>
+                <option value="">Default</option>
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+            </Select>
+            <Select
+                label="Max width"
+                value={cls.maxWidth ?? ''}
+                onChange={(e) => onChange({ maxWidth: (e.target.value || undefined) as StyleClass['maxWidth'] })}>
+                <option value="">Default</option>
+                <option value="narrow">Narrow</option>
+                <option value="normal">Normal</option>
+                <option value="wide">Wide</option>
+                <option value="full">Full bleed</option>
+            </Select>
+        </div>
+        <TypographyEditor
+            label="Headings"
+            value={cls.headingType}
+            onChange={(t) => onChange({ headingType: t })}
+        />
+        <TypographyEditor
+            label="Body text"
+            value={cls.bodyType}
+            onChange={(t) => onChange({ bodyType: t })}
+        />
+    </div>
+)
+
+const IdentityFields = ({ site, onChange }: { site: SiteIdentity; onChange: (s: SiteIdentity) => void }) => {
+    const [pickerOpen, setPickerOpen] = useState(false)
+    const set = (patch: Partial<SiteIdentity>) => onChange({ ...site, ...patch })
+    return (
+        <div className="space-y-4">
+            <Input
+                label="Page title"
+                value={site.title ?? ''}
+                onChange={(e) => set({ title: e.target.value })}
+                placeholder="e.g. Acme Institute — learn online"
+                hint="Shows in the browser tab. Falls back to the home page SEO title if blank."
+            />
+            <div>
+                <label className="block text-xs font-medium text-fg-soft mb-1.5">Favicon URL</label>
+                <div className="flex items-center gap-2">
+                    <Input
+                        value={site.faviconUrl ?? ''}
+                        onChange={(e) => set({ faviconUrl: e.target.value })}
+                        placeholder="https:// …favicon.png"
+                        className="flex-1"
+                    />
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<ImageIcon size={12} />}
+                        onClick={() => setPickerOpen(true)}>
+                        Library
+                    </Button>
+                </div>
+                {site.faviconUrl && (
+                    <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-2.5 py-1.5">
+                        <img
+                            src={site.faviconUrl}
+                            alt="favicon preview"
+                            className="h-5 w-5 object-contain"
+                        />
+                        <span className="text-xs text-fg-muted">Preview</span>
+                    </div>
+                )}
+                <MediaPickerModal
+                    open={pickerOpen}
+                    onClose={() => setPickerOpen(false)}
+                    onPick={(url) => {
+                        set({ faviconUrl: url })
+                        setPickerOpen(false)
+                    }}
+                />
+            </div>
+        </div>
+    )
+}
+
+const NavbarFields = ({
+    navbar,
+    pages,
+    onChange
+}: {
+    navbar: NavbarConfig
+    pages: LandingPage[]
+    onChange: (n: NavbarConfig) => void
+}) => {
+    const set = (patch: Partial<NavbarConfig>) => onChange({ ...navbar, ...patch })
+    return (
+        <div className="space-y-4">
+            <Select
+                label="Layout"
+                value={navbar.variant}
+                onChange={(e) => set({ variant: e.target.value as NavbarConfig['variant'] })}>
+                <option value="simple">Simple — logo left, links right</option>
+                <option value="centered">Centered — logo above links</option>
+                <option value="with-cta">With CTA — links + brand-coloured CTA button</option>
+            </Select>
+
+            <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={navbar.showLogo !== false}
+                        onChange={(e) => set({ showLogo: e.target.checked })}
+                        className="accent-[var(--color-brand-500)]"
+                    />
+                    Show logo
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={navbar.showSignIn !== false}
+                        onChange={(e) => set({ showSignIn: e.target.checked })}
+                        className="accent-[var(--color-brand-500)]"
+                    />
+                    Show "Sign in" link
+                </label>
+            </div>
+
+            {navbar.showSignIn !== false && (
+                <Input
+                    label="Sign-in label"
+                    value={navbar.signInLabel ?? ''}
+                    onChange={(e) => set({ signInLabel: e.target.value })}
+                    placeholder="Sign in"
+                />
+            )}
+
+            {navbar.variant === 'with-cta' && (
+                <div className="rounded-md border border-[var(--color-border)] p-3 space-y-3">
+                    <div className="text-xs font-semibold text-fg">Call-to-action button</div>
+                    <Input
+                        label="Button label"
+                        value={navbar.ctaLabel ?? ''}
+                        onChange={(e) => set({ ctaLabel: e.target.value })}
+                        placeholder="Apply now"
+                    />
+                    <LinkTargetPicker
+                        pageId={navbar.ctaPageId}
+                        url={navbar.ctaUrl}
+                        pages={pages}
+                        onChange={(t) => set({ ctaPageId: t.pageId, ctaUrl: t.url })}
+                    />
+                </div>
+            )}
+
+            <div>
+                <div className="text-xs font-semibold text-fg mb-2">Links</div>
+                <LinkListEditor
+                    links={navbar.links}
+                    pages={pages}
+                    onChange={(links) => set({ links })}
+                />
+            </div>
+        </div>
+    )
+}
+
+const FooterFields = ({
+    footer,
+    pages,
+    onChange
+}: {
+    footer: FooterConfig
+    pages: LandingPage[]
+    onChange: (f: FooterConfig) => void
+}) => {
+    const set = (patch: Partial<FooterConfig>) => onChange({ ...footer, ...patch })
+    const setSocial = (patch: Partial<NonNullable<FooterConfig['social']>>) =>
+        onChange({ ...footer, social: { ...(footer.social ?? {}), ...patch } })
+    return (
+        <div className="space-y-4">
+            <Select
+                label="Layout"
+                value={footer.variant}
+                onChange={(e) => set({ variant: e.target.value as FooterConfig['variant'] })}>
+                <option value="simple">Simple — tagline + single link row</option>
+                <option value="columns">Columns — multi-column with grouped links</option>
+                <option value="minimal">Minimal — one-line copyright</option>
+            </Select>
+
+            <Input
+                label="Tagline"
+                value={footer.tagline ?? ''}
+                onChange={(e) => set({ tagline: e.target.value })}
+                placeholder="Mentor-led learning, designed for outcomes."
+            />
+            <Input
+                label="Copyright"
+                value={footer.copyright ?? ''}
+                onChange={(e) => set({ copyright: e.target.value })}
+                placeholder={`© ${new Date().getFullYear()} Your brand. All rights reserved.`}
+            />
+
+            <div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none mb-2">
+                    <input
+                        type="checkbox"
+                        checked={footer.showSocial !== false}
+                        onChange={(e) => set({ showSocial: e.target.checked })}
+                        className="accent-[var(--color-brand-500)]"
+                    />
+                    Show social icons
+                </label>
+                {footer.showSocial !== false && (
+                    <div className="grid grid-cols-2 gap-2 rounded-md border border-[var(--color-border)] p-3">
+                        <Input
+                            label="GitHub"
+                            value={footer.social?.github ?? ''}
+                            onChange={(e) => setSocial({ github: e.target.value })}
+                            placeholder="https://github.com/…"
+                        />
+                        <Input
+                            label="Twitter / X"
+                            value={footer.social?.twitter ?? ''}
+                            onChange={(e) => setSocial({ twitter: e.target.value })}
+                            placeholder="https://twitter.com/…"
+                        />
+                        <Input
+                            label="LinkedIn"
+                            value={footer.social?.linkedin ?? ''}
+                            onChange={(e) => setSocial({ linkedin: e.target.value })}
+                            placeholder="https://linkedin.com/in/…"
+                        />
+                        <Input
+                            label="Instagram"
+                            value={footer.social?.instagram ?? ''}
+                            onChange={(e) => setSocial({ instagram: e.target.value })}
+                            placeholder="https://instagram.com/…"
+                        />
+                        <Input
+                            label="YouTube"
+                            value={footer.social?.youtube ?? ''}
+                            onChange={(e) => setSocial({ youtube: e.target.value })}
+                            placeholder="https://youtube.com/@…"
+                        />
+                    </div>
+                )}
+            </div>
+
+            {footer.variant === 'columns' ? (
+                <div>
+                    <div className="text-xs font-semibold text-fg mb-2">Columns</div>
+                    <FooterColumnsEditor
+                        columns={footer.columns ?? []}
+                        pages={pages}
+                        onChange={(columns) => set({ columns })}
+                    />
+                </div>
+            ) : (
+                <div>
+                    <div className="text-xs font-semibold text-fg mb-2">Links</div>
+                    <LinkListEditor
+                        links={footer.links ?? []}
+                        pages={pages}
+                        onChange={(links) => set({ links })}
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
+
+// Reusable list editor for navbar / footer / column links. Each row has a
+// label + target picker (page or external URL) + new-tab toggle + reorder
+// arrows + remove. Up/down buttons over drag-handles to keep this modal
+// keyboard-friendly without pulling DnD into the modal.
+const LinkListEditor = ({
+    links,
+    pages,
+    onChange
+}: {
+    links: NavLink[]
+    pages: LandingPage[]
+    onChange: (next: NavLink[]) => void
+}) => {
+    const update = (i: number, patch: Partial<NavLink>) => onChange(links.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
+    const remove = (i: number) => onChange(links.filter((_, idx) => idx !== i))
+    const move = (i: number, dir: -1 | 1) => {
+        const j = i + dir
+        if (j < 0 || j >= links.length) return
+        const next = [...links]
+        ;[next[i], next[j]] = [next[j], next[i]]
+        onChange(next)
+    }
+    const add = () => onChange([...links, { id: newLinkId(), label: 'New link', url: '' }])
+
+    return (
+        <div className="space-y-2">
+            {links.length === 0 && (
+                <div className="text-xs text-fg-muted rounded-md border border-dashed border-[var(--color-border)] p-3 text-center">
+                    No links yet.
+                </div>
+            )}
+            {links.map((link, i) => (
+                <div
+                    key={link.id}
+                    className="rounded-md border border-[var(--color-border)] p-3 space-y-2 bg-surface-2/40">
+                    <div className="flex items-start gap-2">
+                        <div className="flex-1 grid grid-cols-2 gap-2">
+                            <Input
+                                label="Label"
+                                value={link.label}
+                                onChange={(e) => update(i, { label: e.target.value })}
+                            />
+                            <label className="flex items-end pb-1.5 text-sm cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={!!link.newTab}
+                                    onChange={(e) => update(i, { newTab: e.target.checked })}
+                                    className="accent-[var(--color-brand-500)] mr-2"
+                                />
+                                Open in new tab
+                            </label>
+                        </div>
+                        <div className="flex flex-col items-center pt-5">
+                            <button
+                                type="button"
+                                aria-label="Move up"
+                                onClick={() => move(i, -1)}
+                                disabled={i === 0}
+                                className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                <ChevronUp size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                aria-label="Move down"
+                                onClick={() => move(i, 1)}
+                                disabled={i === links.length - 1}
+                                className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                <ChevronDown size={14} />
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            aria-label="Remove link"
+                            onClick={() => remove(i)}
+                            className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                            <X size={14} />
+                        </button>
+                    </div>
+                    <LinkTargetPicker
+                        pageId={link.pageId}
+                        url={link.url}
+                        pages={pages}
+                        onChange={(t) => update(i, { pageId: t.pageId, url: t.url })}
+                    />
+                </div>
+            ))}
+            <Button
+                size="sm"
+                variant="ghost"
+                leftIcon={<Plus size={12} />}
+                onClick={add}>
+                Add link
+            </Button>
+        </div>
+    )
+}
+
+// Internal vs external target picker. "Page" mode binds to a LandingPage by
+// id (so renames don't break the link). "URL" mode is free-form — relative
+// paths render under the tenant slug, absolute URLs pass through untouched.
+const LinkTargetPicker = ({
+    pageId,
+    url,
+    pages,
+    onChange
+}: {
+    pageId?: string
+    url?: string
+    pages: LandingPage[]
+    onChange: (t: { pageId?: string; url?: string }) => void
+}) => {
+    const mode: 'page' | 'url' = pageId ? 'page' : 'url'
+    return (
+        <div className="grid grid-cols-[120px_1fr] gap-2">
+            <Select
+                aria-label="Link type"
+                value={mode}
+                onChange={(e) => {
+                    if (e.target.value === 'page') onChange({ pageId: pages[0]?.id, url: undefined })
+                    else onChange({ pageId: undefined, url: '' })
+                }}>
+                <option value="page">Page</option>
+                <option value="url">URL</option>
+            </Select>
+            {mode === 'page' ? (
+                <Select
+                    aria-label="Target page"
+                    value={pageId ?? ''}
+                    onChange={(e) => onChange({ pageId: e.target.value || undefined })}>
+                    <option value="">— pick a page —</option>
+                    {pages.map((p) => (
+                        <option
+                            key={p.id}
+                            value={p.id}>
+                            {p.name} ({p.slug})
+                        </option>
+                    ))}
+                </Select>
+            ) : (
+                <div className="relative">
+                    <Link2 size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none" />
+                    <Input
+                        value={url ?? ''}
+                        onChange={(e) => onChange({ url: e.target.value })}
+                        placeholder="enquiry, /about, or https://…"
+                        className="pl-7 font-mono"
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
+
+const FooterColumnsEditor = ({
+    columns,
+    pages,
+    onChange
+}: {
+    columns: FooterColumn[]
+    pages: LandingPage[]
+    onChange: (next: FooterColumn[]) => void
+}) => {
+    const update = (i: number, patch: Partial<FooterColumn>) =>
+        onChange(columns.map((c, idx) => (idx === i ? { ...c, ...patch } : c)))
+    const remove = (i: number) => onChange(columns.filter((_, idx) => idx !== i))
+    const move = (i: number, dir: -1 | 1) => {
+        const j = i + dir
+        if (j < 0 || j >= columns.length) return
+        const next = [...columns]
+        ;[next[i], next[j]] = [next[j], next[i]]
+        onChange(next)
+    }
+    const add = () =>
+        onChange([
+            ...columns,
+            { id: newLinkId(), title: `Column ${columns.length + 1}`, links: [] }
+        ])
+
+    return (
+        <div className="space-y-3">
+            {columns.length === 0 && (
+                <div className="text-xs text-fg-muted rounded-md border border-dashed border-[var(--color-border)] p-3 text-center">
+                    No columns yet — add one to start grouping footer links.
+                </div>
+            )}
+            {columns.map((col, i) => (
+                <div
+                    key={col.id}
+                    className="rounded-md border border-[var(--color-border)] p-3 space-y-3 bg-surface-2/40">
+                    <div className="flex items-start gap-2">
+                        <Input
+                            label={`Column ${i + 1} title`}
+                            value={col.title}
+                            onChange={(e) => update(i, { title: e.target.value })}
+                            className="flex-1"
+                        />
+                        <div className="flex flex-col items-center pt-5">
+                            <button
+                                type="button"
+                                aria-label="Move up"
+                                onClick={() => move(i, -1)}
+                                disabled={i === 0}
+                                className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                <ChevronUp size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                aria-label="Move down"
+                                onClick={() => move(i, 1)}
+                                disabled={i === columns.length - 1}
+                                className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                <ChevronDown size={14} />
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            aria-label="Remove column"
+                            onClick={() => remove(i)}
+                            className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                            <X size={14} />
+                        </button>
+                    </div>
+                    <LinkListEditor
+                        links={col.links}
+                        pages={pages}
+                        onChange={(links) => update(i, { links })}
+                    />
+                </div>
+            ))}
+            <Button
+                size="sm"
+                variant="ghost"
+                leftIcon={<Plus size={12} />}
+                onClick={add}>
+                Add column
+            </Button>
+        </div>
     )
 }

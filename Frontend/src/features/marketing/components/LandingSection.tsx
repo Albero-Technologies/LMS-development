@@ -5,7 +5,8 @@ import { ArrowRight, BookOpen, Sparkles, MessageCircle, CheckCircle2, Info, Imag
 import { Button } from '@shared/components/ui/Button'
 import { Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
-import type { LandingSection as Section, SectionStyle, Typography } from '@features/admin/services/tenant.service'
+import type { LandingContent, LandingSection as Section, SectionStyle, Typography } from '@features/admin/services/tenant.service'
+import { resolveSectionStyle } from '@features/admin/services/tenant.service'
 import { getPublicCollection } from '@features/admin/services/cms.service'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
 
@@ -228,6 +229,10 @@ interface Props {
     section: Section
     slugBase: string
     tenantName: string
+    // Optional reusable style classes (landing.styleClasses) — passed in by
+    // the page wrapper so the renderer can resolve `style.styleClassId`
+    // references without coupling to the branding context.
+    styleClasses?: LandingContent['styleClasses']
 }
 
 const resolveLink = (slugBase: string, link: string | undefined): string => {
@@ -236,7 +241,8 @@ const resolveLink = (slugBase: string, link: string | undefined): string => {
     return `${slugBase}/${link.replace(/^\//, '')}`
 }
 
-export const LandingSectionRenderer = ({ section, slugBase, tenantName }: Props) => {
+export const LandingSectionRenderer = ({ section, slugBase, tenantName, styleClasses }: Props) => {
+    const resolvedStyle = resolveSectionStyle(section.style, styleClasses)
     const inner = (() => {
         switch (section.type) {
             case 'hero':
@@ -271,7 +277,7 @@ export const LandingSectionRenderer = ({ section, slugBase, tenantName }: Props)
     return (
         <Styled
             id={section.id}
-            style={section.style}>
+            style={resolvedStyle}>
             {inner}
         </Styled>
     )

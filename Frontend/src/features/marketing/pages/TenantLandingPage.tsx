@@ -1,14 +1,21 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Button } from '@shared/components/ui/Button'
-import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
-import { defaultLandingSections, type LandingPage, type LandingSection } from '@features/admin/services/tenant.service'
+import {
+    defaultFooter,
+    defaultLandingSections,
+    defaultNavbar,
+    type LandingPage,
+    type LandingSection
+} from '@features/admin/services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
+import { TenantNavbar } from '@features/marketing/components/TenantNavbar'
+import { TenantFooter } from '@features/marketing/components/TenantFooter'
 
 // Per-tenant public landing page (§9.1, §11). Renders the home page from
 // `tenant.settings.landing.pages` if present (multi-page mode), falling back
-// to the legacy single `sections` array, then to a default layout.
+// to the legacy single `sections` array, then to a default layout. Navbar +
+// footer are pulled from `landing.{navbar,footer}`; site title + favicon
+// come from `landing.site`.
 export const TenantLandingPage = () => {
     const { tenant } = useTenantBranding()
     const slugBase = `/t/${tenant.slug}`
@@ -20,16 +27,22 @@ export const TenantLandingPage = () => {
             ? tenant.landing.sections
             : defaultLandingSections(tenant.name))
 
-    // Per-page SEO — set document.title + meta description for the home page
-    // when the tenant configures them. A real SSR setup would inject these
-    // server-side; for the SPA we patch them on mount.
+    const navbar = tenant.landing?.navbar ?? defaultNavbar()
+    const footer = tenant.landing?.footer ?? defaultFooter(tenant.name)
+    const site = tenant.landing?.site
+
+    // Site identity — push title + favicon into <head> on mount, restore on
+    // unmount so navigating away from the tenant page doesn't leak the
+    // overrides into other parts of the SPA.
     useEffect(() => {
-        const seo = homePage?.seo
         const prevTitle = document.title
-        if (seo?.title) document.title = seo.title
+        const siteTitle = site?.title || homePage?.seo?.title
+        if (siteTitle) document.title = siteTitle
+
         let metaDesc: HTMLMetaElement | null = null
         let prevDesc: string | null = null
-        if (seo?.description) {
+        const desc = homePage?.seo?.description
+        if (desc) {
             metaDesc = document.querySelector('meta[name="description"]')
             if (!metaDesc) {
                 metaDesc = document.createElement('meta')
@@ -37,56 +50,37 @@ export const TenantLandingPage = () => {
                 document.head.appendChild(metaDesc)
             }
             prevDesc = metaDesc.getAttribute('content')
-            metaDesc.setAttribute('content', seo.description)
+            metaDesc.setAttribute('content', desc)
         }
+
+        let favicon: HTMLLinkElement | null = null
+        let prevHref: string | null = null
+        if (site?.faviconUrl) {
+            favicon = document.querySelector("link[rel='icon']")
+            if (!favicon) {
+                favicon = document.createElement('link')
+                favicon.setAttribute('rel', 'icon')
+                document.head.appendChild(favicon)
+            }
+            prevHref = favicon.getAttribute('href')
+            favicon.setAttribute('href', site.faviconUrl)
+        }
+
         return () => {
             document.title = prevTitle
             if (metaDesc && prevDesc !== null) metaDesc.setAttribute('content', prevDesc)
+            if (favicon && prevHref !== null) favicon.setAttribute('href', prevHref)
         }
-    }, [homePage?.seo])
+    }, [site?.title, site?.faviconUrl, homePage?.seo])
 
     return (
         <div className="min-h-screen bg-bg text-fg">
-            <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/85 backdrop-blur">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-                    <Link
-                        to={slugBase}
-                        className="flex items-center gap-2.5 select-none">
-                        {tenant.brandingLogo ? (
-                            <img
-                                src={tenant.brandingLogo}
-                                alt={tenant.name}
-                                className="h-7 w-7 rounded-md object-cover"
-                            />
-                        ) : (
-                            <div className="h-7 w-7 rounded-md grid place-items-center bg-[var(--color-brand-500)] text-white font-semibold text-sm">
-                                {tenant.name.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                        <span className="font-semibold text-[15px] tracking-tight">{tenant.name}</span>
-                    </Link>
-                    <div className="flex items-center gap-3">
-                        <Link
-                            to={`${slugBase}/courses`}
-                            className="text-sm text-fg-soft hover:text-fg hidden sm:inline">
-                            Courses
-                        </Link>
-                        <Link
-                            to={`${slugBase}/enquiry`}
-                            className="text-sm text-fg-soft hover:text-fg hidden sm:inline">
-                            Enquire
-                        </Link>
-                        <ThemeToggle />
-                        <Link to="/login">
-                            <Button
-                                size="sm"
-                                variant="ghost">
-                                Sign in
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            <TenantNavbar
+                config={navbar}
+                pages={pages}
+                tenant={tenant}
+                slugBase={slugBase}
+            />
 
             <main>
                 {sections.map((s) => (
@@ -95,13 +89,17 @@ export const TenantLandingPage = () => {
                         section={s}
                         slugBase={slugBase}
                         tenantName={tenant.name}
+                        styleClasses={tenant.landing?.styleClasses}
                     />
                 ))}
             </main>
 
-            <footer className="border-t border-[var(--color-border)] py-6 text-center text-xs text-fg-muted">
-                © {new Date().getFullYear()} {tenant.name}. Powered by Albero Academy.
-            </footer>
+            <TenantFooter
+                config={footer}
+                pages={pages}
+                tenant={tenant}
+                slugBase={slugBase}
+            />
         </div>
     )
 }

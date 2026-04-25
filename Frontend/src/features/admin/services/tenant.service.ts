@@ -541,6 +541,28 @@ export type SectionStyle = {
     animation?: AnimationToken
     animationDelay?: number // ms
     animationDuration?: number // ms, default 700
+    // Reference to a named StyleClass (landing.styleClasses). Class fields are
+    // applied first, then per-section overrides on this style win.
+    styleClassId?: string
+}
+
+// Reusable named style — Webflow-style classes. Tenants define a class once
+// (e.g. "Heading 1", "Body L") and apply it to many sections; updating the
+// class then updates every section that references it. Per-section overrides
+// always trump class values, so a class is a default not a hard rule.
+//
+// Same shape as SectionStyle minus animation/styleClassId so a class is a
+// pure visual preset, not an animation or a self-reference.
+export type StyleClass = {
+    id: string
+    name: string
+    background?: string
+    textColor?: string
+    paddingY?: SectionStyle['paddingY']
+    align?: SectionStyle['align']
+    maxWidth?: SectionStyle['maxWidth']
+    headingType?: Typography
+    bodyType?: Typography
 }
 
 export type LandingSection =
@@ -560,12 +582,21 @@ export type LandingSection =
 
 // Per-page metadata (slug, title, SEO). The home page is identified by
 // `isHome: true`; missing or zero pages falls back to legacy `sections`.
+//
+// `detailTemplate.collectionSlug`, when set, marks this page as the renderer
+// for items in that collection. Visiting /t/:slug/:collectionSlug/:itemSlug
+// finds the page, fetches the matching item, and substitutes `{{field.key}}`
+// placeholders in the section content. Useful for blog posts, case studies,
+// press releases, etc. — one template, many items.
 export type LandingPage = {
     id: string
     slug: string // '/' for home; otherwise '/about', '/blog/post', etc.
     name: string
     isHome?: boolean
     sections: LandingSection[]
+    detailTemplate?: {
+        collectionSlug?: string
+    }
     seo?: {
         title?: string
         description?: string
@@ -573,9 +604,58 @@ export type LandingPage = {
     }
 }
 
+// One link in a navbar or footer. Target is one of:
+//   - `pageId`  → an internal page from `landing.pages`
+//   - `url`     → external absolute URL
+// Marketing UI lets SAs add/remove/reorder these without touching code.
+export type NavLink = {
+    id: string
+    label: string
+    pageId?: string
+    url?: string
+    newTab?: boolean
+}
+
+// Top-of-page navbar config. Three layouts; logo + sign-in default on.
+export type NavbarConfig = {
+    variant: 'simple' | 'centered' | 'with-cta'
+    showLogo?: boolean
+    showSignIn?: boolean
+    signInLabel?: string
+    ctaLabel?: string
+    ctaPageId?: string
+    ctaUrl?: string
+    links: NavLink[]
+}
+
+export type FooterColumn = { id: string; title: string; links: NavLink[] }
+
+// Footer config. Three layouts: simple (one row), columns (multi-column),
+// minimal (single line).
+export type FooterConfig = {
+    variant: 'simple' | 'columns' | 'minimal'
+    tagline?: string
+    copyright?: string
+    showSocial?: boolean
+    social?: { github?: string; twitter?: string; linkedin?: string; instagram?: string; youtube?: string }
+    links?: NavLink[]
+    columns?: FooterColumn[]
+}
+
+// Site-wide identity overrides. Sit on `landing.site` so the renderer can
+// apply them once at the page boundary.
+export type SiteIdentity = {
+    title?: string
+    faviconUrl?: string
+}
+
 export type LandingContent = {
     sections?: LandingSection[]
     pages?: LandingPage[]
+    site?: SiteIdentity
+    navbar?: NavbarConfig
+    footer?: FooterConfig
+    styleClasses?: StyleClass[]
     // Legacy single-block fields (kept so historical tenants render). New
     // tenants persist exclusively into `sections` (or `pages` once they
     // upgrade past one-page sites).
@@ -823,6 +903,84 @@ const newPageId = (): string =>
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pg_${Math.random().toString(36).slice(2, 10)}`
 
 export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() } as LandingSection)
+
+export const newLinkId = (): string =>
+    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `lnk_${Math.random().toString(36).slice(2, 10)}`
+
+// Sensible default navbar — Home + Courses + Enquire links matching the
+// public sub-routes. Tenants can edit/replace freely.
+export const defaultNavbar = (): NavbarConfig => ({
+    variant: 'simple',
+    showLogo: true,
+    showSignIn: true,
+    signInLabel: 'Sign in',
+    links: [
+        { id: newLinkId(), label: 'Courses', url: 'courses' },
+        { id: newLinkId(), label: 'Enquire', url: 'enquiry' }
+    ]
+})
+
+// Merge a referenced StyleClass into a SectionStyle. Class fields fill in
+// where the section-level style hasn't set its own value — per-section
+// overrides always win. Returns the original style untouched if no class
+// is referenced or the class can't be resolved.
+export const resolveSectionStyle = (style: SectionStyle | undefined, classes: StyleClass[] | undefined): SectionStyle | undefined => {
+    if (!style?.styleClassId) return style
+    const cls = classes?.find((c) => c.id === style.styleClassId)
+    if (!cls) return style
+    return {
+        background: style.background ?? cls.background,
+        textColor: style.textColor ?? cls.textColor,
+        paddingY: style.paddingY ?? cls.paddingY,
+        align: style.align ?? cls.align,
+        maxWidth: style.maxWidth ?? cls.maxWidth,
+        headingType: { ...(cls.headingType ?? {}), ...(style.headingType ?? {}) },
+        bodyType: { ...(cls.bodyType ?? {}), ...(style.bodyType ?? {}) },
+        animation: style.animation,
+        animationDelay: style.animationDelay,
+        animationDuration: style.animationDuration,
+        styleClassId: style.styleClassId
+    }
+}
+
+// Stock starter style classes — surfaced in the editor as "presets" so a
+// fresh tenant has something to apply on day one without building their own
+// style system first.
+export const defaultStyleClasses = (): StyleClass[] => [
+    {
+        id: newLinkId(),
+        name: 'Heading 1',
+        headingType: { fontFamily: 'display', fontSize: '5xl', fontWeight: 'bold', lineHeight: 'tight', letterSpacing: 'tight' }
+    },
+    {
+        id: newLinkId(),
+        name: 'Subhead',
+        headingType: { fontFamily: 'display', fontSize: '2xl', fontWeight: 'semibold', lineHeight: 'snug' }
+    },
+    {
+        id: newLinkId(),
+        name: 'Body L',
+        bodyType: { fontFamily: 'sans', fontSize: 'lg', fontWeight: 'normal', lineHeight: 'relaxed' }
+    },
+    {
+        id: newLinkId(),
+        name: 'Section · Soft tint',
+        background: '#f7f9ff',
+        paddingY: 'lg'
+    }
+]
+
+export const defaultFooter = (tenantName: string): FooterConfig => ({
+    variant: 'simple',
+    tagline: `Mentor-led learning, designed for outcomes.`,
+    copyright: `© ${new Date().getFullYear()} ${tenantName}. All rights reserved.`,
+    showSocial: false,
+    links: [
+        { id: newLinkId(), label: 'About', url: 'about' },
+        { id: newLinkId(), label: 'Courses', url: 'courses' },
+        { id: newLinkId(), label: 'Enquire', url: 'enquiry' }
+    ]
+})
 
 // Create a new empty page. Slugs are normalised to lowercase with leading
 // slash so the renderer can match URLs cleanly.
