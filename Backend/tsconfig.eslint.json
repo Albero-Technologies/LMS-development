@@ -4,6 +4,6 @@
         "noEmit": true,
         "rootDir": "."
     },
-    "include": ["src/**/*.ts", "test/**/*.ts", "prisma/**/*.ts", "script/**/*.{ts,js}"],
+    "include": ["src/**/*.ts", "test/**/*.ts", "prisma/**/*.ts", "script/**/*.ts", "script/**/*.js"],
     "exclude": ["node_modules", "dist", "coverage", "logs", "public"]
 }

@@ -9,12 +9,12 @@
 BEGIN;
 
 -- 1. Remap any rows still on the deprecated value.
-UPDATE "User" SET "role" = 'ADMIN' WHERE "role" = 'CLIENT';
-UPDATE "Invite" SET "role" = 'ADMIN' WHERE "role" = 'CLIENT';
+UPDATE "users" SET "role" = 'ADMIN' WHERE "role" = 'CLIENT';
+UPDATE "invites" SET "role" = 'ADMIN' WHERE "role" = 'CLIENT';
 
 -- 2. Detach columns from the enum so we can drop it.
-ALTER TABLE "User" ALTER COLUMN "role" TYPE TEXT USING "role"::text;
-ALTER TABLE "Invite" ALTER COLUMN "role" TYPE TEXT USING "role"::text;
+ALTER TABLE "users" ALTER COLUMN "role" TYPE TEXT USING "role"::text;
+ALTER TABLE "invites" ALTER COLUMN "role" TYPE TEXT USING "role"::text;
 
 DROP TYPE "Role";
 
@@ -29,7 +29,7 @@ CREATE TYPE "Role" AS ENUM (
 );
 
 -- 3. Reattach columns to the new enum.
-ALTER TABLE "User" ALTER COLUMN "role" TYPE "Role" USING "role"::"Role";
-ALTER TABLE "Invite" ALTER COLUMN "role" TYPE "Role" USING "role"::"Role";
+ALTER TABLE "users" ALTER COLUMN "role" TYPE "Role" USING "role"::"Role";
+ALTER TABLE "invites" ALTER COLUMN "role" TYPE "Role" USING "role"::"Role";
 
 COMMIT;
