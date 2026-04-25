@@ -33,6 +33,7 @@ import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { NotificationBell } from '@features/notifications/components/NotificationBell'
+import { useRealtimeSync } from '@shared/hooks/useRealtimeSync'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES, ROLE_LABEL, type TRole } from '@shared/constants/roles'
@@ -133,6 +134,10 @@ export const AppLayout = () => {
     const nav = useMemo<NavItem[]>(() => (user ? (NAV_BY_ROLE[user.role] ?? []) : []), [user])
     const roleAccent = user ? ROLE_ACCENT[user.role] : undefined
     const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
+
+    // Open the socket connection while authenticated and route push events to
+    // TanStack Query invalidations.
+    useRealtimeSync()
 
     const handleLogout = () => {
         clear()

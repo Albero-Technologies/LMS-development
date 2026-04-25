@@ -47,7 +47,9 @@ export default defineConfig(({ mode }) => {
         proxy: {
             '/api': {
                 target: env.BACKEND_PROXY,
-                changeOrigin: true
+                changeOrigin: true,
+                // Forward WebSocket upgrades so socket.io works through the Vite dev proxy.
+                ws: true
             }
         }
     }

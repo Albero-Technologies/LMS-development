@@ -4,6 +4,7 @@ import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { render } from './notification.templates'
 import { sendEmail } from './mailer'
+import { emitToUser } from '../../service/socket'
 import logger from '../../util/logger'
 import { type TNotifyJobData } from './notification.queue'
 
@@ -58,6 +59,11 @@ export const processNotificationJob = async (job: TNotifyJobData): Promise<void>
                 where: { id: notification.id },
                 data: { status: NotificationStatus.SENT, sentAt: new Date() }
             })
+            // Push to any open browser sessions for this user. Front-end
+            // listens on `notifications:new` and invalidates the bell query.
+            if (recipient.userId) {
+                emitToUser(recipient.userId, 'notifications:new', { id: notification.id, template: job.template })
+            }
         }
     } catch (err) {
         const msg = err instanceof Error ? err.message : 'send failed'

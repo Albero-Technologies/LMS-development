@@ -4,6 +4,7 @@ import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { type TAddCommentInput, type TCreateTicketInput, type TListTicketsQuery, type TUpdateTicketInput } from './ticket.schema'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
+import { emitToUser } from '../../service/socket'
 
 const generateTicketNumber = async (tenantId: string): Promise<string> => {
     const prefix = new Date().toISOString().slice(0, 7).replace('-', '')
@@ -101,6 +102,13 @@ export const updateTicket = async (tenantId: string, role: Role, id: string, inp
         })
     }
 
+    // Real-time push so any open ticket views invalidate. Both opener and
+    // assignee may have the page open; emit to both rooms.
+    emitToUser(ticket.openerId, 'tickets:updated', { id: ticket.id })
+    if (ticket.assigneeId && ticket.assigneeId !== ticket.openerId) {
+        emitToUser(ticket.assigneeId, 'tickets:updated', { id: ticket.id })
+    }
+
     return updated
 }
 
@@ -114,7 +122,7 @@ export const addComment = async (tenantId: string, role: Role, authorId: string,
     // Non-staff can never post internal comments.
     const internal = isStaffRole(role) ? input.internal : false
 
-    return db.client.ticketComment.create({
+    const comment = await db.client.ticketComment.create({
         data: {
             ticketId,
             authorId,
@@ -122,4 +130,17 @@ export const addComment = async (tenantId: string, role: Role, authorId: string,
             internal
         }
     })
+
+    // Push to whichever party didn't write the comment. Internal notes go only
+    // to staff (the assignee, if any).
+    const targets = new Set<string>()
+    if (internal) {
+        if (ticket.assigneeId && ticket.assigneeId !== authorId) targets.add(ticket.assigneeId)
+    } else {
+        if (ticket.openerId !== authorId) targets.add(ticket.openerId)
+        if (ticket.assigneeId && ticket.assigneeId !== authorId) targets.add(ticket.assigneeId)
+    }
+    for (const id of targets) emitToUser(id, 'tickets:updated', { id: ticket.id })
+
+    return comment
 }

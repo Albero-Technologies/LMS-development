@@ -3,9 +3,11 @@ import config from './config/config'
 import { initRateLimiter } from './config/rateLimiter'
 import db from './service/db'
 import { closeRedis, getRedis } from './service/redis'
+import { closeSocket, initSocket } from './service/socket'
 import logger from './util/logger'
 
 const server = app.listen(config.PORT)
+initSocket(server)
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 ;(async () => {
@@ -31,6 +33,7 @@ const shutdown = (signal: string): void => {
     logger.info('APPLICATION_SHUTDOWN', { meta: { signal } })
     server.close(async () => {
         try {
+            await closeSocket()
             await db.disconnect()
             await closeRedis()
         } catch (err) {
