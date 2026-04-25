@@ -1,29 +1,37 @@
 // Public counsellor-invite onboarding form (matches the backend
-// `/api/v1/onboarding/:token/submit` flow). A student arrives via a
-// share-link, fills these details, and the counsellor emails them
-// credentials shortly after.
+// `/api/v1/onboarding/:token/submit` flow). Full-screen layout (covers any
+// sidebar), modern stepper-style progress bar, and a tenant + counsellor
+// banner so the applicant knows who's enrolling them.
 //
-// Sections collapse below the basics so the form doesn't look intimidating
-// on first paint — Education / Professional / Gap are optional.
-import { useState } from 'react'
+// All sections beyond the basics are optional. The progress bar reflects how
+// many of the recommended fields are filled — it's a hint, not a gate.
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowRight, GraduationCap, Briefcase, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowRight, GraduationCap, Briefcase, Clock, ChevronDown, ChevronUp, Sparkles, BadgeCheck, Building2 } from 'lucide-react'
 import { api, toApiError } from '@shared/libs/api'
-import { Brand } from '@shared/components/Brand'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import { Button } from '@shared/components/ui/Button'
-import { Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
+import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { cn } from '@shared/helpers/cn'
 
-// Mirrors the backend submitOnboardingSchema — keep keys aligned.
-// Numbers are typed as strings on the form (HTML inputs return strings) and
-// trimmed/coerced before submit.
+interface InvitePreview {
+    tenant: { id: string; name: string; slug: string; brandingLogo: string | null; brandingColor: string | null }
+    counsellor: { id: string; firstName: string; lastName: string }
+    course: { id: string; title: string; slug: string; thumbnailUrl: string | null } | null
+    expiresAt: string
+}
+
+const fetchInvitePreview = async (token: string): Promise<InvitePreview> => {
+    const { data } = await api.get<{ data: InvitePreview }>(`/onboarding/${token}`)
+    return data.data
+}
+
 const educationEntrySchema = z.object({
     degree: z.string().optional(),
     institution: z.string().optional(),
@@ -64,8 +72,6 @@ const schema = z.object({
 })
 type TForm = z.infer<typeof schema>
 
-// Drop empty strings before sending so the backend's optional fields don't
-// receive `""` which would fail their min(1) checks.
 const cleanString = (v: string | undefined): string | undefined => {
     if (!v) return undefined
     const trimmed = v.trim()
@@ -141,9 +147,30 @@ const buildPayload = (d: TForm) => {
     }
 }
 
+// Recommended fields used to compute the progress bar. The form will
+// submit even with most of these blank — the bar is just a hint.
+const RECOMMENDED_FIELDS: (keyof TForm | 'addr' | 'qual' | 'edu' | 'prof' | 'gap')[] = [
+    'firstName',
+    'lastName',
+    'email',
+    'phone',
+    'addr',
+    'qual',
+    'edu',
+    'prof'
+]
+
 export const OnboardingPage = () => {
-    const { token } = useParams()
+    const { token = '' } = useParams()
     const navigate = useNavigate()
+
+    const previewQuery = useQuery({
+        queryKey: ['onboarding', 'preview', token],
+        queryFn: () => fetchInvitePreview(token),
+        enabled: token.length > 0,
+        retry: false
+    })
+
     const [openEducation, setOpenEducation] = useState(false)
     const [openProfessional, setOpenProfessional] = useState(false)
     const [openGap, setOpenGap] = useState(false)
@@ -151,8 +178,54 @@ export const OnboardingPage = () => {
     const {
         register,
         handleSubmit,
+        control,
         formState: { errors }
     } = useForm<TForm>({ resolver: zodResolver(schema) })
+
+    // Watch the entire form so the progress bar updates as the applicant
+    // types. `useWatch` is cheaper than re-rendering on every keystroke for
+    // the whole tree.
+    const watched = useWatch({ control })
+
+    const progressPct = useMemo(() => {
+        let filled = 0
+        for (const f of RECOMMENDED_FIELDS) {
+            if (f === 'addr') {
+                if (cleanString(watched.address)) filled++
+            } else if (f === 'qual') {
+                if (cleanString(watched.qualification)) filled++
+            } else if (f === 'edu') {
+                const e = watched.education
+                if (e?.graduation?.degree || e?.graduation?.institution || e?.masters?.degree) filled++
+            } else if (f === 'prof') {
+                const p = watched.professional
+                if (p?.totalExperienceYears || p?.role || p?.industry) filled++
+            } else if (f === 'gap') {
+                const g = watched.gap
+                if (g?.years || g?.months) filled++
+            } else {
+                if (cleanString(watched[f] as string | undefined)) filled++
+            }
+        }
+        return Math.round((filled / RECOMMENDED_FIELDS.length) * 100)
+    }, [watched])
+
+    // Apply the tenant's brand color to the brand CSS vars while this page is
+    // mounted, so the form takes on the institute's colour (header, buttons,
+    // progress bar). Cleanup restores defaults on navigation away.
+    useEffect(() => {
+        const color = previewQuery.data?.tenant.brandingColor
+        if (!color) return
+        const root = document.documentElement
+        const prev500 = root.style.getPropertyValue('--color-brand-500')
+        const prev700 = root.style.getPropertyValue('--color-brand-700')
+        root.style.setProperty('--color-brand-500', color)
+        root.style.setProperty('--color-brand-700', color)
+        return () => {
+            root.style.setProperty('--color-brand-500', prev500)
+            root.style.setProperty('--color-brand-700', prev700)
+        }
+    }, [previewQuery.data?.tenant.brandingColor])
 
     const mutation = useMutation({
         mutationFn: async (d: TForm) => {
@@ -167,21 +240,97 @@ export const OnboardingPage = () => {
         onError: (err) => toast.error(toApiError(err).message)
     })
 
+    if (previewQuery.isLoading) {
+        return <FullScreenStatus message="Loading your invite…" />
+    }
+    if (previewQuery.isError || !previewQuery.data) {
+        const msg = previewQuery.error instanceof Error ? toApiError(previewQuery.error).message : 'This invite link is invalid or has expired.'
+        return (
+            <FullScreenStatus
+                title="Invite unavailable"
+                message={msg}
+            />
+        )
+    }
+
+    const tenant = previewQuery.data.tenant
+    const counsellor = previewQuery.data.counsellor
+    const course = previewQuery.data.course
+    const counsellorName = `${counsellor.firstName} ${counsellor.lastName}`.trim()
+
     return (
-        <div className="min-h-screen bg-aurora-soft flex items-center justify-center p-6 noise">
-            <div className="w-full max-w-2xl">
-                <div className="flex items-center justify-between mb-6">
-                    <Brand />
-                    <Badge tone="brand">Counsellor invite</Badge>
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-bg">
+            {/* Top brand bar — sticky so the institute identity stays visible while scrolling. */}
+            <header className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-bg/90 backdrop-blur">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        {tenant.brandingLogo ? (
+                            <img
+                                src={tenant.brandingLogo}
+                                alt={tenant.name}
+                                className="h-8 w-8 rounded-md object-cover"
+                            />
+                        ) : (
+                            <div className="h-8 w-8 rounded-md grid place-items-center bg-[var(--color-brand-500)] text-white font-semibold text-sm">
+                                {tenant.name.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <div className="text-sm font-semibold text-fg truncate">{tenant.name}</div>
+                            <div className="text-[11px] text-fg-muted">Powered by Albero Academy</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Badge tone="brand">Counsellor invite</Badge>
+                        <ThemeToggle />
+                    </div>
                 </div>
-                <Card>
-                    <h1 className="font-display text-3xl mb-2">Tell us a little about yourself</h1>
-                    <p className="text-sm text-fg-soft mb-6">
-                        Your counsellor created this link just for you. We'll use these details to enrol you and share login credentials over email.
+                {/* Progress bar */}
+                <div
+                    className="h-1 bg-[var(--color-border)]"
+                    aria-hidden>
+                    <div
+                        className="h-full bg-[var(--color-brand-500)] transition-all duration-300"
+                        style={{ width: `${progressPct}%` }}
+                    />
+                </div>
+            </header>
+
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-16">
+                {/* Greeting + counsellor card */}
+                <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-brand-50)] to-transparent p-5 sm:p-6 mb-6">
+                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome to {tenant.name}</h1>
+                    <p className="text-sm text-fg-soft mt-2">
+                        Tell us a little about yourself so we can enrol you and email your login credentials.
                     </p>
-                    <form
-                        onSubmit={handleSubmit((d) => mutation.mutate(d))}
-                        className="space-y-4">
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 border border-[var(--color-border)]">
+                            <BadgeCheck
+                                size={12}
+                                className="text-[var(--color-brand-500)]"
+                            />
+                            Invited by <strong className="text-fg">{counsellorName || 'your counsellor'}</strong>
+                        </span>
+                        {course && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 border border-[var(--color-border)]">
+                                <Sparkles
+                                    size={12}
+                                    className="text-[var(--color-brand-500)]"
+                                />
+                                For <strong className="text-fg">{course.title}</strong>
+                            </span>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 border border-[var(--color-border)]">
+                            <Building2 size={12} />
+                            {tenant.name}
+                        </span>
+                    </div>
+                </div>
+
+                <form
+                    onSubmit={handleSubmit((d) => mutation.mutate(d))}
+                    className="space-y-5">
+                    <FormBlock title="Basics">
                         <div className="grid sm:grid-cols-2 gap-3">
                             <Input
                                 label="First name"
@@ -217,146 +366,166 @@ export const OnboardingPage = () => {
                             placeholder="e.g. BTech CSE"
                             {...register('qualification')}
                         />
+                    </FormBlock>
 
-                        <Section
-                            label="Education details"
-                            icon={<GraduationCap size={14} />}
-                            open={openEducation}
-                            onToggle={() => setOpenEducation((v) => !v)}>
-                            <EducationFields
-                                heading="Graduation"
-                                prefix="education.graduation"
-                                register={register}
-                            />
-                            <EducationFields
-                                heading="Masters"
-                                prefix="education.masters"
-                                register={register}
-                            />
-                        </Section>
+                    <Section
+                        label="Education details"
+                        sublabel="Optional — helps us pick the right cohort for you."
+                        icon={<GraduationCap size={14} />}
+                        open={openEducation}
+                        onToggle={() => setOpenEducation((v) => !v)}>
+                        <EducationFields
+                            heading="Graduation"
+                            prefix="education.graduation"
+                            register={register}
+                        />
+                        <EducationFields
+                            heading="Masters"
+                            prefix="education.masters"
+                            register={register}
+                        />
+                    </Section>
 
-                        <Section
-                            label="Professional details"
-                            icon={<Briefcase size={14} />}
-                            open={openProfessional}
-                            onToggle={() => setOpenProfessional((v) => !v)}>
-                            <div className="grid sm:grid-cols-2 gap-3">
-                                <Input
-                                    label="Total experience (years)"
-                                    type="number"
-                                    step="0.5"
-                                    min={0}
-                                    {...register('professional.totalExperienceYears')}
-                                />
-                                <Input
-                                    label="CTC (₹ lakhs)"
-                                    type="number"
-                                    step="0.1"
-                                    min={0}
-                                    {...register('professional.ctcLakhs')}
-                                />
-                                <Input
-                                    label="Current / last role"
-                                    placeholder="e.g. DevOps Engineer"
-                                    {...register('professional.role')}
-                                />
-                                <Input
-                                    label="Industry"
-                                    placeholder="e.g. SaaS, Fintech"
-                                    {...register('professional.industry')}
-                                />
-                            </div>
-                            <Textarea
-                                label="What do you do? (brief description)"
-                                rows={3}
-                                placeholder="A few lines about your work."
-                                {...register('professional.description')}
+                    <Section
+                        label="Professional details"
+                        sublabel="Optional — helps us tailor the projects to your stack."
+                        icon={<Briefcase size={14} />}
+                        open={openProfessional}
+                        onToggle={() => setOpenProfessional((v) => !v)}>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            <Input
+                                label="Total experience (years)"
+                                type="number"
+                                step="0.5"
+                                min={0}
+                                {...register('professional.totalExperienceYears')}
                             />
-                        </Section>
-
-                        <Section
-                            label="Career gap (optional)"
-                            icon={<Clock size={14} />}
-                            open={openGap}
-                            onToggle={() => setOpenGap((v) => !v)}>
-                            <div className="grid sm:grid-cols-2 gap-3">
-                                <Input
-                                    label="Years"
-                                    type="number"
-                                    min={0}
-                                    {...register('gap.years')}
-                                />
-                                <Input
-                                    label="Months"
-                                    type="number"
-                                    min={0}
-                                    max={12}
-                                    {...register('gap.months')}
-                                />
-                            </div>
-                            <Textarea
-                                label="Reason (optional)"
-                                rows={2}
-                                {...register('gap.reason')}
+                            <Input
+                                label="CTC (₹ lakhs)"
+                                type="number"
+                                step="0.1"
+                                min={0}
+                                {...register('professional.ctcLakhs')}
                             />
-                        </Section>
-
+                            <Input
+                                label="Current / last role"
+                                placeholder="e.g. DevOps Engineer"
+                                {...register('professional.role')}
+                            />
+                            <Input
+                                label="Industry"
+                                placeholder="e.g. SaaS, Fintech"
+                                {...register('professional.industry')}
+                            />
+                        </div>
                         <Textarea
-                            label="Anything else we should know (optional)"
+                            label="What do you do? (brief description)"
+                            rows={3}
+                            placeholder="A few lines about your work."
+                            {...register('professional.description')}
+                        />
+                    </Section>
+
+                    <Section
+                        label="Career gap"
+                        sublabel="Optional — only if there's been a meaningful gap."
+                        icon={<Clock size={14} />}
+                        open={openGap}
+                        onToggle={() => setOpenGap((v) => !v)}>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            <Input
+                                label="Years"
+                                type="number"
+                                min={0}
+                                {...register('gap.years')}
+                            />
+                            <Input
+                                label="Months"
+                                type="number"
+                                min={0}
+                                max={12}
+                                {...register('gap.months')}
+                            />
+                        </div>
+                        <Textarea
+                            label="Reason (optional)"
+                            rows={2}
+                            {...register('gap.reason')}
+                        />
+                    </Section>
+
+                    <FormBlock title="Anything else?">
+                        <Textarea
+                            label="Notes for your counsellor (optional)"
                             rows={3}
                             {...register('notes')}
                         />
+                    </FormBlock>
 
-                        <Button
-                            type="submit"
-                            size="lg"
-                            className="w-full"
-                            loading={mutation.isPending}
-                            rightIcon={<ArrowRight size={16} />}>
-                            Submit application
-                        </Button>
-                    </form>
-                </Card>
-            </div>
+                    <div className="sticky bottom-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-4 bg-bg/90 backdrop-blur border-t border-[var(--color-border)]">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="text-xs text-fg-muted">
+                                {progressPct < 100 ? `${progressPct}% complete — extra fields are optional` : 'Looks complete!'}
+                            </div>
+                            <Button
+                                type="submit"
+                                size="lg"
+                                loading={mutation.isPending}
+                                rightIcon={<ArrowRight size={16} />}
+                                className="w-full sm:w-auto">
+                                Submit application
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </main>
         </div>
     )
 }
 
-// Collapsible section so the form stays approachable. Click the header to
-// expand the optional block.
+const FormBlock = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="rounded-xl border border-[var(--color-border)] bg-surface p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-fg">{title}</h2>
+        {children}
+    </div>
+)
+
 const Section = ({
     label,
+    sublabel,
     icon,
     open,
     onToggle,
     children
 }: {
     label: string
+    sublabel?: string
     icon: React.ReactNode
     open: boolean
     onToggle: () => void
     children: React.ReactNode
 }) => (
-    <div className="rounded-md border border-[var(--color-border)]">
+    <div className="rounded-xl border border-[var(--color-border)] bg-surface overflow-hidden">
         <button
             type="button"
             onClick={onToggle}
             className={cn(
-                'w-full flex items-center justify-between px-4 py-3 text-left text-sm font-medium text-fg',
+                'w-full flex items-center justify-between px-5 py-4 text-left',
                 open ? 'border-b border-[var(--color-border)]' : ''
             )}>
-            <span className="inline-flex items-center gap-2">
-                <span className="text-fg-soft">{icon}</span>
-                {label}
-            </span>
-            {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            <div className="flex items-center gap-3">
+                <span className="h-8 w-8 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center">{icon}</span>
+                <div>
+                    <div className="text-sm font-semibold text-fg">{label}</div>
+                    {sublabel && <div className="text-xs text-fg-muted">{sublabel}</div>}
+                </div>
+            </div>
+            {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
-        {open && <div className="p-4 space-y-3">{children}</div>}
+        {open && <div className="p-5 space-y-3">{children}</div>}
     </div>
 )
 
-// `prefix` lets one component render either Graduation or Masters by emitting
-// nested `education.graduation.*` / `education.masters.*` field names.
 type RegisterFn = ReturnType<typeof useForm<TForm>>['register']
 const EducationFields = ({ heading, prefix, register }: { heading: string; prefix: 'education.graduation' | 'education.masters'; register: RegisterFn }) => (
     <div>
@@ -386,6 +555,15 @@ const EducationFields = ({ heading, prefix, register }: { heading: string; prefi
                 max={100}
                 {...register(`${prefix}.percentage`)}
             />
+        </div>
+    </div>
+)
+
+const FullScreenStatus = ({ title = 'Just a moment', message }: { title?: string; message: string }) => (
+    <div className="fixed inset-0 z-[100] grid place-items-center bg-bg p-6">
+        <div className="text-center max-w-md">
+            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+            <p className="mt-2 text-sm text-fg-soft">{message}</p>
         </div>
     </div>
 )

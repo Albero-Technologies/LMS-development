@@ -50,3 +50,66 @@ export const buildInviteUrl = (token: string): string => {
     if (typeof window === 'undefined') return `/onboarding/${token}`
     return `${window.location.origin}/onboarding/${token}`
 }
+
+// ---- My students ---------------------------------------------------------
+
+export interface MyStudent {
+    signupId: string
+    studentId: string | null
+    email: string
+    firstName: string
+    lastName: string
+    phone: string | null
+    status: string
+    createdAt: string
+    lastLoginAt: string | null
+    enrollments: { id: string; status: string; progressPct: number; course: { id: string; title: string } | null }[]
+    payments: { totalPaid: number; pendingAmount: number; paidCount: number; pendingCount: number }
+    invoices: { id: string; number: string; totalAmount: number; status: string; dueAt: string | null; paidAt: string | null }[]
+}
+
+export const listMyStudents = async (): Promise<MyStudent[]> => {
+    const { data } = await api.get<Envelope<MyStudent[]>>('/counsellor/students')
+    return data.data
+}
+
+// Fetch the one-time creds for a signup (counsellor-only). Returns the
+// initial password for credential sharing.
+export interface SharedCreds {
+    email: string
+    initialPassword: string | null
+}
+
+export const shareStudentCreds = async (signupId: string): Promise<SharedCreds> => {
+    const { data } = await api.post<Envelope<SharedCreds>>(`/counsellor/invites/signups/${signupId}/share`)
+    return data.data
+}
+
+// ---- Targets + monthly tracker -------------------------------------------
+
+export type CounsellorTargetSummary = {
+    period: { start: string; end: string }
+    target: { signups: number; enrolments: number; revenue: number }
+    actual: { signups: number; enrolments: number; revenue: number }
+    completionRate: { signups: number; enrolments: number; revenue: number }
+}
+
+export type CounsellorMonthBucket = {
+    period: { start: string; end: string; label: string }
+    target: { signups: number; enrolments: number; revenue: number }
+    actual: { signups: number; enrolments: number; revenue: number }
+    completionRate: { signups: number; enrolments: number; revenue: number }
+    signupsRemaining: number
+    enrolmentsRemaining: number
+    revenueRemaining: number
+}
+
+export const getMyTarget = async (): Promise<CounsellorTargetSummary> => {
+    const { data } = await api.get<Envelope<CounsellorTargetSummary>>('/counsellor/targets')
+    return data.data
+}
+
+export const getMyTargetHistory = async (months = 5): Promise<CounsellorMonthBucket[]> => {
+    const { data } = await api.get<Envelope<CounsellorMonthBucket[]>>('/counsellor/targets/history', { params: { months } })
+    return data.data
+}

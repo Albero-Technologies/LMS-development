@@ -48,6 +48,14 @@ export const listUsers = async (
         where.managerId = actorId
     }
 
+    // Counsellors are auto-scoped to their own students — i.e. anyone who
+    // signed up through one of their share-links. Otherwise they'd see the
+    // full tenant directory which they have no business managing.
+    if (actorRole === Role.COUNSELLOR && query.trainerScope !== 'me' && query.managerScope !== 'me') {
+        where.role = Role.STUDENT
+        where.studentSignup = { is: { counsellorId: actorId } }
+    }
+
     // Prisma rejects `false` in a `select` block for relations — you either
     // include the key with a select object or omit it entirely. So we build
     // the select as a Prisma type and add the tenant join only for SAs.
@@ -96,7 +104,52 @@ export const getUser = async (tenantId: string, id: string) => {
             phone: true,
             avatarUrl: true,
             lastLoginAt: true,
-            createdAt: true
+            createdAt: true,
+            employeeCode: true,
+            managerId: true,
+            manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+            // Hydrate the full picture for the detail modal — onboarding form
+            // submission (signup) for students, plus an invoice history for
+            // the fees view, plus enrolment summary.
+            studentSignup: {
+                select: {
+                    id: true,
+                    address: true,
+                    city: true,
+                    state: true,
+                    qualification: true,
+                    interest: true,
+                    notes: true,
+                    extra: true,
+                    dateOfBirth: true,
+                    counsellor: { select: { id: true, firstName: true, lastName: true, email: true } }
+                }
+            },
+            enrollments: {
+                select: {
+                    id: true,
+                    status: true,
+                    createdAt: true,
+                    course: { select: { id: true, title: true, slug: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 50
+            },
+            invoices: {
+                select: {
+                    id: true,
+                    number: true,
+                    totalAmount: true,
+                    currency: true,
+                    status: true,
+                    dueAt: true,
+                    paidAt: true,
+                    createdAt: true,
+                    enrollment: { select: { course: { select: { title: true } } } }
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 100
+            }
         }
     })
     if (!user) throw AppError.notFound(responseMessage.NOT_FOUND('User'), 'USER_NOT_FOUND')

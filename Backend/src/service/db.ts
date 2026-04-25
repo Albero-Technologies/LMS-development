@@ -27,6 +27,27 @@ const prisma = new PrismaClient({
     log: config.ENV === 'development' ? ['warn', 'error'] : ['error']
 })
 
+// `findUnique({ where: { tenantId_email: { tenantId, email } } })` is a
+// compound-key shorthand only valid on findUnique. When we rewrite to
+// findFirst (so we can layer `deletedAt: null`), flatten the compound key
+// into its constituent equality filters — otherwise Prisma errors out with
+// `Unknown argument tenantId_email`.
+const flattenCompoundUniqueKeys = (where: Record<string, unknown> | undefined): Record<string, unknown> => {
+    if (!where) return {}
+    const out: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(where)) {
+        const looksCompound = key.includes('_') && value && typeof value === 'object' && !Array.isArray(value)
+        if (looksCompound) {
+            for (const [innerKey, innerValue] of Object.entries(value as Record<string, unknown>)) {
+                out[innerKey] = innerValue
+            }
+        } else {
+            out[key] = value
+        }
+    }
+    return out
+}
+
 // Soft-delete middleware — transparently filter deleted_at on reads.
 prisma.$use(async (params, next) => {
     if (!params.model || !SOFT_DELETE_MODELS.has(params.model)) {
@@ -36,7 +57,7 @@ prisma.$use(async (params, next) => {
     if (params.action === 'findUnique' || params.action === 'findFirst') {
         params.action = params.action === 'findUnique' ? 'findFirst' : params.action
         params.args = params.args || {}
-        params.args.where = { ...params.args.where, deletedAt: null }
+        params.args.where = { ...flattenCompoundUniqueKeys(params.args.where), deletedAt: null }
     }
 
     if (params.action === 'findMany' || params.action === 'count' || params.action === 'aggregate') {

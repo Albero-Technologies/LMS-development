@@ -1,0 +1,4 @@
+# Netlify SPA fallback — React Router owns client-side routing, so every
+# unmatched path serves index.html and lets the router resolve it. Without
+# this, refreshing /app/foo on a Netlify deploy would 404.
+/*    /index.html   200

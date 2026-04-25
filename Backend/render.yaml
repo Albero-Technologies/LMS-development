@@ -1,5 +1,6 @@
 # Render deployment config for the Albero Academy backend.
-# Single web service; secrets are configured in the Render dashboard.
+# Lives inside Backend/ so the Render service can be configured with that as
+# the root directory.
 #
 # Free-tier note: the web service spins down after ~15 min of inactivity.
 # To keep it warm, configure an external pinger (cron-job.org or UptimeRobot)
@@ -12,7 +13,6 @@ services:
       name: albero-api
       runtime: node
       plan: free
-      rootDir: Backend
       buildCommand: npm ci --include=dev && npx prisma generate && npm run build
       startCommand: npm start
       healthCheckPath: /api/v1/health
@@ -38,6 +38,6 @@ services:
           # - COOKIE_DOMAIN         (.<your-domain>)
           # - COOKIE_SECURE=true
           # - GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REDIRECT_URI / GOOGLE_POST_LOGIN_REDIRECT
-          # - NODEMAILER_MAIL / NODEMAILER_PASS    (or SENDGRID_API_KEY during transition)
+          # - NODEMAILER_MAIL / NODEMAILER_PASS
           # - RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET / RAZORPAY_WEBHOOK_SECRET
           # - SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD

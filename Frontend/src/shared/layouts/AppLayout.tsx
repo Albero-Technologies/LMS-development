@@ -64,7 +64,9 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
     ADMIN: [
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
-        { to: '/app/users', label: 'Students', icon: Users },
+        { to: '/app/users', label: 'Users', icon: Users },
+        { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
+        { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/admin/billing', label: 'Subscription', icon: Briefcase },
@@ -93,7 +95,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
-        { to: '/app/courses', label: 'Courses', icon: BookOpen },
+        { to: '/app/users', label: 'Students', icon: Users },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
     ],
     COUNSELLING_MANAGER: [

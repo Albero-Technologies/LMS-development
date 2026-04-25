@@ -1,9 +1,8 @@
 # Netlify deployment config for the Albero Academy frontend.
-# Base directory points at Frontend/, build runs Vite, output is Frontend/dist/.
-# All non-asset paths fall through to index.html so React Router handles them.
+# Lives inside Frontend/ so the deploy can be configured with that as the
+# base directory in Netlify (no monorepo gymnastics needed).
 
 [build]
-    base = "Frontend/"
     command = "npm ci && npm run build"
     publish = "dist/"
 
@@ -14,7 +13,10 @@
     # Netlify dashboard, not here. Anything VITE_* prefixed reaches the browser.
 
 # SPA fallback — React Router owns client-side routing; without this every
-# refresh on /app/foo would 404.
+# refresh on /app/foo would 404. The same redirect is also written to
+# `public/_redirects` so it ends up in `dist/_redirects` after build (Netlify
+# reads either; having both makes deployments outside Netlify-managed builds
+# work too).
 [[redirects]]
     from = "/*"
     to = "/index.html"

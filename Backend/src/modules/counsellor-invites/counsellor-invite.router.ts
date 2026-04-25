@@ -19,6 +19,7 @@ router.post('/invites/signups/:signupId/share', requirePolicy('counsellor_invite
 // Counsellor desk
 router.get('/students', requirePolicy('counsellor_invite', 'read'), asyncHandler(ctrl.myStudents))
 router.get('/targets', requirePolicy('counsellor_target', 'read'), asyncHandler(ctrl.myTarget))
+router.get('/targets/history', requirePolicy('counsellor_target', 'read'), asyncHandler(ctrl.myTargetHistory))
 router.post('/targets', requirePolicy('counsellor_target', 'write'), validate(setTargetSchema), asyncHandler(ctrl.setTarget))
 
 export default router

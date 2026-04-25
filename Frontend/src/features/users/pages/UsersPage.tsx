@@ -16,9 +16,10 @@ import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES, type TRole } from '@shared/constants/roles'
 import { inviteUser, listUsers, updateUserStatus, type UserRow, type UserStatus } from '../services/user.service'
 import { listAllTenants } from '@features/admin/services/tenant.service'
+import { UserDetailModal } from '../components/UserDetailModal'
 
-const TAB_ORDER = ['ALL', 'ADMIN', 'TRAINER', 'STUDENT', 'COUNSELLOR', 'COUNSELLING_MANAGER', 'SUPPORT'] as const
-type Tab = (typeof TAB_ORDER)[number]
+const ALL_TABS = ['ALL', 'ADMIN', 'TRAINER', 'STUDENT', 'COUNSELLOR', 'COUNSELLING_MANAGER', 'SUPPORT'] as const
+type Tab = (typeof ALL_TABS)[number]
 
 const TAB_LABEL: Record<Tab, string> = {
     ALL: 'All',
@@ -28,6 +29,19 @@ const TAB_LABEL: Record<Tab, string> = {
     COUNSELLOR: 'Counsellor',
     COUNSELLING_MANAGER: 'Manager',
     SUPPORT: 'Support'
+}
+
+// Each role only sees the tabs that map to people they actually work with.
+// Keeps the screen small and removes empty tabs (a counsellor doesn't need a
+// "Trainers" tab when their job is leads + students).
+const TABS_BY_ROLE: Record<TRole, readonly Tab[]> = {
+    SUPER_ADMIN: ALL_TABS,
+    ADMIN: ALL_TABS,
+    TRAINER: ['STUDENT'],
+    STUDENT: ['ALL'],
+    COUNSELLOR: ['STUDENT'],
+    COUNSELLING_MANAGER: ['ALL', 'COUNSELLOR'],
+    SUPPORT: ['STUDENT']
 }
 
 // Each role sees the same data shape but with copy that fits its workflow.
@@ -84,13 +98,16 @@ export const UsersPage = () => {
     const header = role ? HEADER_BY_ROLE[role] : undefined
     const isSuperAdmin = role === ROLES.SUPER_ADMIN
 
-    const [tab, setTab] = useState<Tab>(role === ROLES.TRAINER || role === ROLES.SUPPORT ? 'STUDENT' : 'ALL')
+    const visibleTabs = useMemo<readonly Tab[]>(() => (role ? TABS_BY_ROLE[role] : ALL_TABS), [role])
+    const [tab, setTab] = useState<Tab>(() => visibleTabs[0] ?? 'ALL')
     const [searchInput, setSearchInput] = useState('')
     const search = useDebounced(searchInput)
     const [page, setPage] = useState(1)
     const [inviteOpen, setInviteOpen] = useState(false)
     // SA-only: which tenant to scope the user list to. '__all__' = cross-tenant.
     const [saTenantSlug, setSaTenantSlug] = useState<string>('__all__')
+    // Open the detail modal for a clicked user. `null` = closed.
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
     const queryClient = useQueryClient()
 
@@ -218,7 +235,7 @@ export const UsersPage = () => {
             />
 
             <Tabs
-                tabs={TAB_ORDER.map((t) => ({ value: t, label: TAB_LABEL[t], count: counts[t] }))}
+                tabs={visibleTabs.map((t) => ({ value: t, label: TAB_LABEL[t], count: counts[t] }))}
                 value={tab}
                 onChange={setTab}
                 className="mb-4"
@@ -271,6 +288,7 @@ export const UsersPage = () => {
                                         showTenant={isSuperAdmin}
                                         canManage={canInvite}
                                         isSelf={u.id === currentUserId}
+                                        onOpenDetail={() => setSelectedUserId(u.id)}
                                         onSetStatus={(status) => statusMutation.mutate({ id: u.id, status })}
                                     />
                                 ))}
@@ -310,6 +328,13 @@ export const UsersPage = () => {
                 onSubmit={(payload) => inviteMutation.mutate(payload)}
                 isPending={inviteMutation.isPending}
             />
+
+            <UserDetailModal
+                open={!!selectedUserId}
+                userId={selectedUserId}
+                canEdit={canInvite}
+                onClose={() => setSelectedUserId(null)}
+            />
         </>
     )
 }
@@ -319,17 +344,25 @@ const UserListRow = ({
     canManage,
     showTenant,
     isSelf,
+    onOpenDetail,
     onSetStatus
 }: {
     user: UserRow
     canManage: boolean
     showTenant?: boolean
     isSelf?: boolean
+    onOpenDetail: () => void
     onSetStatus: (s: UserStatus) => void
 }) => {
     const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email
     return (
-        <tr className="hover:bg-surface-hover">
+        <tr
+            className="hover:bg-surface-hover cursor-pointer"
+            onClick={(e) => {
+                // Don't trigger detail when an action button inside the row was clicked.
+                if ((e.target as HTMLElement).closest('button')) return
+                onOpenDetail()
+            }}>
             <td className="py-3 px-5">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--color-brand-500)] text-white text-xs flex items-center justify-center font-semibold">

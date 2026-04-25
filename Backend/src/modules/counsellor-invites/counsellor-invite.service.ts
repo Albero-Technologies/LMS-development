@@ -444,6 +444,93 @@ export const getCounsellorTarget = async (tenantId: string, counsellorId: string
     }
 }
 
+// Counsellor monthly tracker — current month + the previous N months. Powers
+// the calendar/grid view on the counsellor dashboard so they can see how
+// they tracked vs target over time, and how many enrolments they still need
+// this month to hit the bar.
+interface MonthBucket {
+    period: { start: string; end: string; label: string }
+    target: { signups: number; enrolments: number; revenue: number }
+    actual: { signups: number; enrolments: number; revenue: number }
+    completionRate: { signups: number; enrolments: number; revenue: number }
+    enrolmentsRemaining: number
+    revenueRemaining: number
+    signupsRemaining: number
+}
+
+export const getCounsellorMonthlyHistory = async (tenantId: string, counsellorId: string, monthsBack = 5): Promise<MonthBucket[]> => {
+    const now = new Date()
+    const periods: { start: Date; end: Date }[] = []
+    for (let i = monthsBack; i >= 0; i--) {
+        const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1))
+        const end = endOfMonth(start)
+        periods.push({ start, end })
+    }
+
+    const [targets, signups, enrolments, invoices] = await Promise.all([
+        db.client.counsellorTarget.findMany({
+            where: {
+                tenantId,
+                counsellorId,
+                periodStart: { in: periods.map((p) => p.start) }
+            }
+        }),
+        db.client.studentSignup.findMany({
+            where: { tenantId, counsellorId, createdAt: { gte: periods[0].start } },
+            select: { createdAt: true }
+        }),
+        db.client.enrollment.findMany({
+            where: {
+                tenantId,
+                counsellorId,
+                status: { in: [EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED] },
+                createdAt: { gte: periods[0].start }
+            },
+            select: { createdAt: true }
+        }),
+        db.client.invoice.findMany({
+            where: {
+                tenantId,
+                status: InvoiceStatus.PAID,
+                paidAt: { gte: periods[0].start },
+                enrollment: { counsellorId }
+            },
+            select: { totalAmount: true, paidAt: true }
+        })
+    ])
+
+    return periods.map(({ start, end }) => {
+        const target = targets.find((t) => t.periodStart.getTime() === start.getTime())
+        const inRange = (d: Date | null | undefined) => d != null && d >= start && d <= end
+
+        const monthSignups = signups.filter((s) => inRange(s.createdAt)).length
+        const monthEnrols = enrolments.filter((e) => inRange(e.createdAt)).length
+        const monthRevenue = invoices.filter((i) => inRange(i.paidAt)).reduce((n, i) => n + i.totalAmount, 0)
+
+        const targetSignups = target?.targetSignups ?? 0
+        const targetEnrolments = target?.targetEnrolments ?? 0
+        const targetRevenue = target?.targetRevenue ?? 0
+
+        return {
+            period: {
+                start: start.toISOString(),
+                end: end.toISOString(),
+                label: start.toLocaleString('en-IN', { month: 'short', year: '2-digit' })
+            },
+            target: { signups: targetSignups, enrolments: targetEnrolments, revenue: targetRevenue },
+            actual: { signups: monthSignups, enrolments: monthEnrols, revenue: monthRevenue },
+            completionRate: {
+                signups: pct(monthSignups, targetSignups),
+                enrolments: pct(monthEnrols, targetEnrolments),
+                revenue: pct(monthRevenue, targetRevenue)
+            },
+            signupsRemaining: Math.max(0, targetSignups - monthSignups),
+            enrolmentsRemaining: Math.max(0, targetEnrolments - monthEnrols),
+            revenueRemaining: Math.max(0, targetRevenue - monthRevenue)
+        }
+    })
+}
+
 const pct = (actual: number, target: number): number => {
     if (target <= 0) return 0
     return Math.min(100, Math.round((actual / target) * 100))

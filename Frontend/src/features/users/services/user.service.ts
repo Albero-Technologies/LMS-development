@@ -57,3 +57,69 @@ export const updateUserStatus = async (id: string, status: UserStatus): Promise<
     const { data } = await api.patch<Envelope<UserRow>>(`/users/${id}`, { status })
     return data.data
 }
+
+// Rich user-detail payload used by the row-click modal. Includes onboarding
+// signup metadata (address, education, professional, etc.), enrolments, and
+// invoice history. Backend returns nullable refs for non-student roles.
+export type UserInvoice = {
+    id: string
+    number: string
+    totalAmount: number
+    currency: string
+    status: 'DRAFT' | 'DUE' | 'PAID' | 'FAILED' | 'REFUNDED'
+    dueAt: string | null
+    paidAt: string | null
+    createdAt: string
+    enrollment: { course: { title: string } | null } | null
+}
+
+export type UserEnrolment = {
+    id: string
+    status: string
+    createdAt: string
+    course: { id: string; title: string; slug: string } | null
+}
+
+export type StudentSignupExtra = {
+    education?: { graduation?: Record<string, unknown>; masters?: Record<string, unknown> }
+    professional?: Record<string, unknown>
+    gap?: Record<string, unknown>
+}
+
+export type UserDetail = UserRow & {
+    employeeCode: string | null
+    managerId: string | null
+    manager: { id: string; firstName: string; lastName: string; email: string } | null
+    studentSignup: {
+        id: string
+        address: string | null
+        city: string | null
+        state: string | null
+        qualification: string | null
+        interest: string | null
+        notes: string | null
+        extra: StudentSignupExtra | null
+        dateOfBirth: string | null
+        counsellor: { id: string; firstName: string; lastName: string; email: string } | null
+    } | null
+    enrollments: UserEnrolment[]
+    invoices: UserInvoice[]
+}
+
+export const getUserDetail = async (id: string): Promise<UserDetail> => {
+    const { data } = await api.get<Envelope<UserDetail>>(`/users/${id}`)
+    return data.data
+}
+
+export type UpdateUserPayload = {
+    firstName?: string
+    lastName?: string
+    phone?: string
+    role?: TRole
+    status?: UserStatus
+}
+
+export const updateUser = async (id: string, payload: UpdateUserPayload): Promise<UserRow> => {
+    const { data } = await api.patch<Envelope<UserRow>>(`/users/${id}`, payload)
+    return data.data
+}

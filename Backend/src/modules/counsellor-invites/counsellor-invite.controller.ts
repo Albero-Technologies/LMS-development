@@ -50,6 +50,16 @@ export const myTarget = async (req: Request, res: Response): Promise<void> => {
     httpResponse(req, res, 200, responseMessage.SUCCESS, data)
 }
 
+// Multi-month tracker — last 6 months (current + 5 prior). Drives the
+// counsellor dashboard's calendar/grid view.
+export const myTargetHistory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const monthsParam = typeof req.query.months === 'string' ? Number(req.query.months) : NaN
+    const monthsBack = Number.isFinite(monthsParam) ? Math.max(0, Math.min(11, Math.trunc(monthsParam))) : 5
+    const data = await service.getCounsellorMonthlyHistory(req.auth.tenantId, req.auth.userId, monthsBack)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+}
+
 export const setTarget = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     const target = await service.setCounsellorTarget(req.auth.tenantId, req.auth.role, req.auth.userId, req.body)
