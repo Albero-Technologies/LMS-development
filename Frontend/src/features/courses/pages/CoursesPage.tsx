@@ -13,6 +13,7 @@ import { Modal } from '@shared/components/ui/Modal'
 import { useCourseStore } from '../stores/courseStore'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
+import { StudentCoursesView } from '../components/StudentCoursesView'
 
 const slugify = (s: string): string =>
     s
@@ -23,6 +24,15 @@ const slugify = (s: string): string =>
         .slice(0, 48)
 
 export const CoursesPage = () => {
+    const user = useAuthStore((s) => s.user)
+
+    // Students get the catalog + enrol/pay flow, not the publish-and-curate view.
+    if (user?.role === ROLES.STUDENT) return <StudentCoursesView />
+
+    return <AdminCoursesView />
+}
+
+const AdminCoursesView = () => {
     const [q, setQ] = useState('')
     const [newOpen, setNewOpen] = useState(false)
 
