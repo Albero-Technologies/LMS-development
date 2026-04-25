@@ -28,11 +28,16 @@ import { Input, Textarea } from '@shared/components/ui/Input'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { useAuthStore } from '@shared/stores/authStore'
 import {
+    FEATURE_FLAGS,
     getTenantDetail,
+    isFeatureEnabled,
     readContacts,
+    readFeatureFlags,
     readNotes,
     setTenantStatus,
     updateTenantById,
+    type FeatureFlagKey,
+    type FeatureFlags,
     type TenantContacts,
     type TenantDetail,
     type TenantNote,
@@ -46,10 +51,11 @@ const STATUS_TONE: Record<TenantStatus, 'ok' | 'warn' | 'default'> = {
     SUSPENDED: 'default'
 }
 
-type Tab = 'overview' | 'contacts' | 'notes'
+type Tab = 'overview' | 'features' | 'contacts' | 'notes'
 
 const TAB_DEFS = [
     { value: 'overview' as const, label: 'Overview' },
+    { value: 'features' as const, label: 'Features' },
     { value: 'contacts' as const, label: 'Contacts' },
     { value: 'notes' as const, label: 'Notes' }
 ]
@@ -150,6 +156,12 @@ export const TenantDetailPage = () => {
             />
 
             {tab === 'overview' && <OverviewTab tenant={tenant} />}
+            {tab === 'features' && (
+                <FeaturesTab
+                    tenant={tenant}
+                    queryKey={['tenants', id]}
+                />
+            )}
             {tab === 'contacts' && (
                 <ContactsTab
                     tenant={tenant}
@@ -231,10 +243,9 @@ const OverviewTab = ({ tenant }: { tenant: TenantDetail }) => (
         </Card>
 
         <Card className="lg:col-span-3">
-            <h3 className="text-sm font-semibold text-fg mb-1">Other tabs (coming)</h3>
-            <p className="text-xs text-fg-muted mb-3">Features, Environment, and Payments tabs land in a follow-up batch.</p>
+            <h3 className="text-sm font-semibold text-fg mb-1">Coming next</h3>
+            <p className="text-xs text-fg-muted mb-3">Environment (per-tenant credentials) and Payments tabs land in a follow-up batch.</p>
             <div className="flex flex-wrap gap-2 text-xs text-fg-soft">
-                <span className="px-2 py-1 rounded border border-dashed">Features (coming)</span>
                 <span className="px-2 py-1 rounded border border-dashed">Environment (coming)</span>
                 <span className="px-2 py-1 rounded border border-dashed">Payments (coming)</span>
                 <Link
@@ -245,6 +256,111 @@ const OverviewTab = ({ tenant }: { tenant: TenantDetail }) => (
             </div>
         </Card>
     </div>
+)
+
+// -----------------------------------------------------------------------------
+// Features tab — per-tenant feature flags. Toggles persist into
+// `tenant.settings.features`. Backend gates can read these as enforcement
+// gets wired in module by module.
+// -----------------------------------------------------------------------------
+
+const FeaturesTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: readonly unknown[] }) => {
+    const queryClient = useQueryClient()
+    const initial = useMemo(() => readFeatureFlags(tenant), [tenant])
+    const [flags, setFlags] = useState<FeatureFlags>(initial)
+
+    useEffect(() => setFlags(initial), [initial])
+
+    const dirty = useMemo(() => {
+        for (const def of FEATURE_FLAGS) {
+            if (isFeatureEnabled(initial, def.key) !== isFeatureEnabled(flags, def.key)) return true
+        }
+        return false
+    }, [initial, flags])
+
+    const saveMutation = useMutation({
+        mutationFn: () => {
+            const settings: TenantSettings = { ...(tenant.settings ?? {}), features: flags }
+            return updateTenantById(tenant.id, { settings })
+        },
+        onSuccess: () => {
+            toast.success('Feature flags saved')
+            void queryClient.invalidateQueries({ queryKey })
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save features')
+    })
+
+    const toggle = (key: FeatureFlagKey) => {
+        const next = { ...flags, [key]: !isFeatureEnabled(flags, key) }
+        setFlags(next)
+    }
+
+    const reset = () => setFlags(initial)
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-end gap-2">
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={reset}
+                    disabled={!dirty}>
+                    Discard
+                </Button>
+                <Button
+                    size="sm"
+                    leftIcon={<Save size={12} />}
+                    loading={saveMutation.isPending}
+                    disabled={!dirty}
+                    onClick={() => saveMutation.mutate()}>
+                    Save
+                </Button>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+                {FEATURE_FLAGS.map((def) => {
+                    const enabled = isFeatureEnabled(flags, def.key)
+                    return (
+                        <Card
+                            key={def.key}
+                            className="!p-4 flex items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-fg">{def.label}</span>
+                                    <span className="text-[10px] font-mono text-fg-muted">{def.key}</span>
+                                </div>
+                                <p className="mt-1 text-xs text-fg-soft">{def.description}</p>
+                            </div>
+                            <Toggle
+                                checked={enabled}
+                                onChange={() => toggle(def.key)}
+                            />
+                        </Card>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
+    <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={
+            'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-500)] ' +
+            (checked ? 'bg-[var(--color-brand-500)]' : 'bg-[var(--color-border)]')
+        }>
+        <span
+            aria-hidden
+            className={
+                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ' +
+                (checked ? 'translate-x-5' : 'translate-x-0')
+            }
+        />
+    </button>
 )
 
 // -----------------------------------------------------------------------------

@@ -12,6 +12,7 @@
         "format:fix": "prettier --write .",
         "lint:stylelint": "stylelint src/**/*.css",
         "dev": "vite --mode development",
+        "start": "vite --mode production",
         "test": "vitest --mode test",
         "test:coverage": "vitest run --coverage --mode test",
         "typecheck": "tsc -b --noEmit",

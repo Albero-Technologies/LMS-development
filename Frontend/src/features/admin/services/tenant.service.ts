@@ -155,6 +155,102 @@ export const readNotes = (tenant: { settings: TenantSettings | null } | undefine
     return Array.isArray(arr) ? (arr as TenantNote[]) : []
 }
 
+// ---- Feature flags (settings sub-key) --------------------------------------
+
+// Per-tenant feature toggles. Keys are stable identifiers; the UI metadata
+// (label, description, default) lives below. Adding a new flag is two lines:
+// add to FEATURE_FLAGS and any backend gate consumes it via tenant.settings.features.
+export type FeatureFlagKey =
+    | 'coleadPipeline'
+    | 'demoControl'
+    | 'notifications'
+    | 'tickets'
+    | 'googleSheetsSync'
+    | 'razorpay'
+    | 'websockets'
+    | 'auditLogs'
+    | 'counsellorTargets'
+
+export type FeatureFlags = Partial<Record<FeatureFlagKey, boolean>>
+
+export type FeatureFlagDef = {
+    key: FeatureFlagKey
+    label: string
+    description: string
+    default: boolean
+}
+
+// Catalog — keep in sync with backend gates as enforcement gets wired in.
+export const FEATURE_FLAGS: readonly FeatureFlagDef[] = [
+    {
+        key: 'coleadPipeline',
+        label: 'Co-lead pipeline',
+        description: 'Counsellors can hand off leads to teammates mid-funnel; managers see combined attribution.',
+        default: true
+    },
+    {
+        key: 'demoControl',
+        label: 'Demo Mode controls',
+        description: "Lets the tenant's admin gate content for unpaid learners and surface the upgrade CTA.",
+        default: true
+    },
+    {
+        key: 'notifications',
+        label: 'In-app notifications',
+        description: 'Bell drawer + notifications page. Disable to suppress all in-app alerts for this tenant.',
+        default: true
+    },
+    {
+        key: 'tickets',
+        label: 'Support tickets',
+        description: 'Tenant users can open and reply to tickets via the Support page.',
+        default: true
+    },
+    {
+        key: 'googleSheetsSync',
+        label: 'Google Sheets enquiry sync',
+        description: 'New enquiries are pushed to the configured Google Sheet (Integrations tab on tenant admin side).',
+        default: true
+    },
+    {
+        key: 'razorpay',
+        label: 'Razorpay checkout',
+        description: 'Students can pay course fees via Razorpay. Requires the tenant to have valid keys configured.',
+        default: true
+    },
+    {
+        key: 'websockets',
+        label: 'Real-time push (WebSocket)',
+        description: 'Live updates for notifications + tickets without page refresh. Falls back to polling if disabled.',
+        default: true
+    },
+    {
+        key: 'auditLogs',
+        label: 'Audit logs',
+        description: 'Tenant ADMIN can see the activity log for their tenant.',
+        default: true
+    },
+    {
+        key: 'counsellorTargets',
+        label: 'Counsellor monthly targets',
+        description: 'Managers can set per-counsellor monthly signup/enrolment/revenue targets.',
+        default: true
+    }
+]
+
+export const readFeatureFlags = (tenant: { settings: TenantSettings | null } | undefined): FeatureFlags => {
+    const f = tenant?.settings?.features
+    if (!f || typeof f !== 'object') return {}
+    return f as FeatureFlags
+}
+
+// Resolve a flag with the catalog default when the tenant hasn't set one yet.
+export const isFeatureEnabled = (flags: FeatureFlags, key: FeatureFlagKey): boolean => {
+    const explicit = flags[key]
+    if (typeof explicit === 'boolean') return explicit
+    return FEATURE_FLAGS.find((f) => f.key === key)?.default ?? true
+}
+
 export type CreateTenantPayload = {
     name: string
     slug: string
