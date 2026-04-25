@@ -96,10 +96,21 @@ export const register = async (input: TRegisterInput, req: Request) => {
     return { user: sanitize(user), ...tokens }
 }
 
+// Whitelist gate: loopback IPs always bypass the auth limiter (so an SA
+// debugging on localhost can hammer login as much as they like), plus any IPs
+// listed in RATE_LIMIT_WHITELIST. Centralised here so we can reuse for the
+// global limiter later if needed.
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
+const isWhitelistedIp = (ip: string | undefined): boolean => {
+    if (!ip) return false
+    if (LOOPBACK_IPS.has(ip)) return true
+    return config.RATE_LIMIT_WHITELIST.includes(ip)
+}
+
 export const login = async (input: TLoginInput, req: Request) => {
-    // Throttle by email — 5 failed per 15 min.
+    // Throttle by email — 5 failed per 15 min. Skip entirely for whitelisted IPs.
     const key = `login:${input.email.toLowerCase()}`
-    if (authLimiter) {
+    if (authLimiter && !isWhitelistedIp(req.ip)) {
         try {
             await authLimiter.consume(key, 1)
         } catch {

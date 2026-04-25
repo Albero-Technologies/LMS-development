@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Mail, Lock, ArrowRight } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { loginSchema, type TLogin } from '../schemas/auth.schema'
 import { loginRequest } from '../services/auth.service'
@@ -18,6 +19,11 @@ export const LoginPage = () => {
     const location = useLocation()
     const setAuth = useAuthStore((s) => s.setAuth)
 
+    const [showPassword, setShowPassword] = useState(false)
+    // Default to remembered if the user previously chose to stay signed in —
+    // most-recent preference is the right default for repeat visits.
+    const [remember, setRemember] = useState(useAuthStore.getState().persistent)
+
     const {
         register,
         handleSubmit,
@@ -27,7 +33,7 @@ export const LoginPage = () => {
     const mutation = useMutation({
         mutationFn: loginRequest,
         onSuccess: ({ accessToken, user }) => {
-            setAuth(user, accessToken)
+            setAuth(user, accessToken, { remember })
             toast.success(`Welcome back, ${user.name || user.email.split('@')[0]}`)
             const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname
             navigate(from ?? ROLE_HOME[user.role], { replace: true })
@@ -68,18 +74,29 @@ export const LoginPage = () => {
                 />
                 <Input
                     label="Password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     placeholder="••••••••"
                     leftIcon={<Lock size={14} />}
+                    rightSlot={
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((v) => !v)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            className="rounded p-1 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg">
+                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                    }
                     error={errors.password?.message}
                     {...register('password')}
                 />
                 <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2 text-fg-soft select-none">
+                    <label className="flex items-center gap-2 text-fg-soft select-none cursor-pointer">
                         <input
                             type="checkbox"
                             className="accent-[var(--color-brand-500)]"
+                            checked={remember}
+                            onChange={(e) => setRemember(e.target.checked)}
                         />
                         Remember me
                     </label>

@@ -70,5 +70,11 @@ export default {
 
     BCRYPT_ROUNDS: num('BCRYPT_ROUNDS', 12),
 
-    ALLOWED_TENANT_ORIGINS: csv('ALLOWED_TENANT_ORIGINS')
+    ALLOWED_TENANT_ORIGINS: csv('ALLOWED_TENANT_ORIGINS'),
+
+    // IPs that bypass the auth/global rate limiters. Loopback addresses are
+    // always whitelisted in dev so an SA repeatedly testing logins on
+    // localhost never hits the 5-per-15-min wall. Add prod-side admin IPs via
+    // RATE_LIMIT_WHITELIST="1.2.3.4,5.6.7.8" in env.
+    RATE_LIMIT_WHITELIST: csv('RATE_LIMIT_WHITELIST')
 }
