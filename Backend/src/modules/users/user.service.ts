@@ -6,7 +6,7 @@ import { type TInviteUserInput, type TListUsersQuery, type TUpdateUserInput } fr
 import { createInvite } from '../auth/auth.service'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 
-export const listUsers = async (tenantId: string, query: TListUsersQuery) => {
+export const listUsers = async (tenantId: string, actorId: string, query: TListUsersQuery) => {
     const where: Prisma.UserWhereInput = { tenantId }
     if (query.role) where.role = query.role
     if (query.status) where.status = query.status
@@ -16,6 +16,18 @@ export const listUsers = async (tenantId: string, query: TListUsersQuery) => {
             { firstName: { contains: query.q, mode: 'insensitive' } },
             { lastName: { contains: query.q, mode: 'insensitive' } }
         ]
+    }
+
+    // §5.3 Phase B — relationship scopes that resolve via the auth context.
+    if (query.trainerScope === 'me') {
+        // Students enrolled in any course owned by the actor.
+        where.role = Role.STUDENT
+        where.enrollments = { some: { course: { trainerId: actorId } } }
+    }
+    if (query.managerScope === 'me') {
+        // Counsellors directly reporting to the actor.
+        where.role = Role.COUNSELLOR
+        where.managerId = actorId
     }
 
     const [items, total] = await Promise.all([

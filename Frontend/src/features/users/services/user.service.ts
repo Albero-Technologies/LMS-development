@@ -31,6 +31,10 @@ export type UserListQuery = {
     role?: TRole
     status?: UserStatus
     q?: string
+    /** Trainer scope — auto-filters to students enrolled in the actor's courses. */
+    trainerScope?: 'me'
+    /** Manager scope — auto-filters to counsellors reporting to the actor. */
+    managerScope?: 'me'
 }
 
 export const listUsers = async (query: UserListQuery): Promise<UserListResponse> => {

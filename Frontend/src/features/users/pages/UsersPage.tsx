@@ -45,9 +45,9 @@ const HEADER_BY_ROLE: Partial<Record<TRole, { eyebrow: string; title: string; de
         description: 'Invite staff and students. Roles control what each user sees and can do.'
     },
     TRAINER: {
-        eyebrow: 'Tenant',
+        eyebrow: 'Your students',
         title: 'Students',
-        description: 'Filter to STUDENT to see learners across your tenant. Per-batch filters arrive next.'
+        description: 'Learners actively enrolled in courses you teach. Add new students by inviting from your course detail page.'
     },
     COUNSELLOR: {
         eyebrow: 'Tenant',
@@ -55,9 +55,9 @@ const HEADER_BY_ROLE: Partial<Record<TRole, { eyebrow: string; title: string; de
         description: 'Tenant-wide directory. Lead-pipeline view lives at /app/counsellor/pipeline.'
     },
     COUNSELLING_MANAGER: {
-        eyebrow: 'Tenant',
-        title: 'Team & students',
-        description: 'Counsellors, managers, and students you support.'
+        eyebrow: 'Your team',
+        title: 'Counsellors',
+        description: 'Counsellors reporting to you. Each card links to their pipeline + monthly target.'
     },
     SUPPORT: {
         eyebrow: 'Tenant',
@@ -89,14 +89,24 @@ export const UsersPage = () => {
 
     const queryClient = useQueryClient()
 
+    // Role-aware scope (§5.3 Phase B): backend auto-filters via the actor's id.
+    //   TRAINER             → STUDENTs enrolled in the actor's courses
+    //   COUNSELLING_MANAGER → COUNSELLORs reporting to the actor
+    // Other roles see the full tenant directory; the tab + search still apply.
+    const trainerScope = role === ROLES.TRAINER ? 'me' : undefined
+    const managerScope = role === ROLES.COUNSELLING_MANAGER ? 'me' : undefined
+
     const usersQuery = useQuery({
-        queryKey: ['users', { tab, search, page }],
+        queryKey: ['users', { tab, search, page, trainerScope, managerScope }],
         queryFn: () =>
             listUsers({
                 page,
                 pageSize: PAGE_SIZE,
-                role: tab === 'ALL' ? undefined : tab,
-                q: search || undefined
+                // Server-side scopes already pin the role; passing the tab role would over-constrain.
+                role: trainerScope || managerScope ? undefined : tab === 'ALL' ? undefined : tab,
+                q: search || undefined,
+                trainerScope,
+                managerScope
             }),
         staleTime: 30_000
     })
