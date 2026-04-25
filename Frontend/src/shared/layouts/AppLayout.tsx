@@ -30,8 +30,8 @@ import {
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
-import { Button } from '@shared/components/ui/Button'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
+import { NotificationBell } from '@features/notifications/components/NotificationBell'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES, ROLE_LABEL, type TRole } from '@shared/constants/roles'
@@ -319,13 +319,7 @@ export const AppLayout = () => {
 
                             <div className="flex items-center gap-1.5">
                                 <ThemeToggle />
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    aria-label="Notifications"
-                                    onClick={() => navigate('/app/notifications')}>
-                                    <Bell size={15} />
-                                </Button>
+                                <NotificationBell />
                                 <div
                                     aria-hidden
                                     className="h-5 w-px bg-[var(--color-border)] mx-1"
