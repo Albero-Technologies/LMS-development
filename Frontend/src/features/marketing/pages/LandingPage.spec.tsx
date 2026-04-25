@@ -14,7 +14,7 @@ describe('LandingPage', () => {
                 </MemoryRouter>
             </QueryClientProvider>
         )
-        expect(screen.getByText(/Run your institute/i)).toBeInTheDocument()
+        expect(screen.getByText(/Master new skills/i)).toBeInTheDocument()
         expect(screen.getAllByRole('link').length).toBeGreaterThan(0)
     })
 })

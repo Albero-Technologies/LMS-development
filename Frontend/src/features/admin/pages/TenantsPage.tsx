@@ -15,13 +15,7 @@ import { Select } from '@shared/components/ui/Select'
 import { Badge } from '@shared/components/ui/Badge'
 import { Modal } from '@shared/components/ui/Modal'
 import { Empty } from '@shared/components/ui/Empty'
-import {
-    useTenantStore,
-    PLAN_TONE,
-    STATUS_TONE,
-    type TPlan,
-    type TTenant
-} from '../stores/tenantStore'
+import { useTenantStore, PLAN_TONE, STATUS_TONE, type TPlan, type TTenant } from '../stores/tenantStore'
 
 export const TenantsPage = () => {
     const tenants = useTenantStore((s) => s.tenants)
@@ -184,15 +178,7 @@ export const TenantsPage = () => {
 
 // -----------------------------------------------------------------------------
 
-const CreateTenantModal = ({
-    open,
-    onClose,
-    onCreated
-}: {
-    open: boolean
-    onClose: () => void
-    onCreated: (t: TTenant) => void
-}) => {
+const CreateTenantModal = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (t: TTenant) => void }) => {
     const create = useTenantStore((s) => s.createTenant)
     const [name, setName] = useState('')
     const [adminEmail, setAdminEmail] = useState('')
@@ -275,15 +261,7 @@ const CreateTenantModal = ({
 
 // -----------------------------------------------------------------------------
 
-const CredsModal = ({
-    tenant,
-    onClose,
-    onRegenerate
-}: {
-    tenant: TTenant | null
-    onClose: () => void
-    onRegenerate: () => void
-}) => {
+const CredsModal = ({ tenant, onClose, onRegenerate }: { tenant: TTenant | null; onClose: () => void; onRegenerate: () => void }) => {
     const [copied, setCopied] = useState<string | null>(null)
 
     if (!tenant) return null
@@ -325,9 +303,7 @@ The admin must change the password on first login.`
             <div className="space-y-4">
                 <Row
                     label="Login URL"
-                    value={
-                        typeof window !== 'undefined' ? `${window.location.origin}/login` : '/login'
-                    }
+                    value={typeof window !== 'undefined' ? `${window.location.origin}/login` : '/login'}
                     onCopy={(v) => copy('url', v)}
                     copied={copied === 'url'}
                 />
@@ -344,13 +320,9 @@ The admin must change the password on first login.`
                     copied={copied === 'password'}
                     mono
                 />
-                <pre className="font-mono text-xs bg-surface-2 border rounded-md p-3 whitespace-pre-wrap text-fg-soft">
-                    {block}
-                </pre>
+                <pre className="font-mono text-xs bg-surface-2 border rounded-md p-3 whitespace-pre-wrap text-fg-soft">{block}</pre>
                 {tenant.credsLastSharedAt && (
-                    <div className="text-xs text-fg-muted">
-                        Last shared {new Date(tenant.credsLastSharedAt).toLocaleString()}
-                    </div>
+                    <div className="text-xs text-fg-muted">Last shared {new Date(tenant.credsLastSharedAt).toLocaleString()}</div>
                 )}
             </div>
         </Modal>
@@ -373,12 +345,7 @@ const Row = ({
     <div>
         <label className="block text-xs font-medium text-fg-soft mb-1.5">{label}</label>
         <div className="flex items-center gap-2">
-            <div
-                className={
-                    'flex-1 truncate bg-surface-2 border rounded-md px-3 py-2 text-sm ' + (mono ? 'font-mono' : '')
-                }>
-                {value}
-            </div>
+            <div className={'flex-1 truncate bg-surface-2 border rounded-md px-3 py-2 text-sm ' + (mono ? 'font-mono' : '')}>{value}</div>
             <Button
                 variant="ghost"
                 size="icon"

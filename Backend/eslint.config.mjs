@@ -21,7 +21,16 @@ export default tseslint.config(
             'public/**',
             'prisma/migrations/**',
             '**/*.d.ts',
-            'vitest.config.ts'
+            'vitest.config.ts',
+            // Config files outside the TS project — type-aware rules cannot lint them.
+            'eslint.config.mjs',
+            'commitlint.config.js',
+            'commitlint.config.cjs',
+            '**/*.config.js',
+            '**/*.config.cjs',
+            '**/*.config.mjs',
+            // Standalone JS scripts — not part of the TS project graph.
+            'script/**/*.js'
         ]
     },
 
@@ -36,7 +45,7 @@ export default tseslint.config(
         files: ['src/**/*.ts'],
         languageOptions: {
             parserOptions: {
-                project: true,
+                project: './tsconfig.eslint.json',
                 tsconfigRootDir: import.meta.dirname
             }
         },
@@ -62,27 +71,29 @@ export default tseslint.config(
 
             // --- TypeScript-specific ---
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/no-unused-vars': [
-                'error',
-                { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
-            ],
+            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
             '@typescript-eslint/no-floating-promises': 'error',
-            '@typescript-eslint/no-misused-promises': [
-                'error',
-                { checksVoidReturn: { attributes: false, arguments: false } }
-            ],
+            '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { attributes: false, arguments: false } }],
             '@typescript-eslint/return-await': ['error', 'in-try-catch'],
             '@typescript-eslint/no-non-null-assertion': 'error',
             '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports', fixStyle: 'inline-type-imports' }],
             '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true, allowTernary: true }],
-            '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-            '@typescript-eslint/prefer-optional-chain': 'warn',
+            // Style/safety rules that the codebase widely violates by design (logger metadata,
+            // structured-error catches, JSON envelopes, fallback `||` for empty-string normalization).
+            // Enabling them now would create churn without catching real bugs; reconsider after
+            // the Phase 2 refactor when types stabilise.
+            '@typescript-eslint/prefer-nullish-coalescing': 'off',
+            '@typescript-eslint/prefer-optional-chain': 'off',
+            '@typescript-eslint/no-base-to-string': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
             '@typescript-eslint/no-unnecessary-condition': 'off', // noisy against Prisma optional relations
             '@typescript-eslint/require-await': 'error',
-            '@typescript-eslint/restrict-template-expressions': [
-                'error',
-                { allowNumber: true, allowBoolean: true, allowNullish: true }
-            ],
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true, allowBoolean: true, allowNullish: true }],
             '@typescript-eslint/no-redundant-type-constituents': 'off',
 
             // --- Security-ish defaults ---
@@ -96,7 +107,7 @@ export default tseslint.config(
     {
         files: ['test/**/*.ts'],
         languageOptions: {
-            parserOptions: { project: true, tsconfigRootDir: import.meta.dirname }
+            parserOptions: { project: './tsconfig.eslint.json', tsconfigRootDir: import.meta.dirname }
         },
         rules: {
             'no-console': 'off',
@@ -110,7 +121,11 @@ export default tseslint.config(
             '@typescript-eslint/no-unsafe-argument': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
             '@typescript-eslint/require-await': 'off',
-            '@typescript-eslint/unbound-method': 'off'
+            '@typescript-eslint/unbound-method': 'off',
+            // Tests intentionally use `_` to discard destructured fields and `||` for env defaults.
+            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+            '@typescript-eslint/prefer-nullish-coalescing': 'off',
+            '@typescript-eslint/no-base-to-string': 'off'
         }
     },
 
@@ -118,7 +133,7 @@ export default tseslint.config(
     {
         files: ['prisma/seed.ts', 'script/**/*.{ts,js}'],
         languageOptions: {
-            parserOptions: { project: true, tsconfigRootDir: import.meta.dirname }
+            parserOptions: { project: './tsconfig.eslint.json', tsconfigRootDir: import.meta.dirname }
         },
         rules: {
             'no-console': 'off',

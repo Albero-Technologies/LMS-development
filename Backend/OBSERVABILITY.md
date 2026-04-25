@@ -1,7 +1,7 @@
 # Observability — Prometheus · Grafana · Loki
 
 > **New here?** Read [MONITORING_OVERVIEW.md](./MONITORING_OVERVIEW.md) first —
-> it explains *what* monitoring does and *why*, with scenarios. This doc is
+> it explains _what_ monitoring does and _why_, with scenarios. This doc is
 > the reference: queries, configuration, adding metrics, troubleshooting.
 
 LearnHub ships with a self-contained **dev observability stack** behind a
@@ -26,16 +26,16 @@ behavior locally.
 
 ## 1 · What you get
 
-| URL | What | Login |
-| --- | ---- | ----- |
-| `http://localhost:3001`  | Grafana — dashboards + Explore (logs & metrics) | `admin` / `admin` |
-| `http://localhost:9090`  | Prometheus — raw query UI | — |
-| `http://localhost:3100`  | Loki — API only (use Grafana to query) | — |
+| URL                     | What                                            | Login             |
+| ----------------------- | ----------------------------------------------- | ----------------- |
+| `http://localhost:3001` | Grafana — dashboards + Explore (logs & metrics) | `admin` / `admin` |
+| `http://localhost:9090` | Prometheus — raw query UI                       | —                 |
+| `http://localhost:3100` | Loki — API only (use Grafana to query)          | —                 |
 
 Pre-provisioned in Grafana on first boot:
 
 - **Datasources**: Prometheus, Loki.
-- **Dashboard**: *LearnHub · API Overview* — request rate, error %, p50/p95/p99
+- **Dashboard**: _LearnHub · API Overview_ — request rate, error %, p50/p95/p99
   latency, in-flight, top routes, Node heap, login attempts, notification jobs,
   and a live Loki log panel.
 
@@ -82,6 +82,7 @@ curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job:
 ```
 
 Expected:
+
 ```json
 { "job": "prometheus",    "health": "up" }
 { "job": "learnhub-api",  "health": "up" }
@@ -254,10 +255,10 @@ Two steps.
 
 ```ts
 export const quizAttemptsTotal = new client.Counter({
-  name: 'quiz_attempts_total',
-  help: 'Quiz attempts by outcome.',
-  labelNames: ['outcome'] as const, // started | submitted | expired
-  registers: [registry]
+    name: 'quiz_attempts_total',
+    help: 'Quiz attempts by outcome.',
+    labelNames: ['outcome'] as const, // started | submitted | expired
+    registers: [registry]
 })
 ```
 
@@ -283,14 +284,14 @@ High-cardinality context belongs in **Loki**, not Prometheus.
 
 On Render / ECS / k8s, swap the local stack for a managed variant:
 
-| Concern | Local (this doc) | Production |
-| ------- | ---------------- | ---------- |
-| Metrics | Prometheus container | Grafana Cloud Prometheus / AMP / Managed VM |
-| Logs    | Loki single-binary | Grafana Cloud Loki / CloudWatch Logs / OpenSearch |
-| Shipper | Promtail via docker.sock | Promtail/Alloy DaemonSet / CloudWatch agent |
-| Dashboards | Auto-provisioned Grafana | Grafana Cloud with the same JSON |
-| Auth    | `admin/admin` | SSO (OIDC) |
-| Retention | 7 days (Loki) / 15 days (Prom) | 30–90 days per SLO budget |
+| Concern    | Local (this doc)               | Production                                        |
+| ---------- | ------------------------------ | ------------------------------------------------- |
+| Metrics    | Prometheus container           | Grafana Cloud Prometheus / AMP / Managed VM       |
+| Logs       | Loki single-binary             | Grafana Cloud Loki / CloudWatch Logs / OpenSearch |
+| Shipper    | Promtail via docker.sock       | Promtail/Alloy DaemonSet / CloudWatch agent       |
+| Dashboards | Auto-provisioned Grafana       | Grafana Cloud with the same JSON                  |
+| Auth       | `admin/admin`                  | SSO (OIDC)                                        |
+| Retention  | 7 days (Loki) / 15 days (Prom) | 30–90 days per SLO budget                         |
 
 The application code (the `/metrics` endpoint + winston logs) is identical —
 only the infrastructure around it changes. Keep the JSON dashboards in
@@ -304,30 +305,30 @@ so prod and dev stay in sync.
 ### `learnhub-api` target is `down` in Prometheus
 
 1. Check the API is reachable from inside the docker network:
-   ```bash
-   docker compose -f docker/development/docker-compose.yml \
-     exec prometheus wget -qO- http://api:3000/api/v1/health
-   ```
+    ```bash
+    docker compose -f docker/development/docker-compose.yml \
+      exec prometheus wget -qO- http://api:3000/api/v1/health
+    ```
 2. If it hangs, the API container is unhealthy. Check its logs:
-   ```bash
-   docker compose -f docker/development/docker-compose.yml logs api --tail 50
-   ```
+    ```bash
+    docker compose -f docker/development/docker-compose.yml logs api --tail 50
+    ```
 
 ### No logs appear in Loki
 
 - The docker socket mount must be writable to the Docker group. On Windows
-  + Docker Desktop, this is automatic; on Linux make sure your user is in
-  the `docker` group.
+    - Docker Desktop, this is automatic; on Linux make sure your user is in
+      the `docker` group.
 - Check Promtail is running and targets the right containers:
-  ```bash
-  docker compose -f docker/development/docker-compose.yml logs promtail
-  # Look for "entry" lines being pushed.
-  ```
+    ```bash
+    docker compose -f docker/development/docker-compose.yml logs promtail
+    # Look for "entry" lines being pushed.
+    ```
 - Fallback: the file-based scraper reads from `/var/log/learnhub/*.log`
   which is mounted from the `api_logs` volume. Try:
-  ```logql
-  {job="winston"}
-  ```
+    ```logql
+    {job="winston"}
+    ```
 
 ### Grafana dashboard shows "No data"
 

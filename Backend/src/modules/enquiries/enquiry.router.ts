@@ -15,20 +15,8 @@ router.post('/', validate(createEnquirySchema), asyncHandler(ctrl.createPublic))
 // --------- Authenticated endpoints (counsellor / admin) ---------
 router.get('/me', requireAuth, requirePolicy('counsellor_invite', 'read'), asyncHandler(ctrl.list))
 
-router.patch(
-    '/:id/stage',
-    requireAuth,
-    requirePolicy('counsellor_invite', 'write'),
-    validate(stageUpdateSchema),
-    asyncHandler(ctrl.updateStage)
-)
+router.patch('/:id/stage', requireAuth, requirePolicy('counsellor_invite', 'write'), validate(stageUpdateSchema), asyncHandler(ctrl.updateStage))
 
-router.patch(
-    '/:id/reassign',
-    requireAuth,
-    requirePolicy('counsellor_invite', 'write'),
-    validate(reassignSchema),
-    asyncHandler(ctrl.reassign)
-)
+router.patch('/:id/reassign', requireAuth, requirePolicy('counsellor_invite', 'write'), validate(reassignSchema), asyncHandler(ctrl.reassign))
 
 export default router

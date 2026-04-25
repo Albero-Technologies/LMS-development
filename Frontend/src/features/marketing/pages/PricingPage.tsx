@@ -59,30 +59,23 @@ const TIERS = [
 const FAQS = [
     { q: 'Do I pay upfront?', a: 'Yes, courses are billed one-time. EMI options may be available during checkout.' },
     { q: 'Is GST included?', a: 'Prices shown are before GST. Your invoice will include applicable GST.' },
-    { q: 'What\'s the refund window?', a: 'Within 7 days of enrolling, ask for a full refund — no questions.' },
-    { q: 'Can I gift a course?', a: 'Yes — mention it on the counsellor call and we\'ll issue a gift invoice.' }
+    { q: "What's the refund window?", a: 'Within 7 days of enrolling, ask for a full refund — no questions.' },
+    { q: 'Can I gift a course?', a: "Yes — mention it on the counsellor call and we'll issue a gift invoice." }
 ]
 
 export const PricingPage = () => (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="text-center max-w-2xl mx-auto mb-12">
             <Badge tone="brand">Pricing</Badge>
-            <h1 className="mt-4 text-3xl sm:text-4xl font-bold text-fg tracking-tight">
-                Straightforward prices, no surprises
-            </h1>
-            <p className="mt-3 text-fg-soft">
-                Pick a single course or a three-course track. Refund within 7 days if it isn't a fit.
-            </p>
+            <h1 className="mt-4 text-3xl sm:text-4xl font-bold text-fg tracking-tight">Straightforward prices, no surprises</h1>
+            <p className="mt-3 text-fg-soft">Pick a single course or a three-course track. Refund within 7 days if it isn't a fit.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-5">
             {TIERS.map((t) => (
                 <Card
                     key={t.name}
-                    className={cn(
-                        'relative flex flex-col',
-                        t.highlight && '!border-[var(--color-brand-500)] shadow-lift'
-                    )}>
+                    className={cn('relative flex flex-col', t.highlight && '!border-[var(--color-brand-500)] shadow-lift')}>
                     {t.highlight && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                             <Badge
@@ -97,9 +90,7 @@ export const PricingPage = () => (
                     <div className="mt-4">
                         {t.price != null ? (
                             <>
-                                <span className="font-mono text-4xl font-bold text-fg">
-                                    ₹{t.price.toLocaleString('en-IN')}
-                                </span>
+                                <span className="font-mono text-4xl font-bold text-fg">₹{t.price.toLocaleString('en-IN')}</span>
                                 <span className="ml-2 text-xs text-fg-muted">{t.cadence}</span>
                             </>
                         ) : (

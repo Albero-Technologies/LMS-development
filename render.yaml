@@ -1,0 +1,43 @@
+# Render deployment config for the Albero Academy backend.
+# Single web service; secrets are configured in the Render dashboard.
+#
+# Free-tier note: the web service spins down after ~15 min of inactivity.
+# To keep it warm, configure an external pinger (cron-job.org or UptimeRobot)
+# to GET https://<service>.onrender.com/api/v1/health every 10–14 minutes.
+# Render's native Cron service is a paid feature; we use a free external
+# pinger instead.
+
+services:
+    - type: web
+      name: albero-api
+      runtime: node
+      plan: free
+      rootDir: Backend
+      buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+      startCommand: npm start
+      healthCheckPath: /api/v1/health
+      autoDeploy: true
+      envVars:
+          - key: NODE_VERSION
+            value: '20'
+          - key: NODE_ENV
+            value: production
+          - key: ENV
+            value: production
+          - key: PORT
+            value: '10000' # Render injects this; declared so the build doesn't trip
+          # Every secret below must be set in the Render dashboard before the
+          # service boots. Listed here as documentation only.
+          # - DATABASE_URL          (Neon connection string)
+          # - REDIS_URL             (Upstash rediss:// URL)
+          # - JWT_ACCESS_SECRET
+          # - JWT_REFRESH_SECRET
+          # - SERVER_URL            (https://<service>.onrender.com)
+          # - CORS_ORIGIN           (https://<frontend>.netlify.app)
+          # - ALLOWED_TENANT_ORIGINS
+          # - COOKIE_DOMAIN         (.<your-domain>)
+          # - COOKIE_SECURE=true
+          # - GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REDIRECT_URI / GOOGLE_POST_LOGIN_REDIRECT
+          # - NODEMAILER_MAIL / NODEMAILER_PASS    (or SENDGRID_API_KEY during transition)
+          # - RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET / RAZORPAY_WEBHOOK_SECRET
+          # - SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD

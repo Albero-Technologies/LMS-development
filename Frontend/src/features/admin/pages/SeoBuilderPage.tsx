@@ -107,9 +107,7 @@ export const SeoBuilderPage = () => {
                                 value={draft.metaDescription}
                                 onChange={(e) => setDraft({ ...draft, metaDescription: e.target.value })}
                                 hint={`${descLen} / 160 recommended`}
-                                error={
-                                    descTone === 'warn' ? 'Description is longer than the typical 160-char cap.' : undefined
-                                }
+                                error={descTone === 'warn' ? 'Description is longer than the typical 160-char cap.' : undefined}
                             />
                             <Input
                                 label="Canonical URL"
@@ -185,15 +183,11 @@ export const SeoBuilderPage = () => {
                 <Card>
                     <h3 className="text-sm font-semibold text-fg mb-3">Google preview</h3>
                     <div className="p-4 rounded-md border bg-surface">
-                        <div className="text-xs text-fg-muted truncate">
-                            {draft.canonicalUrl || `https://${tenant.slug}.learnhub.in`}
-                        </div>
+                        <div className="text-xs text-fg-muted truncate">{draft.canonicalUrl || `https://${tenant.slug}.learnhub.in`}</div>
                         <div className="text-[#1a0dab] dark:text-[#8ab4f8] text-lg font-medium mt-1 leading-snug">
                             {draft.metaTitle || 'Untitled'}
                         </div>
-                        <div className="text-sm text-fg-soft mt-1 leading-relaxed line-clamp-3">
-                            {draft.metaDescription || '—'}
-                        </div>
+                        <div className="text-sm text-fg-soft mt-1 leading-relaxed line-clamp-3">{draft.metaDescription || '—'}</div>
                     </div>
 
                     <h3 className="text-sm font-semibold text-fg mt-5 mb-3">Social share</h3>

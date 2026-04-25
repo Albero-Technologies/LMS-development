@@ -111,9 +111,7 @@ export const useFeeStore = create<Store>()(
                 })),
 
             payAllOverdue: (method) => {
-                const unpaid = get().invoices.filter(
-                    (i) => i.status === 'DUE' || i.status === 'OVERDUE'
-                )
+                const unpaid = get().invoices.filter((i) => i.status === 'DUE' || i.status === 'OVERDUE')
                 if (unpaid.length === 0) return 0
                 const now = new Date().toISOString()
                 set((s) => ({

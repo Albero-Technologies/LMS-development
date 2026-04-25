@@ -2,20 +2,7 @@
 // The voice is "come learn with us", not "run an LMS".
 // Every CTA routes either to the enquiry form or the public course catalog.
 import { Link } from 'react-router-dom'
-import {
-    ArrowRight,
-    Play,
-    Award,
-    Clock,
-    Users,
-    Star,
-    BookOpen,
-    Video,
-    MessageCircle,
-    Sparkles,
-    CheckCircle2,
-    ArrowUpRight
-} from 'lucide-react'
+import { ArrowRight, Play, Award, Clock, Users, Star, BookOpen, Video, MessageCircle, Sparkles, CheckCircle2, ArrowUpRight } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
@@ -65,7 +52,7 @@ const WHY = [
     {
         icon: BookOpen,
         title: 'Structured curriculum',
-        body: 'Short lessons that build on each other. No 40-hour videos you won\'t finish.'
+        body: "Short lessons that build on each other. No 40-hour videos you won't finish."
     },
     {
         icon: Award,
@@ -118,7 +105,7 @@ const FAQS = [
         a: 'Finish the capstone with ≥ 60% score and we issue a PDF certificate plus a public verification page.'
     },
     {
-        q: 'What if the course isn\'t a fit?',
+        q: "What if the course isn't a fit?",
         a: 'Within 7 days of enrolling, ask for a refund — no questions, no forms.'
     }
 ]
@@ -129,8 +116,7 @@ export const LandingPage = () => (
         <section
             className="relative overflow-hidden"
             style={{
-                background:
-                    'linear-gradient(160deg, #F0F4FF 0%, var(--color-surface) 50%, #E8F0FE 100%)'
+                background: 'linear-gradient(160deg, #F0F4FF 0%, var(--color-surface) 50%, #E8F0FE 100%)'
             }}>
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-16 lg:pt-28 lg:pb-24 text-center">
                 <Badge tone="brand">
@@ -140,8 +126,7 @@ export const LandingPage = () => (
                     Master new skills with expert-led courses
                 </h1>
                 <p className="mt-5 text-base sm:text-lg text-fg-soft max-w-2xl mx-auto leading-relaxed">
-                    From coding to cloud — learn at your own pace with live classes, hands-on projects, and industry
-                    certifications.
+                    From coding to cloud — learn at your own pace with live classes, hands-on projects, and industry certifications.
                 </p>
                 <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                     <Link to="/enquiry">
@@ -167,9 +152,7 @@ export const LandingPage = () => (
                         <div
                             key={s.k}
                             className="flex flex-col items-center">
-                            <div className="font-mono text-2xl sm:text-3xl font-bold text-fg tracking-tight">
-                                {s.n}
-                            </div>
+                            <div className="font-mono text-2xl sm:text-3xl font-bold text-fg tracking-tight">{s.n}</div>
                             <div className="mt-1 text-xs text-fg-muted">{s.k}</div>
                         </div>
                     ))}
@@ -193,12 +176,8 @@ export const LandingPage = () => (
         <section className="py-20 border-t">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
-                    <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">
-                        Why Albero Academy
-                    </div>
-                    <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">
-                        Learn the way working engineers actually learn
-                    </h2>
+                    <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">Why Albero Academy</div>
+                    <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">Learn the way working engineers actually learn</h2>
                 </div>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {WHY.map((w) => (
@@ -223,12 +202,8 @@ export const LandingPage = () => (
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-10">
                     <div>
-                        <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">
-                            Featured courses
-                        </div>
-                        <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-fg tracking-tight">
-                            Pick a path and start this week
-                        </h2>
+                        <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">Featured courses</div>
+                        <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-fg tracking-tight">Pick a path and start this week</h2>
                     </div>
                     <Link to="/courses">
                         <Button
@@ -250,8 +225,7 @@ export const LandingPage = () => (
                                 <div
                                     className="h-36 rounded-md mb-4 relative overflow-hidden"
                                     style={{
-                                        background:
-                                            'linear-gradient(135deg, var(--color-brand-50), var(--color-brand-100))'
+                                        background: 'linear-gradient(135deg, var(--color-brand-50), var(--color-brand-100))'
                                     }}>
                                     <BookOpen
                                         size={40}
@@ -263,9 +237,7 @@ export const LandingPage = () => (
                                         {c.tag}
                                     </Badge>
                                 </div>
-                                <h3 className="text-base font-semibold text-fg group-hover:text-brand transition-colors">
-                                    {c.title}
-                                </h3>
+                                <h3 className="text-base font-semibold text-fg group-hover:text-brand transition-colors">{c.title}</h3>
                                 <p className="text-xs text-fg-muted mt-1">by {c.mentor}</p>
                                 <div className="mt-3 flex items-center gap-3 text-xs text-fg-muted">
                                     <span className="inline-flex items-center gap-1">
@@ -284,9 +256,7 @@ export const LandingPage = () => (
                                         />
                                         <span className="font-semibold text-fg">{c.rating}</span>
                                     </span>
-                                    <span className="font-mono font-semibold text-fg">
-                                        ₹{c.price.toLocaleString('en-IN')}
-                                    </span>
+                                    <span className="font-mono font-semibold text-fg">₹{c.price.toLocaleString('en-IN')}</span>
                                 </div>
                             </Card>
                         </Link>
@@ -299,15 +269,9 @@ export const LandingPage = () => (
         <section className="py-20 border-t">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-12">
-                    <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">
-                        Student stories
-                    </div>
-                    <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">
-                        Stories from 10,000+ learners
-                    </h2>
-                    <p className="mt-3 text-fg-soft">
-                        Real experiences from students who levelled up with Albero Academy.
-                    </p>
+                    <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">Student stories</div>
+                    <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">Stories from 10,000+ learners</h2>
+                    <p className="mt-3 text-fg-soft">Real experiences from students who levelled up with Albero Academy.</p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-5">
                     {STORIES.map((t) => (
@@ -344,9 +308,7 @@ export const LandingPage = () => (
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-10">
                     <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold">FAQ</div>
-                    <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">
-                        Questions learners ask before joining
-                    </h2>
+                    <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-fg tracking-tight">Questions learners ask before joining</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                     {FAQS.map((f) => (
@@ -381,19 +343,16 @@ export const LandingPage = () => (
                 <div
                     className="relative rounded-lg overflow-hidden p-10 sm:p-14 text-center text-white"
                     style={{
-                        background:
-                            'linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-700) 100%)'
+                        background: 'linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-700) 100%)'
                     }}>
                     <Users
                         size={34}
                         className="mx-auto mb-4 opacity-80"
                     />
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                        Not sure where to start?
-                    </h2>
+                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Not sure where to start?</h2>
                     <p className="mt-3 text-white/85 max-w-xl mx-auto">
-                        Leave your number. A counsellor will call you in the next working day to help you pick a path
-                        that fits your goals and timeline.
+                        Leave your number. A counsellor will call you in the next working day to help you pick a path that fits your goals and
+                        timeline.
                     </p>
                     <div className="mt-6 flex justify-center gap-3 flex-wrap">
                         <Link to="/enquiry">

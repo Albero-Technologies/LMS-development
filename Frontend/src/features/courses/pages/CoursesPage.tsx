@@ -70,9 +70,7 @@ export const CoursesPage = () => {
                 <Empty
                     icon={<BookOpen size={36} />}
                     title={q ? 'No matches' : 'No courses yet'}
-                    description={
-                        q ? 'Try a different search.' : 'Create your first course. It takes about 5 minutes to publish.'
-                    }
+                    description={q ? 'Try a different search.' : 'Create your first course. It takes about 5 minutes to publish.'}
                     action={
                         canEdit && !q ? (
                             <Button

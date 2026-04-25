@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import AppError from '../../util/AppError'
@@ -24,7 +24,10 @@ export const uploadSingle = async (req: Request, res: Response): Promise<void> =
     requireAuth(req)
     if (!req.file) throw AppError.badRequest('No file uploaded', 'UPLOAD_MISSING')
     const dto = fileToDto(req.file)
-    await writeAudit({ action: 'upload.single', entityType: 'File', entityId: dto.filename, metadata: { kind: req.params.kind, size: dto.size } }, req)
+    await writeAudit(
+        { action: 'upload.single', entityType: 'File', entityId: dto.filename, metadata: { kind: req.params.kind, size: dto.size } },
+        req
+    )
     httpResponse(req, res, 201, responseMessage.CREATED, dto)
 }
 

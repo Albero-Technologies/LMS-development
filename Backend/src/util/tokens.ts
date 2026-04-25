@@ -1,10 +1,10 @@
-import jwt, { SignOptions } from 'jsonwebtoken'
+import jwt, { type SignOptions } from 'jsonwebtoken'
 import crypto from 'crypto'
 import config from '../config/config'
-import { TJwtPayload } from '../types/types'
-import { Role } from '@prisma/client'
+import { type TJwtPayload } from '../types/types'
+import { type Role } from '@prisma/client'
 
-type TIssueInput = {
+interface TIssueInput {
     userId: string
     tenantId: string
     role: Role

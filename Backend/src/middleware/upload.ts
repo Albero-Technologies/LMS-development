@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import multer, { FileFilterCallback } from 'multer'
-import { Request } from 'express'
+import multer, { type FileFilterCallback } from 'multer'
+import { type Request } from 'express'
 import AppError from '../util/AppError'
 
 // Local-disk storage — Phase 1 only. Phase 3+ swaps this for S3 multipart
@@ -43,7 +43,7 @@ const DOC_MIME = new Set([
 
 type TUploadKind = 'avatars' | 'course-thumbnails' | 'assignments' | 'branding' | 'ticket-attachments'
 
-type TUploadOpts = {
+interface TUploadOpts {
     kind: TUploadKind
     /** Max size in bytes. Default 10MB. */
     maxBytes?: number
@@ -71,7 +71,7 @@ export const upload = (opts: TUploadOpts) => {
     const field = opts.field ?? 'file'
 
     const storage = multer.diskStorage({
-        destination: (req, _file, cb) => cb(null, subdirFor(req as Request, opts.kind)),
+        destination: (req, _file, cb) => cb(null, subdirFor(req, opts.kind)),
         filename: (_req, file, cb) => cb(null, safeFilename(file.originalname))
     })
 
@@ -81,9 +81,7 @@ export const upload = (opts: TUploadOpts) => {
         fileFilter: fileFilter(opts.mime ?? 'image')
     })
 
-    return opts.maxCount && opts.maxCount > 1
-        ? instance.array(field, opts.maxCount)
-        : instance.single(field)
+    return opts.maxCount && opts.maxCount > 1 ? instance.array(field, opts.maxCount) : instance.single(field)
 }
 
 // Convert an absolute disk path back into a publicly-servable URL.

@@ -136,9 +136,7 @@ export const WebsiteEditorPage = () => {
                     <Card>
                         <h3 className="text-sm font-semibold text-fg mb-3">Featured courses</h3>
                         <div className="space-y-2 mb-3">
-                            {featured.length === 0 && (
-                                <div className="text-sm text-fg-muted py-2">Pick a course to feature below.</div>
-                            )}
+                            {featured.length === 0 && <div className="text-sm text-fg-muted py-2">Pick a course to feature below.</div>}
                             {featured.map((c) => (
                                 <div
                                     key={c.id}
@@ -194,24 +192,19 @@ export const WebsiteEditorPage = () => {
                 <Card padded={false}>
                     <div className="p-4 border-b flex items-center gap-2 text-xs text-fg-muted">
                         <Globe size={14} />
-                        <span className="font-mono">
-                            {tenant.slug}.learnhub.in
-                        </span>
+                        <span className="font-mono">{tenant.slug}.learnhub.in</span>
                         <Badge className="ml-auto">Preview</Badge>
                     </div>
                     <div
                         className="p-8 sm:p-12 text-center"
                         style={{
-                            background:
-                                'linear-gradient(160deg, #F0F4FF 0%, var(--color-surface) 50%, #E8F0FE 100%)'
+                            background: 'linear-gradient(160deg, #F0F4FF 0%, var(--color-surface) 50%, #E8F0FE 100%)'
                         }}>
                         <Badge tone="brand">{draft.heroTag}</Badge>
                         <h1 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-fg max-w-2xl mx-auto">
                             {draft.heroTitle}
                         </h1>
-                        <p className="mt-3 text-sm text-fg-soft max-w-xl mx-auto leading-relaxed">
-                            {draft.heroSubtitle}
-                        </p>
+                        <p className="mt-3 text-sm text-fg-soft max-w-xl mx-auto leading-relaxed">{draft.heroSubtitle}</p>
                         <div className="mt-5 flex justify-center gap-2">
                             <Button size="sm">{draft.primaryCta}</Button>
                             <Button
@@ -222,24 +215,18 @@ export const WebsiteEditorPage = () => {
                         </div>
                     </div>
                     <div className="p-6 border-t">
-                        <h3 className="text-xs text-fg-muted font-semibold uppercase tracking-wider mb-3">
-                            Featured courses ({featured.length})
-                        </h3>
+                        <h3 className="text-xs text-fg-muted font-semibold uppercase tracking-wider mb-3">Featured courses ({featured.length})</h3>
                         <div className="grid sm:grid-cols-3 gap-3">
                             {featured.map((c) => (
                                 <div
                                     key={c.id}
                                     className="rounded-md border p-3 bg-surface">
                                     <div className="text-sm font-semibold text-fg truncate">{c.title}</div>
-                                    <div className="text-xs text-fg-muted mt-1">
-                                        ₹{c.price.toLocaleString('en-IN')}
-                                    </div>
+                                    <div className="text-xs text-fg-muted mt-1">₹{c.price.toLocaleString('en-IN')}</div>
                                 </div>
                             ))}
                             {featured.length === 0 && (
-                                <div className="col-span-3 text-sm text-fg-muted py-4 text-center">
-                                    No courses featured yet.
-                                </div>
+                                <div className="col-span-3 text-sm text-fg-muted py-4 text-center">No courses featured yet.</div>
                             )}
                         </div>
                     </div>
@@ -257,16 +244,8 @@ const Toggle = ({ label, value, onChange }: { label: string; value: boolean; onC
             role="switch"
             aria-checked={value}
             onClick={() => onChange(!value)}
-            className={
-                'relative w-9 h-5 rounded-full transition-colors ' +
-                (value ? 'bg-[var(--color-brand-500)]' : 'bg-[var(--color-border)]')
-            }>
-            <span
-                className={
-                    'absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ' +
-                    (value ? 'translate-x-4' : '')
-                }
-            />
+            className={'relative w-9 h-5 rounded-full transition-colors ' + (value ? 'bg-[var(--color-brand-500)]' : 'bg-[var(--color-border)]')}>
+            <span className={'absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ' + (value ? 'translate-x-4' : '')} />
         </button>
     </label>
 )

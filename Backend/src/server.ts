@@ -27,7 +27,7 @@ const server = app.listen(config.PORT)
     }
 })()
 
-const shutdown = async (signal: string) => {
+const shutdown = (signal: string): void => {
     logger.info('APPLICATION_SHUTDOWN', { meta: { signal } })
     server.close(async () => {
         try {
@@ -42,8 +42,8 @@ const shutdown = async (signal: string) => {
     setTimeout(() => process.exit(1), 15_000).unref()
 }
 
-process.on('SIGTERM', () => void shutdown('SIGTERM'))
-process.on('SIGINT', () => void shutdown('SIGINT'))
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
 
 process.on('unhandledRejection', (reason) => {
     logger.error('UNHANDLED_REJECTION', { meta: { reason: String(reason) } })

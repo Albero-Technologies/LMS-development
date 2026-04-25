@@ -13,10 +13,7 @@ const ENROLLMENTS = [
 
 export const EnrollmentsPage = () => {
     const exportCsv = () => {
-        const rows = [
-            ['Student', 'Course', 'Progress%', 'Status', 'Enrolled'],
-            ...ENROLLMENTS.map((e) => [e.s, e.c, String(e.p), e.st, e.d])
-        ]
+        const rows = [['Student', 'Course', 'Progress%', 'Status', 'Enrolled'], ...ENROLLMENTS.map((e) => [e.s, e.c, String(e.p), e.st, e.d])]
         const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
         const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
         const a = document.createElement('a')

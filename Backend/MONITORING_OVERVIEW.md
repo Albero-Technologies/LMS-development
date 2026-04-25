@@ -5,6 +5,7 @@ actually use it day-to-day. You don't need to read any other docs to follow
 this — just a rough idea of what "server", "logs", and "metrics" mean.
 
 > **Related docs**
+>
 > - [OBSERVABILITY.md](./OBSERVABILITY.md) — the detailed how-to (queries,
 >   cheat sheets, adding metrics, debugging the stack itself)
 > - [DOCS.md](./DOCS.md) — the full beginner walkthrough of the backend
@@ -24,11 +25,11 @@ the code:
 
 Three tools, each good at one thing:
 
-| Tool | Answers | Analogy |
-| ---- | ------- | ------- |
+| Tool           | Answers                                                    | Analogy                                   |
+| -------------- | ---------------------------------------------------------- | ----------------------------------------- |
 | **Prometheus** | "How many requests per second? How fast? How many failed?" | The speedometer + tachometer + fuel gauge |
-| **Loki** | "What did the server say in the last 10 minutes?" | The flight recorder |
-| **Grafana** | "Show me all of the above on one screen" | The dashboard in front of the driver |
+| **Loki**       | "What did the server say in the last 10 minutes?"          | The flight recorder                       |
+| **Grafana**    | "Show me all of the above on one screen"                   | The dashboard in front of the driver      |
 
 ---
 
@@ -132,11 +133,11 @@ docker compose -f docker/development/docker-compose.yml --profile observability 
 
 Wait ~60 seconds on first run (pulls Docker images). Then open:
 
-| URL | What you'll do there |
-| --- | -------------------- |
-| `http://localhost:3001` | **Grafana** — this is where you spend 99% of your time. Login `admin` / `admin`. |
+| URL                     | What you'll do there                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `http://localhost:3001` | **Grafana** — this is where you spend 99% of your time. Login `admin` / `admin`.           |
 | `http://localhost:9090` | Prometheus — only open this if Grafana is broken and you want to sanity-check raw metrics. |
-| `http://localhost:3100` | Loki — you don't visit this manually; Grafana talks to it. |
+| `http://localhost:3100` | Loki — you don't visit this manually; Grafana talks to it.                                 |
 
 ---
 
@@ -147,11 +148,11 @@ Wait ~60 seconds on first run (pulls Docker images). Then open:
 1. Open **Grafana** (`:3001`).
 2. Sidebar → **Dashboards** → **LearnHub** → **LearnHub · API Overview**.
 3. Top row tells you at-a-glance:
-   - **Request rate** — should be non-zero if traffic is hitting the API.
-   - **Error rate %** — green <1%, yellow 1–5%, red >5%.
-   - **p95 latency** — green <500ms, yellow 500ms–1s, red >1s.
-   - **In-flight** — should be small; if this climbs and stays high,
-     something is blocking.
+    - **Request rate** — should be non-zero if traffic is hitting the API.
+    - **Error rate %** — green <1%, yellow 1–5%, red >5%.
+    - **p95 latency** — green <500ms, yellow 500ms–1s, red >1s.
+    - **In-flight** — should be small; if this climbs and stays high,
+      something is blocking.
 4. Middle rows show the same numbers as graphs over time — spot a spike,
    zoom in.
 
@@ -181,18 +182,18 @@ carries the same id.
 
 1. Grafana → **Explore** → Prometheus datasource.
 2. Query:
-   ```
-   histogram_quantile(0.95,
-     sum by (le, route) (
-       rate(http_request_duration_seconds_bucket{route=~".*payment.*"}[5m])
-     ))
-   ```
+    ```
+    histogram_quantile(0.95,
+      sum by (le, route) (
+        rate(http_request_duration_seconds_bucket{route=~".*payment.*"}[5m])
+      ))
+    ```
 3. That's p95 latency per payment route, updating live. If one route is an
    outlier, you've localized the problem.
 4. Cross-reference with Loki:
-   ```
-   {service="api"} | json | route =~ ".*payment.*" | responseTime_ms > 500
-   ```
+    ```
+    {service="api"} | json | route =~ ".*payment.*" | responseTime_ms > 500
+    ```
 
 ### Scenario D — "I want to know when someone's brute-forcing logins"
 
@@ -209,14 +210,14 @@ If that's >0 for more than a minute, someone's hammering `/auth/login`.
 
 ## 6 · The mental model of "metrics vs logs"
 
-A common question from people new to this: *which one should I use?*
+A common question from people new to this: _which one should I use?_
 
-| Question | Tool |
-| -------- | ---- |
-| "How often does X happen?" | **Metrics** (counter) |
-| "How long does X take?" | **Metrics** (histogram) |
-| "Is X happening right now?" | **Metrics** (gauge) |
-| "What exactly happened during X?" | **Logs** |
+| Question                                 | Tool                                   |
+| ---------------------------------------- | -------------------------------------- |
+| "How often does X happen?"               | **Metrics** (counter)                  |
+| "How long does X take?"                  | **Metrics** (histogram)                |
+| "Is X happening right now?"              | **Metrics** (gauge)                    |
+| "What exactly happened during X?"        | **Logs**                               |
 | "Which tenant / user / record caused X?" | **Logs** (never metrics — cardinality) |
 
 The golden rule: **anything you could group by user / tenant / record ID
@@ -280,13 +281,13 @@ SLOs.
 
 Same tools, different homes:
 
-| Layer | Local (this setup) | Production |
-| ----- | ------------------ | ---------- |
+| Layer         | Local (this setup)                  | Production                                        |
+| ------------- | ----------------------------------- | ------------------------------------------------- |
 | Metrics store | Prometheus container on your laptop | Grafana Cloud Prometheus / AWS Managed Prometheus |
-| Log store | Loki single-binary container | Grafana Cloud Loki / CloudWatch / OpenSearch |
-| Log shipper | Promtail via Docker socket | Promtail or Grafana Alloy as a DaemonSet |
-| Dashboards | Auto-provisioned local Grafana | Grafana Cloud — same JSON dashboards |
-| Alerts | None yet | Grafana Alerting → Slack / PagerDuty |
+| Log store     | Loki single-binary container        | Grafana Cloud Loki / CloudWatch / OpenSearch      |
+| Log shipper   | Promtail via Docker socket          | Promtail or Grafana Alloy as a DaemonSet          |
+| Dashboards    | Auto-provisioned local Grafana      | Grafana Cloud — same JSON dashboards              |
+| Alerts        | None yet                            | Grafana Alerting → Slack / PagerDuty              |
 
 The **application code doesn't change**. `/metrics` and winston logs work
 identically in both worlds. Only the infra around them is different.

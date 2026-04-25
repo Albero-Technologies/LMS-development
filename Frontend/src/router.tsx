@@ -23,7 +23,6 @@ import { TrainerDashboard } from '@features/dashboards/pages/TrainerDashboard'
 import { AdminDashboard } from '@features/dashboards/pages/AdminDashboard'
 import { CounsellorDashboard } from '@features/dashboards/pages/CounsellorDashboard'
 import { SupportDashboard } from '@features/dashboards/pages/SupportDashboard'
-import { ClientDashboard } from '@features/dashboards/pages/ClientDashboard'
 
 // Domain pages
 import { CoursesPage } from '@features/courses/pages/CoursesPage'
@@ -72,7 +71,15 @@ export const router = createBrowserRouter([
     { path: '/forgot-password', element: <ForgotPasswordPage /> },
 
     // Legacy /register route — redirect to enquiry so any old links don't break.
-    { path: '/register', element: <Navigate to="/enquiry" replace /> },
+    {
+        path: '/register',
+        element: (
+            <Navigate
+                to="/enquiry"
+                replace
+            />
+        )
+    },
 
     // Counsellor-invite onboarding (public, token-scoped)
     { path: '/onboarding/:token', element: <OnboardingPage /> },
@@ -82,9 +89,7 @@ export const router = createBrowserRouter([
             <div className="min-h-screen bg-surface-2 flex items-center justify-center">
                 <div className="text-center max-w-md px-6">
                     <h1 className="text-3xl font-bold text-brand tracking-tight">You're in.</h1>
-                    <p className="mt-4 text-fg-soft">
-                        We just emailed your counsellor. They'll share your login credentials within an hour.
-                    </p>
+                    <p className="mt-4 text-fg-soft">We just emailed your counsellor. They'll share your login credentials within an hour.</p>
                 </div>
             </div>
         )
@@ -99,7 +104,15 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: [
-            { index: true, element: <Navigate to="/app/student" replace /> },
+            {
+                index: true,
+                element: (
+                    <Navigate
+                        to="/app/student"
+                        replace
+                    />
+                )
+            },
 
             // Dashboards
             {
@@ -150,15 +163,6 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 )
             },
-            {
-                path: 'client',
-                element: (
-                    <ProtectedRoute roles={[ROLES.CLIENT]}>
-                        <ClientDashboard />
-                    </ProtectedRoute>
-                )
-            },
-
             // Courses
             { path: 'courses', element: <CoursesPage /> },
             { path: 'courses/:id', element: <CourseDetailPage /> },
@@ -201,7 +205,7 @@ export const router = createBrowserRouter([
             {
                 path: 'payments',
                 element: (
-                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TRAINER, ROLES.STUDENT, ROLES.CLIENT]}>
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TRAINER, ROLES.STUDENT]}>
                         <PaymentsPage />
                     </ProtectedRoute>
                 )
@@ -217,7 +221,7 @@ export const router = createBrowserRouter([
             {
                 path: 'reports',
                 element: (
-                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.COUNSELLING_MANAGER, ROLES.CLIENT]}>
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.COUNSELLING_MANAGER]}>
                         <ReportsPage />
                     </ProtectedRoute>
                 )

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import { globalLimiter } from '../config/rateLimiter'
 import httpError from '../util/httpError'
 import responseMessage from '../constant/responseMessage'
@@ -8,7 +8,7 @@ export default (req: Request, _: Response, next: NextFunction): void => {
     if (!globalLimiter) return next()
 
     globalLimiter
-        .consume((req.ip as string) || 'unknown', 1)
+        .consume(req.ip ?? 'unknown', 1)
         .then(() => next())
         .catch(() => {
             httpError(next, new Error(responseMessage.TOO_MANY_REQUESTS), req, 429)

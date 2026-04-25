@@ -22,15 +22,14 @@ async function main() {
     // One-off rename: migrate existing @acme.dev seed users to @albero.academy.
     // Idempotent — updateMany matching zero rows is a no-op, so re-running the
     // seed after everyone is already renamed costs nothing.
-    const emailRenames: Array<[string, string]> = [
+    const emailRenames: [string, string][] = [
         ['super@acme.dev', 'super@albero.academy'],
         ['admin@acme.dev', 'admin@albero.academy'],
         ['trainer@acme.dev', 'trainer@albero.academy'],
         ['student@acme.dev', 'student@albero.academy'],
         ['manager@acme.dev', 'manager@albero.academy'],
         ['counsellor@acme.dev', 'counsellor@albero.academy'],
-        ['support@acme.dev', 'support@albero.academy'],
-        ['client@acme.dev', 'client@albero.academy']
+        ['support@acme.dev', 'support@albero.academy']
     ]
     for (const [oldEmail, newEmail] of emailRenames) {
         await prisma.user.updateMany({
@@ -59,8 +58,7 @@ async function main() {
             role: Role.COUNSELLOR,
             employeeCode: 'C-1001'
         },
-        { email: 'support@albero.academy', first: 'Sid', last: 'Support', role: Role.SUPPORT, employeeCode: 'S-2001' },
-        { email: 'client@albero.academy', first: 'Bee', last: 'Client', role: Role.CLIENT }
+        { email: 'support@albero.academy', first: 'Sid', last: 'Support', role: Role.SUPPORT, employeeCode: 'S-2001' }
     ]
 
     for (const r of roles) {
@@ -198,14 +196,12 @@ async function main() {
         void crypto
     }
 
-    // eslint-disable-next-line no-console
     console.log('Seed complete:', tenant.slug)
 }
 
 main()
     .catch((e) => {
-        // eslint-disable-next-line no-console
         console.error(e)
         process.exit(1)
     })
-    .finally(() => prisma.$disconnect())
+    .finally(() => void prisma.$disconnect())

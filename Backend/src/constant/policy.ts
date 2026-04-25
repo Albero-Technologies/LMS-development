@@ -41,7 +41,7 @@ export const POLICY: TPolicy = {
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.COUNSELLING_MANAGER]
     },
     course: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT],
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER]
     },
     lesson: {
@@ -49,15 +49,15 @@ export const POLICY: TPolicy = {
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER]
     },
     enrollment: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.CLIENT, Role.SUPPORT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.SUPPORT],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     invoice: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     payment: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT],
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT]
     },
     quiz: {
@@ -69,7 +69,7 @@ export const POLICY: TPolicy = {
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT]
     },
     batch: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.CLIENT, Role.SUPPORT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.SUPPORT],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     counsellor_invite: {
@@ -102,15 +102,15 @@ export const POLICY: TPolicy = {
         write: []
     },
     ticket: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.STUDENT, Role.TRAINER, Role.CLIENT],
-        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.STUDENT, Role.TRAINER, Role.CLIENT]
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.STUDENT, Role.TRAINER],
+        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT, Role.STUDENT, Role.TRAINER]
     },
     notification: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT],
         write: [Role.SUPER_ADMIN, Role.ADMIN]
     },
     dashboard: {
-        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT, Role.CLIENT],
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT],
         write: []
     }
 }

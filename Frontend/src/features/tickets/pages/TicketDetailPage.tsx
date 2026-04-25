@@ -10,14 +10,7 @@ import { Textarea } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Empty } from '@shared/components/ui/Empty'
 import { cn } from '@shared/helpers/cn'
-import {
-    useTicketStore,
-    PRIORITY_TONE,
-    STATUS_TONE,
-    type TPriority,
-    type TStatus,
-    type TMessage
-} from '../stores/ticketStore'
+import { useTicketStore, PRIORITY_TONE, STATUS_TONE, type TPriority, type TStatus, type TMessage } from '../stores/ticketStore'
 import { useAuthStore } from '@shared/stores/authStore'
 
 const fmtTime = (iso: string): string => {

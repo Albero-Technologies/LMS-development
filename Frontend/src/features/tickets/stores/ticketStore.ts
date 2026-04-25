@@ -27,9 +27,7 @@ export type TTicket = {
 }
 
 const newId = (): string =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2)
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 
 const nowIso = () => new Date().toISOString()
 const inHrs = (hrs: number) => new Date(Date.now() + hrs * 3_600_000).toISOString()
@@ -69,7 +67,7 @@ const SEED: TTicket[] = [
                 id: 'm1',
                 author: 'Sneha Patil',
                 role: 'student',
-                text: 'I enrolled yesterday but the Full-stack TS course isn\'t showing up in my dashboard.',
+                text: "I enrolled yesterday but the Full-stack TS course isn't showing up in my dashboard.",
                 at: new Date(Date.now() - 30 * 60_000).toISOString()
             }
         ]
@@ -107,7 +105,7 @@ const SEED: TTicket[] = [
                 id: 'm1',
                 author: 'Priya Shetty',
                 role: 'student',
-                text: 'My DSA Week 5 attempt didn\'t save.',
+                text: "My DSA Week 5 attempt didn't save.",
                 at: new Date(Date.now() - 3 * 86_400_000).toISOString()
             },
             {
@@ -181,15 +179,11 @@ export const useTicketStore = create<Store>()(
                 })),
             updatePriority: (id, priority) =>
                 set((s) => ({
-                    tickets: s.tickets.map((t) =>
-                        t.id !== id ? t : { ...t, priority, slaDueAt: inHrs(SLA_BY_PRIORITY[priority]) }
-                    )
+                    tickets: s.tickets.map((t) => (t.id !== id ? t : { ...t, priority, slaDueAt: inHrs(SLA_BY_PRIORITY[priority]) }))
                 })),
             addMessage: (id, msg) =>
                 set((s) => ({
-                    tickets: s.tickets.map((t) =>
-                        t.id !== id ? t : { ...t, messages: [...t.messages, { ...msg, id: newId(), at: nowIso() }] }
-                    )
+                    tickets: s.tickets.map((t) => (t.id !== id ? t : { ...t, messages: [...t.messages, { ...msg, id: newId(), at: nowIso() }] }))
                 }))
         }),
         {

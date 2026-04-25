@@ -32,9 +32,7 @@ export type TAttempt = {
 }
 
 const newId = (): string =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2)
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 
 const SEED: TQuiz[] = [
     {
@@ -82,12 +80,7 @@ const SEED: TQuiz[] = [
             {
                 id: 'q2-1',
                 text: 'A write-heavy service is CPU-bound on serialisation. First move:',
-                options: [
-                    'Add a read replica',
-                    'Introduce protobuf + batching',
-                    'Partition the database',
-                    'Move to a CDN'
-                ],
+                options: ['Add a read replica', 'Introduce protobuf + batching', 'Partition the database', 'Move to a CDN'],
                 correctIndex: 1,
                 points: 1
             },
@@ -134,25 +127,15 @@ export const useQuizStore = create<Store>()(
             deleteQuiz: (id) => set((s) => ({ quizzes: s.quizzes.filter((q) => q.id !== id) })),
             addQuestion: (quizId, q) =>
                 set((s) => ({
-                    quizzes: s.quizzes.map((qz) =>
-                        qz.id !== quizId ? qz : { ...qz, questions: [...qz.questions, { id: newId(), ...q }] }
-                    )
+                    quizzes: s.quizzes.map((qz) => (qz.id !== quizId ? qz : { ...qz, questions: [...qz.questions, { id: newId(), ...q }] }))
                 })),
             updateQuestion: (quizId, q) =>
                 set((s) => ({
-                    quizzes: s.quizzes.map((qz) =>
-                        qz.id !== quizId
-                            ? qz
-                            : { ...qz, questions: qz.questions.map((x) => (x.id === q.id ? q : x)) }
-                    )
+                    quizzes: s.quizzes.map((qz) => (qz.id !== quizId ? qz : { ...qz, questions: qz.questions.map((x) => (x.id === q.id ? q : x)) }))
                 })),
             removeQuestion: (quizId, questionId) =>
                 set((s) => ({
-                    quizzes: s.quizzes.map((qz) =>
-                        qz.id !== quizId
-                            ? qz
-                            : { ...qz, questions: qz.questions.filter((q) => q.id !== questionId) }
-                    )
+                    quizzes: s.quizzes.map((qz) => (qz.id !== quizId ? qz : { ...qz, questions: qz.questions.filter((q) => q.id !== questionId) }))
                 })),
             submitAttempt: (att) => {
                 const full: TAttempt = { id: newId(), ...att }

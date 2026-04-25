@@ -8,20 +8,23 @@ import { Button } from '@shared/components/ui/Button'
 
 // Keep the data shape close to the in-app course so we can swap for a real API
 // call later without a page-level rewrite.
-const DATA: Record<string, {
-    title: string
-    mentor: string
-    category: string
-    level: string
-    lessons: number
-    weeks: number
-    price: number
-    rating: number
-    students: number
-    description: string
-    outcomes: string[]
-    syllabus: string[]
-}> = {
+const DATA: Record<
+    string,
+    {
+        title: string
+        mentor: string
+        category: string
+        level: string
+        lessons: number
+        weeks: number
+        price: number
+        rating: number
+        students: number
+        description: string
+        outcomes: string[]
+        syllabus: string[]
+    }
+> = {
     'sys-design': {
         title: 'System Design Foundations',
         mentor: 'Anuj Verma',
@@ -59,8 +62,7 @@ const DATA: Record<string, {
         price: 5999,
         rating: 4.9,
         students: 2120,
-        description:
-            'Ship a production app end-to-end with Express, Prisma, Zod, and React 19. Cohort-based with weekly code reviews.',
+        description: 'Ship a production app end-to-end with Express, Prisma, Zod, and React 19. Cohort-based with weekly code reviews.',
         outcomes: [
             'Stand up an Express API with Prisma + Zod from scratch',
             'Model auth, RBAC, and tenant isolation the right way',

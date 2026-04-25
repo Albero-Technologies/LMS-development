@@ -116,9 +116,7 @@ export const TakeQuizPage = () => {
                         <div className="text-xs text-fg-muted font-medium">Score</div>
                         <div className="font-mono text-4xl font-bold text-fg">{result.scorePercent}%</div>
                     </div>
-                    <Badge tone={result.passed ? 'ok' : 'danger'}>
-                        {result.passed ? 'Passed' : 'Did not pass'}
-                    </Badge>
+                    <Badge tone={result.passed ? 'ok' : 'danger'}>{result.passed ? 'Passed' : 'Did not pass'}</Badge>
                 </Card>
 
                 <Card>
@@ -148,23 +146,16 @@ export const TakeQuizPage = () => {
                                                 Q{i + 1}. {qq.text}
                                             </div>
                                             <div className="mt-1 text-xs text-fg-soft">
-                                                Your answer:{' '}
-                                                <span className="font-medium">
-                                                    {sel !== undefined ? qq.options[sel] : 'Skipped'}
-                                                </span>
+                                                Your answer: <span className="font-medium">{sel !== undefined ? qq.options[sel] : 'Skipped'}</span>
                                                 {!correct && (
                                                     <>
                                                         {' '}
                                                         · Correct:{' '}
-                                                        <span className="font-medium text-[var(--color-success)]">
-                                                            {qq.options[qq.correctIndex]}
-                                                        </span>
+                                                        <span className="font-medium text-[var(--color-success)]">{qq.options[qq.correctIndex]}</span>
                                                     </>
                                                 )}
                                             </div>
-                                            {qq.explanation && (
-                                                <div className="mt-1.5 text-xs text-fg-muted">{qq.explanation}</div>
-                                            )}
+                                            {qq.explanation && <div className="mt-1.5 text-xs text-fg-muted">{qq.explanation}</div>}
                                         </div>
                                     </div>
                                 </li>
@@ -216,9 +207,7 @@ export const TakeQuizPage = () => {
                                         onClick={() => setAnswer(i)}
                                         className={cn(
                                             'w-full text-left rounded-md border px-4 py-3 flex items-center gap-3 transition-colors',
-                                            active
-                                                ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)]'
-                                                : 'hover:bg-surface-hover'
+                                            active ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover'
                                         )}>
                                         <span
                                             className={cn(

@@ -59,6 +59,7 @@ docker ps
 ```
 
 Expected (abbreviated):
+
 ```
 NAMES                     STATUS                        PORTS
 learnhub-dev-redis-1      Up X seconds (healthy)        0.0.0.0:6379->6379/tcp
@@ -82,18 +83,21 @@ inline because some shells don't auto-load `.env.development` when Prisma is
 invoked from outside Node:
 
 **Bash / PowerShell (bash-compatible):**
+
 ```bash
 DATABASE_URL="postgresql://learnhub:learnhub@localhost:5432/learnhub?schema=public" \
   npx prisma migrate dev --name init --skip-seed
 ```
 
 **Windows PowerShell native:**
+
 ```powershell
 $env:DATABASE_URL = "postgresql://learnhub:learnhub@localhost:5432/learnhub?schema=public"
 npx prisma migrate dev --name init --skip-seed
 ```
 
 Expected output includes:
+
 ```
 Applying migration `YYYYMMDDHHMMSS_init`
 The following migration(s) have been created and applied from new schema changes:
@@ -219,7 +223,7 @@ docker compose -f docker/development/docker-compose.yml \
   --profile observability up -d
 ```
 
-Then open **http://localhost:3001** (admin / admin) — the *LearnHub · API Overview*
+Then open **http://localhost:3001** (admin / admin) — the _LearnHub · API Overview_
 dashboard is pre-provisioned and will start populating as soon as traffic hits
 the API.
 
@@ -259,6 +263,7 @@ docker compose -f docker/development/docker-compose.yml down -v \
 ```
 
 PowerShell equivalent:
+
 ```powershell
 docker compose -f docker/development/docker-compose.yml down -v
 docker compose -f docker/development/docker-compose.yml up -d postgres redis
@@ -273,14 +278,14 @@ npm run dev
 
 ## Troubleshooting in 30 seconds
 
-| Symptom | First thing to try |
-| ------- | ------------------ |
-| `Can't reach database server at localhost:5432` | `docker ps` — is postgres running? If not, rerun step 3. |
-| `ECONNREFUSED 127.0.0.1:6379` | Same, for redis. |
-| `Error: P3009` from prisma migrate | Reset: `npx prisma migrate reset` |
-| `Cannot find module '@prisma/client'` | `npm run prisma:generate` |
-| Nodemon keeps restarting in a loop | Check the last log line — usually a TS error. `npx tsc --noEmit` pinpoints it. |
-| Swagger UI shows blank page | Hard-reload (`Ctrl-Shift-R`) — cached broken CSP from an older build. |
-| Prisma CLI banner nagging to upgrade to v7 | Ignore. We're pinned to v5.22. See [DOCS.md §19](./DOCS.md#i-actually-want-to-upgrade-to-prisma-7). |
+| Symptom                                         | First thing to try                                                                                  |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `Can't reach database server at localhost:5432` | `docker ps` — is postgres running? If not, rerun step 3.                                            |
+| `ECONNREFUSED 127.0.0.1:6379`                   | Same, for redis.                                                                                    |
+| `Error: P3009` from prisma migrate              | Reset: `npx prisma migrate reset`                                                                   |
+| `Cannot find module '@prisma/client'`           | `npm run prisma:generate`                                                                           |
+| Nodemon keeps restarting in a loop              | Check the last log line — usually a TS error. `npx tsc --noEmit` pinpoints it.                      |
+| Swagger UI shows blank page                     | Hard-reload (`Ctrl-Shift-R`) — cached broken CSP from an older build.                               |
+| Prisma CLI banner nagging to upgrade to v7      | Ignore. We're pinned to v5.22. See [DOCS.md §19](./DOCS.md#i-actually-want-to-upgrade-to-prisma-7). |
 
 For more, see [DOCS.md §19 Troubleshooting](./DOCS.md#19-troubleshooting).

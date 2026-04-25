@@ -62,7 +62,7 @@ const spec = {
                     id: { type: 'string', format: 'uuid' },
                     tenantId: { type: 'string', format: 'uuid' },
                     email: { type: 'string', format: 'email' },
-                    role: { type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'STUDENT', 'COUNSELLOR', 'SUPPORT', 'CLIENT'] },
+                    role: { type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'STUDENT', 'COUNSELLING_MANAGER', 'COUNSELLOR', 'SUPPORT'] },
                     firstName: { type: 'string' },
                     lastName: { type: 'string' },
                     status: { type: 'string', enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] }
@@ -161,10 +161,16 @@ const spec = {
             }
         },
         responses: {
-            Unauthorized: { description: 'Missing or invalid token', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
-            Forbidden:    { description: 'Role or tenant policy denied', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
-            NotFound:     { description: 'Resource not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
-            Validation:   { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } }
+            Unauthorized: {
+                description: 'Missing or invalid token',
+                content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+            },
+            Forbidden: {
+                description: 'Role or tenant policy denied',
+                content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } }
+            },
+            NotFound: { description: 'Resource not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+            Validation: { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } }
         }
     },
     security: [{ bearerAuth: [] }],
@@ -188,28 +194,43 @@ const spec = {
         // ---- Auth ----
         '/auth/register': {
             post: {
-                tags: ['Auth'], summary: 'Register a student into a tenant', security: [],
+                tags: ['Auth'],
+                summary: 'Register a student into a tenant',
+                security: [],
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterInput' } } } },
                 responses: { '201': { description: 'Registered' }, '400': { $ref: '#/components/responses/Validation' } }
             }
         },
         '/auth/login': {
             post: {
-                tags: ['Auth'], summary: 'Log in with email + password', security: [],
+                tags: ['Auth'],
+                summary: 'Log in with email + password',
+                security: [],
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/LoginInput' } } } },
                 responses: { '200': { description: 'OK' }, '401': { $ref: '#/components/responses/Unauthorized' } }
             }
         },
         '/auth/refresh': {
-            post: { tags: ['Auth'], summary: 'Rotate refresh token → new access token', security: [{ refreshCookie: [] }], responses: { '200': { description: 'OK' } } }
+            post: {
+                tags: ['Auth'],
+                summary: 'Rotate refresh token → new access token',
+                security: [{ refreshCookie: [] }],
+                responses: { '200': { description: 'OK' } }
+            }
         },
         '/auth/logout': { post: { tags: ['Auth'], summary: 'Revoke refresh session', responses: { '200': { description: 'OK' } } } },
-        '/auth/me':     { get:  { tags: ['Auth'], summary: 'Decoded current user', responses: { '200': { description: 'OK' } } } },
-        '/auth/google': { get:  { tags: ['Auth'], summary: 'Begin Google OAuth flow', security: [], responses: { '302': { description: 'Redirect to Google' } } } },
-        '/auth/google/callback': { get: { tags: ['Auth'], summary: 'Google OAuth callback', security: [], responses: { '200': { description: 'OK' } } } },
+        '/auth/me': { get: { tags: ['Auth'], summary: 'Decoded current user', responses: { '200': { description: 'OK' } } } },
+        '/auth/google': {
+            get: { tags: ['Auth'], summary: 'Begin Google OAuth flow', security: [], responses: { '302': { description: 'Redirect to Google' } } }
+        },
+        '/auth/google/callback': {
+            get: { tags: ['Auth'], summary: 'Google OAuth callback', security: [], responses: { '200': { description: 'OK' } } }
+        },
         '/auth/invites/accept': {
             post: {
-                tags: ['Auth'], summary: 'Accept role invitation and set password', security: [],
+                tags: ['Auth'],
+                summary: 'Accept role invitation and set password',
+                security: [],
                 responses: { '200': { description: 'Accepted' }, '400': { $ref: '#/components/responses/Validation' } }
             }
         },
@@ -219,7 +240,7 @@ const spec = {
             post: { tags: ['Tenants'], summary: 'Create a tenant + first admin (SUPER_ADMIN)', responses: { '201': { description: 'Created' } } }
         },
         '/tenants/me': {
-            get:   { tags: ['Tenants'], summary: 'My tenant', responses: { '200': { description: 'OK' } } },
+            get: { tags: ['Tenants'], summary: 'My tenant', responses: { '200': { description: 'OK' } } },
             patch: { tags: ['Tenants'], summary: 'Update branding / settings', responses: { '200': { description: 'Updated' } } }
         },
 
@@ -229,30 +250,76 @@ const spec = {
             post: { tags: ['Users'], summary: 'Invite a user by email with a role', responses: { '201': { description: 'Invited' } } }
         },
         '/users/{id}': {
-            get:    { tags: ['Users'], summary: 'Get user', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } },
-            patch:  { tags: ['Users'], summary: 'Update user', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Updated' } } },
-            delete: { tags: ['Users'], summary: 'Soft-delete user', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }
+            get: {
+                tags: ['Users'],
+                summary: 'Get user',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            },
+            patch: {
+                tags: ['Users'],
+                summary: 'Update user',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'Updated' } }
+            },
+            delete: {
+                tags: ['Users'],
+                summary: 'Soft-delete user',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
         },
 
         // ---- Courses ----
         '/courses': {
-            get:  { tags: ['Courses'], summary: 'List courses', responses: { '200': { description: 'OK' } } },
+            get: { tags: ['Courses'], summary: 'List courses', responses: { '200': { description: 'OK' } } },
             post: {
-                tags: ['Courses'], summary: 'Create a course',
+                tags: ['Courses'],
+                summary: 'Create a course',
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateCourseInput' } } } },
                 responses: { '201': { description: 'Created' } }
             }
         },
         '/courses/{id}': {
-            get:    { tags: ['Courses'], summary: 'Get course', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } },
-            patch:  { tags: ['Courses'], summary: 'Update course', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } },
-            delete: { tags: ['Courses'], summary: 'Soft-delete course', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }
+            get: {
+                tags: ['Courses'],
+                summary: 'Get course',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            },
+            patch: {
+                tags: ['Courses'],
+                summary: 'Update course',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            },
+            delete: {
+                tags: ['Courses'],
+                summary: 'Soft-delete course',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
         },
-        '/courses/{id}/sections': { post: { tags: ['Courses'], summary: 'Add a section', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
-        '/courses/{id}/lessons':  { post: { tags: ['Courses'], summary: 'Add a lesson', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
+        '/courses/{id}/sections': {
+            post: {
+                tags: ['Courses'],
+                summary: 'Add a section',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '201': { description: 'Created' } }
+            }
+        },
+        '/courses/{id}/lessons': {
+            post: {
+                tags: ['Courses'],
+                summary: 'Add a lesson',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '201': { description: 'Created' } }
+            }
+        },
         '/courses/{id}/lessons/{lessonId}/progress': {
             post: {
-                tags: ['Courses'], summary: 'Update student progress for a lesson',
+                tags: ['Courses'],
+                summary: 'Update student progress for a lesson',
                 parameters: [
                     { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
                     { name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }
@@ -264,7 +331,8 @@ const spec = {
         // ---- Enrollments ----
         '/enrollments': {
             post: {
-                tags: ['Enrollments'], summary: 'Start enrollment + create Razorpay order',
+                tags: ['Enrollments'],
+                summary: 'Start enrollment + create Razorpay order',
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EnrollmentStart' } } } },
                 responses: { '201': { description: 'Order created' } }
             },
@@ -273,19 +341,35 @@ const spec = {
         '/enrollments/mine': { get: { tags: ['Enrollments'], summary: 'My enrollments', responses: { '200': { description: 'OK' } } } },
         '/enrollments/verify-payment': {
             post: {
-                tags: ['Enrollments'], summary: 'Verify Razorpay Checkout handshake',
+                tags: ['Enrollments'],
+                summary: 'Verify Razorpay Checkout handshake',
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/VerifyPaymentInput' } } } },
                 responses: { '200': { description: 'Paid' }, '400': { $ref: '#/components/responses/Validation' } }
             }
         },
 
         // ---- Quizzes ----
-        '/quizzes':           { post: { tags: ['Quizzes'], summary: 'Create a quiz', responses: { '201': { description: 'Created' } } } },
-        '/quizzes/{id}':      { get:  { tags: ['Quizzes'], summary: 'Get quiz', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/quizzes/{id}/attempts': { post: { tags: ['Quizzes'], summary: 'Start an attempt', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'OK' } } } },
+        '/quizzes': { post: { tags: ['Quizzes'], summary: 'Create a quiz', responses: { '201': { description: 'Created' } } } },
+        '/quizzes/{id}': {
+            get: {
+                tags: ['Quizzes'],
+                summary: 'Get quiz',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/quizzes/{id}/attempts': {
+            post: {
+                tags: ['Quizzes'],
+                summary: 'Start an attempt',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '201': { description: 'OK' } }
+            }
+        },
         '/quizzes/attempts/{attemptId}/submit': {
             post: {
-                tags: ['Quizzes'], summary: 'Submit attempt answers',
+                tags: ['Quizzes'],
+                summary: 'Submit attempt answers',
                 parameters: [{ name: 'attemptId', in: 'path', required: true, schema: { type: 'string' } }],
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/QuizSubmit' } } } },
                 responses: { '200': { description: 'Graded' } }
@@ -294,46 +378,180 @@ const spec = {
         '/quizzes/attempts/mine': { get: { tags: ['Quizzes'], summary: 'My attempts', responses: { '200': { description: 'OK' } } } },
 
         // ---- Batches / Counsellor / Payments / Tickets / Notifications / Dashboard (brief) ----
-        '/batches': { get: { tags: ['Batches'], summary: 'List batches', responses: { '200': { description: 'OK' } } }, post: { tags: ['Batches'], summary: 'Create batch', responses: { '201': { description: 'Created' } } } },
-        '/batches/{id}/students':   { post: { tags: ['Batches'], summary: 'Assign students', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/batches/{id}/transfer':   { post: { tags: ['Batches'], summary: 'Transfer student to another batch', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/batches': {
+            get: { tags: ['Batches'], summary: 'List batches', responses: { '200': { description: 'OK' } } },
+            post: { tags: ['Batches'], summary: 'Create batch', responses: { '201': { description: 'Created' } } }
+        },
+        '/batches/{id}/students': {
+            post: {
+                tags: ['Batches'],
+                summary: 'Assign students',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/batches/{id}/transfer': {
+            post: {
+                tags: ['Batches'],
+                summary: 'Transfer student to another batch',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
 
-        '/counsellor/invites':              { get: { tags: ['CounsellorInvites'], summary: 'List my invite links', responses: { '200': { description: 'OK' } } }, post: { tags: ['CounsellorInvites'], summary: 'Create a new onboarding invite link', responses: { '201': { description: 'Created' } } } },
-        '/counsellor/invites/{id}':         { get: { tags: ['CounsellorInvites'], summary: 'Get invite link with signups + creds', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }, delete: { tags: ['CounsellorInvites'], summary: 'Revoke invite link', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/counsellor/invites/{id}/share':   { post: { tags: ['CounsellorInvites'], summary: 'Re-share student credentials', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/counsellor/students':             { get: { tags: ['CounsellorInvites'], summary: 'My students with progress + payment summary', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/targets':              { get: { tags: ['CounsellorInvites'], summary: 'My target & completion rate', responses: { '200': { description: 'OK' } } }, post: { tags: ['CounsellorInvites'], summary: 'Set target (manager / admin)', responses: { '201': { description: 'Created' } } } },
+        '/counsellor/invites': {
+            get: { tags: ['CounsellorInvites'], summary: 'List my invite links', responses: { '200': { description: 'OK' } } },
+            post: { tags: ['CounsellorInvites'], summary: 'Create a new onboarding invite link', responses: { '201': { description: 'Created' } } }
+        },
+        '/counsellor/invites/{id}': {
+            get: {
+                tags: ['CounsellorInvites'],
+                summary: 'Get invite link with signups + creds',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            },
+            delete: {
+                tags: ['CounsellorInvites'],
+                summary: 'Revoke invite link',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/counsellor/invites/{id}/share': {
+            post: {
+                tags: ['CounsellorInvites'],
+                summary: 'Re-share student credentials',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/counsellor/students': {
+            get: { tags: ['CounsellorInvites'], summary: 'My students with progress + payment summary', responses: { '200': { description: 'OK' } } }
+        },
+        '/counsellor/targets': {
+            get: { tags: ['CounsellorInvites'], summary: 'My target & completion rate', responses: { '200': { description: 'OK' } } },
+            post: { tags: ['CounsellorInvites'], summary: 'Set target (manager / admin)', responses: { '201': { description: 'Created' } } }
+        },
 
-        '/counsellor/profile/me':                       { get: { tags: ['CounsellorInvites'], summary: 'My profile (employee code, manager)', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/team':                             { get: { tags: ['CounsellorInvites'], summary: 'Manager: list counsellors under me', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/team/assign':                      { post: { tags: ['CounsellorInvites'], summary: 'Assign / unassign a counsellor to a manager', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/reports/me':                       { get: { tags: ['CounsellorInvites'], summary: 'Counsellor: my own report (preset|from/to)', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/reports/counsellors/{counsellorId}': { get: { tags: ['CounsellorInvites'], summary: 'Manager / admin: a single counsellor report', parameters: [{ name: 'counsellorId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/counsellor/reports/team':                     { get: { tags: ['CounsellorInvites'], summary: 'Manager: aggregate team report (admin: ?managerId=)', responses: { '200': { description: 'OK' } } } },
-        '/counsellor/tasks':                            { get: { tags: ['CounsellorInvites'], summary: 'List tasks (counsellor: own; manager: team)', responses: { '200': { description: 'OK' } } }, post: { tags: ['CounsellorInvites'], summary: 'Manager: assign task to a counsellor', responses: { '201': { description: 'Created' } } } },
-        '/counsellor/tasks/{id}':                       { patch: { tags: ['CounsellorInvites'], summary: 'Update task (counsellor: status only)', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } }, delete: { tags: ['CounsellorInvites'], summary: 'Manager: delete task', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/counsellor/profile/me': {
+            get: { tags: ['CounsellorInvites'], summary: 'My profile (employee code, manager)', responses: { '200': { description: 'OK' } } }
+        },
+        '/counsellor/team': {
+            get: { tags: ['CounsellorInvites'], summary: 'Manager: list counsellors under me', responses: { '200': { description: 'OK' } } }
+        },
+        '/counsellor/team/assign': {
+            post: { tags: ['CounsellorInvites'], summary: 'Assign / unassign a counsellor to a manager', responses: { '200': { description: 'OK' } } }
+        },
+        '/counsellor/reports/me': {
+            get: { tags: ['CounsellorInvites'], summary: 'Counsellor: my own report (preset|from/to)', responses: { '200': { description: 'OK' } } }
+        },
+        '/counsellor/reports/counsellors/{counsellorId}': {
+            get: {
+                tags: ['CounsellorInvites'],
+                summary: 'Manager / admin: a single counsellor report',
+                parameters: [{ name: 'counsellorId', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/counsellor/reports/team': {
+            get: {
+                tags: ['CounsellorInvites'],
+                summary: 'Manager: aggregate team report (admin: ?managerId=)',
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/counsellor/tasks': {
+            get: { tags: ['CounsellorInvites'], summary: 'List tasks (counsellor: own; manager: team)', responses: { '200': { description: 'OK' } } },
+            post: { tags: ['CounsellorInvites'], summary: 'Manager: assign task to a counsellor', responses: { '201': { description: 'Created' } } }
+        },
+        '/counsellor/tasks/{id}': {
+            patch: {
+                tags: ['CounsellorInvites'],
+                summary: 'Update task (counsellor: status only)',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            },
+            delete: {
+                tags: ['CounsellorInvites'],
+                summary: 'Manager: delete task',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
 
-        '/onboarding/{token}':              { get: { tags: ['Onboarding'], summary: 'Resolve invite link → tenant branding', parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/onboarding/{token}/submit':       { post: { tags: ['Onboarding'], summary: 'Public student onboarding form submit → returns creds', parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
+        '/onboarding/{token}': {
+            get: {
+                tags: ['Onboarding'],
+                summary: 'Resolve invite link → tenant branding',
+                parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/onboarding/{token}/submit': {
+            post: {
+                tags: ['Onboarding'],
+                summary: 'Public student onboarding form submit → returns creds',
+                parameters: [{ name: 'token', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '201': { description: 'Created' } }
+            }
+        },
 
-        '/payments/pending':                { get: { tags: ['Payments'], summary: 'List my pending invoices', responses: { '200': { description: 'OK' } } } },
-        '/payments/invoices':               { get: { tags: ['Payments'], summary: 'List all my invoices (history)', responses: { '200': { description: 'OK' } } } },
-        '/payments/{invoiceId}/pay':        { post: { tags: ['Payments'], summary: 'Create / re-issue Razorpay order for an invoice', parameters: [{ name: 'invoiceId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/payments/pending': { get: { tags: ['Payments'], summary: 'List my pending invoices', responses: { '200': { description: 'OK' } } } },
+        '/payments/invoices': { get: { tags: ['Payments'], summary: 'List all my invoices (history)', responses: { '200': { description: 'OK' } } } },
+        '/payments/{invoiceId}/pay': {
+            post: {
+                tags: ['Payments'],
+                summary: 'Create / re-issue Razorpay order for an invoice',
+                parameters: [{ name: 'invoiceId', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
 
-        '/tickets':                 { get: { tags: ['Tickets'], summary: 'List tickets', responses: { '200': { description: 'OK' } } }, post: { tags: ['Tickets'], summary: 'Create ticket', responses: { '201': { description: 'Created' } } } },
-        '/tickets/{id}':            { patch: { tags: ['Tickets'], summary: 'Update (staff)', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
-        '/tickets/{id}/comments':   { post: { tags: ['Tickets'], summary: 'Add comment', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Created' } } } },
+        '/tickets': {
+            get: { tags: ['Tickets'], summary: 'List tickets', responses: { '200': { description: 'OK' } } },
+            post: { tags: ['Tickets'], summary: 'Create ticket', responses: { '201': { description: 'Created' } } }
+        },
+        '/tickets/{id}': {
+            patch: {
+                tags: ['Tickets'],
+                summary: 'Update (staff)',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
+        '/tickets/{id}/comments': {
+            post: {
+                tags: ['Tickets'],
+                summary: 'Add comment',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '201': { description: 'Created' } }
+            }
+        },
 
-        '/notifications':           { get: { tags: ['Notifications'], summary: 'My inbox', responses: { '200': { description: 'OK' } } } },
-        '/notifications/{id}/read': { post: { tags: ['Notifications'], summary: 'Mark read', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'OK' } } } },
+        '/notifications': { get: { tags: ['Notifications'], summary: 'My inbox', responses: { '200': { description: 'OK' } } } },
+        '/notifications/{id}/read': {
+            post: {
+                tags: ['Notifications'],
+                summary: 'Mark read',
+                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+                responses: { '200': { description: 'OK' } }
+            }
+        },
 
         '/dashboard/me': { get: { tags: ['Dashboard'], summary: 'Per-role stats + next actions', responses: { '200': { description: 'OK' } } } },
-        '/dashboard/monitoring': { get: { tags: ['Dashboard'], summary: 'Admin-only system monitoring snapshot', responses: { '200': { description: 'OK' }, '503': { description: 'DB down' } } } },
+        '/dashboard/monitoring': {
+            get: {
+                tags: ['Dashboard'],
+                summary: 'Admin-only system monitoring snapshot',
+                responses: { '200': { description: 'OK' }, '503': { description: 'DB down' } }
+            }
+        },
 
         // ---- Uploads ----
         '/uploads/avatars': {
             post: {
-                tags: ['Uploads'], summary: 'Upload an avatar (2MB image)',
+                tags: ['Uploads'],
+                summary: 'Upload an avatar (2MB image)',
                 requestBody: {
                     required: true,
                     content: {
@@ -350,11 +568,16 @@ const spec = {
                 }
             }
         },
-        '/uploads/course-thumbnails': { post: { tags: ['Uploads'], summary: 'Course thumbnail (5MB image)', responses: { '201': { description: 'OK' } } } },
-        '/uploads/branding':          { post: { tags: ['Uploads'], summary: 'Tenant branding logo (2MB image)', responses: { '201': { description: 'OK' } } } },
+        '/uploads/course-thumbnails': {
+            post: { tags: ['Uploads'], summary: 'Course thumbnail (5MB image)', responses: { '201': { description: 'OK' } } }
+        },
+        '/uploads/branding': {
+            post: { tags: ['Uploads'], summary: 'Tenant branding logo (2MB image)', responses: { '201': { description: 'OK' } } }
+        },
         '/uploads/ticket-attachments': {
             post: {
-                tags: ['Uploads'], summary: 'Up to 5 files (10MB each, any type)',
+                tags: ['Uploads'],
+                summary: 'Up to 5 files (10MB each, any type)',
                 requestBody: {
                     required: true,
                     content: {
@@ -366,10 +589,19 @@ const spec = {
                 responses: { '201': { description: 'OK' } }
             }
         },
-        '/uploads/assignments': { post: { tags: ['Uploads'], summary: 'Assignment submission (25MB doc)', responses: { '201': { description: 'OK' } } } },
+        '/uploads/assignments': {
+            post: { tags: ['Uploads'], summary: 'Assignment submission (25MB doc)', responses: { '201': { description: 'OK' } } }
+        },
 
         // ---- Webhooks ----
-        '/webhooks/razorpay':   { post: { tags: ['Webhooks'], summary: 'Razorpay payment callback (HMAC verified)', security: [], responses: { '200': { description: 'OK' } } } }
+        '/webhooks/razorpay': {
+            post: {
+                tags: ['Webhooks'],
+                summary: 'Razorpay payment callback (HMAC verified)',
+                security: [],
+                responses: { '200': { description: 'OK' } }
+            }
+        }
     }
 }
 

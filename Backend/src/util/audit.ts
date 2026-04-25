@@ -1,8 +1,8 @@
-import { Request } from 'express'
+import { type Request } from 'express'
 import db from '../service/db'
 import logger from './logger'
 
-type TAuditInput = {
+interface TAuditInput {
     action: string
     entityType?: string
     entityId?: string

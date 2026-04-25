@@ -1,8 +1,8 @@
-import { Prisma } from '@prisma/client'
+import { type Prisma } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
-import { TAssignStudentsInput, TCreateBatchInput, TTransferStudentInput, TUpdateBatchInput } from './batch.schema'
+import { type TAssignStudentsInput, type TCreateBatchInput, type TTransferStudentInput, type TUpdateBatchInput } from './batch.schema'
 
 export const createBatch = async (tenantId: string, input: TCreateBatchInput) => {
     const course = await db.client.course.findFirst({ where: { id: input.courseId, tenantId } })

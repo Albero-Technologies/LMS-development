@@ -1,8 +1,8 @@
-import { Prisma, Role } from '@prisma/client'
+import { type Prisma, Role } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
-import { TInviteUserInput, TListUsersQuery, TUpdateUserInput } from './user.schema'
+import { type TInviteUserInput, type TListUsersQuery, type TUpdateUserInput } from './user.schema'
 import { createInvite } from '../auth/auth.service'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 
@@ -122,16 +122,7 @@ export const invite = async (tenantId: string, invitedById: string, input: TInvi
 
 export const allowedRolesToInvite = (actor: Role): Role[] => {
     if (actor === Role.SUPER_ADMIN) return Object.values(Role)
-    if (actor === Role.ADMIN)
-        return [
-            Role.ADMIN,
-            Role.TRAINER,
-            Role.STUDENT,
-            Role.COUNSELLING_MANAGER,
-            Role.COUNSELLOR,
-            Role.SUPPORT,
-            Role.CLIENT
-        ]
+    if (actor === Role.ADMIN) return [Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.COUNSELLING_MANAGER, Role.COUNSELLOR, Role.SUPPORT]
     if (actor === Role.COUNSELLING_MANAGER) return [Role.COUNSELLOR]
     return []
 }

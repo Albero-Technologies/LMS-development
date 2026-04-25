@@ -6,16 +6,7 @@
 // gateway redirect and flips the invoice to PAID. Replace the mock body
 // with the Razorpay Checkout call once /api/v1/payments/orders is wired.
 import { useMemo, useState } from 'react'
-import {
-    CheckCircle2,
-    AlertTriangle,
-    CreditCard,
-    Download,
-    Receipt,
-    Calendar,
-    IndianRupee,
-    History
-} from 'lucide-react'
+import { CheckCircle2, AlertTriangle, CreditCard, Download, Receipt, Calendar, IndianRupee, History } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -28,8 +19,7 @@ import { cn } from '@shared/helpers/cn'
 import { useFeeStore, useInvoicesLive, feeTone, invoiceTotal, type TInvoice } from '../stores/feeStore'
 
 const fmtINR = (n: number) => `₹${n.toLocaleString('en-IN')}`
-const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 const daysFromNow = (iso: string): number => Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000)
 
 export const StudentFeesPage = () => {
@@ -42,9 +32,7 @@ export const StudentFeesPage = () => {
     const buckets = useMemo(() => {
         const overdue = invoices.filter((i) => i.status === 'OVERDUE')
         const due = invoices.filter((i) => i.status === 'DUE')
-        const paid = invoices
-            .filter((i) => i.status === 'PAID')
-            .sort((a, b) => new Date(b.paidAt ?? 0).getTime() - new Date(a.paidAt ?? 0).getTime())
+        const paid = invoices.filter((i) => i.status === 'PAID').sort((a, b) => new Date(b.paidAt ?? 0).getTime() - new Date(a.paidAt ?? 0).getTime())
         return { overdue, due, paid }
     }, [invoices])
 
@@ -88,9 +76,7 @@ export const StudentFeesPage = () => {
             {outstandingCount > 0 && (
                 <section className="mt-8">
                     <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-base font-semibold text-fg">
-                            Outstanding ({outstandingCount})
-                        </h2>
+                        <h2 className="text-base font-semibold text-fg">Outstanding ({outstandingCount})</h2>
                         {buckets.overdue.length > 0 && (
                             <span className="text-xs text-[var(--color-danger)] font-medium inline-flex items-center gap-1">
                                 <AlertTriangle size={12} /> {buckets.overdue.length} overdue
@@ -113,7 +99,11 @@ export const StudentFeesPage = () => {
             <section className="mt-10">
                 <div className="flex items-center justify-between mb-3">
                     <h2 className="text-base font-semibold text-fg inline-flex items-center gap-2">
-                        <History size={14} className="text-fg-muted" /> Payment history
+                        <History
+                            size={14}
+                            className="text-fg-muted"
+                        />{' '}
+                        Payment history
                     </h2>
                     <span className="text-xs text-fg-muted">{buckets.paid.length} paid</span>
                 </div>
@@ -138,15 +128,15 @@ export const StudentFeesPage = () => {
                                 </thead>
                                 <tbody className="divide-y">
                                     {buckets.paid.map((inv) => (
-                                        <tr key={inv.id} className="hover:bg-surface-hover">
+                                        <tr
+                                            key={inv.id}
+                                            className="hover:bg-surface-hover">
                                             <td className="py-3 px-5 font-mono text-xs">{inv.number}</td>
                                             <td className="py-3 px-5 text-fg">{inv.course}</td>
                                             <td className="py-3 px-5 font-mono">{fmtINR(invoiceTotal(inv))}</td>
                                             <td className="py-3 px-5 text-xs text-fg-muted">
                                                 {inv.paidAt ? fmtDate(inv.paidAt) : '—'}
-                                                {inv.paymentMethod && (
-                                                    <span className="ml-1.5 text-fg-muted">· {inv.paymentMethod}</span>
-                                                )}
+                                                {inv.paymentMethod && <span className="ml-1.5 text-fg-muted">· {inv.paymentMethod}</span>}
                                             </td>
                                             <td className="py-3 px-5 text-right">
                                                 <Button
@@ -203,9 +193,7 @@ const OutstandingHero = ({
                     </div>
                     <div>
                         <h3 className="text-base font-semibold text-fg">You're all paid up</h3>
-                        <p className="mt-1 text-sm text-fg-soft">
-                            No outstanding invoices. Your paid history is below.
-                        </p>
+                        <p className="mt-1 text-sm text-fg-soft">No outstanding invoices. Your paid history is below.</p>
                     </div>
                 </div>
             </Card>
@@ -231,9 +219,7 @@ const OutstandingHero = ({
                         {fmtINR(hasOverdue ? overdueTotal : outstandingTotal)}
                     </span>
                     {hasOverdue && overdueTotal !== outstandingTotal && (
-                        <span className="text-sm text-white/85">
-                            {fmtINR(outstandingTotal)} total outstanding
-                        </span>
+                        <span className="text-sm text-white/85">{fmtINR(outstandingTotal)} total outstanding</span>
                     )}
                 </div>
                 <p className="mt-2 text-sm text-white/85">
@@ -263,11 +249,7 @@ const InvoiceRow = ({ inv, onPay }: { inv: TInvoice; onPay: () => void }) => {
     const isOverdue = inv.status === 'OVERDUE'
 
     return (
-        <Card
-            className={cn(
-                '!p-5 flex flex-col sm:flex-row sm:items-center gap-4',
-                isOverdue && 'ring-1 ring-[var(--color-danger)]/30'
-            )}>
+        <Card className={cn('!p-5 flex flex-col sm:flex-row sm:items-center gap-4', isOverdue && 'ring-1 ring-[var(--color-danger)]/30')}>
             <div
                 className={cn(
                     'w-10 h-10 rounded-md flex items-center justify-center shrink-0',
@@ -292,7 +274,9 @@ const InvoiceRow = ({ inv, onPay }: { inv: TInvoice; onPay: () => void }) => {
                     ) : (
                         <>
                             Due {fmtDate(inv.dueAt)}{' '}
-                            <span className="text-fg-muted">· in {daysOverdue} day{daysOverdue === 1 ? '' : 's'}</span>
+                            <span className="text-fg-muted">
+                                · in {daysOverdue} day{daysOverdue === 1 ? '' : 's'}
+                            </span>
                         </>
                     )}
                 </div>
@@ -381,11 +365,22 @@ const PayModal = ({
                 onSubmit={submit}
                 className="space-y-4">
                 <div className="rounded-md border bg-surface-2 p-4 space-y-2 text-sm">
-                    <Row label={isBatch ? 'Outstanding total' : 'Subtotal'} value={fmtINR(amount)} mono bold />
+                    <Row
+                        label={isBatch ? 'Outstanding total' : 'Subtotal'}
+                        value={fmtINR(amount)}
+                        mono
+                        bold
+                    />
                     {!isBatch && target && (
                         <>
-                            <Row label="GST" value={`${target.gstPercent}%`} />
-                            <Row label="Course" value={target.course} />
+                            <Row
+                                label="GST"
+                                value={`${target.gstPercent}%`}
+                            />
+                            <Row
+                                label="Course"
+                                value={target.course}
+                            />
                         </>
                     )}
                 </div>
@@ -399,25 +394,14 @@ const PayModal = ({
                     <option value="Wallet">Wallet</option>
                 </Select>
                 <p className="text-xs text-fg-muted">
-                    You'll be redirected to Razorpay to complete the payment. Your session resumes once the
-                    bank confirms.
+                    You'll be redirected to Razorpay to complete the payment. Your session resumes once the bank confirms.
                 </p>
             </form>
         </Modal>
     )
 }
 
-const Row = ({
-    label,
-    value,
-    mono,
-    bold
-}: {
-    label: string
-    value: string
-    mono?: boolean
-    bold?: boolean
-}) => (
+const Row = ({ label, value, mono, bold }: { label: string; value: string; mono?: boolean; bold?: boolean }) => (
     <div className="flex items-center justify-between gap-3">
         <span className="text-fg-muted text-xs">{label}</span>
         <span className={cn('text-fg text-right truncate', mono && 'font-mono', bold && 'font-semibold')}>{value}</span>

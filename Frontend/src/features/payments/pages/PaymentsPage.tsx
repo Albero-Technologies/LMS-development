@@ -26,8 +26,8 @@ const TONE = {
     REFUNDED: 'default'
 } as const
 
-// Router mounts this at /app/payments for ADMIN / SUPER_ADMIN / TRAINER / STUDENT / CLIENT.
-// Dispatch by role — SuperAdmin gets the client-pending overview, Student gets
+// Router mounts this at /app/payments for ADMIN / SUPER_ADMIN / TRAINER / STUDENT.
+// Dispatch by role — SuperAdmin gets the tenant-billing overview, Student gets
 // the pay-now Fees page, everyone else sees the admin collections view.
 export const PaymentsPage = () => {
     const role = useAuthStore((s) => s.user?.role)
@@ -98,8 +98,7 @@ const CLIENT_PENDING: ClientRow[] = [
 ]
 
 const fmtINR = (n: number) => `₹${n.toLocaleString('en-IN')}`
-const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
 
 const SuperAdminClientPaymentsPage = () => {
     const [clients] = useState<ClientRow[]>(CLIENT_PENDING)
@@ -193,12 +192,8 @@ const SuperAdminClientPaymentsPage = () => {
                                             )}
                                         </td>
                                         <td className="py-3 px-5">
-                                            {c.overdueCount > 0 && (
-                                                <Badge tone="danger">{c.overdueCount} overdue</Badge>
-                                            )}
-                                            {c.pendingCount > 0 && c.overdueCount === 0 && (
-                                                <Badge tone="warn">{c.pendingCount} due</Badge>
-                                            )}
+                                            {c.overdueCount > 0 && <Badge tone="danger">{c.overdueCount} overdue</Badge>}
+                                            {c.pendingCount > 0 && c.overdueCount === 0 && <Badge tone="warn">{c.pendingCount} due</Badge>}
                                             {isClear && <Badge tone="ok">All paid</Badge>}
                                         </td>
                                         <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(c.lastPaidAt)}</td>
@@ -238,7 +233,6 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
     const [syncing, setSyncing] = useState(false)
 
     const isTrainer = role === ROLES.TRAINER
-    const isClient = role === ROLES.CLIENT
 
     const sync = async () => {
         setSyncing(true)
@@ -261,19 +255,13 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
         ? {
               eyebrow: 'Batch finance',
               title: 'Payments & overdue',
-              description: "Payment activity for your batches. Flag overdue learners so the admin team can follow up."
+              description: 'Payment activity for your batches. Flag overdue learners so the admin team can follow up.'
           }
-        : isClient
-          ? {
-                eyebrow: 'Billing',
-                title: 'Your billing',
-                description: 'Invoices for your team enrollments.'
-            }
-          : {
-                eyebrow: 'Finance',
-                title: 'Payments & overdue',
-                description: 'Razorpay + GST invoices. Follow up on overdue, refund in one click with an audit note.'
-            }
+        : {
+              eyebrow: 'Finance',
+              title: 'Payments & overdue',
+              description: 'Razorpay + GST invoices. Follow up on overdue, refund in one click with an audit note.'
+          }
 
     return (
         <>
@@ -350,9 +338,7 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
                                     <td className="py-3 px-5">
                                         <Badge tone={TONE[i.st]}>{i.st}</Badge>
                                         {i.st === 'OVERDUE' && i.daysOverdue && (
-                                            <span className="ml-2 text-[11px] text-[var(--color-danger)]">
-                                                {i.daysOverdue}d late
-                                            </span>
+                                            <span className="ml-2 text-[11px] text-[var(--color-danger)]">{i.daysOverdue}d late</span>
                                         )}
                                     </td>
                                     <td className="py-3 px-5 text-xs text-fg-muted">{i.due}</td>
@@ -371,7 +357,7 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
                                                 Remind
                                             </Button>
                                         )}
-                                        {i.st === 'PAID' && !isTrainer && !isClient && (
+                                        {i.st === 'PAID' && !isTrainer && (
                                             <Button
                                                 size="sm"
                                                 variant="ghost"

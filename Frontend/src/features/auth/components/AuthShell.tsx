@@ -16,8 +16,7 @@ export const AuthShell = ({ title, subtitle, children, footer }: Props) => (
         <aside
             className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden"
             style={{
-                background:
-                    'linear-gradient(135deg, var(--color-brand-900) 0%, var(--color-brand-500) 100%)'
+                background: 'linear-gradient(135deg, var(--color-brand-900) 0%, var(--color-brand-500) 100%)'
             }}>
             <Link
                 to="/"
@@ -28,9 +27,7 @@ export const AuthShell = ({ title, subtitle, children, footer }: Props) => (
                 />
             </Link>
             <div className="text-white">
-                <div className="text-xs uppercase tracking-wider text-white/70 mb-4 font-medium">
-                    Learn. Practice. Certify.
-                </div>
+                <div className="text-xs uppercase tracking-wider text-white/70 mb-4 font-medium">Learn. Practice. Certify.</div>
                 <p className="text-4xl xl:text-5xl font-bold leading-[1.1] tracking-tight max-w-lg">
                     Live classes.
                     <br />
@@ -39,8 +36,8 @@ export const AuthShell = ({ title, subtitle, children, footer }: Props) => (
                     <span className="text-white/80">Real outcomes.</span>
                 </p>
                 <p className="mt-6 text-white/80 max-w-md leading-relaxed">
-                    Expert-led courses, mentor-guided batches, timed quizzes and verifiable certificates —
-                    all in one learning platform built for Indian students.
+                    Expert-led courses, mentor-guided batches, timed quizzes and verifiable certificates — all in one learning platform built for
+                    Indian students.
                 </p>
             </div>
             <div className="flex items-center gap-4 text-xs text-white/60">

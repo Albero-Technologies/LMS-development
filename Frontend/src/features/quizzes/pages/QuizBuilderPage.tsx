@@ -119,9 +119,7 @@ export const QuizBuilderPage = () => {
                     {/* Active question editor */}
                     <Card>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-semibold text-fg">
-                                {active ? 'Question' : 'No question selected'}
-                            </h3>
+                            <h3 className="text-sm font-semibold text-fg">{active ? 'Question' : 'No question selected'}</h3>
                             <Button
                                 size="sm"
                                 leftIcon={<Plus size={14} />}
@@ -177,10 +175,22 @@ export const QuizBuilderPage = () => {
                         ))}
                     </div>
                     <div className="border-t pt-3 space-y-2 text-sm">
-                        <Row label="Total" value={`${quiz.questions.length}`} />
-                        <Row label="Points" value={`${totalPoints}`} />
-                        <Row label="Time limit" value={`${quiz.timeLimitMin}m`} />
-                        <Row label="Pass mark" value={`${quiz.passPercent}%`} />
+                        <Row
+                            label="Total"
+                            value={`${quiz.questions.length}`}
+                        />
+                        <Row
+                            label="Points"
+                            value={`${totalPoints}`}
+                        />
+                        <Row
+                            label="Time limit"
+                            value={`${quiz.timeLimitMin}m`}
+                        />
+                        <Row
+                            label="Pass mark"
+                            value={`${quiz.passPercent}%`}
+                        />
                     </div>
                 </Card>
             </div>
@@ -195,15 +205,7 @@ const Row = ({ label, value }: { label: string; value: string }) => (
     </div>
 )
 
-const QuestionEditor = ({
-    question,
-    onChange,
-    onDelete
-}: {
-    question: TQuestion
-    onChange: (q: TQuestion) => void
-    onDelete: () => void
-}) => {
+const QuestionEditor = ({ question, onChange, onDelete }: { question: TQuestion; onChange: (q: TQuestion) => void; onDelete: () => void }) => {
     const updateOption = (i: number, text: string) => {
         const next = question.options.slice()
         next[i] = text

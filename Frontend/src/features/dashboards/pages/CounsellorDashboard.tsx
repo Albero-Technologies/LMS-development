@@ -193,9 +193,7 @@ const NewInviteModal = ({ open, onClose }: { open: boolean; onClose: () => void 
                 <div className="space-y-3">
                     <label className="block text-xs font-medium text-fg-soft">Share this with your lead</label>
                     <div className="flex items-center gap-2">
-                        <code className="flex-1 font-mono text-xs bg-surface-2 border rounded-md px-3 py-2 truncate">
-                            {link}
-                        </code>
+                        <code className="flex-1 font-mono text-xs bg-surface-2 border rounded-md px-3 py-2 truncate">{link}</code>
                         <Button
                             variant="ghost"
                             size="icon"

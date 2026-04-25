@@ -2,7 +2,7 @@ import { Router } from 'express'
 import * as ctrl from './enrollment.controller'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { webhookLimiter } from '../../config/rateLimiter'
-import { NextFunction, Request, Response } from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import httpError from '../../util/httpError'
 import responseMessage from '../../constant/responseMessage'
 
@@ -12,7 +12,7 @@ const router = Router()
 const throttle = (req: Request, _: Response, next: NextFunction): void => {
     if (!webhookLimiter) return next()
     webhookLimiter
-        .consume((req.ip as string) || 'unknown', 1)
+        .consume(req.ip ?? 'unknown', 1)
         .then(() => next())
         .catch(() => httpError(next, new Error(responseMessage.TOO_MANY_REQUESTS), req, 429))
 }

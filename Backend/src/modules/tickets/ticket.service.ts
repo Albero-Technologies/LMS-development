@@ -1,8 +1,8 @@
-import { Prisma, Role, TicketStatus } from '@prisma/client'
+import { type Prisma, Role, TicketStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
-import { TAddCommentInput, TCreateTicketInput, TListTicketsQuery, TUpdateTicketInput } from './ticket.schema'
+import { type TAddCommentInput, type TCreateTicketInput, type TListTicketsQuery, type TUpdateTicketInput } from './ticket.schema'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 
 const generateTicketNumber = async (tenantId: string): Promise<string> => {
@@ -11,8 +11,7 @@ const generateTicketNumber = async (tenantId: string): Promise<string> => {
     return `T${prefix}-${String(count + 1).padStart(4, '0')}`
 }
 
-const isStaffRole = (role: Role): boolean =>
-    role === Role.SUPER_ADMIN || role === Role.ADMIN || role === Role.SUPPORT
+const isStaffRole = (role: Role): boolean => role === Role.SUPER_ADMIN || role === Role.ADMIN || role === Role.SUPPORT
 
 export const createTicket = async (tenantId: string, openerId: string, input: TCreateTicketInput) => {
     const number = await generateTicketNumber(tenantId)

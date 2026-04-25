@@ -21,6 +21,8 @@ datasource db {
 
 // ---------- Enums ----------
 
+// CLIENT was removed in Phase 2 (§5.1) — ADMIN is the canonical tenant owner role.
+// Existing CLIENT users are migrated to ADMIN by the accompanying SQL migration.
 enum Role {
   SUPER_ADMIN
   ADMIN
@@ -29,7 +31,6 @@ enum Role {
   COUNSELLING_MANAGER
   COUNSELLOR
   SUPPORT
-  CLIENT
 }
 
 enum TenantStatus {

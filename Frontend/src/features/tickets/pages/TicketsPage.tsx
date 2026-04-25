@@ -16,6 +16,14 @@ import { useTicketStore, PRIORITY_TONE, STATUS_TONE, type TPriority } from '../s
 const TAB_ORDER = ['OPEN', 'ASSIGNED', 'RESOLVED', 'CLOSED', 'ALL'] as const
 type Tab = (typeof TAB_ORDER)[number]
 
+const TAB_LABELS: Record<Tab, string> = {
+    OPEN: 'Open',
+    ASSIGNED: 'Assigned',
+    RESOLVED: 'Resolved',
+    CLOSED: 'Closed',
+    ALL: 'All'
+}
+
 export const TicketsPage = () => {
     const tickets = useTicketStore((s) => s.tickets)
     const addTicket = useTicketStore((s) => s.addTicket)
@@ -35,9 +43,7 @@ export const TicketsPage = () => {
             .filter((t) => tab === 'ALL' || t.status === tab)
             .filter((t) =>
                 needle
-                    ? t.subject.toLowerCase().includes(needle) ||
-                      t.requester.toLowerCase().includes(needle) ||
-                      t.id.toLowerCase().includes(needle)
+                    ? t.subject.toLowerCase().includes(needle) || t.requester.toLowerCase().includes(needle) || t.id.toLowerCase().includes(needle)
                     : true
             )
     }, [tickets, tab, q])
@@ -70,13 +76,7 @@ export const TicketsPage = () => {
             />
 
             <Tabs
-                tabs={[
-                    { value: 'OPEN', label: 'Open', count: counts.OPEN },
-                    { value: 'ASSIGNED', label: 'Assigned', count: counts.ASSIGNED },
-                    { value: 'RESOLVED', label: 'Resolved', count: counts.RESOLVED },
-                    { value: 'CLOSED', label: 'Closed', count: counts.CLOSED },
-                    { value: 'ALL', label: 'All', count: counts.ALL }
-                ]}
+                tabs={TAB_ORDER.map((value) => ({ value, label: TAB_LABELS[value], count: counts[value] }))}
                 value={tab}
                 onChange={setTab}
                 className="mb-4"
@@ -170,14 +170,7 @@ const NewTicketModal = ({
 }: {
     open: boolean
     onClose: () => void
-    onCreate: (d: {
-        subject: string
-        requester: string
-        assignee?: string
-        priority: TPriority
-        category: string
-        messageText: string
-    }) => void
+    onCreate: (d: { subject: string; requester: string; assignee?: string; priority: TPriority; category: string; messageText: string }) => void
 }) => {
     const [subject, setSubject] = useState('')
     const [requester, setRequester] = useState('')
@@ -275,4 +268,3 @@ const NewTicketModal = ({
         </Modal>
     )
 }
-

@@ -13,7 +13,7 @@ If you're already comfortable with Node/Prisma/Postgres and just want the quick 
 3. [Prerequisites — install these first](#3-prerequisites--install-these-first)
 4. [First-time setup (step by step)](#4-first-time-setup-step-by-step)
 5. [Running the app](#5-running-the-app)
-5a. [Environments — which env file loads when](#5a-environments--which-env-file-loads-when)
+   5a. [Environments — which env file loads when](#5a-environments--which-env-file-loads-when)
 6. [Folder tour — where does what live?](#6-folder-tour--where-does-what-live)
 7. [How a request flows through the code](#7-how-a-request-flows-through-the-code)
 8. [Multi-tenancy & RBAC — the mental model](#8-multi-tenancy--rbac--the-mental-model)
@@ -57,25 +57,25 @@ mobile app talk to.
 
 ## 2. The tech stack, in plain English
 
-| Tool | What it is | Why we use it |
-| ---- | ---------- | ------------- |
-| **Node.js 20** | JavaScript runtime on the server | Industry standard; huge library ecosystem |
-| **TypeScript** | JavaScript with types | Catches bugs at compile time |
-| **Express 5** | HTTP web framework | Simple, proven, boring (in a good way) |
-| **PostgreSQL** (via Neon) | Relational database | Transactions, JSON support, rock-solid |
-| **Prisma** | ORM (database toolkit) | Type-safe queries, auto-generated client from schema |
-| **Redis** (via Upstash) | In-memory store | Rate limiting, session tracking, job queue backend |
-| **BullMQ** | Job queue on top of Redis | Send emails in the background, retry on failure |
-| **Zod** | Runtime input validation | Reject bad JSON before it hits your logic |
-| **JWT** | Signed auth tokens | Stateless login; no server-side session store |
-| **bcrypt** | Password hashing | Never store raw passwords |
-| **SendGrid** | Email provider | Welcome / invoice / ticket emails |
-| **Razorpay** | Indian payment gateway | Course purchases |
-| **multer** | File-upload middleware | Handles `multipart/form-data` |
-| **Swagger UI** | Auto-rendered API docs | Try endpoints from a web UI |
-| **Winston + pino-http** | Structured logging | JSON logs → easy to grep + ship to Grafana |
-| **Helmet** | Security headers | Sensible defaults against OWASP top-10 |
-| **Vitest + supertest** | Test runner + HTTP tester | Fast, ESM-first, Jest-compatible API |
+| Tool                      | What it is                       | Why we use it                                        |
+| ------------------------- | -------------------------------- | ---------------------------------------------------- |
+| **Node.js 20**            | JavaScript runtime on the server | Industry standard; huge library ecosystem            |
+| **TypeScript**            | JavaScript with types            | Catches bugs at compile time                         |
+| **Express 5**             | HTTP web framework               | Simple, proven, boring (in a good way)               |
+| **PostgreSQL** (via Neon) | Relational database              | Transactions, JSON support, rock-solid               |
+| **Prisma**                | ORM (database toolkit)           | Type-safe queries, auto-generated client from schema |
+| **Redis** (via Upstash)   | In-memory store                  | Rate limiting, session tracking, job queue backend   |
+| **BullMQ**                | Job queue on top of Redis        | Send emails in the background, retry on failure      |
+| **Zod**                   | Runtime input validation         | Reject bad JSON before it hits your logic            |
+| **JWT**                   | Signed auth tokens               | Stateless login; no server-side session store        |
+| **bcrypt**                | Password hashing                 | Never store raw passwords                            |
+| **SendGrid**              | Email provider                   | Welcome / invoice / ticket emails                    |
+| **Razorpay**              | Indian payment gateway           | Course purchases                                     |
+| **multer**                | File-upload middleware           | Handles `multipart/form-data`                        |
+| **Swagger UI**            | Auto-rendered API docs           | Try endpoints from a web UI                          |
+| **Winston + pino-http**   | Structured logging               | JSON logs → easy to grep + ship to Grafana           |
+| **Helmet**                | Security headers                 | Sensible defaults against OWASP top-10               |
+| **Vitest + supertest**    | Test runner + HTTP tester        | Fast, ESM-first, Jest-compatible API                 |
 
 Don't panic if you don't know all of these yet. You can ship a small feature
 knowing only Express + Prisma + Zod.
@@ -89,12 +89,14 @@ You need **three** things on your laptop:
 ### 3.1 Node.js 20 (LTS)
 
 Check:
+
 ```bash
 node --version     # should print v20.x.x
 npm --version      # should print 10.x or newer
 ```
 
 If missing or older, install from [nodejs.org](https://nodejs.org) or use `nvm`:
+
 ```bash
 # macOS / Linux
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -115,6 +117,7 @@ want Docker, you can install Postgres 16 and Redis 7 natively on your machine
 and skip the Docker section.
 
 Check:
+
 ```bash
 docker --version
 docker compose version
@@ -193,12 +196,14 @@ docker compose -f docker/development/docker-compose.yml up -d postgres redis
 ```
 
 Check they're up:
+
 ```bash
 docker ps
 # you should see two containers: ..._postgres_... and ..._redis_...
 ```
 
 If your `.env` uses Docker services, set:
+
 ```ini
 DATABASE_URL="postgresql://learnhub:learnhub@localhost:5432/learnhub?schema=public"
 REDIS_URL="redis://localhost:6379"
@@ -207,6 +212,7 @@ REDIS_URL="redis://localhost:6379"
 ### Step 4 — set up the database schema
 
 Prisma needs to:
+
 1. Generate a typed client (the `PrismaClient` JS class) from `prisma/schema.prisma`.
 2. Apply the schema to your local database.
 
@@ -224,6 +230,7 @@ npm run prisma:seed
 ```
 
 This creates:
+
 - One tenant: **"Acme Institute"** (slug `acme-institute`)
 - One user per role, all with password **`Password123`**
 - One published course "JavaScript Fundamentals" with 1 lesson + 1 quiz
@@ -235,6 +242,7 @@ npm run dev
 ```
 
 You should see:
+
 ```
 ▸ ts-node listening on :3000
 DATABASE_CONNECTION  { meta: { host: 'localhost', ... } }
@@ -247,6 +255,7 @@ Open **http://localhost:3000/api/v1/docs** in your browser. Congrats — you're 
 ### Step 7 (optional) — start the background worker
 
 In a **second terminal**:
+
 ```bash
 cd Backend
 npm run worker:dev
@@ -278,6 +287,7 @@ docker compose -f docker/development/docker-compose.yml up --build
 ```
 
 Starts Postgres + Redis + API + Worker + Nginx. Your API is now reachable at:
+
 - `http://localhost:3000` (direct)
 - `http://localhost:8080` (through Nginx reverse proxy)
 
@@ -310,33 +320,34 @@ earlier):
 ```
 
 So for `NODE_ENV=development`:
+
 1. `.env.development` ships with sane localhost defaults (committed).
 2. Anything in your personal `.env.development.local` wins over it.
 
 ### Which file holds what?
 
-| File | Committed? | What goes in it |
-| ---- | ---------- | --------------- |
-| `.env.example` | yes | A copy-paste template; every key the app understands, with placeholders |
-| `.env.development` | yes | Non-secret dev defaults (localhost URLs, dummy JWT secrets, low bcrypt rounds) |
-| `.env.production` | yes | Non-secret prod defaults (prod URLs, cookie domain, log level). Secrets are left **blank** here — they come from the platform. |
-| `.env.development.local` | **no** (gitignored) | Your personal dev secrets: a real SendGrid test key, a Razorpay test key, a Neon branch URL |
-| `.env.production.local` | **no** (gitignored) | Only for running the prod profile **on your laptop**. In a deployed environment, these come from the platform's secret store. |
-| `.env`, `.env.local` | **no** (gitignored) | Usually empty; last-resort overrides |
+| File                     | Committed?          | What goes in it                                                                                                                |
+| ------------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `.env.example`           | yes                 | A copy-paste template; every key the app understands, with placeholders                                                        |
+| `.env.development`       | yes                 | Non-secret dev defaults (localhost URLs, dummy JWT secrets, low bcrypt rounds)                                                 |
+| `.env.production`        | yes                 | Non-secret prod defaults (prod URLs, cookie domain, log level). Secrets are left **blank** here — they come from the platform. |
+| `.env.development.local` | **no** (gitignored) | Your personal dev secrets: a real SendGrid test key, a Razorpay test key, a Neon branch URL                                    |
+| `.env.production.local`  | **no** (gitignored) | Only for running the prod profile **on your laptop**. In a deployed environment, these come from the platform's secret store.  |
+| `.env`, `.env.local`     | **no** (gitignored) | Usually empty; last-resort overrides                                                                                           |
 
 ### npm scripts — the four combinations
 
 The scripts are named `<runner>:<env>`. "Runner" is either `dev` (hot-reload
 via nodemon) or `start` (compiled `dist/server.js`). "Env" is `dev` or `prod`.
 
-| Script | Runner | NODE_ENV | Env files loaded | Use when… |
-| ------ | ------ | -------- | ---------------- | --------- |
-| `npm run dev` | nodemon | `development` | `.env.development` + `.env.development.local` | **everyday dev** — hot reload, dev config |
-| `npm run dev:dev` | nodemon | `development` | same as above | alias of `npm run dev` (explicit) |
-| `npm run dev:prod` | nodemon | `production` | `.env.production` + `.env.production.local` | hot-reload **but with prod config** — smoke test changes against prod env shape |
-| `npm run start` | node dist/ | `production` | `.env.production` + `.env.production.local` | what CI runs; closest to the deployed image |
-| `npm run start:prod` | node dist/ | `production` | same as above | alias of `npm run start` |
-| `npm run start:dev` | node dist/ | `development` | `.env.development` + `.env.development.local` | run the compiled bundle with dev config (rare) |
+| Script               | Runner     | NODE_ENV      | Env files loaded                              | Use when…                                                                       |
+| -------------------- | ---------- | ------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`        | nodemon    | `development` | `.env.development` + `.env.development.local` | **everyday dev** — hot reload, dev config                                       |
+| `npm run dev:dev`    | nodemon    | `development` | same as above                                 | alias of `npm run dev` (explicit)                                               |
+| `npm run dev:prod`   | nodemon    | `production`  | `.env.production` + `.env.production.local`   | hot-reload **but with prod config** — smoke test changes against prod env shape |
+| `npm run start`      | node dist/ | `production`  | `.env.production` + `.env.production.local`   | what CI runs; closest to the deployed image                                     |
+| `npm run start:prod` | node dist/ | `production`  | same as above                                 | alias of `npm run start`                                                        |
+| `npm run start:dev`  | node dist/ | `development` | `.env.development` + `.env.development.local` | run the compiled bundle with dev config (rare)                                  |
 
 Worker equivalents: `worker:dev`, `worker:dev:prod`, `worker:start`, `worker:start:dev`.
 
@@ -368,6 +379,7 @@ COOKIE_SECURE=false
 ```
 
 Generate a secret:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
@@ -614,7 +626,7 @@ You apply the matrix on a route like this:
 router.post('/', requireAuth, requirePolicy('course','write'), ...)
 ```
 
-Trainer-scoped rules (e.g. "a trainer can only update *their own* courses")
+Trainer-scoped rules (e.g. "a trainer can only update _their own_ courses")
 are enforced at the **service layer**, not the matrix.
 
 ---
@@ -655,10 +667,10 @@ npx prisma migrate reset
 ```ts
 // Always scope by tenantId!
 const courses = await db.client.course.findMany({
-  where: { tenantId, publishState: 'PUBLISHED' },
-  include: { trainer: { select: { firstName: true, lastName: true } } },
-  orderBy: { createdAt: 'desc' },
-  take: 20
+    where: { tenantId, publishState: 'PUBLISHED' },
+    include: { trainer: { select: { firstName: true, lastName: true } } },
+    orderBy: { createdAt: 'desc' },
+    take: 20
 })
 ```
 
@@ -706,13 +718,13 @@ import { describe, it, expect } from 'vitest'
 import { isStrongPassword } from '../../src/util/password'
 
 describe('isStrongPassword', () => {
-  it('rejects passwords shorter than 8 chars', () => {
-    expect(isStrongPassword('A1b2')).toBe(false)
-  })
+    it('rejects passwords shorter than 8 chars', () => {
+        expect(isStrongPassword('A1b2')).toBe(false)
+    })
 
-  it('accepts a letter + digit 8-char password', () => {
-    expect(isStrongPassword('Passw0rd')).toBe(true)
-  })
+    it('accepts a letter + digit 8-char password', () => {
+        expect(isStrongPassword('Passw0rd')).toBe(true)
+    })
 })
 ```
 
@@ -729,8 +741,8 @@ import request from 'supertest'
 import app from '../../src/app'
 
 it('returns 200 on /health', async () => {
-  const res = await request(app).get('/api/v1/health')
-  expect(res.status).toBe(200)
+    const res = await request(app).get('/api/v1/health')
+    expect(res.status).toBe(200)
 })
 ```
 
@@ -780,6 +792,7 @@ STUDENT_TOKEN=$(curl -s -X POST http://localhost:3000/api/v1/auth/login \
 ```
 
 Get the course id:
+
 ```bash
 COURSE_ID=$(curl -s http://localhost:3000/api/v1/courses \
   -H "Authorization: Bearer $STUDENT_TOKEN" \
@@ -788,6 +801,7 @@ COURSE_ID=$(curl -s http://localhost:3000/api/v1/courses \
 
 Create an enrolment (this creates a Razorpay order — or marks it PAID if the
 course is free):
+
 ```bash
 curl -s -X POST http://localhost:3000/api/v1/enrollments \
   -H "Authorization: Bearer $STUDENT_TOKEN" \
@@ -817,16 +831,17 @@ curl -s -X POST http://localhost:3000/api/v1/uploads/avatars \
 ```
 
 Response:
+
 ```json
 {
-  "success": true,
-  "data": {
-    "filename": "1760000000000-a1b2c3.png",
-    "originalName": "my-photo.png",
-    "mimetype": "image/png",
-    "size": 42133,
-    "url": "/uploads/avatars/<tenant-id>/1760000000000-a1b2c3.png"
-  }
+    "success": true,
+    "data": {
+        "filename": "1760000000000-a1b2c3.png",
+        "originalName": "my-photo.png",
+        "mimetype": "image/png",
+        "size": 42133,
+        "url": "/uploads/avatars/<tenant-id>/1760000000000-a1b2c3.png"
+    }
 }
 ```
 
@@ -860,6 +875,7 @@ ngrok http 3000
 ```
 
 In Razorpay Dashboard → Webhooks, set:
+
 - URL: `https://abc123.ngrok-free.app/api/v1/webhooks/razorpay`
 - Secret: matches your `RAZORPAY_WEBHOOK_SECRET` in `.env`
 
@@ -880,10 +896,10 @@ to the user.
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 
 await notifyQueue.add(NOTIFY_JOB, {
-  tenantId,
-  userId,
-  template: 'payment',
-  data: { invoiceNumber: '2026-001', amount: '499.00', currency: 'INR' }
+    tenantId,
+    userId,
+    template: 'payment',
+    data: { invoiceNumber: '2026-001', amount: '499.00', currency: 'INR' }
 })
 ```
 
@@ -906,6 +922,7 @@ it when you need emails to go out.
 ### 15.1 Just the dependencies (Postgres + Redis)
 
 You already did this in step 3. Quick recap:
+
 ```bash
 docker compose -f docker/development/docker-compose.yml up -d postgres redis
 ```
@@ -943,6 +960,7 @@ runner. Final size is ~150 MB, runs as a non-root `app` user, has a
 ### Logs
 
 Two sinks:
+
 - **Stdout** — human-friendly coloured output in dev, JSON in prod.
 - **File** — `logs/development.log` rotated at 10MB × 5 files.
 
@@ -987,11 +1005,12 @@ docker compose -f docker/development/docker-compose.yml \
 ```
 
 Then open:
-- **Grafana**   — `http://localhost:3001`  (admin / admin) — dashboards + log search
-- **Prometheus** — `http://localhost:9090` — raw query UI
-- **Loki**       — `http://localhost:3100` — API only (query via Grafana)
 
-Pre-provisioned dashboard: *LearnHub · API Overview* — request rate, error %,
+- **Grafana** — `http://localhost:3001` (admin / admin) — dashboards + log search
+- **Prometheus** — `http://localhost:9090` — raw query UI
+- **Loki** — `http://localhost:3100` — API only (query via Grafana)
+
+Pre-provisioned dashboard: _LearnHub · API Overview_ — request rate, error %,
 p50/p95/p99 latency, top routes, Node heap, login attempts, notification jobs,
 and a live log panel.
 
@@ -1097,36 +1116,39 @@ mkdir -p src/modules/wishlist
 Create four files:
 
 **`src/modules/wishlist/wishlist.schema.ts`**
+
 ```ts
 import { z } from 'zod'
 
 export const addToWishlistSchema = z.object({
-  courseId: z.string().uuid()
+    courseId: z.string().uuid()
 })
 
 export type TAddToWishlistInput = z.infer<typeof addToWishlistSchema>
 ```
 
 **`src/modules/wishlist/wishlist.service.ts`**
+
 ```ts
 import db from '../../service/db'
 
 export const addToWishlist = async (tenantId: string, userId: string, courseId: string) =>
-  db.client.wishlist.upsert({
-    where: { tenantId_userId_courseId: { tenantId, userId, courseId } },
-    update: {},
-    create: { tenantId, userId, courseId }
-  })
+    db.client.wishlist.upsert({
+        where: { tenantId_userId_courseId: { tenantId, userId, courseId } },
+        update: {},
+        create: { tenantId, userId, courseId }
+    })
 
 export const listWishlist = async (tenantId: string, userId: string) =>
-  db.client.wishlist.findMany({
-    where: { tenantId, userId },
-    include: { course: { select: { id: true, title: true, slug: true, thumbnailUrl: true } } },
-    orderBy: { createdAt: 'desc' }
-  })
+    db.client.wishlist.findMany({
+        where: { tenantId, userId },
+        include: { course: { select: { id: true, title: true, slug: true, thumbnailUrl: true } } },
+        orderBy: { createdAt: 'desc' }
+    })
 ```
 
 **`src/modules/wishlist/wishlist.controller.ts`**
+
 ```ts
 import { Request, Response } from 'express'
 import httpResponse from '../../util/httpResponse'
@@ -1134,19 +1156,20 @@ import responseMessage from '../../constant/responseMessage'
 import * as service from './wishlist.service'
 
 export const add = async (req: Request, res: Response) => {
-  if (!req.auth) return
-  const row = await service.addToWishlist(req.auth.tenantId, req.auth.userId, req.body.courseId)
-  httpResponse(req, res, 201, responseMessage.CREATED, row)
+    if (!req.auth) return
+    const row = await service.addToWishlist(req.auth.tenantId, req.auth.userId, req.body.courseId)
+    httpResponse(req, res, 201, responseMessage.CREATED, row)
 }
 
 export const list = async (req: Request, res: Response) => {
-  if (!req.auth) return
-  const rows = await service.listWishlist(req.auth.tenantId, req.auth.userId)
-  httpResponse(req, res, 200, responseMessage.SUCCESS, rows)
+    if (!req.auth) return
+    const rows = await service.listWishlist(req.auth.tenantId, req.auth.userId)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, rows)
 }
 ```
 
 **`src/modules/wishlist/wishlist.router.ts`**
+
 ```ts
 import { Router } from 'express'
 import { requireAuth } from '../../middleware/auth'
@@ -1182,14 +1205,14 @@ import { describe, it, expect } from 'vitest'
 import { addToWishlistSchema } from '../../src/modules/wishlist/wishlist.schema'
 
 describe('wishlist schema', () => {
-  it('accepts a valid uuid', () => {
-    const res = addToWishlistSchema.safeParse({ courseId: '11111111-1111-1111-1111-111111111111' })
-    expect(res.success).toBe(true)
-  })
+    it('accepts a valid uuid', () => {
+        const res = addToWishlistSchema.safeParse({ courseId: '11111111-1111-1111-1111-111111111111' })
+        expect(res.success).toBe(true)
+    })
 
-  it('rejects a non-uuid', () => {
-    expect(addToWishlistSchema.safeParse({ courseId: 'abc' }).success).toBe(false)
-  })
+    it('rejects a non-uuid', () => {
+        expect(addToWishlistSchema.safeParse({ courseId: 'abc' }).success).toBe(false)
+    })
 })
 ```
 
@@ -1226,46 +1249,60 @@ git push origin dev
 ## 19. Troubleshooting
 
 ### "`prisma: command not found`"
+
 You skipped `npm install`, or `node_modules` got deleted. Run `npm install`.
 
 ### "Connection refused on port 5432"
+
 Postgres isn't running. Start it:
+
 ```bash
 docker compose -f docker/development/docker-compose.yml up -d postgres
 ```
+
 Or check your local Postgres service is running.
 
 ### "ECONNREFUSED 127.0.0.1:6379"
+
 Same as above, for Redis.
 
 ### "prisma migrate failed: P3009"
+
 Your local migration history drifted from the code. Nuke and re-apply:
+
 ```bash
 npx prisma migrate reset
 ```
 
 ### "Invalid token" on every request
+
 Your JWT secrets in `.env` changed after the token was issued. Log in again.
 
 ### Pre-commit hook blocks my commit with "secret detected"
+
 Check your staged changes with `git diff --cached`. If it's a false positive
 (e.g. a test fixture), use the escape hatch:
+
 ```bash
 HUSKY_ALLOW_WIP=1 git commit -m "test(auth): fixture for fake ghp_ key"
 ```
 
 ### "Error: cannot find module '@prisma/client'"
+
 Run `npm run prisma:generate`. This also needs to happen whenever you edit
 `prisma/schema.prisma`.
 
 ### Swagger UI shows an empty page
+
 Your browser cached a broken CSP. Hard-reload (`Ctrl-Shift-R` / `Cmd-Shift-R`)
 or open an incognito window.
 
 ### Tests fail with "Cannot find module" errors
+
 Run `npm install` again. Then `npm run prisma:generate`.
 
 ### `npm run worker:dev` fails to start
+
 The worker needs Redis. Confirm `docker ps` shows redis, or that
 `redis-cli ping` returns `PONG`.
 
@@ -1283,12 +1320,12 @@ What each warning means and how we handle it:
    Prisma 7-only rule. On Prisma 5, `url = env("DATABASE_URL")` in the
    datasource block is required. The repo root has `.vscode/settings.json`
    pinning the extension to the workspace's Prisma binary:
-   ```json
-   "prisma.useLocalPlugin": true,
-   "prisma.prismaPluginPath": "Backend/node_modules/prisma"
-   ```
-   Reload VS Code (`Ctrl+Shift+P` → *Developer: Reload Window*) and the
-   warning disappears.
+    ```json
+    "prisma.useLocalPlugin": true,
+    "prisma.prismaPluginPath": "Backend/node_modules/prisma"
+    ```
+    Reload VS Code (`Ctrl+Shift+P` → _Developer: Reload Window_) and the
+    warning disappears.
 
 CLI commands (`npm run prisma:*`) always use the pinned v5.22 from
 `node_modules` and are unaffected by either warning.
@@ -1304,37 +1341,39 @@ Rough plan if you decide to do it:
 
 1. Bump `prisma` and `@prisma/client` to `^7` in `package.json`.
 2. Create `Backend/prisma.config.ts`:
-   ```ts
-   import 'dotenv-flow/config'
-   import { defineConfig } from 'prisma/config'
 
-   export default defineConfig({
-     schema: 'prisma/schema.prisma',
-     // Prisma 7 reads DATABASE_URL from here instead of the datasource block.
-     datasourceUrl: process.env.DATABASE_URL!
-   })
-   ```
+    ```ts
+    import 'dotenv-flow/config'
+    import { defineConfig } from 'prisma/config'
+
+    export default defineConfig({
+        schema: 'prisma/schema.prisma',
+        // Prisma 7 reads DATABASE_URL from here instead of the datasource block.
+        datasourceUrl: process.env.DATABASE_URL!
+    })
+    ```
+
 3. Remove `url = env("DATABASE_URL")` from the `datasource db` block in
    `schema.prisma`.
 4. In `src/service/db.ts`, pass the URL to the constructor and convert the
    soft-delete middleware from `$use` to `$extends`:
-   ```ts
-   const prisma = new PrismaClient({
-     datasourceUrl: process.env.DATABASE_URL
-   }).$extends({
-     query: {
-       $allModels: {
-         async findMany({ model, args, query }) {
-           if (SOFT_DELETE_MODELS.has(model)) {
-             args.where = { deletedAt: null, ...args.where }
-           }
-           return query(args)
-         }
-         // same pattern for findFirst / findUnique / delete / deleteMany
-       }
-     }
-   })
-   ```
+    ```ts
+    const prisma = new PrismaClient({
+        datasourceUrl: process.env.DATABASE_URL
+    }).$extends({
+        query: {
+            $allModels: {
+                async findMany({ model, args, query }) {
+                    if (SOFT_DELETE_MODELS.has(model)) {
+                        args.where = { deletedAt: null, ...args.where }
+                    }
+                    return query(args)
+                }
+                // same pattern for findFirst / findUnique / delete / deleteMany
+            }
+        }
+    })
+    ```
 5. Run the full test suite + smoke-test payments and quizzes before merging.
 
 Keep this as a **separate PR** from feature work.

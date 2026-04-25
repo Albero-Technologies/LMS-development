@@ -195,12 +195,9 @@ export const UtmBuilderPage = () => {
                                         <div className="text-[11px] text-fg-muted mt-0.5">
                                             {l.source} / {l.medium} / {l.campaign}
                                         </div>
-                                        <code className="block font-mono text-xs text-fg-soft mt-2 break-all">
-                                            {l.fullUrl}
-                                        </code>
+                                        <code className="block font-mono text-xs text-fg-soft mt-2 break-all">{l.fullUrl}</code>
                                         <div className="mt-2 text-[11px] text-fg-muted font-mono">
-                                            {l.clickCount} click{l.clickCount === 1 ? '' : 's'} ·{' '}
-                                            {new Date(l.createdAt).toLocaleDateString()}
+                                            {l.clickCount} click{l.clickCount === 1 ? '' : 's'} · {new Date(l.createdAt).toLocaleDateString()}
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1 shrink-0">

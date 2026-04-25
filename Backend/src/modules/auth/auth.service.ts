@@ -6,7 +6,7 @@ import { comparePassword, hashPassword } from '../../util/password'
 import { hashToken, randomToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../../util/tokens'
 import config from '../../config/config'
 import { OAuth2Client } from 'google-auth-library'
-import { TAcceptInviteInput, TGoogleCodeInput, TLoginInput, TRegisterInput } from './auth.schema'
+import { type TAcceptInviteInput, type TGoogleCodeInput, type TLoginInput, type TRegisterInput } from './auth.schema'
 import { authLimiter } from '../../config/rateLimiter'
 import { writeAudit } from '../../util/audit'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
@@ -19,7 +19,10 @@ const googleClient = () =>
         redirectUri: config.GOOGLE_REDIRECT_URI
     })
 
-type TTokenBundle = { accessToken: string; refreshToken: string }
+interface TTokenBundle {
+    accessToken: string
+    refreshToken: string
+}
 
 const issueTokens = async (
     user: { id: string; tenantId: string; role: Role; tokenVersion: number },
@@ -89,7 +92,7 @@ export const register = async (input: TRegisterInput, req: Request) => {
         data: { firstName: user.firstName }
     })
 
-    const tokens = await issueTokens(user, { ipAddress: req.ip, userAgent: req.headers['user-agent'] as string | undefined })
+    const tokens = await issueTokens(user, { ipAddress: req.ip, userAgent: req.headers['user-agent'] })
     return { user: sanitize(user), ...tokens }
 }
 
@@ -113,7 +116,7 @@ export const login = async (input: TLoginInput, req: Request) => {
         ? await db.client.user.findUnique({ where })
         : await db.client.user.findFirst({ where: { email: input.email.toLowerCase(), deletedAt: null } })
 
-    if (!user || !user.passwordHash) {
+    if (!user?.passwordHash) {
         throw AppError.unauthorized(responseMessage.INVALID_CREDENTIALS, 'INVALID_CREDENTIALS')
     }
     if (user.status === UserStatus.SUSPENDED) throw AppError.forbidden(responseMessage.ACCOUNT_SUSPENDED, 'SUSPENDED')
@@ -127,7 +130,7 @@ export const login = async (input: TLoginInput, req: Request) => {
     await db.client.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
     await writeAudit({ action: 'auth.login', entityType: 'User', entityId: user.id, tenantId: user.tenantId, userId: user.id }, req)
 
-    const tokens = await issueTokens(user, { ipAddress: req.ip, userAgent: req.headers['user-agent'] as string | undefined })
+    const tokens = await issueTokens(user, { ipAddress: req.ip, userAgent: req.headers['user-agent'] })
     return { user: sanitize(user), ...tokens }
 }
 
@@ -150,7 +153,7 @@ export const refresh = async (refreshToken: string, req: Request) => {
     if (user.tokenVersion !== decoded.ver) throw AppError.unauthorized(responseMessage.INVALID_TOKEN, 'TOKEN_STALE')
 
     // Rotate — revoke old, issue new.
-    const tokens = await issueTokens(user, { ipAddress: req.ip, userAgent: req.headers['user-agent'] as string | undefined })
+    const tokens = await issueTokens(user, { ipAddress: req.ip, userAgent: req.headers['user-agent'] })
     const newHash = hashToken(tokens.refreshToken)
     const newRow = await db.client.refreshToken.findUnique({ where: { tokenHash: newHash } })
     await db.client.refreshToken.update({
@@ -248,14 +251,11 @@ export const googleCallback = async (input: TGoogleCodeInput, req: Request) => {
     }
 
     await db.client.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
-    await writeAudit(
-        { action: 'auth.google_login', entityType: 'User', entityId: user.id, tenantId: user.tenantId, userId: user.id },
-        req
-    )
+    await writeAudit({ action: 'auth.google_login', entityType: 'User', entityId: user.id, tenantId: user.tenantId, userId: user.id }, req)
 
     const bundle = await issueTokens(user, {
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string | undefined
+        userAgent: req.headers['user-agent']
     })
     return { user: sanitize(user), ...bundle }
 }
@@ -310,14 +310,11 @@ export const acceptInvite = async (input: TAcceptInviteInput, req: Request) => {
         where: { id: invite.id },
         data: { status: InviteStatus.ACCEPTED, acceptedAt: new Date() }
     })
-    await writeAudit(
-        { action: 'auth.invite_accepted', entityType: 'User', entityId: user.id, tenantId: user.tenantId, userId: user.id },
-        req
-    )
+    await writeAudit({ action: 'auth.invite_accepted', entityType: 'User', entityId: user.id, tenantId: user.tenantId, userId: user.id }, req)
 
     const bundle = await issueTokens(user, {
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string | undefined
+        userAgent: req.headers['user-agent']
     })
     return { user: sanitize(user), ...bundle }
 }
@@ -339,7 +336,7 @@ export const createInvite = async (tenantId: string, email: string, role: Role, 
 }
 
 // Never return password hash or token version externally.
-type TUserOut = {
+interface TUserOut {
     id: string
     tenantId: string
     email: string

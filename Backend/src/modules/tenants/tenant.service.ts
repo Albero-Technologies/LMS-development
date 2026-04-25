@@ -1,9 +1,9 @@
-import { AuthProvider, Prisma, Role, TenantStatus, UserStatus } from '@prisma/client'
+import { AuthProvider, type Prisma, Role, TenantStatus, UserStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { hashPassword } from '../../util/password'
-import { TCreateTenantInput, TUpdateTenantBrandingInput } from './tenant.schema'
+import { type TCreateTenantInput, type TUpdateTenantBrandingInput } from './tenant.schema'
 
 // Bootstrap a tenant with its first admin — a single transaction so a failed admin create
 // never leaves a tenant orphaned.

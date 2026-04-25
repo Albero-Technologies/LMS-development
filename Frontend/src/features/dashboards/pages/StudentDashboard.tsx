@@ -27,15 +27,12 @@ export const StudentDashboard = () => {
             <div
                 className="rounded-lg p-6 sm:p-8 mb-6 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
                 style={{
-                    background:
-                        'linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-700) 100%)'
+                    background: 'linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-700) 100%)'
                 }}>
                 <div>
                     <div className="text-xs font-medium uppercase tracking-wider text-white/70">Welcome back</div>
                     <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight">Hi {firstName} 👋</h1>
-                    <p className="mt-1.5 text-white/85 text-sm">
-                        Pick up where you left off. 3 lessons queued for today.
-                    </p>
+                    <p className="mt-1.5 text-white/85 text-sm">Pick up where you left off. 3 lessons queued for today.</p>
                 </div>
                 <Link to="/app/courses">
                     <Button

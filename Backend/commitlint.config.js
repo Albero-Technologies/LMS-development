@@ -11,18 +11,18 @@ module.exports = {
             2,
             'always',
             [
-                'feat',     // A new feature
-                'fix',      // A bug fix
-                'docs',     // Documentation only
-                'chore',    // Tooling / build / housekeeping
-                'style',    // Formatting, whitespace, no code change
+                'feat', // A new feature
+                'fix', // A bug fix
+                'docs', // Documentation only
+                'chore', // Tooling / build / housekeeping
+                'style', // Formatting, whitespace, no code change
                 'refactor', // Neither a fix nor a feature
-                'perf',     // Performance improvement
-                'test',     // Adding / fixing tests
-                'build',    // Build system (Docker, npm, tsc)
-                'ci',       // CI / pipelines / workflows
-                'revert',   // Revert a previous commit
-                'security'  // Security patch
+                'perf', // Performance improvement
+                'test', // Adding / fixing tests
+                'build', // Build system (Docker, npm, tsc)
+                'ci', // CI / pipelines / workflows
+                'revert', // Revert a previous commit
+                'security' // Security patch
             ]
         ],
         'type-case': [2, 'always', 'lower-case'],

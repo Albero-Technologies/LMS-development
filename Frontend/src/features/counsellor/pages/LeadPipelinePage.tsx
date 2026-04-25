@@ -9,14 +9,7 @@ import { Modal } from '@shared/components/ui/Modal'
 import { Input } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { cn } from '@shared/helpers/cn'
-import {
-    useLeadStore,
-    STAGE_LABEL,
-    STAGE_ORDER,
-    STAGE_TONE,
-    type TLead,
-    type TStage
-} from '../stores/leadStore'
+import { useLeadStore, STAGE_LABEL, STAGE_ORDER, STAGE_TONE, type TLead, type TStage } from '../stores/leadStore'
 
 const timeAgo = (iso: string): string => {
     const diff = Date.now() - new Date(iso).getTime()
@@ -86,10 +79,7 @@ export const LeadPipelinePage = () => {
                         <Card
                             key={stage}
                             padded={false}
-                            className={cn(
-                                'flex flex-col min-h-[420px] transition-colors',
-                                isDragOver && 'ring-2 ring-[var(--color-brand-500)]'
-                            )}>
+                            className={cn('flex flex-col min-h-[420px] transition-colors', isDragOver && 'ring-2 ring-[var(--color-brand-500)]')}>
                             <header
                                 className="p-4 border-b flex items-center justify-between"
                                 onDragOver={(e) => onDragOver(e, stage)}
@@ -113,9 +103,7 @@ export const LeadPipelinePage = () => {
                                 onDragLeave={onDragLeave}
                                 onDrop={(e) => onDrop(e, stage)}>
                                 {bucket.length === 0 && (
-                                    <div className="text-xs text-fg-muted px-2 py-6 text-center border border-dashed rounded-md">
-                                        Drop leads here
-                                    </div>
+                                    <div className="text-xs text-fg-muted px-2 py-6 text-center border border-dashed rounded-md">Drop leads here</div>
                                 )}
                                 {bucket.map((lead) => (
                                     <LeadCard
@@ -184,9 +172,7 @@ const LeadCard = ({
                                 onClick={() => setMenuOpen(false)}
                             />
                             <div className="absolute right-0 top-8 z-20 bg-surface border rounded-md shadow-lift text-sm py-1 w-48">
-                                <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider text-fg-muted font-medium">
-                                    Move to
-                                </div>
+                                <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider text-fg-muted font-medium">Move to</div>
                                 {STAGE_ORDER.filter((s) => s !== lead.stage).map((s) => (
                                     <button
                                         key={s}

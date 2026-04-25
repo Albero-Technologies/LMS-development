@@ -2,8 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { Request, Response } from 'express'
 import requestId from '../../src/middleware/requestId'
 
-const makeReq = (headers: Record<string, string> = {}): Request =>
-    ({ headers } as unknown as Request)
+const makeReq = (headers: Record<string, string> = {}): Request => ({ headers }) as unknown as Request
 
 const makeRes = (): Response => {
     const headers: Record<string, string> = {}

@@ -46,9 +46,17 @@ export default {
     GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || '',
     GOOGLE_POST_LOGIN_REDIRECT: process.env.GOOGLE_POST_LOGIN_REDIRECT || '',
 
-    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY || '',
-    SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL || 'no-reply@learnhub.in',
-    SENDGRID_FROM_NAME: process.env.SENDGRID_FROM_NAME || 'LearnHub',
+    // Nodemailer (default transport: Gmail App Password). For generic SMTP set
+    // NODEMAILER_HOST + NODEMAILER_PORT + NODEMAILER_SECURE; otherwise the Gmail
+    // service shorthand is used. Leave NODEMAILER_MAIL/PASS blank in dev to log
+    // emails without sending.
+    NODEMAILER_MAIL: process.env.NODEMAILER_MAIL || '',
+    NODEMAILER_PASS: process.env.NODEMAILER_PASS || '',
+    NODEMAILER_HOST: process.env.NODEMAILER_HOST || '',
+    NODEMAILER_PORT: num('NODEMAILER_PORT', 587),
+    NODEMAILER_SECURE: bool('NODEMAILER_SECURE', false),
+    MAIL_FROM_EMAIL: process.env.MAIL_FROM_EMAIL || '',
+    MAIL_FROM_NAME: process.env.MAIL_FROM_NAME || 'Albero Academy',
 
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',

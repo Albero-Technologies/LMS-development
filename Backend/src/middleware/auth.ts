@@ -1,15 +1,15 @@
-import { NextFunction, Request, Response } from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import { verifyAccessToken } from '../util/tokens'
 import db from '../service/db'
 import AppError from '../util/AppError'
 import responseMessage from '../constant/responseMessage'
 import httpError from '../util/httpError'
-import { Role, UserStatus } from '@prisma/client'
-import { can, TAction, TModule } from '../constant/policy'
+import { type Role, UserStatus } from '@prisma/client'
+import { can, type TAction, type TModule } from '../constant/policy'
 
 const extractBearer = (req: Request): string | null => {
     const header = req.headers.authorization
-    if (header && header.startsWith('Bearer ')) return header.slice(7)
+    if (header?.startsWith('Bearer ')) return header.slice(7)
     // Optional cookie fallback for same-site web clients
     const cookieToken = (req as unknown as { cookies?: { access_token?: string } }).cookies?.access_token
     return cookieToken || null

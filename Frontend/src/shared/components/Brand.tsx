@@ -21,10 +21,7 @@ export const Brand = ({ className, size = 'md', onDark = false, iconOnly = false
     return (
         <div className={cn('flex items-center gap-2.5 select-none', className)}>
             <div
-                className={cn(
-                    s.cube,
-                    'rounded-md flex items-center justify-center bg-[var(--color-brand-500)] shrink-0'
-                )}
+                className={cn(s.cube, 'rounded-md flex items-center justify-center bg-[var(--color-brand-500)] shrink-0')}
                 aria-hidden>
                 <svg
                     width={s.iconSize}
@@ -40,12 +37,7 @@ export const Brand = ({ className, size = 'md', onDark = false, iconOnly = false
                 </svg>
             </div>
             {!iconOnly && (
-                <span
-                    className={cn(
-                        'font-semibold tracking-tight leading-none whitespace-nowrap',
-                        s.text,
-                        onDark ? 'text-white' : 'text-fg'
-                    )}>
+                <span className={cn('font-semibold tracking-tight leading-none whitespace-nowrap', s.text, onDark ? 'text-white' : 'text-fg')}>
                     Albero Academy
                 </span>
             )}

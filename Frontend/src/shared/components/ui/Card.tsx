@@ -36,9 +36,7 @@ export const StatCard = ({ label, value, delta, tone = 'neutral', icon, accent =
         <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
                 <div className="text-xs font-medium text-fg-muted">{label}</div>
-                <div className="mt-2 text-[1.75rem] font-bold tracking-tight text-fg font-mono leading-none">
-                    {value}
-                </div>
+                <div className="mt-2 text-[1.75rem] font-bold tracking-tight text-fg font-mono leading-none">{value}</div>
                 {delta && (
                     <div
                         className={cn(
@@ -51,11 +49,7 @@ export const StatCard = ({ label, value, delta, tone = 'neutral', icon, accent =
                     </div>
                 )}
             </div>
-            {icon && (
-                <div className={cn('shrink-0 w-10 h-10 rounded-lg flex items-center justify-center', ACCENT_FILL[accent])}>
-                    {icon}
-                </div>
-            )}
+            {icon && <div className={cn('shrink-0 w-10 h-10 rounded-lg flex items-center justify-center', ACCENT_FILL[accent])}>{icon}</div>}
         </div>
     </div>
 )

@@ -1,13 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Role } from '@prisma/client'
-import {
-    hashToken,
-    randomToken,
-    signAccessToken,
-    signRefreshToken,
-    verifyAccessToken,
-    verifyRefreshToken
-} from '../../src/util/tokens'
+import { hashToken, randomToken, signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from '../../src/util/tokens'
 
 const base = { userId: 'user-1', tenantId: 'tenant-1', role: Role.ADMIN, tokenVersion: 3 }
 

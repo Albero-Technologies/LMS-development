@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import config from '../../config/config'
@@ -41,8 +41,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const refresh = async (req: Request, res: Response): Promise<void> => {
     const token =
-        (req as unknown as { cookies?: { refresh_token?: string } }).cookies?.refresh_token ||
-        (req.body as { refreshToken?: string }).refreshToken
+        (req as unknown as { cookies?: { refresh_token?: string } }).cookies?.refresh_token || (req.body as { refreshToken?: string }).refreshToken
     if (!token) {
         httpResponse(req, res, 401, responseMessage.UNAUTHORIZED)
         return
@@ -54,8 +53,7 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
     const token =
-        (req as unknown as { cookies?: { refresh_token?: string } }).cookies?.refresh_token ||
-        (req.body as { refreshToken?: string })?.refreshToken
+        (req as unknown as { cookies?: { refresh_token?: string } }).cookies?.refresh_token || (req.body as { refreshToken?: string })?.refreshToken
     if (req.auth) {
         await service.logout(token, req.auth.userId)
     }

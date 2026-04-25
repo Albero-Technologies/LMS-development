@@ -19,8 +19,13 @@
         "preview": "vite preview --mode production"
     },
     "lint-staged": {
-        "*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"],
-        "*.{css,md,json}": ["prettier --write"]
+        "*.{ts,tsx,js,jsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{css,md,json}": [
+            "prettier --write"
+        ]
     },
     "dependencies": {
         "@hookform/resolvers": "^3.9.1",

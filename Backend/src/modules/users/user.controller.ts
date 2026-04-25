@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import * as service from './user.service'
@@ -13,20 +13,20 @@ export const list = async (req: Request, res: Response): Promise<void> => {
 
 export const get = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const user = await service.getUser(req.auth.tenantId, req.params.id as string)
+    const user = await service.getUser(req.auth.tenantId, req.params.id)
     httpResponse(req, res, 200, responseMessage.SUCCESS, user)
 }
 
 export const update = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const user = await service.updateUser(req.auth.tenantId, req.params.id as string, req.body)
+    const user = await service.updateUser(req.auth.tenantId, req.params.id, req.body)
     await writeAudit({ action: 'user.update', entityType: 'User', entityId: user.id }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, user)
 }
 
 export const remove = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    await service.softDeleteUser(req.auth.tenantId, req.params.id as string)
+    await service.softDeleteUser(req.auth.tenantId, req.params.id)
     await writeAudit({ action: 'user.delete', entityType: 'User', entityId: req.params.id }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS)
 }

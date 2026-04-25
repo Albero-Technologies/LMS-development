@@ -114,9 +114,7 @@ const PersonalSettings = () => {
                         <div className="mt-4 space-y-2 text-xs">
                             <div className="flex items-center justify-between">
                                 <span className="text-fg-muted">Role</span>
-                                <Badge tone={user?.role === ROLES.SUPER_ADMIN ? 'danger' : 'brand'}>
-                                    {user ? ROLE_LABEL[user.role] : '—'}
-                                </Badge>
+                                <Badge tone={user?.role === ROLES.SUPER_ADMIN ? 'danger' : 'brand'}>{user ? ROLE_LABEL[user.role] : '—'}</Badge>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-fg-muted">User ID</span>
@@ -186,8 +184,8 @@ const SecurityPanel = () => {
                     <Shield size={14} /> Two-factor authentication
                 </h2>
                 <p className="text-sm text-fg-soft">
-                    Add an extra layer to sign-in with an authenticator app. Recommended for any account that
-                    touches student data, payments, or grades.
+                    Add an extra layer to sign-in with an authenticator app. Recommended for any account that touches student data, payments, or
+                    grades.
                 </p>
                 <div className="flex items-center justify-between rounded-md border p-3 bg-surface-2">
                     <div>
@@ -240,10 +238,6 @@ const NOTIF_OPTIONS: Record<TRole, { key: string; label: string; hint: string }[
     SUPPORT: [
         { key: 'newTicket', label: 'New tickets', hint: 'A learner or client opened a support ticket.' },
         { key: 'ticketReply', label: 'Ticket replies', hint: 'Someone replied on a ticket assigned to you.' }
-    ],
-    CLIENT: [
-        { key: 'employeeProgress', label: 'Employee progress', hint: 'Weekly progress of your enrolled employees.' },
-        { key: 'invoiceReady', label: 'New invoices', hint: 'A fresh invoice is ready to review.' }
     ]
 }
 
@@ -316,9 +310,7 @@ const AppearancePanel = () => {
                             }}
                             className={cn(
                                 'rounded-md border p-4 text-left transition-colors',
-                                active
-                                    ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)]'
-                                    : 'hover:bg-surface-hover'
+                                active ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover'
                             )}>
                             <div className="flex items-center gap-2">
                                 <opt.Icon size={14} />

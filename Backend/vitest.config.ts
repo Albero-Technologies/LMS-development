@@ -12,15 +12,7 @@ export default defineConfig({
             provider: 'v8',
             reporter: ['text', 'lcov', 'html'],
             reportsDirectory: 'coverage',
-            exclude: [
-                'dist/**',
-                'prisma/**',
-                'test/**',
-                '**/*.d.ts',
-                'src/docs/**',
-                'src/worker.ts',
-                'src/server.ts'
-            ]
+            exclude: ['dist/**', 'prisma/**', 'test/**', '**/*.d.ts', 'src/docs/**', 'src/worker.ts', 'src/server.ts']
         }
     }
 })

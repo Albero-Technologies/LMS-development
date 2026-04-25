@@ -2,7 +2,7 @@
 
 Express + TypeScript API server for LearnHub LMS, multi-tenant from day 0.
 
-**Stack:** Node 20 · Express 5 · Prisma 5 · PostgreSQL (Neon) · Redis (Upstash) · BullMQ · Zod · SendGrid · Razorpay · multer · swagger-ui-express · JWT · Winston · pino-http · prom-client · vitest + supertest.
+**Stack:** Node 20 · Express 5 · Prisma 5 · PostgreSQL (Neon) · Redis (Upstash) · BullMQ · Zod · Nodemailer · Razorpay · multer · swagger-ui-express · JWT · Winston · pino-http · prom-client · vitest + supertest.
 
 **Observability (opt-in via docker-compose profile):** Prometheus · Loki · Promtail · Grafana. Start here → [MONITORING_OVERVIEW.md](./MONITORING_OVERVIEW.md) (the "what is this and why"). Deep dive → [OBSERVABILITY.md](./OBSERVABILITY.md) (queries, metrics catalog, troubleshooting).
 
@@ -10,20 +10,20 @@ Express + TypeScript API server for LearnHub LMS, multi-tenant from day 0.
 
 ## Phase 1 modules
 
-| Module | Epic | Responsibilities |
-| ------ | ---- | ---------------- |
-| `auth` | E1 | Email/password + Google OAuth, JWT rotation, invite acceptance |
-| `tenants` | E10 | Tenant create (SUPER_ADMIN), branding, settings |
-| `users` | E1 | User CRUD, role invites, 7-role policy |
-| `courses` | E2 | Courses, sections, YouTube-embedded lessons, progress tracking |
-| `enrollments` | E3 | Enrollment, Razorpay order + verify, Zoho Books webhook, refunds |
-| `quizzes` | E4 | MCQ builder, auto-grading, timer, attempt cap |
-| `batches` | E6 | Batch CRUD, assign/transfer students |
-| `leads` | E7 | Kanban 4-stage pipeline, call logging, next-action |
-| `tickets` | E8 | Support tickets, assignment, internal comments |
-| `notifications` | E9 | SendGrid templates (welcome/enrollment/payment/ticket) via BullMQ |
-| `dashboards` | E5 | Per-role stats + next-action list |
-| `uploads` | E2+E10 | Multer file uploads (avatars, thumbnails, branding, attachments, assignments) |
+| Module          | Epic   | Responsibilities                                                              |
+| --------------- | ------ | ----------------------------------------------------------------------------- |
+| `auth`          | E1     | Email/password + Google OAuth, JWT rotation, invite acceptance                |
+| `tenants`       | E10    | Tenant create (SUPER_ADMIN), branding, settings                               |
+| `users`         | E1     | User CRUD, role invites, 7-role policy                                        |
+| `courses`       | E2     | Courses, sections, YouTube-embedded lessons, progress tracking                |
+| `enrollments`   | E3     | Enrollment, Razorpay order + verify, Zoho Books webhook, refunds              |
+| `quizzes`       | E4     | MCQ builder, auto-grading, timer, attempt cap                                 |
+| `batches`       | E6     | Batch CRUD, assign/transfer students                                          |
+| `leads`         | E7     | Kanban 4-stage pipeline, call logging, next-action                            |
+| `tickets`       | E8     | Support tickets, assignment, internal comments                                |
+| `notifications` | E9     | Nodemailer templates (welcome/enrollment/payment/ticket) via BullMQ           |
+| `dashboards`    | E5     | Per-role stats + next-action list                                             |
+| `uploads`       | E2+E10 | Multer file uploads (avatars, thumbnails, branding, attachments, assignments) |
 
 ---
 
@@ -97,12 +97,12 @@ docker compose -f docker/development/docker-compose.yml up -d postgres redis
 
 ## API docs — Swagger / OpenAPI
 
-| URL | Purpose |
-| --- | ------- |
-| `http://localhost:3000/api/v1/docs` | Swagger UI (try-it-out enabled) |
-| `http://localhost:3000/api/v1/openapi.json` | Raw OpenAPI 3.1 JSON |
-| `http://localhost:8080/api/v1/docs` | Same, via Nginx reverse proxy |
-| `https://api.learnhub.in/api/v1/docs` | Production (post-deploy) |
+| URL                                         | Purpose                         |
+| ------------------------------------------- | ------------------------------- |
+| `http://localhost:3000/api/v1/docs`         | Swagger UI (try-it-out enabled) |
+| `http://localhost:3000/api/v1/openapi.json` | Raw OpenAPI 3.1 JSON            |
+| `http://localhost:8080/api/v1/docs`         | Same, via Nginx reverse proxy   |
+| `https://api.learnhub.in/api/v1/docs`       | Production (post-deploy)        |
 
 ---
 
@@ -116,15 +116,15 @@ npm run test:coverage # + v8 coverage → coverage/
 
 The `test/` folder contains:
 
-| Folder | Covers |
-| ------ | ------ |
-| `test/util/` | password hashing, JWT sign/verify, AppError, error-object shape |
-| `test/rbac/` | 12-module × 7-role policy matrix integrity |
-| `test/schemas/` | Zod validation for auth, course, enrollment inputs |
-| `test/payments/` | Razorpay HMAC signature verification |
-| `test/docs/` | OpenAPI spec integrity (every Phase 1 path documented) |
-| `test/app/` | supertest smoke: `/health`, `/self`, `/metrics`, `/openapi.json`, `/docs`, 401/400/404, webhook sig |
-| `test/uploads/` | multer public-URL rewrite |
+| Folder           | Covers                                                                                              |
+| ---------------- | --------------------------------------------------------------------------------------------------- |
+| `test/util/`     | password hashing, JWT sign/verify, AppError, error-object shape                                     |
+| `test/rbac/`     | 12-module × 7-role policy matrix integrity                                                          |
+| `test/schemas/`  | Zod validation for auth, course, enrollment inputs                                                  |
+| `test/payments/` | Razorpay HMAC signature verification                                                                |
+| `test/docs/`     | OpenAPI spec integrity (every Phase 1 path documented)                                              |
+| `test/app/`      | supertest smoke: `/health`, `/self`, `/metrics`, `/openapi.json`, `/docs`, 401/400/404, webhook sig |
+| `test/uploads/`  | multer public-URL rewrite                                                                           |
 
 ---
 
@@ -138,6 +138,7 @@ The `test/` folder contains:
 ### ESLint (strict, type-aware)
 
 `src/` runs under `recommendedTypeChecked` + `stylisticTypeChecked` with:
+
 - `no-console` error (allows `.warn` / `.error` only)
 - `@typescript-eslint/no-floating-promises` error
 - `@typescript-eslint/no-misused-promises` error
@@ -164,14 +165,14 @@ Relaxed profiles for `test/` and `prisma/seed.ts`.
 
 Pipelines live at the **repository root** under `.github/workflows/`:
 
-| Workflow | Triggers | What it does |
-| -------- | -------- | ------------ |
-| `ci-main.yml` | push + PR to `main` | commitlint · gitleaks · CodeQL · backend + frontend gate · npm audit · Trivy image scan · Docker build → GHCR (`production-*` tags) · Prisma migrate deploy · Render deploy · Sentry release · smoke test |
-| `ci-uat.yml` | push + PR to `uat` | Same quality gates + Docker build (`uat-*` tags) + auto-deploy to UAT |
-| `codeql.yml` | push/PR to `main` + `uat` + weekly cron | Static analysis, security-extended queries |
-| `_backend-checks.yml` | reusable | typecheck + eslint + prettier + vitest + coverage |
-| `_frontend-checks.yml` | reusable | typecheck + eslint + prettier + vitest + vite build |
-| `_docker-build.yml` | reusable | Multi-arch build (amd64+arm64), SBOM, Trivy scan, GHCR push |
+| Workflow               | Triggers                                | What it does                                                                                                                                                                                              |
+| ---------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci-main.yml`          | push + PR to `main`                     | commitlint · gitleaks · CodeQL · backend + frontend gate · npm audit · Trivy image scan · Docker build → GHCR (`production-*` tags) · Prisma migrate deploy · Render deploy · Sentry release · smoke test |
+| `ci-uat.yml`           | push + PR to `uat`                      | Same quality gates + Docker build (`uat-*` tags) + auto-deploy to UAT                                                                                                                                     |
+| `codeql.yml`           | push/PR to `main` + `uat` + weekly cron | Static analysis, security-extended queries                                                                                                                                                                |
+| `_backend-checks.yml`  | reusable                                | typecheck + eslint + prettier + vitest + coverage                                                                                                                                                         |
+| `_frontend-checks.yml` | reusable                                | typecheck + eslint + prettier + vitest + vite build                                                                                                                                                       |
+| `_docker-build.yml`    | reusable                                | Multi-arch build (amd64+arm64), SBOM, Trivy scan, GHCR push                                                                                                                                               |
 
 The `dev` branch **has no pipeline** — fast iteration. Local husky hooks + pre-push are the safety net.
 
@@ -262,19 +263,19 @@ GET    /api/v1/openapi.json                 (raw OpenAPI)
 
 ## Environment
 
-See `.env.example`. Required in production: `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `SENDGRID_API_KEY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`.
+See `.env.example`. Required in production: `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `NODEMAILER_MAIL`, `NODEMAILER_PASS`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`.
 
 ---
 
 ## Phase 1 exit gate coverage
 
-| AC | Covered by |
-| -- | ---------- |
-| AC-1 (institute onboarding < 1 hour) | `POST /tenants` + `POST /users/invites` + invite-accept |
-| AC-2 (per-role dashboards) | `GET /dashboard/me` returns per-role stats + next actions |
-| AC-3 (pay + invoice) | Razorpay + Zoho Books webhook writes `pdfUrl` to Invoice |
-| AC-4 (3-lesson course + 10-Q quiz) | Course + Section + Lesson + Quiz endpoints |
-| AC-5 (4-stage lead kanban + call logs) | Lead module + interactions |
-| AC-6 (ticket open/assign/resolve + internal) | Ticket module with internal comments |
-| AC-7 (cross-tenant 4xx) | `tenantId` filter in every service + `assertSameTenant` |
-| AC-8 (typecheck/lint/unit/Playwright) | `ci-main.yml` + `ci-uat.yml` run typecheck + lint + vitest |
+| AC                                           | Covered by                                                 |
+| -------------------------------------------- | ---------------------------------------------------------- |
+| AC-1 (institute onboarding < 1 hour)         | `POST /tenants` + `POST /users/invites` + invite-accept    |
+| AC-2 (per-role dashboards)                   | `GET /dashboard/me` returns per-role stats + next actions  |
+| AC-3 (pay + invoice)                         | Razorpay + Zoho Books webhook writes `pdfUrl` to Invoice   |
+| AC-4 (3-lesson course + 10-Q quiz)           | Course + Section + Lesson + Quiz endpoints                 |
+| AC-5 (4-stage lead kanban + call logs)       | Lead module + interactions                                 |
+| AC-6 (ticket open/assign/resolve + internal) | Ticket module with internal comments                       |
+| AC-7 (cross-tenant 4xx)                      | `tenantId` filter in every service + `assertSameTenant`    |
+| AC-8 (typecheck/lint/unit/Playwright)        | `ci-main.yml` + `ci-uat.yml` run typecheck + lint + vitest |

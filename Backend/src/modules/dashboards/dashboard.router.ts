@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, type Request, type Response } from 'express'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth, requirePolicy } from '../../middleware/auth'
 import { getDashboard, getMonitoringSnapshot } from './dashboard.service'

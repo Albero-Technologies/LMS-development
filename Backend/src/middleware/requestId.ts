@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import crypto from 'crypto'
 
 // Assigns a correlation ID to every request so logs + errors can be traced end-to-end.

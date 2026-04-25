@@ -12,12 +12,6 @@ const router = Router()
 router.post('/', requireAuth, requireRole(Role.SUPER_ADMIN), validate(createTenantSchema), asyncHandler(ctrl.createTenant))
 
 router.get('/me', requireAuth, requirePolicy('tenant', 'read'), asyncHandler(ctrl.getMyTenant))
-router.patch(
-    '/me',
-    requireAuth,
-    requirePolicy('tenant', 'write'),
-    validate(updateTenantBrandingSchema),
-    asyncHandler(ctrl.updateMyTenantBranding)
-)
+router.patch('/me', requireAuth, requirePolicy('tenant', 'write'), validate(updateTenantBrandingSchema), asyncHandler(ctrl.updateMyTenantBranding))
 
 export default router

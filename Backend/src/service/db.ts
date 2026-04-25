@@ -21,16 +21,7 @@ const TENANT_SCOPED_MODELS = new Set<string>([
     'Notification'
 ])
 
-const SOFT_DELETE_MODELS = new Set<string>([
-    'Tenant',
-    'User',
-    'Course',
-    'Batch',
-    'Enrollment',
-    'Quiz',
-    'CounsellorInviteLink',
-    'Ticket'
-])
+const SOFT_DELETE_MODELS = new Set<string>(['Tenant', 'User', 'Course', 'Batch', 'Enrollment', 'Quiz', 'CounsellorInviteLink', 'Ticket'])
 
 const prisma = new PrismaClient({
     log: config.ENV === 'development' ? ['warn', 'error'] : ['error']

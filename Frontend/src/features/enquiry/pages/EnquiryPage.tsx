@@ -10,17 +10,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
-import {
-    Mail,
-    Phone,
-    User,
-    MapPin,
-    ArrowRight,
-    CheckCircle2,
-    Clock,
-    MessageSquare,
-    Sparkles
-} from 'lucide-react'
+import { Mail, Phone, User, MapPin, ArrowRight, CheckCircle2, Clock, MessageSquare, Sparkles } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { Input, Textarea } from '@shared/components/ui/Input'
@@ -102,8 +92,8 @@ export const EnquiryPage = () => {
                     <p className="mt-3 text-fg-soft">
                         {submitted.counsellor ? (
                             <>
-                                <span className="font-semibold text-fg">{submitted.counsellor}</span> from our team
-                                will call you within the next working day.
+                                <span className="font-semibold text-fg">{submitted.counsellor}</span> from our team will call you within the next
+                                working day.
                             </>
                         ) : (
                             'A counsellor from our team will call you within the next working day.'
@@ -131,8 +121,7 @@ export const EnquiryPage = () => {
             <aside
                 className="relative hidden lg:flex flex-col justify-between p-12 lg:col-span-2 overflow-hidden"
                 style={{
-                    background:
-                        'linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-500) 100%)'
+                    background: 'linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-500) 100%)'
                 }}>
                 <Link
                     to="/"
@@ -146,12 +135,10 @@ export const EnquiryPage = () => {
                     <Badge className="!bg-white/15 !text-white !border-white/25">
                         <Sparkles size={11} /> Free counsellor call
                     </Badge>
-                    <h2 className="mt-4 text-3xl xl:text-4xl font-bold leading-tight tracking-tight">
-                        Not sure which course is right?
-                    </h2>
+                    <h2 className="mt-4 text-3xl xl:text-4xl font-bold leading-tight tracking-tight">Not sure which course is right?</h2>
                     <p className="mt-4 text-white/85 max-w-sm">
-                        Tell us where you are and where you want to go. A counsellor will help you pick the shortest
-                        honest path — no pressure, no spam.
+                        Tell us where you are and where you want to go. A counsellor will help you pick the shortest honest path — no pressure, no
+                        spam.
                     </p>
                     <ul className="mt-6 space-y-2 text-sm text-white/90">
                         <Bullet>15-min callback, not a sales pitch</Bullet>
@@ -184,8 +171,7 @@ export const EnquiryPage = () => {
                     <div className="mx-auto w-full max-w-xl">
                         <h1 className="text-3xl font-bold tracking-tight text-fg">Talk to a counsellor</h1>
                         <p className="mt-2 text-sm text-fg-soft">
-                            Leave your details. We'll call you at a time that works, explain the course, and help you
-                            enrol if it's the right fit.
+                            Leave your details. We'll call you at a time that works, explain the course, and help you enrol if it's the right fit.
                         </p>
 
                         <form

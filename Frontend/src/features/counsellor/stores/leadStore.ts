@@ -124,9 +124,7 @@ type Store = {
     ) => TLead
 
     /** Public-form enquiry — always assigns via round-robin. */
-    addEnquiry: (
-        enquiry: Omit<TLead, 'id' | 'createdAt' | 'stage' | 'assignedToId' | 'assignedToName'>
-    ) => TLead
+    addEnquiry: (enquiry: Omit<TLead, 'id' | 'createdAt' | 'stage' | 'assignedToId' | 'assignedToName'>) => TLead
 
     moveLead: (id: string, stage: TStage) => void
     reassignLead: (id: string, counsellorId: string) => void
@@ -136,16 +134,11 @@ type Store = {
 }
 
 const newId = (): string =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2)
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 
 // Pick the next active counsellor, starting from `pointer`. Advances the
 // pointer past anyone inactive (keeps skip-deterministic).
-const pickRoundRobin = (
-    counsellors: TCounsellor[],
-    pointer: number
-): { counsellor: TCounsellor | null; nextPointer: number } => {
+const pickRoundRobin = (counsellors: TCounsellor[], pointer: number): { counsellor: TCounsellor | null; nextPointer: number } => {
     if (counsellors.length === 0) return { counsellor: null, nextPointer: 0 }
 
     // Try up to N slots, skipping inactive counsellors.
@@ -170,9 +163,7 @@ export const useLeadStore = create<Store>()(
                     stage: 'NEW',
                     ...lead,
                     assignedToId: lead.assignedToId,
-                    assignedToName: lead.assignedToId
-                        ? get().counsellors.find((c) => c.id === lead.assignedToId)?.name
-                        : undefined,
+                    assignedToName: lead.assignedToId ? get().counsellors.find((c) => c.id === lead.assignedToId)?.name : undefined,
                     createdAt: new Date().toISOString()
                 }
                 set((s) => ({ leads: [full, ...s.leads] }))
@@ -195,22 +186,18 @@ export const useLeadStore = create<Store>()(
                 return full
             },
 
-            moveLead: (id, stage) =>
-                set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, stage } : l)) })),
+            moveLead: (id, stage) => set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, stage } : l)) })),
 
             reassignLead: (id, counsellorId) =>
                 set((s) => {
                     const c = s.counsellors.find((x) => x.id === counsellorId)
                     if (!c) return s
                     return {
-                        leads: s.leads.map((l) =>
-                            l.id === id ? { ...l, assignedToId: c.id, assignedToName: c.name } : l
-                        )
+                        leads: s.leads.map((l) => (l.id === id ? { ...l, assignedToId: c.id, assignedToName: c.name } : l))
                     }
                 }),
 
-            updateLead: (id, patch) =>
-                set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, ...patch } : l)) })),
+            updateLead: (id, patch) => set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, ...patch } : l)) })),
 
             deleteLead: (id) => set((s) => ({ leads: s.leads.filter((l) => l.id !== id) })),
 

@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { Brand } from '@shared/components/Brand'
 import { Button } from '@shared/components/ui/Button'
+import { ScrollToTop } from '@shared/components/ScrollToTop'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore } from '@shared/stores/authStore'
@@ -18,6 +19,7 @@ export const PublicLayout = () => {
     const user = useAuthStore((s) => s.user)
     return (
         <div className="min-h-screen bg-surface text-fg">
+            <ScrollToTop />
             <header className="sticky top-0 z-40 bg-surface/85 backdrop-blur border-b">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <Link
@@ -73,8 +75,7 @@ export const PublicLayout = () => {
                     <div className="md:col-span-2">
                         <Brand size="sm" />
                         <p className="mt-3 text-fg-soft max-w-sm">
-                            Expert-led courses in engineering, design and data. Live cohorts, 1:1 mentorship, and
-                            verifiable certificates.
+                            Expert-led courses in engineering, design and data. Live cohorts, 1:1 mentorship, and verifiable certificates.
                         </p>
                     </div>
                     <div>
@@ -97,9 +98,7 @@ export const PublicLayout = () => {
                         </ul>
                     </div>
                     <div>
-                        <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold mb-3">
-                            Company
-                        </div>
+                        <div className="text-xs uppercase tracking-wider text-fg-muted font-semibold mb-3">Company</div>
                         <ul className="space-y-2 text-fg-soft">
                             <li>
                                 <Link

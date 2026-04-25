@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq'
-import { NOTIFY_QUEUE_NAME, TNotifyJobData } from './modules/notifications/notification.queue'
+import { NOTIFY_QUEUE_NAME, type TNotifyJobData } from './modules/notifications/notification.queue'
 import { processNotificationJob } from './modules/notifications/notification.service'
 import { getRedis, closeRedis } from './service/redis'
 import db from './service/db'
@@ -24,9 +24,7 @@ const bootWorker = async () => {
 
     worker.on('ready', () => logger.info('NOTIFY_WORKER_READY'))
     worker.on('completed', (job) => logger.info('NOTIFY_JOB_COMPLETE', { meta: { id: job.id } }))
-    worker.on('failed', (job, err) =>
-        logger.warn('NOTIFY_JOB_FAILED', { meta: { id: job?.id, attempt: job?.attemptsMade, err: err.message } })
-    )
+    worker.on('failed', (job, err) => logger.warn('NOTIFY_JOB_FAILED', { meta: { id: job?.id, attempt: job?.attemptsMade, err: err.message } }))
 
     const shutdown = async (signal: string) => {
         logger.info('WORKER_SHUTDOWN', { meta: { signal } })

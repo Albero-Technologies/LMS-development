@@ -20,42 +20,32 @@ export const getDashboard = async (tenantId: string, role: Role, userId: string)
             return counsellorDashboard(tenantId, userId)
         case Role.SUPPORT:
             return supportDashboard(tenantId)
-        case Role.CLIENT:
-            return clientDashboard(tenantId, userId)
         default:
             return { stats: {}, nextActions: [] }
     }
 }
 
 const adminDashboard = async (tenantId: string) => {
-    const [
-        totalStudents,
-        totalTrainers,
-        totalCounsellors,
-        activeEnrollments,
-        coursesPublished,
-        overdueInvoices,
-        paidThisMonth,
-        signupsThisMonth
-    ] = await Promise.all([
-        db.client.user.count({ where: { tenantId, role: Role.STUDENT } }),
-        db.client.user.count({ where: { tenantId, role: Role.TRAINER } }),
-        db.client.user.count({ where: { tenantId, role: Role.COUNSELLOR } }),
-        db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.ACTIVE } }),
-        db.client.course.count({ where: { tenantId, publishState: 'PUBLISHED' } }),
-        db.client.invoice.count({ where: { tenantId, status: InvoiceStatus.DUE } }),
-        db.client.invoice.aggregate({
-            _sum: { totalAmount: true },
-            where: {
-                tenantId,
-                status: InvoiceStatus.PAID,
-                paidAt: { gte: firstDayOfMonth() }
-            }
-        }),
-        db.client.studentSignup.count({
-            where: { tenantId, createdAt: { gte: firstDayOfMonth() } }
-        })
-    ])
+    const [totalStudents, totalTrainers, totalCounsellors, activeEnrollments, coursesPublished, overdueInvoices, paidThisMonth, signupsThisMonth] =
+        await Promise.all([
+            db.client.user.count({ where: { tenantId, role: Role.STUDENT } }),
+            db.client.user.count({ where: { tenantId, role: Role.TRAINER } }),
+            db.client.user.count({ where: { tenantId, role: Role.COUNSELLOR } }),
+            db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.ACTIVE } }),
+            db.client.course.count({ where: { tenantId, publishState: 'PUBLISHED' } }),
+            db.client.invoice.count({ where: { tenantId, status: InvoiceStatus.DUE } }),
+            db.client.invoice.aggregate({
+                _sum: { totalAmount: true },
+                where: {
+                    tenantId,
+                    status: InvoiceStatus.PAID,
+                    paidAt: { gte: firstDayOfMonth() }
+                }
+            }),
+            db.client.studentSignup.count({
+                where: { tenantId, createdAt: { gte: firstDayOfMonth() } }
+            })
+        ])
 
     return {
         stats: {
@@ -250,17 +240,6 @@ const supportDashboard = async (tenantId: string) => {
         nextActions: next
             ? [{ label: `Respond to #${next.number}: ${next.subject}`, link: `/support/tickets/${next.id}` }]
             : [{ label: 'Review knowledge base', link: '/support/kb' }]
-    }
-}
-
-const clientDashboard = async (tenantId: string, userId: string) => {
-    const [activeLearners, completions] = await Promise.all([
-        db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.ACTIVE } }),
-        db.client.enrollment.count({ where: { tenantId, status: EnrollmentStatus.COMPLETED } })
-    ])
-    return {
-        stats: { activeLearners, completions, userId },
-        nextActions: [{ label: 'Download latest progress report', link: '/client/reports/latest' }]
     }
 }
 

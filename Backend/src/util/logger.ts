@@ -1,5 +1,5 @@
 import { createLogger, format, transports } from 'winston'
-import { ConsoleTransportInstance, FileTransportInstance } from 'winston/lib/winston/transports'
+import { type ConsoleTransportInstance, type FileTransportInstance } from 'winston/lib/winston/transports'
 import util from 'util'
 import { EApplicationEnvironment } from '../constant/application'
 import config from '../config/config'
@@ -39,7 +39,7 @@ const consoleLogFormat = format.printf((info) => {
     return `${customLevel} [${customTimestamp}] ${customMessage}\nMETA ${customMeta}\n`
 })
 
-const consoleTransport = (): Array<ConsoleTransportInstance> => {
+const consoleTransport = (): ConsoleTransportInstance[] => {
     return [
         new transports.Console({
             level: config.ENV === EApplicationEnvironment.DEVELOPMENT ? 'debug' : 'info',
@@ -77,7 +77,7 @@ const fileLogFormat = format.printf((info) => {
     return JSON.stringify(logData)
 })
 
-const fileTransport = (): Array<FileTransportInstance> => {
+const fileTransport = (): FileTransportInstance[] => {
     return [
         new transports.File({
             filename: path.join(__dirname, '..', '..', 'logs', `${config.ENV}.log`),

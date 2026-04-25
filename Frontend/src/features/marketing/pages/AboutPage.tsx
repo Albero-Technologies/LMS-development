@@ -8,7 +8,7 @@ const VALUES = [
     {
         icon: Heart,
         title: 'Honest over flashy',
-        body: 'We tell you when a course isn\'t a fit. We\'d rather lose the sale than waste your time.'
+        body: "We tell you when a course isn't a fit. We'd rather lose the sale than waste your time."
     },
     {
         icon: Users,
@@ -31,8 +31,8 @@ export const AboutPage = () => (
                     Practical courses. Real mentorship. Lasting careers.
                 </h1>
                 <p className="mt-4 text-fg-soft max-w-2xl mx-auto leading-relaxed">
-                    Albero Academy started because the existing options forced learners to compromise: too slow, too
-                    theoretical, or too expensive. We built the platform we wished we had when we started.
+                    Albero Academy started because the existing options forced learners to compromise: too slow, too theoretical, or too expensive. We
+                    built the platform we wished we had when we started.
                 </p>
             </div>
         </section>
@@ -55,12 +55,9 @@ export const AboutPage = () => (
 
         <section className="py-16 border-t">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="text-2xl sm:text-3xl font-bold text-fg tracking-tight">
-                    Ready to start your journey?
-                </h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-fg tracking-tight">Ready to start your journey?</h2>
                 <p className="mt-3 text-fg-soft max-w-xl mx-auto">
-                    A counsellor can walk you through the catalog and help you pick a course that fits your goals
-                    and timeline.
+                    A counsellor can walk you through the catalog and help you pick a course that fits your goals and timeline.
                 </p>
                 <div className="mt-6 flex justify-center gap-2">
                     <Link to="/courses">

@@ -1,21 +1,9 @@
-import {
-    CounsellorTaskStatus,
-    EnrollmentStatus,
-    InvoiceStatus,
-    Prisma,
-    Role
-} from '@prisma/client'
+import { CounsellorTaskStatus, EnrollmentStatus, InvoiceStatus, type Prisma, Role } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
-import {
-    TAssignManager,
-    TCreateTask,
-    TReportRange,
-    TTaskListQuery,
-    TUpdateTask
-} from './counsellor-management.schema'
+import { type TAssignManager, type TCreateTask, type TReportRange, type TTaskListQuery, type TUpdateTask } from './counsellor-management.schema'
 
 // ----- date helpers --------------------------------------------------------
 
@@ -71,12 +59,7 @@ const getManagedCounsellorIds = async (tenantId: string, managerId: string): Pro
     return rows.map((r) => r.id)
 }
 
-const assertManagerOwnsCounsellor = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    counsellorId: string
-): Promise<void> => {
+const assertManagerOwnsCounsellor = async (tenantId: string, role: Role, actorId: string, counsellorId: string): Promise<void> => {
     if (role === Role.SUPER_ADMIN || role === Role.ADMIN) return
     if (role !== Role.COUNSELLING_MANAGER) {
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_MANAGER')
@@ -108,7 +91,7 @@ export const assignManager = async (tenantId: string, input: TAssignManager) => 
 
 // ----- reports -------------------------------------------------------------
 
-type TReportRow = {
+interface TReportRow {
     counsellorId: string
     name: string
     email: string
@@ -176,13 +159,7 @@ const counsellorReportFor = async (
 }
 
 // Per-counsellor report. Counsellor sees their own; manager sees team member's; admin sees any.
-export const getCounsellorReport = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    counsellorId: string,
-    range: TReportRange
-) => {
+export const getCounsellorReport = async (tenantId: string, role: Role, actorId: string, counsellorId: string, range: TReportRange) => {
     if (role === Role.COUNSELLOR && actorId !== counsellorId) {
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_OWNER')
     }
@@ -213,13 +190,7 @@ export const getCounsellorReport = async (
 }
 
 // Aggregate team report — manager sees own counsellors; admin can view a manager's team.
-export const getTeamReport = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    range: TReportRange,
-    managerIdOverride?: string
-) => {
+export const getTeamReport = async (tenantId: string, role: Role, actorId: string, range: TReportRange, managerIdOverride?: string) => {
     let managerId = actorId
     if (role === Role.SUPER_ADMIN || role === Role.ADMIN) {
         if (!managerIdOverride) {
@@ -277,12 +248,7 @@ export const getTeamReport = async (
 
 // ----- tasks ---------------------------------------------------------------
 
-export const createTask = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    input: TCreateTask
-) => {
+export const createTask = async (tenantId: string, role: Role, actorId: string, input: TCreateTask) => {
     await assertManagerOwnsCounsellor(tenantId, role, actorId, input.assigneeId)
     const task = await db.client.counsellorTask.create({
         data: {
@@ -304,12 +270,7 @@ export const createTask = async (
     return task
 }
 
-export const listTasks = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    query: TTaskListQuery
-) => {
+export const listTasks = async (tenantId: string, role: Role, actorId: string, query: TTaskListQuery) => {
     const where: Prisma.CounsellorTaskWhereInput = { tenantId }
     if (query.status) where.status = query.status
 
@@ -332,13 +293,7 @@ export const listTasks = async (
     })
 }
 
-export const updateTask = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    taskId: string,
-    input: TUpdateTask
-) => {
+export const updateTask = async (tenantId: string, role: Role, actorId: string, taskId: string, input: TUpdateTask) => {
     const task = await db.client.counsellorTask.findFirst({ where: { id: taskId, tenantId } })
     if (!task) throw AppError.notFound(responseMessage.NOT_FOUND('Task'), 'TASK_NOT_FOUND')
 
@@ -347,20 +302,14 @@ export const updateTask = async (
             throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_ASSIGNEE')
         }
         // Counsellors can only flip status (e.g. mark done) — they don't re-author task content.
-        if (
-            input.title !== undefined ||
-            input.description !== undefined ||
-            input.priority !== undefined ||
-            input.dueAt !== undefined
-        ) {
+        if (input.title !== undefined || input.description !== undefined || input.priority !== undefined || input.dueAt !== undefined) {
             throw AppError.forbidden('Counsellors can only update task status', 'COUNSELLOR_STATUS_ONLY')
         }
     } else if (role === Role.COUNSELLING_MANAGER) {
         await assertManagerOwnsCounsellor(tenantId, role, actorId, task.assigneeId)
     }
 
-    const completedAt =
-        input.status === CounsellorTaskStatus.DONE && task.status !== CounsellorTaskStatus.DONE ? new Date() : task.completedAt
+    const completedAt = input.status === CounsellorTaskStatus.DONE && task.status !== CounsellorTaskStatus.DONE ? new Date() : task.completedAt
 
     const updated = await db.client.counsellorTask.update({
         where: { id: task.id },
@@ -386,12 +335,7 @@ export const updateTask = async (
     return updated
 }
 
-export const deleteTask = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    taskId: string
-): Promise<void> => {
+export const deleteTask = async (tenantId: string, role: Role, actorId: string, taskId: string): Promise<void> => {
     const task = await db.client.counsellorTask.findFirst({ where: { id: taskId, tenantId } })
     if (!task) throw AppError.notFound(responseMessage.NOT_FOUND('Task'), 'TASK_NOT_FOUND')
     if (role === Role.COUNSELLING_MANAGER) {

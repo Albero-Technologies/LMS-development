@@ -1,4 +1,4 @@
-import express, { Application, NextFunction, Request, Response } from 'express'
+import express, { type Application, type NextFunction, type Request, type Response } from 'express'
 import path from 'path'
 import router from './router/apiRouter'
 import globalErrorHandler from './middleware/globalErrorHandler'

@@ -68,9 +68,7 @@ export type TUtmLink = {
 }
 
 const newId = (): string =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2)
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 
 const genInitialPassword = (): string => {
     const words = ['mango', 'ship', 'ocean', 'delta', 'forest', 'orbit', 'nova', 'paper']
@@ -113,8 +111,7 @@ const makeDefaultWebsite = (tenantId: string, name: string): TWebsiteContent => 
     tenantId,
     heroTag: 'Trusted by 10,000+ learners',
     heroTitle: `Master new skills at ${name}`,
-    heroSubtitle:
-        'Expert-led courses in engineering, design, and data. Live cohorts, 1:1 mentorship, and verifiable certificates.',
+    heroSubtitle: 'Expert-led courses in engineering, design, and data. Live cohorts, 1:1 mentorship, and verifiable certificates.',
     primaryCta: 'Talk to counsellor',
     featuredCourseSlugs: ['sys-design', 'ts-fs', 'dsa-30'],
     showPricingPage: true
@@ -123,8 +120,7 @@ const makeDefaultWebsite = (tenantId: string, name: string): TWebsiteContent => 
 const makeDefaultSeo = (tenantId: string, name: string): TSeoMeta => ({
     tenantId,
     metaTitle: `${name} — Learn tech that matters`,
-    metaDescription:
-        'Expert-led courses with live cohorts, 1:1 mentorship, and verifiable certificates. Start learning today.',
+    metaDescription: 'Expert-led courses with live cohorts, 1:1 mentorship, and verifiable certificates. Start learning today.',
     keywords: ['online courses', 'live classes', 'certification', 'coding', 'bootcamp'],
     robots: 'index, follow'
 })
@@ -196,19 +192,15 @@ export const useTenantStore = create<Store>()(
                 return t
             },
 
-            updateTenant: (id, patch) =>
-                set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
+            updateTenant: (id, patch) => set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
 
-            setTenantStatus: (id, status) =>
-                set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? { ...t, status } : t)) })),
+            setTenantStatus: (id, status) => set((s) => ({ tenants: s.tenants.map((t) => (t.id === id ? { ...t, status } : t)) })),
 
             regenerateCreds: (id) => {
                 const password = genInitialPassword()
                 set((s) => ({
                     tenants: s.tenants.map((t) =>
-                        t.id === id
-                            ? { ...t, initialPassword: password, credsLastSharedAt: new Date().toISOString() }
-                            : t
+                        t.id === id ? { ...t, initialPassword: password, credsLastSharedAt: new Date().toISOString() } : t
                     )
                 }))
                 return password
@@ -268,8 +260,7 @@ export const useTenantStore = create<Store>()(
                 return full
             },
 
-            deleteUtmLink: (id) =>
-                set((s) => ({ utmLinks: s.utmLinks.filter((l) => l.id !== id) })),
+            deleteUtmLink: (id) => set((s) => ({ utmLinks: s.utmLinks.filter((l) => l.id !== id) })),
 
             bumpClick: (id) =>
                 set((s) => ({

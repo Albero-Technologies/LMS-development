@@ -5,7 +5,7 @@ import logger from '../../util/logger'
 export const NOTIFY_QUEUE_NAME = 'notifications'
 export const NOTIFY_JOB = 'send-notification'
 
-export type TNotifyJobData = {
+export interface TNotifyJobData {
     tenantId: string
     userId?: string
     toEmail?: string

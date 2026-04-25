@@ -3,7 +3,7 @@ import {
     CounsellorInviteStatus,
     EnrollmentStatus,
     InvoiceStatus,
-    Prisma,
+    type Prisma,
     Role,
     StudentSignupStatus,
     UserStatus
@@ -15,7 +15,7 @@ import { hashPassword } from '../../util/password'
 import { randomToken } from '../../util/tokens'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 import { assertManagerOwnsCounsellor } from '../counsellor-management/counsellor-management.service'
-import { TCreateInviteLinkInput, TSetTargetInput, TSubmitOnboardingInput } from './counsellor-invite.schema'
+import { type TCreateInviteLinkInput, type TSetTargetInput, type TSubmitOnboardingInput } from './counsellor-invite.schema'
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
@@ -62,11 +62,7 @@ export const listInviteLinks = async (tenantId: string, role: Role, actorId: str
     })
 }
 
-const assertCounsellorOwnsLink = (
-    link: { counsellorId: string; tenantId: string } | null,
-    role: Role,
-    actorId: string
-) => {
+const assertCounsellorOwnsLink = (link: { counsellorId: string; tenantId: string } | null, role: Role, actorId: string) => {
     if (!link) throw AppError.notFound(responseMessage.NOT_FOUND('Invite link'), 'INVITE_LINK_NOT_FOUND')
     if (role === Role.COUNSELLOR && link.counsellorId !== actorId) {
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_LINK_OWNER')
@@ -278,10 +274,7 @@ export const shareCredentials = async (tenantId: string, role: Role, actorId: st
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_SIGNUP_OWNER')
     }
     if (!signup.initialPassword) {
-        throw AppError.badRequest(
-            'Initial credentials are no longer available — student has signed in. Reset password instead.',
-            'CREDS_CONSUMED'
-        )
+        throw AppError.badRequest('Initial credentials are no longer available — student has signed in. Reset password instead.', 'CREDS_CONSUMED')
     }
 
     await db.client.studentSignup.update({
@@ -356,12 +349,7 @@ export const listMyStudents = async (tenantId: string, role: Role, actorId: stri
 
 // ----- Targets -----
 
-export const setCounsellorTarget = async (
-    tenantId: string,
-    role: Role,
-    actorId: string,
-    input: TSetTargetInput
-) => {
+export const setCounsellorTarget = async (tenantId: string, role: Role, actorId: string, input: TSetTargetInput) => {
     const counsellor = await db.client.user.findFirst({
         where: { id: input.counsellorId, tenantId, role: Role.COUNSELLOR }
     })
@@ -452,5 +440,4 @@ const pct = (actual: number, target: number): number => {
 }
 
 const startOfMonth = (d: Date): Date => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))
-const endOfMonth = (d: Date): Date =>
-    new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0, 23, 59, 59, 999))
+const endOfMonth = (d: Date): Date => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0, 23, 59, 59, 999))

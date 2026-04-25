@@ -1,0 +1,32 @@
+# Netlify deployment config for the Albero Academy frontend.
+# Base directory points at Frontend/, build runs Vite, output is Frontend/dist/.
+# All non-asset paths fall through to index.html so React Router handles them.
+
+[build]
+    base = "Frontend/"
+    command = "npm ci && npm run build"
+    publish = "dist/"
+
+[build.environment]
+    NODE_VERSION = "20"
+    VITE_ENV = "production"
+    # Real secrets (VITE_API_BASE_URL, VITE_SENTRY_DSN, etc.) are set in the
+    # Netlify dashboard, not here. Anything VITE_* prefixed reaches the browser.
+
+# SPA fallback — React Router owns client-side routing; without this every
+# refresh on /app/foo would 404.
+[[redirects]]
+    from = "/*"
+    to = "/index.html"
+    status = 200
+
+# Long cache on hashed asset filenames; HTML always revalidated.
+[[headers]]
+    for = "/assets/*"
+    [headers.values]
+        Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+    for = "/index.html"
+    [headers.values]
+        Cache-Control = "public, max-age=0, must-revalidate"

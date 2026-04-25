@@ -1,4 +1,4 @@
-import client, { Counter, Gauge, Histogram, Registry } from 'prom-client'
+import client, { type Counter, type Gauge, type Histogram, type Registry } from 'prom-client'
 import config from '../config/config'
 
 // ---------------------------------------------------------------------------

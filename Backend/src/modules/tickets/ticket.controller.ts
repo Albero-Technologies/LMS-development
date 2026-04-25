@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import * as service from './ticket.service'
@@ -12,7 +12,7 @@ export const list = async (req: Request, res: Response): Promise<void> => {
 
 export const get = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const ticket = await service.getTicket(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.id as string)
+    const ticket = await service.getTicket(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.id)
     httpResponse(req, res, 200, responseMessage.SUCCESS, ticket)
 }
 
@@ -25,13 +25,13 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 
 export const update = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const ticket = await service.updateTicket(req.auth.tenantId, req.auth.role, req.params.id as string, req.body)
+    const ticket = await service.updateTicket(req.auth.tenantId, req.auth.role, req.params.id, req.body)
     await writeAudit({ action: 'ticket.update', entityType: 'Ticket', entityId: ticket.id, metadata: { status: ticket.status } }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, ticket)
 }
 
 export const addComment = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const comment = await service.addComment(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.id as string, req.body)
+    const comment = await service.addComment(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.id, req.body)
     httpResponse(req, res, 201, responseMessage.CREATED, comment)
 }

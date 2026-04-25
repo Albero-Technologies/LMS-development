@@ -116,8 +116,10 @@ export const PublicCoursesPage = () => {
 
     const filtered = useMemo(() => {
         const needle = q.trim().toLowerCase()
-        return COURSES.filter((c) => (cat === 'All' || c.category === cat) &&
-            (needle ? c.title.toLowerCase().includes(needle) || c.mentor.toLowerCase().includes(needle) : true)
+        return COURSES.filter(
+            (c) =>
+                (cat === 'All' || c.category === cat) &&
+                (needle ? c.title.toLowerCase().includes(needle) || c.mentor.toLowerCase().includes(needle) : true)
         )
     }, [q, cat])
 
@@ -171,8 +173,7 @@ export const PublicCoursesPage = () => {
                                 <div
                                     className="h-36 rounded-md mb-4 relative overflow-hidden"
                                     style={{
-                                        background:
-                                            'linear-gradient(135deg, var(--color-brand-50), var(--color-brand-100))'
+                                        background: 'linear-gradient(135deg, var(--color-brand-50), var(--color-brand-100))'
                                     }}>
                                     {c.tag && (
                                         <Badge
@@ -183,18 +184,14 @@ export const PublicCoursesPage = () => {
                                     )}
                                     <BookOpen
                                         size={42}
-                                        className={cn(
-                                            'absolute right-4 bottom-4 text-[var(--color-brand-500)]/40'
-                                        )}
+                                        className={cn('absolute right-4 bottom-4 text-[var(--color-brand-500)]/40')}
                                     />
                                 </div>
                                 <div className="flex items-center gap-2 text-xs">
                                     <Badge>{c.category}</Badge>
                                     <Badge>{c.level}</Badge>
                                 </div>
-                                <h3 className="mt-2 text-base font-semibold text-fg group-hover:text-brand transition-colors">
-                                    {c.title}
-                                </h3>
+                                <h3 className="mt-2 text-base font-semibold text-fg group-hover:text-brand transition-colors">{c.title}</h3>
                                 <p className="text-xs text-fg-muted mt-1">by {c.mentor}</p>
                                 <div className="mt-3 flex items-center gap-3 text-xs text-fg-muted">
                                     <span className="inline-flex items-center gap-1">
@@ -215,9 +212,7 @@ export const PublicCoursesPage = () => {
                                         />
                                         <span className="font-semibold text-fg">{c.rating}</span>
                                     </span>
-                                    <span className="font-mono font-semibold text-fg">
-                                        ₹{c.price.toLocaleString('en-IN')}
-                                    </span>
+                                    <span className="font-mono font-semibold text-fg">₹{c.price.toLocaleString('en-IN')}</span>
                                 </div>
                             </Card>
                         </Link>

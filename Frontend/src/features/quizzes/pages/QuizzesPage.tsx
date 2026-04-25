@@ -99,9 +99,7 @@ export const QuizzesPage = () => {
                             <div className="mt-4 flex items-center justify-between">
                                 <div>
                                     <div className="text-xs text-fg-muted">Your average</div>
-                                    <div className="font-mono text-base font-semibold text-fg">
-                                        {avg === null ? '—' : `${avg}%`}
-                                    </div>
+                                    <div className="font-mono text-base font-semibold text-fg">{avg === null ? '—' : `${avg}%`}</div>
                                 </div>
                                 <Badge tone="brand">
                                     <TrendingUp size={10} />

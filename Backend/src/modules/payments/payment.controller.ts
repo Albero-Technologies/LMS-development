@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import { writeAudit } from '../../util/audit'
@@ -18,14 +18,7 @@ export const invoices = async (req: Request, res: Response): Promise<void> => {
 
 export const pay = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const result = await service.createOrderForInvoice(
-        req.auth.tenantId,
-        req.auth.userId,
-        req.params.invoiceId as string
-    )
-    await writeAudit(
-        { action: 'payment.order_created', entityType: 'Invoice', entityId: result.invoiceId },
-        req
-    )
+    const result = await service.createOrderForInvoice(req.auth.tenantId, req.auth.userId, req.params.invoiceId)
+    await writeAudit({ action: 'payment.order_created', entityType: 'Invoice', entityId: result.invoiceId }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }

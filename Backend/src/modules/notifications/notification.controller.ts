@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import * as service from './notification.service'
@@ -13,6 +13,6 @@ export const list = async (req: Request, res: Response): Promise<void> => {
 
 export const markRead = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    await service.markAsRead(req.auth.tenantId, req.auth.userId, req.params.id as string)
+    await service.markAsRead(req.auth.tenantId, req.auth.userId, req.params.id)
     httpResponse(req, res, 200, responseMessage.SUCCESS)
 }

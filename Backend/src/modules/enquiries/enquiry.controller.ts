@@ -1,5 +1,5 @@
-import { Request, Response } from 'express'
-import { EnquiryStage } from '@prisma/client'
+import { type Request, type Response } from 'express'
+import { type EnquiryStage } from '@prisma/client'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import { writeAudit } from '../../util/audit'
@@ -45,7 +45,7 @@ export const list = async (req: Request, res: Response): Promise<void> => {
 
 export const updateStage = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const id = req.params.id as string
+    const id = req.params.id
     const { stage } = req.body as { stage: EnquiryStage }
     const updated = await service.updateEnquiryStage(req.auth.tenantId, id, stage)
     await writeAudit({ action: 'enquiry.stage_update', entityType: 'Enquiry', entityId: id, metadata: { stage } }, req)
@@ -54,12 +54,9 @@ export const updateStage = async (req: Request, res: Response): Promise<void> =>
 
 export const reassign = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const id = req.params.id as string
+    const id = req.params.id
     const { counsellorId } = req.body as { counsellorId: string }
     const updated = await service.reassignEnquiry(req.auth.tenantId, id, counsellorId)
-    await writeAudit(
-        { action: 'enquiry.reassign', entityType: 'Enquiry', entityId: id, metadata: { counsellorId } },
-        req
-    )
+    await writeAudit({ action: 'enquiry.reassign', entityType: 'Enquiry', entityId: id, metadata: { counsellorId } }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, updated)
 }

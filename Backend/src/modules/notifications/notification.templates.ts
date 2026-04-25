@@ -1,17 +1,21 @@
 import config from '../../config/config'
 
-type TRenderInput = {
+interface TRenderInput {
     template: string
     data: Record<string, unknown>
     tenantName?: string
 }
 
-type TRendered = { subject: string; html: string; text: string }
+interface TRendered {
+    subject: string
+    html: string
+    text: string
+}
 
 // Phase 1 templates — inline HTML so we don't need an external template store.
-// Phase 2 migrates these to SendGrid Dynamic Templates (tracker P2-NT-02).
+// Phase 2 will move these to a per-tenant template store rendered via Handlebars.
 export const render = ({ template, data, tenantName }: TRenderInput): TRendered => {
-    const brand = tenantName || config.SENDGRID_FROM_NAME
+    const brand = tenantName || config.MAIL_FROM_NAME
 
     switch (template) {
         case 'welcome':

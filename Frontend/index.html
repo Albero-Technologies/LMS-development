@@ -45,7 +45,7 @@
         <script>
             // Theme bootstrap — read the persisted theme BEFORE React renders
             // so the first paint already matches, no flash of wrong theme.
-            (function () {
+            ;(function () {
                 try {
                     var stored = localStorage.getItem('learnhub.theme')
                     var theme = stored === 'dark' || stored === 'light' ? stored : 'light'

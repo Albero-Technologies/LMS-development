@@ -1,4 +1,6 @@
 // Seven roles — mirrors the backend Role enum (see Backend/prisma/schema.prisma).
+// CLIENT was removed in Phase 2 §5.1; ADMIN owns the tenant-level views the
+// CLIENT role used to surface.
 export const ROLES = {
     SUPER_ADMIN: 'SUPER_ADMIN',
     ADMIN: 'ADMIN',
@@ -6,8 +8,7 @@ export const ROLES = {
     STUDENT: 'STUDENT',
     COUNSELLING_MANAGER: 'COUNSELLING_MANAGER',
     COUNSELLOR: 'COUNSELLOR',
-    SUPPORT: 'SUPPORT',
-    CLIENT: 'CLIENT'
+    SUPPORT: 'SUPPORT'
 } as const
 
 export type TRole = (typeof ROLES)[keyof typeof ROLES]
@@ -19,8 +20,7 @@ export const ROLE_LABEL: Record<TRole, string> = {
     STUDENT: 'Student',
     COUNSELLING_MANAGER: 'Counselling Manager',
     COUNSELLOR: 'Counsellor',
-    SUPPORT: 'Support',
-    CLIENT: 'Client'
+    SUPPORT: 'Support'
 }
 
 // Landing route per role after login.
@@ -31,6 +31,5 @@ export const ROLE_HOME: Record<TRole, string> = {
     STUDENT: '/app/student',
     COUNSELLING_MANAGER: '/app/counsellor',
     COUNSELLOR: '/app/counsellor',
-    SUPPORT: '/app/support',
-    CLIENT: '/app/client'
+    SUPPORT: '/app/support'
 }

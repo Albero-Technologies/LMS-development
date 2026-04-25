@@ -66,8 +66,7 @@
     --color-sidebar-sa-bot: #0f0820;
 
     /* Typography — STRICTLY sans. No cursive, no serif, anywhere. */
-    --font-sans:
-        'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
     /* Spacing scale (4/8/16/24/32) already matches Tailwind's default. */

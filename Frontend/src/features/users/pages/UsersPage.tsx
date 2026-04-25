@@ -39,9 +39,7 @@ export const UsersPage = () => {
         const needle = q.trim().toLowerCase()
         return users
             .filter((u) => tab === 'ALL' || u.role === tab)
-            .filter((u) =>
-                needle ? u.name.toLowerCase().includes(needle) || u.email.toLowerCase().includes(needle) : true
-            )
+            .filter((u) => (needle ? u.name.toLowerCase().includes(needle) || u.email.toLowerCase().includes(needle) : true))
     }, [users, tab, q])
 
     return (
@@ -107,16 +105,7 @@ export const UsersPage = () => {
                                     </td>
                                     <td className="py-3 px-5 font-mono text-xs text-fg-soft">{u.role}</td>
                                     <td className="py-3 px-5">
-                                        <Badge
-                                            tone={
-                                                u.status === 'ACTIVE'
-                                                    ? 'ok'
-                                                    : u.status === 'PENDING'
-                                                      ? 'warn'
-                                                      : 'danger'
-                                            }>
-                                            {u.status}
-                                        </Badge>
+                                        <Badge tone={u.status === 'ACTIVE' ? 'ok' : u.status === 'PENDING' ? 'warn' : 'danger'}>{u.status}</Badge>
                                     </td>
                                     <td className="py-3 px-5 text-right">
                                         {u.status === 'PENDING' && (
@@ -124,9 +113,7 @@ export const UsersPage = () => {
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={() => {
-                                                    setUsers((us) =>
-                                                        us.map((x) => (x.id === u.id ? { ...x, status: 'ACTIVE' } : x))
-                                                    )
+                                                    setUsers((us) => us.map((x) => (x.id === u.id ? { ...x, status: 'ACTIVE' } : x)))
                                                     toast.success(`${u.name} activated`)
                                                 }}>
                                                 Activate
@@ -144,11 +131,7 @@ export const UsersPage = () => {
                                                 variant="ghost"
                                                 onClick={() => {
                                                     if (!window.confirm(`Suspend ${u.name}?`)) return
-                                                    setUsers((us) =>
-                                                        us.map((x) =>
-                                                            x.id === u.id ? { ...x, status: 'SUSPENDED' } : x
-                                                        )
-                                                    )
+                                                    setUsers((us) => us.map((x) => (x.id === u.id ? { ...x, status: 'SUSPENDED' } : x)))
                                                     toast.success('User suspended')
                                                 }}
                                                 className="!text-[var(--color-danger)]">
@@ -159,9 +142,7 @@ export const UsersPage = () => {
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={() => {
-                                                    setUsers((us) =>
-                                                        us.map((x) => (x.id === u.id ? { ...x, status: 'ACTIVE' } : x))
-                                                    )
+                                                    setUsers((us) => us.map((x) => (x.id === u.id ? { ...x, status: 'ACTIVE' } : x)))
                                                     toast.success('User reinstated')
                                                 }}>
                                                 Reinstate
@@ -188,15 +169,7 @@ export const UsersPage = () => {
     )
 }
 
-const InviteModal = ({
-    open,
-    onClose,
-    onCreate
-}: {
-    open: boolean
-    onClose: () => void
-    onCreate: (u: U) => void
-}) => {
+const InviteModal = ({ open, onClose, onCreate }: { open: boolean; onClose: () => void; onCreate: (u: U) => void }) => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [role, setRole] = useState('STUDENT')
@@ -273,7 +246,6 @@ const InviteModal = ({
                     <option value="COUNSELLING_MANAGER">Counselling Manager</option>
                     <option value="COUNSELLOR">Counsellor</option>
                     <option value="SUPPORT">Support</option>
-                    <option value="CLIENT">Client</option>
                 </Select>
             </form>
         </Modal>

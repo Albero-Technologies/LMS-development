@@ -1,11 +1,11 @@
-import { NotificationChannel, NotificationStatus, Prisma } from '@prisma/client'
+import { NotificationChannel, NotificationStatus, type Prisma } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { render } from './notification.templates'
-import { sendEmail } from './sendgrid'
+import { sendEmail } from './mailer'
 import logger from '../../util/logger'
-import { TNotifyJobData } from './notification.queue'
+import { type TNotifyJobData } from './notification.queue'
 
 // Resolve recipient user row. If only toEmail supplied (e.g. invite), the notification is
 // logged as an "email-only" row without a userId.

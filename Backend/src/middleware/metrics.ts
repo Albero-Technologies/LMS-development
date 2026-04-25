@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import { httpRequestDuration, httpRequestsInFlight, httpRequestsTotal } from '../service/metrics'
 
 // Express 5 exposes req.route.path only AFTER the route handler runs, so we
@@ -13,9 +13,10 @@ const labelRoute = (req: Request): string => {
         return `${mount}${route}` || '/'
     }
     // Scrub numeric/UUID segments so /does/not/exist/abc-123 still collapses.
-    return req.path
-        .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=\/|$)/gi, '/:uuid')
-        .replace(/\/\d+(?=\/|$)/g, '/:id') || '/'
+    return (
+        req.path.replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=\/|$)/gi, '/:uuid').replace(/\/\d+(?=\/|$)/g, '/:id') ||
+        '/'
+    )
 }
 
 export default (req: Request, res: Response, next: NextFunction): void => {

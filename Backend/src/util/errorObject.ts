@@ -1,6 +1,6 @@
-import { Request } from 'express'
+import { type Request } from 'express'
 import responseMessage from '../constant/responseMessage'
-import { THttpErrror } from '../types/types'
+import { type THttpErrror } from '../types/types'
 import config from '../config/config'
 import { EApplicationEnvironment } from '../constant/application'
 import logger from './logger'

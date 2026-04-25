@@ -21,7 +21,6 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
     Kanban,
-    FileText,
     Activity,
     Briefcase,
     Building2,
@@ -30,6 +29,7 @@ import {
     Telescope
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
+import { ScrollToTop } from '@shared/components/ScrollToTop'
 import { Button } from '@shared/components/ui/Button'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { cn } from '@shared/helpers/cn'
@@ -98,12 +98,6 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/tickets', label: 'Tickets', icon: TicketCheck },
         { to: '/app/users', label: 'Students', icon: Users },
         { to: '/app/courses', label: 'Courses', icon: BookOpen }
-    ],
-    CLIENT: [
-        { to: '/app/client', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/app/enrollments', label: 'Employees', icon: Users },
-        { to: '/app/payments', label: 'Billing', icon: FileText },
-        { to: '/app/reports', label: 'Progress Reports', icon: LineChart }
     ]
 }
 
@@ -114,8 +108,7 @@ const ROLE_ACCENT: Partial<Record<TRole, { label: string; icon: ComponentType<{ 
     STUDENT: { label: 'Student', icon: GraduationCap, className: 'bg-white/10 text-white' },
     COUNSELLOR: { label: 'Counsellor', icon: Kanban, className: 'bg-white/10 text-white' },
     COUNSELLING_MANAGER: { label: 'Manager', icon: Kanban, className: 'bg-white/10 text-white' },
-    SUPPORT: { label: 'Support', icon: TicketCheck, className: 'bg-white/10 text-white' },
-    CLIENT: { label: 'Client', icon: Briefcase, className: 'bg-white/10 text-white' }
+    SUPPORT: { label: 'Support', icon: TicketCheck, className: 'bg-white/10 text-white' }
 }
 
 const BOTTOM: NavItem[] = [
@@ -132,7 +125,7 @@ export const AppLayout = () => {
     const [openMobile, setOpenMobile] = useState(false)
     const [collapsed, setCollapsed] = useState(false)
 
-    const nav = useMemo<NavItem[]>(() => (user ? NAV_BY_ROLE[user.role] ?? [] : []), [user])
+    const nav = useMemo<NavItem[]>(() => (user ? (NAV_BY_ROLE[user.role] ?? []) : []), [user])
     const roleAccent = user ? ROLE_ACCENT[user.role] : undefined
     const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
 
@@ -145,6 +138,7 @@ export const AppLayout = () => {
 
     return (
         <div className="min-h-screen bg-surface-2 text-fg">
+            <ScrollToTop />
             <div className="flex">
                 {/* Sidebar */}
                 <aside
@@ -189,7 +183,11 @@ export const AppLayout = () => {
                     {/* Role chip */}
                     {roleAccent && !collapsed && (
                         <div className="px-4 pb-3">
-                            <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider', roleAccent.className)}>
+                            <span
+                                className={cn(
+                                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider',
+                                    roleAccent.className
+                                )}>
                                 <roleAccent.icon size={10} />
                                 {roleAccent.label}
                             </span>
@@ -269,9 +267,7 @@ export const AppLayout = () => {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="text-xs text-white truncate">{user.name || user.email}</div>
-                                    <div className="text-[10px] text-[var(--color-sidebar-fg)] truncate">
-                                        {ROLE_LABEL[user.role]}
-                                    </div>
+                                    <div className="text-[10px] text-[var(--color-sidebar-fg)] truncate">{ROLE_LABEL[user.role]}</div>
                                 </div>
                                 <button
                                     type="button"

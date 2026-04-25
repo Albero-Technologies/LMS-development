@@ -1,11 +1,4 @@
-import {
-    CoursePublishState,
-    EnrollmentStatus,
-    InvoiceStatus,
-    PaymentEventStatus,
-    PaymentGateway,
-    Prisma
-} from '@prisma/client'
+import { CoursePublishState, EnrollmentStatus, InvoiceStatus, PaymentEventStatus, PaymentGateway, type Prisma } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'

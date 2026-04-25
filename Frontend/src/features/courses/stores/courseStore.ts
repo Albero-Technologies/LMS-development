@@ -49,23 +49,24 @@ type Store = {
     addSection: (courseId: string, title: string) => void
     renameSection: (courseId: string, sectionId: string, title: string) => void
     removeSection: (courseId: string, sectionId: string) => void
-    addYouTubeLesson: (courseId: string, sectionId: string, args: { title: string; urlOrId: string; durationMin?: number }) => { ok: true } | { ok: false; error: string }
+    addYouTubeLesson: (
+        courseId: string,
+        sectionId: string,
+        args: { title: string; urlOrId: string; durationMin?: number }
+    ) => { ok: true } | { ok: false; error: string }
     removeLesson: (courseId: string, sectionId: string, lessonId: string) => void
     markLessonComplete: (courseId: string, sectionId: string, lessonId: string, completed: boolean) => void
 }
 
 const newId = (): string =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2)
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 
 const SEED: TCourse[] = [
     {
         id: 'sys-design',
         title: 'System Design Foundations',
         slug: 'sys-design',
-        description:
-            'Learn how to design systems that scale past 1M MAU. Weekly capstone project, 1:1 trainer feedback.',
+        description: 'Learn how to design systems that scale past 1M MAU. Weekly capstone project, 1:1 trainer feedback.',
         price: 4999,
         isPublished: true,
         enrolledCount: 148,
@@ -175,11 +176,7 @@ export const useCourseStore = create<Store>()(
 
             addSection: (courseId, title) =>
                 set((s) => ({
-                    courses: s.courses.map((c) =>
-                        c.id === courseId
-                            ? { ...c, sections: [...c.sections, { id: newId(), title, lessons: [] }] }
-                            : c
-                    )
+                    courses: s.courses.map((c) => (c.id === courseId ? { ...c, sections: [...c.sections, { id: newId(), title, lessons: [] }] } : c))
                 })),
 
             renameSection: (courseId, sectionId, title) =>
@@ -196,14 +193,12 @@ export const useCourseStore = create<Store>()(
 
             removeSection: (courseId, sectionId) =>
                 set((s) => ({
-                    courses: s.courses.map((c) =>
-                        c.id !== courseId ? c : { ...c, sections: c.sections.filter((sec) => sec.id !== sectionId) }
-                    )
+                    courses: s.courses.map((c) => (c.id !== courseId ? c : { ...c, sections: c.sections.filter((sec) => sec.id !== sectionId) }))
                 })),
 
             addYouTubeLesson: (courseId, sectionId, { title, urlOrId, durationMin }) => {
                 const youtubeId = parseYouTubeId(urlOrId)
-                if (!youtubeId) return { ok: false, error: 'That doesn\'t look like a YouTube URL or video ID.' }
+                if (!youtubeId) return { ok: false, error: "That doesn't look like a YouTube URL or video ID." }
                 set((s) => ({
                     courses: s.courses.map((c) =>
                         c.id !== courseId
@@ -241,9 +236,7 @@ export const useCourseStore = create<Store>()(
                             : {
                                   ...c,
                                   sections: c.sections.map((sec) =>
-                                      sec.id !== sectionId
-                                          ? sec
-                                          : { ...sec, lessons: sec.lessons.filter((l) => l.id !== lessonId) }
+                                      sec.id !== sectionId ? sec : { ...sec, lessons: sec.lessons.filter((l) => l.id !== lessonId) }
                                   )
                               }
                     )
@@ -261,9 +254,7 @@ export const useCourseStore = create<Store>()(
                                           ? sec
                                           : {
                                                 ...sec,
-                                                lessons: sec.lessons.map((l) =>
-                                                    l.id === lessonId ? { ...l, completed } : l
-                                                )
+                                                lessons: sec.lessons.map((l) => (l.id === lessonId ? { ...l, completed } : l))
                                             }
                                   )
                               }

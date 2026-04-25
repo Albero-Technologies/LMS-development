@@ -1,6 +1,6 @@
-import { Role } from '@prisma/client'
+import { type Role } from '@prisma/client'
 
-export type THttpResponse = {
+export interface THttpResponse {
     success: boolean
     statusCode: number
     request: {
@@ -12,7 +12,7 @@ export type THttpResponse = {
     data: unknown
 }
 
-export type THttpErrror = {
+export interface THttpErrror {
     success: boolean
     statusCode: number
     code: string
@@ -28,7 +28,7 @@ export type THttpErrror = {
 }
 
 // Attached to the Express request by auth middleware.
-export type TAuthContext = {
+export interface TAuthContext {
     userId: string
     tenantId: string
     role: Role
@@ -37,7 +37,7 @@ export type TAuthContext = {
 }
 
 // Token payload packed into the signed JWT.
-export type TJwtPayload = {
+export interface TJwtPayload {
     sub: string
     tid: string
     role: Role

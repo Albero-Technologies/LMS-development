@@ -55,8 +55,7 @@ export const OnboardingPage = () => {
                 <Card>
                     <h1 className="font-display text-3xl mb-2">Tell us a little about yourself</h1>
                     <p className="text-sm text-ink-400 mb-6">
-                        Your counsellor created this link just for you. We'll use these details to enrol you and share
-                        login credentials over email.
+                        Your counsellor created this link just for you. We'll use these details to enrol you and share login credentials over email.
                     </p>
                     <form
                         onSubmit={handleSubmit((d) => mutation.mutate(d))}

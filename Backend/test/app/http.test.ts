@@ -62,7 +62,8 @@ describe('HTTP smoke tests', () => {
         const res = await request(app).get('/api/v1/metrics')
         expect(res.status).toBe(200)
         expect(res.headers['content-type']).toContain('text/plain')
-        expect(res.text).toContain('nodejs_heap_used_bytes')
+        // prom-client renamed nodejs_heap_used_bytes → nodejs_heap_size_used_bytes in v15.
+        expect(res.text).toContain('nodejs_heap_size_used_bytes')
     })
 
     it('GET /api/v1/openapi.json returns the OpenAPI spec', async () => {
@@ -75,8 +76,10 @@ describe('HTTP smoke tests', () => {
     it('GET /api/v1/docs renders Swagger UI HTML', async () => {
         const res = await request(app).get('/api/v1/docs/').redirects(1)
         expect([200, 301, 302]).toContain(res.status)
-        // swagger-ui-express mounts /docs/ with an index that includes swagger-ui
-        expect(res.text || '').toContain('Swagger')
+        // swagger-ui-express mounts /docs/ with an index that includes swagger-ui assets.
+        // We use a case-insensitive substring rather than the literal "Swagger" because
+        // customSiteTitle overrides the default page title.
+        expect(res.text || '').toMatch(/swagger-ui/i)
     })
 
     it('protected endpoints reject unauthenticated requests with 401', async () => {

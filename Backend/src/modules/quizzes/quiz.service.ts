@@ -1,8 +1,8 @@
-import { EnrollmentStatus, Prisma, QuizAttemptStatus, Role } from '@prisma/client'
+import { EnrollmentStatus, type Prisma, QuizAttemptStatus, Role } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
-import { TCreateQuizInput, TSubmitAttemptInput, TUpdateQuizInput } from './quiz.schema'
+import { type TCreateQuizInput, type TSubmitAttemptInput, type TUpdateQuizInput } from './quiz.schema'
 
 const assertTrainerOwnsCourse = async (tenantId: string, courseId: string, actor: { id: string; role: Role }) => {
     const course = await db.client.course.findFirst({ where: { id: courseId, tenantId } })

@@ -1,4 +1,4 @@
-import { InvoiceStatus, PaymentGateway, Prisma } from '@prisma/client'
+import { InvoiceStatus, PaymentGateway, type Prisma } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'

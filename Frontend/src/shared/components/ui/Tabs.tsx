@@ -41,9 +41,7 @@ export function Tabs<TValue extends string>({ tabs, value, onChange, className }
                                 <span
                                     className={cn(
                                         'inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[10px] font-semibold',
-                                        active
-                                            ? 'bg-[var(--color-brand-500)] text-white'
-                                            : 'bg-surface-2 text-fg-muted'
+                                        active ? 'bg-[var(--color-brand-500)] text-white' : 'bg-surface-2 text-fg-muted'
                                     )}>
                                     {t.count}
                                 </span>

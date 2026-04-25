@@ -5,7 +5,7 @@
 // Why this exists: relying on controllers to remember to call writeAudit()
 // leaves silent holes when new routes are added. A response-level fallback
 // guarantees coverage.
-import { NextFunction, Request, Response } from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import db from '../service/db'
 import logger from '../util/logger'
 

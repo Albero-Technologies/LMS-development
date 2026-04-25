@@ -1,32 +1,29 @@
-import { CoursePublishState, EnrollmentStatus, LessonType, Prisma, Role } from '@prisma/client'
+import { CoursePublishState, EnrollmentStatus, LessonType, type Prisma, Role } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import {
-    TCreateCourseInput,
-    TCreateLessonInput,
-    TCreateSectionInput,
-    TListCoursesQuery,
-    TProgressUpdateInput,
-    TUpdateCourseInput,
-    TUpdateLessonInput
+    type TCreateCourseInput,
+    type TCreateLessonInput,
+    type TCreateSectionInput,
+    type TListCoursesQuery,
+    type TProgressUpdateInput,
+    type TUpdateCourseInput,
+    type TUpdateLessonInput
 } from './course.schema'
 
 export const listCourses = async (tenantId: string, role: Role, userId: string, query: TListCoursesQuery) => {
     const where: Prisma.CourseWhereInput = { tenantId }
 
-    // Students + clients only see PUBLISHED courses unless they are enrolled.
-    if (role === Role.STUDENT || role === Role.CLIENT) {
+    // Students only see PUBLISHED courses unless they are enrolled.
+    if (role === Role.STUDENT) {
         where.publishState = CoursePublishState.PUBLISHED
     } else if (query.publishState) {
         where.publishState = query.publishState
     }
     if (query.trainerId) where.trainerId = query.trainerId
     if (query.q) {
-        where.OR = [
-            { title: { contains: query.q, mode: 'insensitive' } },
-            { description: { contains: query.q, mode: 'insensitive' } }
-        ]
+        where.OR = [{ title: { contains: query.q, mode: 'insensitive' } }, { description: { contains: query.q, mode: 'insensitive' } }]
     }
     // Trainer self-scope: trainers see only their own drafts.
     if (role === Role.TRAINER && !query.trainerId) where.trainerId = userId
@@ -174,7 +171,13 @@ export const addLesson = async (tenantId: string, courseId: string, input: TCrea
     })
 }
 
-export const updateLesson = async (tenantId: string, courseId: string, lessonId: string, input: TUpdateLessonInput, actor: { id: string; role: Role }) => {
+export const updateLesson = async (
+    tenantId: string,
+    courseId: string,
+    lessonId: string,
+    input: TUpdateLessonInput,
+    actor: { id: string; role: Role }
+) => {
     await assertCourseOwnership(tenantId, courseId, actor)
     const lesson = await db.client.lesson.findFirst({
         where: { id: lessonId, section: { courseId } }
@@ -203,13 +206,7 @@ export const deleteLesson = async (tenantId: string, courseId: string, lessonId:
 
 // ---- Progress ----
 
-export const updateProgress = async (
-    tenantId: string,
-    userId: string,
-    courseId: string,
-    lessonId: string,
-    input: TProgressUpdateInput
-) => {
+export const updateProgress = async (tenantId: string, userId: string, courseId: string, lessonId: string, input: TProgressUpdateInput) => {
     // Must be enrolled and active.
     const enrollment = await db.client.enrollment.findFirst({
         where: {

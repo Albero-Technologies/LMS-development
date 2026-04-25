@@ -1,5 +1,5 @@
-import { Request, Response } from 'express'
-import { THttpResponse } from '../types/types'
+import { type Request, type Response } from 'express'
+import { type THttpResponse } from '../types/types'
 import config from '../config/config'
 import { EApplicationEnvironment } from '../constant/application'
 import logger from './logger'
@@ -14,7 +14,7 @@ export default (req: Request, res: Response, responseStatusCode: number, respons
             url: req.originalUrl
         },
         message: responseMessage,
-        data: data
+        data
     }
 
     // Log

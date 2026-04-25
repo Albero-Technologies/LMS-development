@@ -1,14 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import {
-    ArrowLeft,
-    Plus,
-    Youtube,
-    Trash2,
-    Eye,
-    GripVertical,
-    Clock
-} from 'lucide-react'
+import { ArrowLeft, Plus, Youtube, Trash2, Eye, GripVertical, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -53,8 +45,7 @@ export const CourseBuilderPage = () => {
     }
 
     // Stay in sync with store changes.
-    const activeSection: TSection | null =
-        (activeSectionId && course.sections.find((s) => s.id === activeSectionId)) || course.sections[0] || null
+    const activeSection: TSection | null = (activeSectionId && course.sections.find((s) => s.id === activeSectionId)) || course.sections[0] || null
     const previewLesson = activeSection?.lessons.find((l) => l.id === previewLessonId) ?? activeSection?.lessons[0]
 
     const handleAddSection = () => {
@@ -189,9 +180,7 @@ export const CourseBuilderPage = () => {
                 <Card padded={false}>
                     <div className="p-4 flex items-center justify-between border-b">
                         <div>
-                            <h3 className="text-sm font-semibold text-fg">
-                                {activeSection ? activeSection.title : 'Lessons'}
-                            </h3>
+                            <h3 className="text-sm font-semibold text-fg">{activeSection ? activeSection.title : 'Lessons'}</h3>
                             {activeSection && (
                                 <p className="text-xs text-fg-muted mt-0.5">
                                     {activeSection.lessons.length} item
@@ -302,9 +291,7 @@ export const CourseBuilderPage = () => {
                             />
                             <div className="mt-3">
                                 <div className="text-sm font-medium text-fg">{previewLesson.title}</div>
-                                <div className="text-xs text-fg-muted font-mono mt-1">
-                                    youtu.be/{previewLesson.youtubeId}
-                                </div>
+                                <div className="text-xs text-fg-muted font-mono mt-1">youtu.be/{previewLesson.youtubeId}</div>
                             </div>
                         </>
                     ) : (

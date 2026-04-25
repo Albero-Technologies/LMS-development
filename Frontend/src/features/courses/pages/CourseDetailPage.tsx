@@ -1,16 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import {
-    Play,
-    CheckCircle2,
-    Circle,
-    ArrowLeft,
-    Youtube,
-    Wrench,
-    FileText,
-    LinkIcon,
-    ChevronRight
-} from 'lucide-react'
+import { Play, CheckCircle2, Circle, ArrowLeft, Youtube, Wrench, FileText, LinkIcon, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -133,9 +123,7 @@ export const CourseDetailPage = () => {
                                     <Button
                                         size="sm"
                                         variant={currentLesson.completed ? 'subtle' : 'primary'}
-                                        leftIcon={
-                                            currentLesson.completed ? <CheckCircle2 size={14} /> : <Circle size={14} />
-                                        }
+                                        leftIcon={currentLesson.completed ? <CheckCircle2 size={14} /> : <Circle size={14} />}
                                         onClick={toggleComplete}>
                                         {currentLesson.completed ? 'Completed' : 'Mark complete'}
                                     </Button>
@@ -176,16 +164,12 @@ export const CourseDetailPage = () => {
                         </div>
 
                         {course.sections.length === 0 ? (
-                            <div className="text-sm text-fg-muted py-6 text-center">
-                                The trainer hasn't added any sections yet.
-                            </div>
+                            <div className="text-sm text-fg-muted py-6 text-center">The trainer hasn't added any sections yet.</div>
                         ) : (
                             <div className="space-y-5">
                                 {course.sections.map((sec) => (
                                     <div key={sec.id}>
-                                        <h3 className="text-xs uppercase tracking-wider text-fg-muted font-medium mb-2">
-                                            {sec.title}
-                                        </h3>
+                                        <h3 className="text-xs uppercase tracking-wider text-fg-muted font-medium mb-2">{sec.title}</h3>
                                         {sec.lessons.length === 0 ? (
                                             <div className="text-xs text-fg-muted px-3 py-4 border border-dashed rounded-md">
                                                 No lessons in this section yet.
@@ -194,8 +178,7 @@ export const CourseDetailPage = () => {
                                             <ul className="border rounded-md overflow-hidden divide-y">
                                                 {sec.lessons.map((l) => {
                                                     const Icon = LESSON_ICON[l.kind] ?? Play
-                                                    const isActive =
-                                                        current?.sectionId === sec.id && current.lessonId === l.id
+                                                    const isActive = current?.sectionId === sec.id && current.lessonId === l.id
                                                     return (
                                                         <li
                                                             key={l.id}
@@ -225,9 +208,7 @@ export const CourseDetailPage = () => {
                                                                 {l.title}
                                                             </button>
                                                             {l.durationMin ? (
-                                                                <span className="text-xs text-fg-muted font-mono">
-                                                                    {l.durationMin}m
-                                                                </span>
+                                                                <span className="text-xs text-fg-muted font-mono">{l.durationMin}m</span>
                                                             ) : null}
                                                             <ChevronRight
                                                                 size={14}
