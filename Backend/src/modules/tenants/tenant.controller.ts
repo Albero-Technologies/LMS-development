@@ -18,6 +18,13 @@ export const getMyTenant = async (req: Request, res: Response): Promise<void> =>
     httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
 }
 
+// Public lookup by slug — used by the per-tenant landing page (§9.1) before
+// the user is authenticated. Returns only the brand-safe subset.
+export const getPublicTenant = async (req: Request, res: Response): Promise<void> => {
+    const tenant = await service.getPublicTenantBySlug(req.params.slug)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
+}
+
 export const updateMyTenantBranding = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     const tenant = await service.updateBranding(req.auth.tenantId, req.body)

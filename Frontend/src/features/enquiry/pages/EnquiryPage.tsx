@@ -8,7 +8,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Mail, Phone, User, MapPin, ArrowRight, CheckCircle2, Clock, MessageSquare, Sparkles } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
@@ -59,10 +59,14 @@ export const EnquiryPage = () => {
         }
     })
 
+    // Slug comes from either the route (`/t/:slug/enquiry` — preferred for the
+    // per-tenant landing flow) or the legacy `?tenant=` query string.
+    const routeParams = useParams<{ slug?: string }>()
+
     const utmSource = params.get('utm_source') ?? undefined
     const utmMedium = params.get('utm_medium') ?? undefined
     const utmCampaign = params.get('utm_campaign') ?? undefined
-    const tenantSlug = params.get('tenant') ?? undefined
+    const tenantSlug = routeParams.slug ?? params.get('tenant') ?? undefined
 
     const mutation = useMutation({
         mutationFn: submitPublicEnquiry,

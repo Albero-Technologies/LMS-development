@@ -54,6 +54,8 @@ import { SeoBuilderPage } from '@features/admin/pages/SeoBuilderPage'
 import { DemoControlPage } from '@features/admin/pages/DemoControlPage'
 import { IntegrationsPage } from '@features/admin/pages/IntegrationsPage'
 import { TenantBillingPage } from '@features/admin/pages/TenantBillingPage'
+import { TenantLandingPage } from '@features/marketing/pages/TenantLandingPage'
+import { TenantBrandingProvider } from '@shared/contexts/TenantBrandingContext'
 
 export const router = createBrowserRouter([
     // -------------------------------------------------------------- Public --
@@ -70,6 +72,35 @@ export const router = createBrowserRouter([
 
     // Enquiry form — public, captures leads via round-robin to a counsellor.
     { path: '/enquiry', element: <EnquiryPage /> },
+
+    // Per-tenant public surface (§3, §9.1). All pages under /t/:slug live in a
+    // TenantBrandingProvider — the tenant is resolved from the slug via a
+    // public endpoint, the brand color is applied to CSS vars for the subtree,
+    // and the page renders with the tenant's identity instead of the platform's.
+    {
+        path: '/t/:slug',
+        element: (
+            <TenantBrandingProvider>
+                <TenantLandingPage />
+            </TenantBrandingProvider>
+        )
+    },
+    {
+        path: '/t/:slug/enquiry',
+        element: (
+            <TenantBrandingProvider>
+                <EnquiryPage />
+            </TenantBrandingProvider>
+        )
+    },
+    {
+        path: '/t/:slug/courses',
+        element: (
+            <TenantBrandingProvider>
+                <PublicCoursesPage />
+            </TenantBrandingProvider>
+        )
+    },
 
     // Auth (no public tenant registration — tenants are created by super admin).
     { path: '/login', element: <LoginPage /> },

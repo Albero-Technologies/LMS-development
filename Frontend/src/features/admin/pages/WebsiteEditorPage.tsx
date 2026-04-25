@@ -1,8 +1,14 @@
-// Website editor — mirrors lms.pen frame 24 (SA Landing Page Builder).
-// The super admin picks a tenant, edits hero content + featured courses,
-// and previews the changes alongside the form.
-import { useMemo, useState } from 'react'
-import { Save, Eye, Globe, Plus, X } from 'lucide-react'
+// Website editor (§11). Picks any tenant and edits their landing page copy.
+// Fields are persisted in `tenant.settings.landing` and read back by the
+// per-tenant public landing page (`/t/:slug`). The right-hand panel is a live
+// preview that re-renders as the SA types — saving is just one PATCH.
+//
+// This is the simple, copy-only iteration. Drag-and-drop section ordering and
+// per-section visibility live in a follow-up; today the layout is fixed and
+// the SA controls only the content.
+import { useEffect, useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Save, Eye, Globe, Plus, X, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -10,65 +16,77 @@ import { Button } from '@shared/components/ui/Button'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Badge } from '@shared/components/ui/Badge'
-import { useTenantStore, type TWebsiteContent } from '../stores/tenantStore'
-import { useCourseStore } from '@features/courses/stores/courseStore'
+import { Skeleton } from '@shared/components/ui/Skeleton'
+import {
+    getTenantDetail,
+    listAllTenants,
+    readLandingContent,
+    updateTenantById,
+    type LandingContent,
+    type LandingPillar,
+    type TenantSettings
+} from '../services/tenant.service'
 
 export const WebsiteEditorPage = () => {
-    const tenants = useTenantStore((s) => s.tenants)
-    const getWebsite = useTenantStore((s) => s.getWebsite)
-    const saveWebsite = useTenantStore((s) => s.saveWebsite)
+    const queryClient = useQueryClient()
+    const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
+    const [tenantId, setTenantId] = useState<string>('')
 
-    const courses = useCourseStore((s) => s.courses)
+    useEffect(() => {
+        if (!tenantId && tenantsQuery.data && tenantsQuery.data.length > 0) {
+            setTenantId(tenantsQuery.data[0].id)
+        }
+    }, [tenantId, tenantsQuery.data])
 
-    const [tenantId, setTenantId] = useState<string>(tenants[0]?.id ?? '')
-    const tenant = useMemo(() => tenants.find((t) => t.id === tenantId) ?? null, [tenants, tenantId])
+    const detailQuery = useQuery({
+        queryKey: ['tenants', tenantId],
+        queryFn: () => getTenantDetail(tenantId),
+        enabled: tenantId.length > 0,
+        staleTime: 60_000
+    })
 
-    const initial = useMemo<TWebsiteContent | null>(() => (tenant ? getWebsite(tenant.id) : null), [tenant, getWebsite])
-    const [draft, setDraft] = useState<TWebsiteContent | null>(initial)
+    const initial = useMemo(() => readLandingContent(detailQuery.data), [detailQuery.data])
+    const [draft, setDraft] = useState<LandingContent>(initial)
+    useEffect(() => setDraft(initial), [initial])
 
-    // Reset the draft when the tenant changes.
-    if (draft?.tenantId !== initial?.tenantId) {
-        setDraft(initial)
+    const saveMutation = useMutation({
+        mutationFn: () => {
+            if (!detailQuery.data) throw new Error('Tenant not loaded')
+            const settings: TenantSettings = { ...(detailQuery.data.settings ?? {}), landing: draft }
+            return updateTenantById(tenantId, { settings })
+        },
+        onSuccess: () => {
+            toast.success('Landing page saved')
+            void queryClient.invalidateQueries({ queryKey: ['tenants', tenantId] })
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save')
+    })
+
+    const dirty = JSON.stringify(draft) !== JSON.stringify(initial)
+    const tenants = tenantsQuery.data ?? []
+    const tenant = detailQuery.data
+    const previewUrl = tenant ? `/t/${tenant.slug}` : '/'
+
+    const updatePillar = (i: number, patch: Partial<LandingPillar>) => {
+        const next = [...(draft.pillars ?? [])]
+        next[i] = { ...next[i], ...patch }
+        setDraft({ ...draft, pillars: next })
     }
-
-    if (!tenant || !draft) {
-        return (
-            <>
-                <PageHeader
-                    eyebrow="Super Admin"
-                    title="Website editor"
-                    description="Pick a tenant to edit their public landing content."
-                />
-                <Card>
-                    <div className="text-sm text-fg-soft">Create a tenant first to edit its website.</div>
-                </Card>
-            </>
-        )
+    const addPillar = () => {
+        if ((draft.pillars?.length ?? 0) >= 6) return
+        setDraft({ ...draft, pillars: [...(draft.pillars ?? []), { title: 'New pillar', description: '' }] })
     }
-
-    const addCourse = (slug: string) => {
-        if (!slug || draft.featuredCourseSlugs.includes(slug)) return
-        setDraft({ ...draft, featuredCourseSlugs: [...draft.featuredCourseSlugs, slug] })
+    const removePillar = (i: number) => {
+        const next = (draft.pillars ?? []).filter((_, idx) => idx !== i)
+        setDraft({ ...draft, pillars: next })
     }
-    const removeCourse = (slug: string) => {
-        setDraft({ ...draft, featuredCourseSlugs: draft.featuredCourseSlugs.filter((s) => s !== slug) })
-    }
-
-    const save = () => {
-        saveWebsite(draft)
-        toast.success(`Saved — ${tenant.name}'s landing is live`)
-    }
-
-    const featured = draft.featuredCourseSlugs
-        .map((slug) => courses.find((c) => c.slug === slug || c.id === slug))
-        .filter((c): c is NonNullable<typeof c> => !!c)
 
     return (
         <>
             <PageHeader
                 eyebrow="Super Admin"
                 title="Website editor"
-                description="Per-tenant public landing content. Students on each tenant see what you configure here."
+                description="Edit any tenant's public landing page. Changes go live as soon as you save."
                 actions={
                     <>
                         <div className="w-64">
@@ -80,7 +98,7 @@ export const WebsiteEditorPage = () => {
                                     <option
                                         key={t.id}
                                         value={t.id}>
-                                        {t.name}
+                                        {t.name} (/{t.slug})
                                     </option>
                                 ))}
                             </Select>
@@ -89,163 +107,185 @@ export const WebsiteEditorPage = () => {
                             variant="ghost"
                             size="sm"
                             leftIcon={<Eye size={14} />}
-                            onClick={() => window.open('/', '_blank')}>
-                            Preview
+                            disabled={!tenant}
+                            onClick={() => window.open(previewUrl, '_blank')}>
+                            Open live
                         </Button>
                         <Button
                             size="sm"
                             leftIcon={<Save size={14} />}
-                            onClick={save}>
+                            disabled={!dirty}
+                            loading={saveMutation.isPending}
+                            onClick={() => saveMutation.mutate()}>
                             Save changes
                         </Button>
                     </>
                 }
             />
 
-            <div className="grid lg:grid-cols-[360px_1fr] gap-4">
-                {/* Edit panel */}
-                <div className="space-y-4">
-                    <Card>
-                        <h3 className="text-sm font-semibold text-fg mb-3">Hero</h3>
-                        <div className="space-y-3">
-                            <Input
-                                label="Eyebrow tag"
-                                value={draft.heroTag}
-                                onChange={(e) => setDraft({ ...draft, heroTag: e.target.value })}
-                                hint="Small badge above the headline."
-                            />
-                            <Input
-                                label="Headline"
-                                value={draft.heroTitle}
-                                onChange={(e) => setDraft({ ...draft, heroTitle: e.target.value })}
-                            />
-                            <Textarea
-                                label="Sub-headline"
-                                rows={3}
-                                value={draft.heroSubtitle}
-                                onChange={(e) => setDraft({ ...draft, heroSubtitle: e.target.value })}
-                            />
-                            <Input
-                                label="Primary CTA label"
-                                value={draft.primaryCta}
-                                onChange={(e) => setDraft({ ...draft, primaryCta: e.target.value })}
-                            />
-                        </div>
-                    </Card>
+            {detailQuery.isLoading || !tenant ? (
+                <Card>
+                    <Skeleton className="h-5 w-1/3 mb-2" />
+                    <Skeleton className="h-5 w-2/3" />
+                </Card>
+            ) : (
+                <div className="grid lg:grid-cols-[420px_1fr] gap-4">
+                    {/* Edit panel */}
+                    <div className="space-y-4">
+                        <Card>
+                            <h3 className="text-sm font-semibold text-fg mb-3">Hero</h3>
+                            <div className="space-y-3">
+                                <Input
+                                    label="Eyebrow tag"
+                                    value={draft.heroTag ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, heroTag: e.target.value })}
+                                    hint="Small badge above the headline."
+                                />
+                                <Input
+                                    label="Headline"
+                                    value={draft.heroTitle ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, heroTitle: e.target.value })}
+                                    placeholder={`Learn with ${tenant.name}`}
+                                />
+                                <Textarea
+                                    label="Sub-headline"
+                                    rows={3}
+                                    value={draft.heroSubtitle ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, heroSubtitle: e.target.value })}
+                                />
+                                <Input
+                                    label="Primary CTA label"
+                                    value={draft.primaryCtaLabel ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, primaryCtaLabel: e.target.value })}
+                                />
+                            </div>
+                        </Card>
 
-                    <Card>
-                        <h3 className="text-sm font-semibold text-fg mb-3">Featured courses</h3>
-                        <div className="space-y-2 mb-3">
-                            {featured.length === 0 && <div className="text-sm text-fg-muted py-2">Pick a course to feature below.</div>}
-                            {featured.map((c) => (
+                        <Card>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-semibold text-fg">Pillars</h3>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    leftIcon={<Plus size={12} />}
+                                    onClick={addPillar}
+                                    disabled={(draft.pillars?.length ?? 0) >= 6}>
+                                    Add
+                                </Button>
+                            </div>
+                            <div className="space-y-3">
+                                {(draft.pillars ?? []).map((p, i) => (
+                                    <div
+                                        key={i}
+                                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                                        <div className="flex items-start gap-2">
+                                            <Input
+                                                label={`Pillar ${i + 1} title`}
+                                                value={p.title}
+                                                onChange={(e) => updatePillar(i, { title: e.target.value })}
+                                            />
+                                            <button
+                                                type="button"
+                                                aria-label="Remove pillar"
+                                                onClick={() => removePillar(i)}
+                                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                        <Textarea
+                                            label="Description"
+                                            rows={2}
+                                            value={p.description}
+                                            onChange={(e) => updatePillar(i, { description: e.target.value })}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+
+                        <Card>
+                            <h3 className="text-sm font-semibold text-fg mb-3">Closing CTA</h3>
+                            <div className="space-y-3">
+                                <Input
+                                    label="Title"
+                                    value={draft.ctaTitle ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, ctaTitle: e.target.value })}
+                                />
+                                <Textarea
+                                    label="Sub-title"
+                                    rows={2}
+                                    value={draft.ctaSubtitle ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, ctaSubtitle: e.target.value })}
+                                />
+                                <Input
+                                    label="Button label"
+                                    value={draft.ctaButtonLabel ?? ''}
+                                    onChange={(e) => setDraft({ ...draft, ctaButtonLabel: e.target.value })}
+                                />
+                            </div>
+                        </Card>
+                    </div>
+
+                    {/* Live preview */}
+                    <Card padded={false}>
+                        <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2 text-xs text-fg-muted">
+                            <Globe size={14} />
+                            <span className="font-mono">/t/{tenant.slug}</span>
+                            <a
+                                href={previewUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="ml-1 inline-flex items-center gap-1 text-fg-soft hover:text-fg">
+                                <ExternalLink size={11} /> open
+                            </a>
+                            <Badge className="ml-auto">Preview</Badge>
+                        </div>
+
+                        <div
+                            className="p-8 sm:p-12 text-center border-b border-[var(--color-border)]"
+                            style={{
+                                background: `linear-gradient(160deg, ${tenant.brandingColor || '#0062ff'}20 0%, transparent 50%)`
+                            }}>
+                            <Badge tone="brand">{draft.heroTag}</Badge>
+                            <h1 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-fg max-w-2xl mx-auto">
+                                {draft.heroTitle || `Learn with ${tenant.name}`}
+                            </h1>
+                            <p className="mt-3 text-sm text-fg-soft max-w-xl mx-auto leading-relaxed">{draft.heroSubtitle}</p>
+                            <div className="mt-5 flex justify-center gap-2">
+                                <Button size="sm">{draft.primaryCtaLabel}</Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost">
+                                    Browse courses
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="p-6 grid sm:grid-cols-3 gap-3">
+                            {(draft.pillars ?? []).map((p, i) => (
                                 <div
-                                    key={c.id}
-                                    className="flex items-center gap-2 bg-surface-2 border rounded-md px-3 py-2 text-sm">
-                                    <span className="flex-1 truncate text-fg">{c.title}</span>
-                                    <button
-                                        type="button"
-                                        aria-label="Remove"
-                                        onClick={() => removeCourse(c.slug)}
-                                        className="text-fg-muted hover:text-[var(--color-danger)]">
-                                        <X size={14} />
-                                    </button>
+                                    key={i}
+                                    className="rounded-md border border-[var(--color-border)] p-4">
+                                    <div className="text-sm font-semibold text-fg">{p.title || 'Untitled'}</div>
+                                    <p className="mt-1 text-xs text-fg-soft">{p.description || '—'}</p>
                                 </div>
                             ))}
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value=""
-                                onChange={(e) => addCourse(e.target.value)}
-                                aria-label="Add course">
-                                <option value="">+ Add course…</option>
-                                {courses
-                                    .filter((c) => !draft.featuredCourseSlugs.includes(c.slug))
-                                    .map((c) => (
-                                        <option
-                                            key={c.slug}
-                                            value={c.slug}>
-                                            {c.title}
-                                        </option>
-                                    ))}
-                            </Select>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label="Add course"
-                                onClick={() => addCourse(courses[0]?.slug ?? '')}>
-                                <Plus size={14} />
-                            </Button>
-                        </div>
-                    </Card>
 
-                    <Card>
-                        <h3 className="text-sm font-semibold text-fg mb-3">Sections</h3>
-                        <Toggle
-                            label="Show pricing page"
-                            value={draft.showPricingPage}
-                            onChange={(v) => setDraft({ ...draft, showPricingPage: v })}
-                        />
+                        <div className="p-8 m-6 mt-0 rounded-md text-center text-white bg-[var(--color-brand-500)]">
+                            <h2 className="text-xl font-semibold tracking-tight">{draft.ctaTitle}</h2>
+                            <p className="mt-2 text-white/85 text-sm max-w-md mx-auto">{draft.ctaSubtitle}</p>
+                            <div className="mt-4">
+                                <Button
+                                    size="sm"
+                                    className="!bg-white !text-[var(--color-brand-700)] hover:!bg-white/90">
+                                    {draft.ctaButtonLabel}
+                                </Button>
+                            </div>
+                        </div>
                     </Card>
                 </div>
-
-                {/* Live preview */}
-                <Card padded={false}>
-                    <div className="p-4 border-b flex items-center gap-2 text-xs text-fg-muted">
-                        <Globe size={14} />
-                        <span className="font-mono">{tenant.slug}.learnhub.in</span>
-                        <Badge className="ml-auto">Preview</Badge>
-                    </div>
-                    <div
-                        className="p-8 sm:p-12 text-center"
-                        style={{
-                            background: 'linear-gradient(160deg, #F0F4FF 0%, var(--color-surface) 50%, #E8F0FE 100%)'
-                        }}>
-                        <Badge tone="brand">{draft.heroTag}</Badge>
-                        <h1 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-fg max-w-2xl mx-auto">
-                            {draft.heroTitle}
-                        </h1>
-                        <p className="mt-3 text-sm text-fg-soft max-w-xl mx-auto leading-relaxed">{draft.heroSubtitle}</p>
-                        <div className="mt-5 flex justify-center gap-2">
-                            <Button size="sm">{draft.primaryCta}</Button>
-                            <Button
-                                size="sm"
-                                variant="ghost">
-                                Browse courses
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="p-6 border-t">
-                        <h3 className="text-xs text-fg-muted font-semibold uppercase tracking-wider mb-3">Featured courses ({featured.length})</h3>
-                        <div className="grid sm:grid-cols-3 gap-3">
-                            {featured.map((c) => (
-                                <div
-                                    key={c.id}
-                                    className="rounded-md border p-3 bg-surface">
-                                    <div className="text-sm font-semibold text-fg truncate">{c.title}</div>
-                                    <div className="text-xs text-fg-muted mt-1">₹{c.price.toLocaleString('en-IN')}</div>
-                                </div>
-                            ))}
-                            {featured.length === 0 && (
-                                <div className="col-span-3 text-sm text-fg-muted py-4 text-center">No courses featured yet.</div>
-                            )}
-                        </div>
-                    </div>
-                </Card>
-            </div>
+            )}
         </>
     )
 }
-
-const Toggle = ({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) => (
-    <label className="flex items-center justify-between py-2 cursor-pointer select-none">
-        <span className="text-sm text-fg">{label}</span>
-        <button
-            type="button"
-            role="switch"
-            aria-checked={value}
-            onClick={() => onChange(!value)}
-            className={'relative w-9 h-5 rounded-full transition-colors ' + (value ? 'bg-[var(--color-brand-500)]' : 'bg-[var(--color-border)]')}>
-            <span className={'absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ' + (value ? 'translate-x-4' : '')} />
-        </button>
-    </label>
-)

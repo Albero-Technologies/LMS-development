@@ -8,6 +8,10 @@ import { Role } from '@prisma/client'
 
 const router = Router()
 
+// Public lookup by slug (§9.1). No auth — surfaces only brand info so the
+// per-tenant landing page can paint correctly before login.
+router.get('/by-slug/:slug', asyncHandler(ctrl.getPublicTenant))
+
 // Create — reserved for SUPER_ADMIN of the platform.
 router.post('/', requireAuth, requireRole(Role.SUPER_ADMIN), validate(createTenantSchema), asyncHandler(ctrl.createTenant))
 

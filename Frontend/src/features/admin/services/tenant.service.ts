@@ -36,6 +36,24 @@ export type UpdateTenantPayload = {
     settings?: TenantSettings
 }
 
+// Public-safe tenant brand info, used by the slug-prefixed landing page (§9.1).
+// Does NOT include settings/plan/status — but `landing` (the landing page
+// content edited via the Website Editor) IS surfaced because that's exactly
+// what the public page renders.
+export type PublicTenantBrand = {
+    id: string
+    name: string
+    slug: string
+    brandingLogo: string | null
+    brandingColor: string | null
+    landing: LandingContent | null
+}
+
+export const getPublicTenantBySlug = async (slug: string): Promise<PublicTenantBrand> => {
+    const { data } = await api.get<Envelope<PublicTenantBrand>>(`/tenants/by-slug/${encodeURIComponent(slug)}`)
+    return data.data
+}
+
 export const getMyTenant = async (): Promise<Tenant> => {
     const { data } = await api.get<Envelope<Tenant>>('/tenants/me')
     return data.data
@@ -344,6 +362,49 @@ export const FEATURE_FLAGS: readonly FeatureFlagDef[] = [
         description: 'Managers can set per-counsellor monthly signup/enrolment/revenue targets.',
         default: true
     }
+]
+
+// ---- Per-tenant landing content (settings.landing) ------------------------
+//
+// What the per-tenant public landing page (`/t/:slug`) renders. SAs edit this
+// in the Website Editor (§11). Pillar/CTA copy is intentionally simple — a
+// fuller drag-and-drop section model would land in a follow-up.
+export type LandingPillar = {
+    title: string
+    description: string
+}
+
+export type LandingContent = {
+    heroTag?: string
+    heroTitle?: string
+    heroSubtitle?: string
+    primaryCtaLabel?: string
+    pillars?: LandingPillar[]
+    ctaTitle?: string
+    ctaSubtitle?: string
+    ctaButtonLabel?: string
+    showPricingPage?: boolean
+}
+
+export const readLandingContent = (tenant: { settings: TenantSettings | null } | undefined): LandingContent => {
+    const l = tenant?.settings?.landing as LandingContent | undefined
+    return {
+        heroTag: l?.heroTag ?? 'Now enrolling',
+        heroTitle: l?.heroTitle ?? '',
+        heroSubtitle: l?.heroSubtitle ?? 'Mentor-led cohorts, hands-on projects, and 1:1 counselling — designed to take you from curious to confident.',
+        primaryCtaLabel: l?.primaryCtaLabel ?? 'Talk to a counsellor',
+        pillars: l?.pillars && l.pillars.length > 0 ? l.pillars : DEFAULT_PILLARS,
+        ctaTitle: l?.ctaTitle ?? 'Ready to start?',
+        ctaSubtitle: l?.ctaSubtitle ?? "Tell us what you're looking for and a counsellor will reach out within a working day.",
+        ctaButtonLabel: l?.ctaButtonLabel ?? 'Start enquiry',
+        showPricingPage: l?.showPricingPage ?? false
+    }
+}
+
+const DEFAULT_PILLARS: LandingPillar[] = [
+    { title: 'Live cohorts', description: 'Small batches, real mentors, weekly office hours.' },
+    { title: '1:1 counselling', description: 'Talk to an admissions counsellor before you commit.' },
+    { title: 'Industry projects', description: "Ship real work — not toy assignments — to your portfolio." }
 ]
 
 // ---- Per-tenant credentials (settings.environment) -------------------------

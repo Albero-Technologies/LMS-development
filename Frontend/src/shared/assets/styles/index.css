@@ -444,6 +444,7 @@ body {
         transform: scaleY(0.55);
         opacity: 0.45;
     }
+
     40% {
         transform: scaleY(1);
         opacity: 1;

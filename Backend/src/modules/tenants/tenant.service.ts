@@ -49,10 +49,42 @@ export const getTenant = async (tenantId: string) => {
     return tenant
 }
 
+// The platform tenant (§3.3) is where SUPER_ADMIN identities live. It must
+// never appear in the cross-tenant SA listing, never be exposed via the public
+// slug endpoint, and never be reachable by tenant-scoped business logic.
+export const PLATFORM_TENANT_SLUG = 'platform'
+
+// Public lookup by slug. Returns only the safe-to-expose subset that the
+// per-tenant landing page needs to render branding without leaking SA-only
+// fields (settings, plan, status). The `landing` JSON sub-key IS surfaced
+// because that's literally the landing page's content. Everything else
+// (environment secrets, billing, contacts, notes) stays private.
+export const getPublicTenantBySlug = async (slug: string) => {
+    if (slug === PLATFORM_TENANT_SLUG) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+    const tenant = await db.client.tenant.findUnique({
+        where: { slug },
+        select: { id: true, name: true, slug: true, brandingLogo: true, brandingColor: true, status: true, settings: true }
+    })
+    if (!tenant) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+    if (tenant.status === 'SUSPENDED') throw AppError.forbidden('Tenant is suspended', 'TENANT_SUSPENDED')
+    const landing = (tenant.settings as { landing?: unknown } | null)?.landing ?? null
+    return {
+        id: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug,
+        brandingLogo: tenant.brandingLogo,
+        brandingColor: tenant.brandingColor,
+        landing
+    }
+}
+
 // SUPER_ADMIN cross-tenant listing — used by the SA panel (§4.1). Includes
 // counts so the table can show "X users / Y courses" without N+1 round-trips.
+// The platform tenant is filtered out — SAs don't manage their own tenant
+// from this UI.
 export const listAllTenants = async () => {
     const rows = await db.client.tenant.findMany({
+        where: { slug: { not: PLATFORM_TENANT_SLUG } },
         orderBy: { createdAt: 'desc' },
         include: {
             _count: { select: { users: true, courses: true } }

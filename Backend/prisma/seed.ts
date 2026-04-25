@@ -19,6 +19,28 @@ async function main() {
         }
     })
 
+    // Platform tenant (§3.3) — superadmins live here, separate from any
+    // regular customer tenant. Hidden from SA's tenant listing so it doesn't
+    // appear as "a tenant they can manage".
+    const platformTenant = await prisma.tenant.upsert({
+        where: { slug: 'platform' },
+        update: {},
+        create: {
+            name: 'Albero Academy Platform',
+            slug: 'platform',
+            plan: 'ENTERPRISE',
+            brandingColor: '#0062ff'
+        }
+    })
+
+    // One-off: migrate any existing SUPER_ADMIN that's still pinned to a
+    // customer tenant onto the platform tenant. Idempotent — moving a user
+    // who's already on the platform tenant is a no-op.
+    await prisma.user.updateMany({
+        where: { role: Role.SUPER_ADMIN, NOT: { tenantId: platformTenant.id } },
+        data: { tenantId: platformTenant.id }
+    })
+
     // One-off rename: migrate existing @acme.dev seed users to @albero.academy.
     // Idempotent — updateMany matching zero rows is a no-op, so re-running the
     // seed after everyone is already renamed costs nothing.
@@ -62,11 +84,15 @@ async function main() {
     ]
 
     for (const r of roles) {
+        // SUPER_ADMIN seeds into the platform tenant; everyone else seeds into
+        // the customer tenant. This mirrors the §3.3 separation: SA identities
+        // never live inside a customer tenant.
+        const ownerTenantId = r.role === Role.SUPER_ADMIN ? platformTenant.id : tenant.id
         await prisma.user.upsert({
-            where: { tenantId_email: { tenantId: tenant.id, email: r.email } },
+            where: { tenantId_email: { tenantId: ownerTenantId, email: r.email } },
             update: { employeeCode: r.employeeCode ?? undefined },
             create: {
-                tenantId: tenant.id,
+                tenantId: ownerTenantId,
                 email: r.email,
                 passwordHash: await hash('Password123'),
                 firstName: r.first,
