@@ -46,7 +46,15 @@ export const reassignLead = async (id: string, counsellorId: string): Promise<Le
 }
 
 // Public enquiry submission (used by /enquiry page). No auth — backend
-// resolves the tenant from `tenantSlug` or the Host header.
+// resolves the tenant from `tenantSlug` or the Host header. Mirrors the
+// onboarding payload so the same applicant context is captured up-front.
+export type EducationEntry = {
+    degree?: string
+    institution?: string
+    yearOfPassing?: number
+    percentage?: number
+}
+
 export type PublicEnquiryPayload = {
     tenantSlug?: string
     name: string
@@ -55,10 +63,21 @@ export type PublicEnquiryPayload = {
     course: string
     language?: string
     city?: string
+    address?: string
+    qualification?: string
     message?: string
     utmSource?: string
     utmMedium?: string
     utmCampaign?: string
+    education?: { graduation?: EducationEntry; masters?: EducationEntry }
+    professional?: {
+        totalExperienceYears?: number
+        role?: string
+        industry?: string
+        ctcLakhs?: number
+        description?: string
+    }
+    gap?: { months?: number; years?: number; reason?: string }
 }
 
 export type PublicEnquiryResponse = {

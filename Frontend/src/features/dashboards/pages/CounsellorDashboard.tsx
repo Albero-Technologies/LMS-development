@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { UserPlus, Link2, Target, IndianRupee, ArrowRight, Users, ClipboardList, Calendar, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { UserPlus, Link2, Target, IndianRupee, ArrowRight, Calendar, TrendingUp, CheckCircle2, Users, ClipboardList } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { Card, StatCard } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
@@ -12,14 +12,25 @@ import { getMyDashboard } from '../services/dashboard.service'
 import { getMyTargetHistory, type CounsellorMonthBucket } from '@features/counsellor/services/counsellor.service'
 import { fmtPaiseINR } from '@shared/libs/pdf'
 import { cn } from '@shared/helpers/cn'
+import { ManagerDashboardPage } from './ManagerDashboard'
 
 // Real-data dashboard for both COUNSELLOR and COUNSELLING_MANAGER.
 // Backend returns different stat shapes per role; we render the cards that
 // match what came back so a manager doesn't see "My signups: 0".
 export const CounsellorDashboard = () => {
+    const role = useAuthStore((s) => s.user?.role)
+    // Manager gets a dedicated, richer dashboard — team breakdown, multi-month
+    // tracker, incentive slab, top/bottom performer. Counsellors fall through
+    // to the personal view in CounsellorView below.
+    if (role === ROLES.COUNSELLING_MANAGER) return <ManagerDashboardPage />
+    return <CounsellorView />
+}
+
+const CounsellorView = () => {
     const navigate = useNavigate()
     const role = useAuthStore((s) => s.user?.role)
     const isManager = role === ROLES.COUNSELLING_MANAGER
+
 
     const dashQuery = useQuery({ queryKey: ['dashboard', 'me'], queryFn: getMyDashboard, staleTime: 60_000 })
     const historyQuery = useQuery({

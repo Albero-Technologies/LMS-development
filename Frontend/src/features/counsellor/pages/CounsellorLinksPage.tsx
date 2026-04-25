@@ -18,6 +18,7 @@ import {
     type CounsellorInviteLink,
     type CounsellorInviteStatus
 } from '../services/counsellor.service'
+import { InviteLinkDetailModal } from '../components/InviteLinkDetailModal'
 
 const STATUS_TONE: Record<CounsellorInviteStatus, 'ok' | 'warn' | 'default' | 'danger'> = {
     ACTIVE: 'ok',
@@ -30,6 +31,7 @@ const formatDate = (iso: string): string => new Date(iso).toLocaleDateString(und
 
 export const CounsellorLinksPage = () => {
     const [createOpen, setCreateOpen] = useState(false)
+    const [openLinkId, setOpenLinkId] = useState<string | null>(null)
     const queryClient = useQueryClient()
 
     const linksQuery = useQuery({
@@ -104,6 +106,7 @@ export const CounsellorLinksPage = () => {
                         <LinkRow
                             key={link.id}
                             link={link}
+                            onOpenDetail={() => setOpenLinkId(link.id)}
                             onRevoke={() => revokeMutation.mutate(link.id)}
                             isRevoking={revokeMutation.isPending && revokeMutation.variables === link.id}
                         />
@@ -117,11 +120,27 @@ export const CounsellorLinksPage = () => {
                 onSubmit={(payload) => createMutation.mutate(payload)}
                 isPending={createMutation.isPending}
             />
+
+            <InviteLinkDetailModal
+                open={!!openLinkId}
+                linkId={openLinkId}
+                onClose={() => setOpenLinkId(null)}
+            />
         </>
     )
 }
 
-const LinkRow = ({ link, onRevoke, isRevoking }: { link: CounsellorInviteLink; onRevoke: () => void; isRevoking: boolean }) => {
+const LinkRow = ({
+    link,
+    onRevoke,
+    onOpenDetail,
+    isRevoking
+}: {
+    link: CounsellorInviteLink
+    onRevoke: () => void
+    onOpenDetail: () => void
+    isRevoking: boolean
+}) => {
     const url = buildInviteUrl(link.token)
     const [copied, setCopied] = useState(false)
 
@@ -139,7 +158,12 @@ const LinkRow = ({ link, onRevoke, isRevoking }: { link: CounsellorInviteLink; o
     const canRevoke = link.status === 'ACTIVE' && !expired
 
     return (
-        <Card>
+        <Card
+            className="cursor-pointer"
+            onClick={(e) => {
+                if ((e.target as HTMLElement).closest('button')) return
+                onOpenDetail()
+            }}>
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">

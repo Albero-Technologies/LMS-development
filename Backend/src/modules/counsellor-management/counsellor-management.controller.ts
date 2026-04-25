@@ -60,6 +60,14 @@ export const teamReport = async (req: Request, res: Response): Promise<void> => 
     httpResponse(req, res, 200, responseMessage.SUCCESS, data)
 }
 
+// Manager dashboard payload — current-month team rollup + per-counsellor
+// breakdown + multi-month history + incentive slab tiers.
+export const managerDashboard = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const data = await service.getManagerDashboard(req.auth.tenantId, req.auth.role, req.auth.userId, req.query.managerId as string | undefined)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+}
+
 // ----- tasks -----
 export const createTask = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return

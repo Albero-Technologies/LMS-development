@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
-import { Mail, Phone, User, MapPin, ArrowRight, CheckCircle2, Clock, MessageSquare, Sparkles } from 'lucide-react'
+import { Mail, Phone, User, MapPin, ArrowRight, CheckCircle2, Clock, MessageSquare, Sparkles, GraduationCap, Briefcase, ChevronDown, ChevronUp } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { Input, Textarea } from '@shared/components/ui/Input'
@@ -22,6 +22,15 @@ import { toast } from 'sonner'
 import { submitPublicEnquiry } from '@features/counsellor/services/lead.service'
 import { toApiError } from '@shared/libs/api'
 
+// Form values use string for numeric fields because HTML inputs return
+// strings; we coerce to number before submitting to match the backend schema.
+const educationEntrySchema = z.object({
+    degree: z.string().optional(),
+    institution: z.string().optional(),
+    yearOfPassing: z.string().optional(),
+    percentage: z.string().optional()
+})
+
 const schema = z.object({
     name: z.string().min(2, 'Please enter your full name'),
     email: z.string().email('Enter a valid email'),
@@ -29,9 +38,49 @@ const schema = z.object({
     course: z.string().min(2, 'Pick a course'),
     language: z.string().optional(),
     city: z.string().optional(),
-    message: z.string().optional()
+    address: z.string().optional(),
+    qualification: z.string().optional(),
+    message: z.string().optional(),
+    education: z
+        .object({
+            graduation: educationEntrySchema.optional(),
+            masters: educationEntrySchema.optional()
+        })
+        .optional(),
+    professional: z
+        .object({
+            totalExperienceYears: z.string().optional(),
+            role: z.string().optional(),
+            industry: z.string().optional(),
+            ctcLakhs: z.string().optional(),
+            description: z.string().optional()
+        })
+        .optional(),
+    gap: z
+        .object({
+            months: z.string().optional(),
+            years: z.string().optional(),
+            reason: z.string().optional()
+        })
+        .optional()
 })
 type TForm = z.infer<typeof schema>
+
+const cleanString = (v: string | undefined): string | undefined => {
+    if (!v) return undefined
+    const trimmed = v.trim()
+    return trimmed.length > 0 ? trimmed : undefined
+}
+const cleanNumber = (v: string | undefined): number | undefined => {
+    const s = cleanString(v)
+    if (!s) return undefined
+    const n = Number(s)
+    return Number.isFinite(n) ? n : undefined
+}
+const cleanInt = (v: string | undefined): number | undefined => {
+    const n = cleanNumber(v)
+    return n === undefined ? undefined : Math.trunc(n)
+}
 
 const COURSE_OPTIONS = [
     'System Design Foundations',
@@ -46,6 +95,8 @@ const COURSE_OPTIONS = [
 export const EnquiryPage = () => {
     const [params] = useSearchParams()
     const [submitted, setSubmitted] = useState<{ counsellor?: string } | null>(null)
+    const [openEducation, setOpenEducation] = useState(false)
+    const [openProfessional, setOpenProfessional] = useState(false)
 
     const {
         register,
@@ -77,6 +128,49 @@ export const EnquiryPage = () => {
     })
 
     const submit = (data: TForm) => {
+        // Compose the structured optional blocks. Each one only goes through
+        // if the prospect actually filled at least one field in it — the
+        // backend tolerates undefined but rejects empty strings on min(1)s.
+        const grad = data.education?.graduation
+        const masters = data.education?.masters
+        const cleanGrad =
+            grad && (grad.degree || grad.institution || grad.yearOfPassing || grad.percentage)
+                ? {
+                      degree: cleanString(grad.degree),
+                      institution: cleanString(grad.institution),
+                      yearOfPassing: cleanInt(grad.yearOfPassing),
+                      percentage: cleanNumber(grad.percentage)
+                  }
+                : undefined
+        const cleanMasters =
+            masters && (masters.degree || masters.institution || masters.yearOfPassing || masters.percentage)
+                ? {
+                      degree: cleanString(masters.degree),
+                      institution: cleanString(masters.institution),
+                      yearOfPassing: cleanInt(masters.yearOfPassing),
+                      percentage: cleanNumber(masters.percentage)
+                  }
+                : undefined
+        const education = cleanGrad || cleanMasters ? { graduation: cleanGrad, masters: cleanMasters } : undefined
+
+        const p = data.professional
+        const professional =
+            p && (p.totalExperienceYears || p.role || p.industry || p.ctcLakhs || p.description)
+                ? {
+                      totalExperienceYears: cleanNumber(p.totalExperienceYears),
+                      role: cleanString(p.role),
+                      industry: cleanString(p.industry),
+                      ctcLakhs: cleanNumber(p.ctcLakhs),
+                      description: cleanString(p.description)
+                  }
+                : undefined
+
+        const g = data.gap
+        const gap =
+            g && (g.months || g.years || g.reason)
+                ? { months: cleanInt(g.months), years: cleanInt(g.years), reason: cleanString(g.reason) }
+                : undefined
+
         mutation.mutate({
             tenantSlug,
             name: data.name,
@@ -84,11 +178,16 @@ export const EnquiryPage = () => {
             phone: data.phone,
             course: data.course,
             language: data.language,
-            city: data.city,
-            message: data.message,
+            city: cleanString(data.city),
+            address: cleanString(data.address),
+            qualification: cleanString(data.qualification),
+            message: cleanString(data.message),
             utmSource,
             utmMedium,
-            utmCampaign
+            utmCampaign,
+            education,
+            professional,
+            gap
         })
     }
 
@@ -236,12 +335,84 @@ export const EnquiryPage = () => {
                                     <option>Mix — whatever works</option>
                                 </Select>
                             </div>
-                            <Input
-                                label="City (optional)"
-                                leftIcon={<MapPin size={14} />}
-                                placeholder="Mumbai, Bengaluru, …"
-                                {...register('city')}
+                            <div className="grid sm:grid-cols-2 gap-3">
+                                <Input
+                                    label="City (optional)"
+                                    leftIcon={<MapPin size={14} />}
+                                    placeholder="Mumbai, Bengaluru, …"
+                                    {...register('city')}
+                                />
+                                <Input
+                                    label="Highest qualification (optional)"
+                                    placeholder="e.g. BTech CSE"
+                                    {...register('qualification')}
+                                />
+                            </div>
+                            <Textarea
+                                label="Address (optional)"
+                                rows={2}
+                                placeholder="House / street / city / state / pincode"
+                                {...register('address')}
                             />
+
+                            <CollapseSection
+                                label="Education details"
+                                sublabel="Optional — helps the counsellor pick the right cohort."
+                                icon={<GraduationCap size={14} />}
+                                open={openEducation}
+                                onToggle={() => setOpenEducation((v) => !v)}>
+                                <EducationFields
+                                    heading="Graduation"
+                                    prefix="education.graduation"
+                                    register={register}
+                                />
+                                <EducationFields
+                                    heading="Masters"
+                                    prefix="education.masters"
+                                    register={register}
+                                />
+                            </CollapseSection>
+
+                            <CollapseSection
+                                label="Professional details"
+                                sublabel="Optional — useful if you've worked before."
+                                icon={<Briefcase size={14} />}
+                                open={openProfessional}
+                                onToggle={() => setOpenProfessional((v) => !v)}>
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                    <Input
+                                        label="Total experience (years)"
+                                        type="number"
+                                        step="0.5"
+                                        min={0}
+                                        {...register('professional.totalExperienceYears')}
+                                    />
+                                    <Input
+                                        label="CTC (₹ lakhs)"
+                                        type="number"
+                                        step="0.1"
+                                        min={0}
+                                        {...register('professional.ctcLakhs')}
+                                    />
+                                    <Input
+                                        label="Current / last role"
+                                        placeholder="e.g. DevOps Engineer"
+                                        {...register('professional.role')}
+                                    />
+                                    <Input
+                                        label="Industry"
+                                        placeholder="e.g. SaaS, Fintech"
+                                        {...register('professional.industry')}
+                                    />
+                                </div>
+                                <Textarea
+                                    label="Brief description"
+                                    rows={3}
+                                    placeholder="A few lines about your work."
+                                    {...register('professional.description')}
+                                />
+                            </CollapseSection>
+
                             <Textarea
                                 label="Anything we should know? (optional)"
                                 rows={3}
@@ -281,4 +452,84 @@ const Bullet = ({ children }: { children: React.ReactNode }) => (
         />
         <span>{children}</span>
     </li>
+)
+
+// Inline collapsible section used by the optional Education / Professional
+// blocks. Same shape the onboarding form uses, kept local so the enquiry
+// form stays self-contained.
+const CollapseSection = ({
+    label,
+    sublabel,
+    icon,
+    open,
+    onToggle,
+    children
+}: {
+    label: string
+    sublabel?: string
+    icon: React.ReactNode
+    open: boolean
+    onToggle: () => void
+    children: React.ReactNode
+}) => (
+    <div className="rounded-md border border-[var(--color-border)]">
+        <button
+            type="button"
+            onClick={onToggle}
+            className={
+                'w-full flex items-center justify-between px-4 py-3 text-left ' +
+                (open ? 'border-b border-[var(--color-border)]' : '')
+            }>
+            <div className="flex items-center gap-2.5">
+                <span className="h-7 w-7 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center">{icon}</span>
+                <div>
+                    <div className="text-sm font-medium text-fg">{label}</div>
+                    {sublabel && <div className="text-[11px] text-fg-muted">{sublabel}</div>}
+                </div>
+            </div>
+            {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+        {open && <div className="p-4 space-y-3">{children}</div>}
+    </div>
+)
+
+type RegisterFn = ReturnType<typeof useForm<TForm>>['register']
+const EducationFields = ({
+    heading,
+    prefix,
+    register
+}: {
+    heading: string
+    prefix: 'education.graduation' | 'education.masters'
+    register: RegisterFn
+}) => (
+    <div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-fg-muted mb-2">{heading}</div>
+        <div className="grid sm:grid-cols-2 gap-3">
+            <Input
+                label="Degree"
+                placeholder="e.g. BTech / MBA"
+                {...register(`${prefix}.degree`)}
+            />
+            <Input
+                label="Institution"
+                {...register(`${prefix}.institution`)}
+            />
+            <Input
+                label="Year of passing"
+                type="number"
+                min={1950}
+                max={2100}
+                {...register(`${prefix}.yearOfPassing`)}
+            />
+            <Input
+                label="Percentage / CGPA %"
+                type="number"
+                step="0.01"
+                min={0}
+                max={100}
+                {...register(`${prefix}.percentage`)}
+            />
+        </div>
+    </div>
 )

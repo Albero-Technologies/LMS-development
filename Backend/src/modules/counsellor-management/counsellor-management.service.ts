@@ -246,6 +246,215 @@ export const getTeamReport = async (tenantId: string, role: Role, actorId: strin
     }
 }
 
+// ----- Manager dashboard ---------------------------------------------------
+//
+// Returns everything the Manager Dashboard renders in one round-trip:
+//  - team header KPIs: target this month, achieved this month, remaining, %
+//  - per-counsellor breakdown: their own target, achieved, remaining, %, incentive tier
+//  - multi-month team rollup: aggregate team revenue + target by month for last 6 months
+//
+// Incentive slabs are intentionally simple/static for now — three bands keyed
+// off completion %. A real config table can be wired later without changing
+// the response shape.
+
+export interface IncentiveSlab {
+    minPct: number
+    label: string
+    rate: number // % of revenue
+}
+
+const DEFAULT_INCENTIVE_SLABS: IncentiveSlab[] = [
+    { minPct: 100, label: 'Champion', rate: 8 },
+    { minPct: 80, label: 'On track', rate: 5 },
+    { minPct: 50, label: 'Building', rate: 2 },
+    { minPct: 0, label: 'Below', rate: 0 }
+]
+
+const slabFor = (pct: number, slabs = DEFAULT_INCENTIVE_SLABS): IncentiveSlab => slabs.find((s) => pct >= s.minPct) ?? slabs[slabs.length - 1]
+
+const startOfMonthUtc = (d: Date): Date => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))
+const endOfMonthUtc = (d: Date): Date => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0, 23, 59, 59, 999))
+
+export const getManagerDashboard = async (tenantId: string, role: Role, actorId: string, managerIdOverride?: string) => {
+    let managerId = actorId
+    if (role === Role.SUPER_ADMIN || role === Role.ADMIN) {
+        if (managerIdOverride) managerId = managerIdOverride
+        // For admin without override, fall back to actor id (which won't match
+        // any team) — UI sets the override when an admin opens the page.
+    } else if (role !== Role.COUNSELLING_MANAGER) {
+        throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_MANAGER')
+    }
+
+    const now = new Date()
+    const monthStart = startOfMonthUtc(now)
+    const monthEnd = endOfMonthUtc(now)
+
+    const counsellors = await db.client.user.findMany({
+        where: { tenantId, managerId, role: Role.COUNSELLOR, deletedAt: null },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            employeeCode: true,
+            status: true,
+            avatarUrl: true,
+            lastLoginAt: true
+        }
+    })
+
+    const counsellorIds = counsellors.map((c) => c.id)
+
+    const [targets, signups, enrolments, invoices] = await Promise.all([
+        db.client.counsellorTarget.findMany({
+            where: { tenantId, counsellorId: { in: counsellorIds }, periodStart: monthStart }
+        }),
+        db.client.studentSignup.findMany({
+            where: { tenantId, counsellorId: { in: counsellorIds }, createdAt: { gte: monthStart, lte: monthEnd } },
+            select: { counsellorId: true }
+        }),
+        db.client.enrollment.findMany({
+            where: {
+                tenantId,
+                counsellorId: { in: counsellorIds },
+                status: { in: [EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED] },
+                createdAt: { gte: monthStart, lte: monthEnd }
+            },
+            select: { counsellorId: true }
+        }),
+        db.client.invoice.findMany({
+            where: {
+                tenantId,
+                status: InvoiceStatus.PAID,
+                paidAt: { gte: monthStart, lte: monthEnd },
+                enrollment: { counsellorId: { in: counsellorIds } }
+            },
+            select: { totalAmount: true, enrollment: { select: { counsellorId: true } } }
+        })
+    ])
+
+    interface MemberRow {
+        id: string
+        name: string
+        email: string
+        employeeCode: string | null
+        status: string
+        avatarUrl: string | null
+        lastLoginAt: Date | null
+        target: { signups: number; enrolments: number; revenue: number }
+        actual: { signups: number; enrolments: number; revenue: number }
+        completionPct: number
+        revenueRemaining: number
+        enrolmentsRemaining: number
+        incentive: { tier: string; ratePct: number; payout: number }
+    }
+
+    const members: MemberRow[] = counsellors.map((c) => {
+        const t = targets.find((x) => x.counsellorId === c.id)
+        const tgtRevenue = t?.targetRevenue ?? 0
+        const tgtEnrolments = t?.targetEnrolments ?? 0
+        const tgtSignups = t?.targetSignups ?? 0
+        const myRevenue = invoices.filter((i) => i.enrollment?.counsellorId === c.id).reduce((n, i) => n + i.totalAmount, 0)
+        const myEnrolments = enrolments.filter((e) => e.counsellorId === c.id).length
+        const mySignups = signups.filter((s) => s.counsellorId === c.id).length
+        const pct = tgtRevenue > 0 ? Math.min(100, Math.round((myRevenue / tgtRevenue) * 100)) : 0
+        const slab = slabFor(pct)
+        return {
+            id: c.id,
+            name: `${c.firstName} ${c.lastName}`.trim() || c.email,
+            email: c.email,
+            employeeCode: c.employeeCode,
+            status: c.status,
+            avatarUrl: c.avatarUrl,
+            lastLoginAt: c.lastLoginAt,
+            target: { signups: tgtSignups, enrolments: tgtEnrolments, revenue: tgtRevenue },
+            actual: { signups: mySignups, enrolments: myEnrolments, revenue: myRevenue },
+            completionPct: pct,
+            revenueRemaining: Math.max(0, tgtRevenue - myRevenue),
+            enrolmentsRemaining: Math.max(0, tgtEnrolments - myEnrolments),
+            incentive: {
+                tier: slab.label,
+                ratePct: slab.rate,
+                payout: Math.round((myRevenue * slab.rate) / 100)
+            }
+        }
+    })
+
+    const teamTotals = {
+        targetRevenue: members.reduce((n, m) => n + m.target.revenue, 0),
+        actualRevenue: members.reduce((n, m) => n + m.actual.revenue, 0),
+        targetEnrolments: members.reduce((n, m) => n + m.target.enrolments, 0),
+        actualEnrolments: members.reduce((n, m) => n + m.actual.enrolments, 0),
+        signups: members.reduce((n, m) => n + m.actual.signups, 0),
+        incentivePayout: members.reduce((n, m) => n + m.incentive.payout, 0)
+    }
+
+    const rankedByActual = [...members].sort((a, b) => b.actual.revenue - a.actual.revenue)
+    const top = rankedByActual[0]
+    const bottom = rankedByActual.length > 1 ? rankedByActual[rankedByActual.length - 1] : null
+
+    // 6-month rollup of team revenue + target. Targets summed across members
+    // so the manager sees a sensible monthly totals view.
+    const monthsBack = 5
+    const months: { start: Date; end: Date; label: string }[] = []
+    for (let i = monthsBack; i >= 0; i--) {
+        const start = startOfMonthUtc(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1)))
+        const end = endOfMonthUtc(start)
+        months.push({ start, end, label: start.toLocaleString('en-IN', { month: 'short', year: '2-digit' }) })
+    }
+
+    const [historyTargets, historyInvoices] = await Promise.all([
+        db.client.counsellorTarget.findMany({
+            where: {
+                tenantId,
+                counsellorId: { in: counsellorIds },
+                periodStart: { in: months.map((m) => m.start) }
+            }
+        }),
+        db.client.invoice.findMany({
+            where: {
+                tenantId,
+                status: InvoiceStatus.PAID,
+                paidAt: { gte: months[0].start, lte: months[months.length - 1].end },
+                enrollment: { counsellorId: { in: counsellorIds } }
+            },
+            select: { totalAmount: true, paidAt: true }
+        })
+    ])
+
+    const monthly = months.map(({ start, end, label }) => {
+        const target = historyTargets.filter((t) => t.periodStart.getTime() === start.getTime()).reduce((n, t) => n + t.targetRevenue, 0)
+        const actual = historyInvoices.filter((i) => i.paidAt && i.paidAt >= start && i.paidAt <= end).reduce((n, i) => n + i.totalAmount, 0)
+        const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0
+        return {
+            label,
+            start: start.toISOString(),
+            target,
+            actual,
+            pct,
+            remaining: Math.max(0, target - actual)
+        }
+    })
+
+    return {
+        period: { start: monthStart.toISOString(), end: monthEnd.toISOString() },
+        managerId,
+        teamSize: members.length,
+        teamTotals: {
+            ...teamTotals,
+            completionPct: teamTotals.targetRevenue > 0 ? Math.min(100, Math.round((teamTotals.actualRevenue / teamTotals.targetRevenue) * 100)) : 0,
+            revenueRemaining: Math.max(0, teamTotals.targetRevenue - teamTotals.actualRevenue),
+            enrolmentsRemaining: Math.max(0, teamTotals.targetEnrolments - teamTotals.actualEnrolments)
+        },
+        topPerformer: top ? { id: top.id, name: top.name, revenue: top.actual.revenue, pct: top.completionPct } : null,
+        bottomPerformer:
+            bottom ? { id: bottom.id, name: bottom.name, revenue: bottom.actual.revenue, pct: bottom.completionPct } : null,
+        members,
+        monthly,
+        incentiveSlabs: DEFAULT_INCENTIVE_SLABS
+    }
+}
+
 // ----- tasks ---------------------------------------------------------------
 
 export const createTask = async (tenantId: string, role: Role, actorId: string, input: TCreateTask) => {

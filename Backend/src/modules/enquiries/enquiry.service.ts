@@ -1,4 +1,4 @@
-import { EnquiryStage, Role, UserStatus } from '@prisma/client'
+import { EnquiryStage, type Prisma, Role, UserStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
@@ -88,6 +88,13 @@ export const pickCounsellor = async (tenantId: string): Promise<string | null> =
 
 export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput) => {
     const assignedToId = await pickCounsellor(tenantId)
+    // Pack the optional structured blocks into a single JSON column so the
+    // form can grow without a migration per section.
+    const extra =
+        input.education || input.professional || input.gap
+            ? { education: input.education, professional: input.professional, gap: input.gap }
+            : undefined
+
     const enquiry = await db.client.enquiry.create({
         data: {
             tenantId,
@@ -97,11 +104,14 @@ export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput
             course: input.course,
             language: input.language,
             city: input.city,
+            address: input.address,
+            qualification: input.qualification,
             message: input.message,
             source: input.utmSource ? `utm:${input.utmSource}` : 'website',
             utmSource: input.utmSource,
             utmMedium: input.utmMedium,
             utmCampaign: input.utmCampaign,
+            extra: extra as Prisma.InputJsonValue | undefined,
             assignedToId
         },
         include: { assignedTo: { select: { id: true, firstName: true, lastName: true } } }

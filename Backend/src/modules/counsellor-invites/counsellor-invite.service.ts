@@ -73,6 +73,8 @@ export const getInviteLink = async (tenantId: string, role: Role, actorId: strin
     const link = await db.client.counsellorInviteLink.findFirst({
         where: { id, tenantId },
         include: {
+            counsellor: { select: { id: true, firstName: true, lastName: true, email: true } },
+            tenant: { select: { id: true, name: true, slug: true } },
             course: { select: { id: true, title: true, slug: true } },
             signups: {
                 orderBy: { createdAt: 'desc' },
@@ -85,6 +87,7 @@ export const getInviteLink = async (tenantId: string, role: Role, actorId: strin
                     status: true,
                     initialPassword: true,
                     createdAt: true,
+                    userId: true,
                     user: { select: { id: true, status: true, lastLoginAt: true } }
                 }
             }

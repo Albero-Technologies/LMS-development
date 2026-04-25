@@ -779,23 +779,28 @@ model Notification {
 // account is created at this stage; that happens after the counsellor converts.
 
 model Enquiry {
-  id           String       @id @default(uuid())
-  tenantId     String
-  name         String
-  email        String
-  phone        String
-  course       String
-  language     String?
-  city         String?
-  message      String?
-  source       String       @default("website")
-  utmSource    String?
-  utmMedium    String?
-  utmCampaign  String?
-  stage        EnquiryStage @default(NEW)
-  assignedToId String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id            String       @id @default(uuid())
+  tenantId      String
+  name          String
+  email         String
+  phone         String
+  course        String
+  language      String?
+  city          String?
+  address       String?
+  qualification String?
+  message       String?
+  source        String       @default("website")
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  // Structured education / professional / gap details — same shape the
+  // onboarding form uses. JSON so adding new sections doesn't need a migration.
+  extra         Json?
+  stage         EnquiryStage @default(NEW)
+  assignedToId  String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   tenant     Tenant @relation(fields: [tenantId], references: [id])
   assignedTo User?  @relation("EnquiryCounsellor", fields: [assignedToId], references: [id])

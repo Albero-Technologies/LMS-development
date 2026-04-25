@@ -95,13 +95,14 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
-        { to: '/app/users', label: 'Students', icon: Users },
+        { to: '/app/counsellor/students', label: 'Students', icon: GraduationCap },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
     ],
     COUNSELLING_MANAGER: [
         { to: '/app/counsellor', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
+        { to: '/app/counsellor/students', label: 'Students', icon: GraduationCap },
         { to: '/app/reports', label: 'Team Reports', icon: LineChart },
         { to: '/app/users', label: 'Team', icon: Users }
     ],

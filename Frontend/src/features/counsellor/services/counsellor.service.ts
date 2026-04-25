@@ -43,6 +43,30 @@ export const revokeInviteLink = async (id: string): Promise<CounsellorInviteLink
     return data.data
 }
 
+// Detailed view used by the link-info modal — backend returns the link plus
+// every signup it produced and the related counsellor + tenant + course.
+export interface InviteLinkSignup {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    phone: string | null
+    status: string
+    createdAt: string
+    userId: string | null
+}
+
+export interface InviteLinkDetail extends CounsellorInviteLink {
+    counsellor?: { id: string; firstName: string; lastName: string; email: string } | null
+    tenant?: { id: string; name: string; slug: string } | null
+    signups?: InviteLinkSignup[]
+}
+
+export const getInviteLink = async (id: string): Promise<InviteLinkDetail> => {
+    const { data } = await api.get<Envelope<InviteLinkDetail>>(`/counsellor/invites/${id}`)
+    return data.data
+}
+
 // Construct the public URL the prospect opens. The OnboardingPage at
 // /onboarding/:token consumes it. window.location.origin works here because
 // counsellors are always in the dashboard SPA when they call this.
@@ -111,5 +135,52 @@ export const getMyTarget = async (): Promise<CounsellorTargetSummary> => {
 
 export const getMyTargetHistory = async (months = 5): Promise<CounsellorMonthBucket[]> => {
     const { data } = await api.get<Envelope<CounsellorMonthBucket[]>>('/counsellor/targets/history', { params: { months } })
+    return data.data
+}
+
+// ---- Manager dashboard (team rollup) -------------------------------------
+
+export interface ManagerMember {
+    id: string
+    name: string
+    email: string
+    employeeCode: string | null
+    status: string
+    avatarUrl: string | null
+    lastLoginAt: string | null
+    target: { signups: number; enrolments: number; revenue: number }
+    actual: { signups: number; enrolments: number; revenue: number }
+    completionPct: number
+    revenueRemaining: number
+    enrolmentsRemaining: number
+    incentive: { tier: string; ratePct: number; payout: number }
+}
+
+export interface ManagerDashboard {
+    period: { start: string; end: string }
+    managerId: string
+    teamSize: number
+    teamTotals: {
+        targetRevenue: number
+        actualRevenue: number
+        targetEnrolments: number
+        actualEnrolments: number
+        signups: number
+        incentivePayout: number
+        completionPct: number
+        revenueRemaining: number
+        enrolmentsRemaining: number
+    }
+    topPerformer: { id: string; name: string; revenue: number; pct: number } | null
+    bottomPerformer: { id: string; name: string; revenue: number; pct: number } | null
+    members: ManagerMember[]
+    monthly: { label: string; start: string; target: number; actual: number; pct: number; remaining: number }[]
+    incentiveSlabs: { minPct: number; label: string; rate: number }[]
+}
+
+export const getManagerDashboard = async (managerId?: string): Promise<ManagerDashboard> => {
+    const { data } = await api.get<Envelope<ManagerDashboard>>('/counsellor/reports/manager-dashboard', {
+        params: managerId ? { managerId } : undefined
+    })
     return data.data
 }

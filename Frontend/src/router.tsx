@@ -42,6 +42,7 @@ import { ReportsPage } from '@features/reports/pages/ReportsPage'
 import { OnboardingPage } from '@features/onboarding/pages/OnboardingPage'
 import { LeadPipelinePage } from '@features/counsellor/pages/LeadPipelinePage'
 import { CounsellorLinksPage } from '@features/counsellor/pages/CounsellorLinksPage'
+import { CounsellorStudentsPage } from '@features/counsellor/pages/CounsellorStudentsPage'
 import { AuditLogsPage } from '@features/audit/pages/AuditLogsPage'
 
 // Super Admin · internal tooling
@@ -201,6 +202,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <CounsellorLinksPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'counsellor/students',
+                element: (
+                    <ProtectedRoute roles={[ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <CounsellorStudentsPage />
                     </ProtectedRoute>
                 )
             },

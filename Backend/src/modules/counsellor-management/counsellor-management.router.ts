@@ -24,6 +24,8 @@ router.get(
 )
 // Manager team aggregate (admin can pass ?managerId=)
 router.get('/reports/team', requirePolicy('counsellor_team', 'read'), validate(reportRangeSchema, 'query'), asyncHandler(ctrl.teamReport))
+// Rich manager-dashboard payload (current-month totals + per-member + 6mo history + incentive slabs)
+router.get('/reports/manager-dashboard', requirePolicy('counsellor_team', 'read'), asyncHandler(ctrl.managerDashboard))
 
 // ---- Team ----
 router.get('/team', requirePolicy('counsellor_team', 'read'), asyncHandler(ctrl.team))
