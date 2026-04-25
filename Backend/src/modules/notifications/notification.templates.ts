@@ -99,6 +99,33 @@ export const render = ({ template, data, tenantName }: TRenderInput): TRendered 
 ${data.message ? `<blockquote>${String(data.message)}</blockquote>` : ''}`
             }
 
+        case 'billing_reminder': {
+            const amount = String(data.amount ?? '')
+            const currency = String(data.currency ?? 'INR')
+            const dueDate = String(data.dueDate ?? '')
+            const planLabel = String(data.planLabel ?? '')
+            const note = data.note ? String(data.note) : ''
+            const lines = [
+                `This is a reminder for your ${brand} subscription.`,
+                amount ? `Amount due: ${currency} ${amount}` : '',
+                dueDate ? `Due date: ${dueDate}` : '',
+                planLabel ? `Plan: ${planLabel}` : '',
+                note ? `\nNote from your account manager:\n${note}` : '',
+                '',
+                `Log in to settle the invoice or reach out if you have questions.`
+            ].filter(Boolean)
+            return {
+                subject: `Billing reminder — ${planLabel || brand}`,
+                text: lines.join('\n'),
+                html: `<p>This is a reminder for your <strong>${brand}</strong> subscription.</p>
+${amount ? `<p><strong>Amount due:</strong> ${currency} ${amount}</p>` : ''}
+${dueDate ? `<p><strong>Due date:</strong> ${dueDate}</p>` : ''}
+${planLabel ? `<p><strong>Plan:</strong> ${planLabel}</p>` : ''}
+${note ? `<blockquote>${note}</blockquote>` : ''}
+<p>Log in to settle the invoice or reach out if you have questions.</p>`
+            }
+        }
+
         default:
             return {
                 subject: `${brand} notification`,

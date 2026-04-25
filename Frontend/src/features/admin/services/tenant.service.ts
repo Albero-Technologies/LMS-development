@@ -124,6 +124,42 @@ export const updateTenantById = async (id: string, payload: UpdateTenantPayload)
     return data.data
 }
 
+// SUPER_ADMIN — send a billing reminder (§4.2). Sends email + in-app notification
+// + records the action as a Note on the tenant.
+export type BillingReminderPayload = {
+    amount?: number
+    currency?: string
+    dueDate?: string
+    planLabel?: string
+    note?: string
+}
+
+export const sendBillingReminder = async (id: string, payload: BillingReminderPayload): Promise<{ sentTo: string; queued: boolean }> => {
+    const { data } = await api.post<Envelope<{ sentTo: string; queued: boolean }>>(`/tenants/${id}/reminders`, payload)
+    return data.data
+}
+
+// Billing plan settings live in tenant.settings.billing — separate from the
+// Plan column on the tenant row (which is more like a tier name).
+export type BillingPlan = {
+    cycle?: 'daily' | 'weekly' | 'monthly' | 'yearly'
+    amount?: number
+    currency?: string
+    nextDueDate?: string | null
+    notes?: string
+}
+
+export const readBillingPlan = (tenant: { settings: TenantSettings | null } | undefined): BillingPlan => {
+    const b = tenant?.settings?.billing as BillingPlan | undefined
+    return {
+        cycle: b?.cycle ?? 'monthly',
+        amount: b?.amount,
+        currency: b?.currency ?? 'INR',
+        nextDueDate: b?.nextDueDate ?? null,
+        notes: b?.notes ?? ''
+    }
+}
+
 // ---- Per-tenant contacts + notes (settings sub-keys) -----------------------
 
 export type TenantContacts = {

@@ -21,6 +21,7 @@ export interface TNotifyJobData {
         | 'counsellor_task_completed'
         | 'manager_signup_received'
         | 'manager_target_progress'
+        | 'billing_reminder'
     subject?: string
     data: Record<string, unknown>
 }

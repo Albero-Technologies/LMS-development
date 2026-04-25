@@ -119,6 +119,89 @@ export const setTenantStatus = async (tenantId: string, status: 'ACTIVE' | 'SUSP
     return tenant
 }
 
+// SUPER_ADMIN — send a billing reminder to a tenant (§4.2). Triggers an email
+// + an in-app notification through the existing queue, and appends a Note for
+// the audit trail so subsequent SAs can see what was sent and when.
+export interface TBillingReminderInput {
+    amount?: number
+    currency?: string
+    dueDate?: string
+    planLabel?: string
+    note?: string
+    senderId: string
+    senderName: string
+}
+
+export const sendBillingReminder = async (tenantId: string, input: TBillingReminderInput) => {
+    const tenant = await db.client.tenant.findUnique({ where: { id: tenantId } })
+    if (!tenant) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+
+    const admin = await db.client.user.findFirst({
+        where: { tenantId, role: 'ADMIN', deletedAt: null },
+        orderBy: { createdAt: 'asc' }
+    })
+
+    // Resolve recipient: prefer the tenant's contact email if configured, else the
+    // first ADMIN's email. Always queue an in-app notification for the admin user.
+    const settings = (tenant.settings as { contacts?: { primaryEmail?: string } } | null) ?? null
+    const toEmail = settings?.contacts?.primaryEmail || admin?.email
+    if (!toEmail) {
+        throw AppError.badRequest('Tenant has no contact email or ADMIN user — set a primary contact in the Contacts tab first.', 'TENANT_NO_CONTACT')
+    }
+
+    // Import locally to avoid a circular import between tenants and notifications.
+    const { notifyQueue, NOTIFY_JOB } = await import('../notifications/notification.queue')
+
+    await notifyQueue.add(NOTIFY_JOB, {
+        tenantId,
+        userId: admin?.id,
+        toEmail: admin ? undefined : toEmail,
+        toName: admin ? undefined : tenant.name,
+        template: 'billing_reminder',
+        data: {
+            amount: input.amount,
+            currency: input.currency ?? 'INR',
+            dueDate: input.dueDate,
+            planLabel: input.planLabel ?? tenant.plan,
+            note: input.note
+        }
+    })
+
+    // Append a note to the tenant's settings.notes for the audit trail.
+    interface NoteRow {
+        id: string
+        body: string
+        createdAt: string
+        createdBy?: { id: string; name: string }
+    }
+    const existingNotes = Array.isArray((tenant.settings as { notes?: unknown[] } | null)?.notes)
+        ? ((tenant.settings as { notes: unknown[] }).notes as NoteRow[])
+        : []
+    const bodyParts = [
+        `Billing reminder sent to ${toEmail}.`,
+        input.amount ? ` Amount: ${input.currency ?? 'INR'} ${input.amount}.` : '',
+        input.dueDate ? ` Due ${input.dueDate}.` : '',
+        input.planLabel ? ` Plan: ${input.planLabel}.` : '',
+        input.note ? `\n\nMessage:\n${input.note}` : ''
+    ]
+    const noteEntry: NoteRow = {
+        id: `rmd-${Date.now()}`,
+        body: bodyParts.join(''),
+        createdAt: new Date().toISOString(),
+        createdBy: { id: input.senderId, name: input.senderName }
+    }
+    const nextSettings = {
+        ...((tenant.settings as Record<string, unknown> | null) ?? {}),
+        notes: [noteEntry, ...existingNotes]
+    }
+    await db.client.tenant.update({
+        where: { id: tenantId },
+        data: { settings: nextSettings as Prisma.InputJsonValue }
+    })
+
+    return { sentTo: toEmail, queued: true }
+}
+
 export const updateBranding = async (tenantId: string, input: TUpdateTenantBrandingInput) => {
     const data: Prisma.TenantUpdateInput = {}
     if (input.name !== undefined) data.name = input.name

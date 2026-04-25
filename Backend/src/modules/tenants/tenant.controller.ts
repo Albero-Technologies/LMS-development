@@ -44,6 +44,40 @@ export const updateTenantById = async (req: Request, res: Response): Promise<voi
     httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
 }
 
+// SUPER_ADMIN — send a billing reminder to a tenant (§4.2). The body shape is
+// validated lightly here; everything is optional so the SA can ship a quick
+// "your invoice is due" without filling every field.
+export const sendBillingReminder = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const body = req.body as { amount?: number; currency?: string; dueDate?: string; planLabel?: string; note?: string }
+    const auth = req.auth
+
+    const senderUser = await import('../../service/db').then((m) => m.default.client.user.findUnique({ where: { id: auth.userId } }))
+    const senderName = senderUser ? `${senderUser.firstName} ${senderUser.lastName}`.trim() || senderUser.email : 'Super Admin'
+
+    const result = await service.sendBillingReminder(req.params.id, {
+        amount: typeof body.amount === 'number' ? body.amount : undefined,
+        currency: body.currency,
+        dueDate: body.dueDate,
+        planLabel: body.planLabel,
+        note: body.note,
+        senderId: req.auth.userId,
+        senderName
+    })
+
+    await writeAudit(
+        {
+            action: 'tenant.reminder_sent',
+            entityType: 'Tenant',
+            entityId: req.params.id,
+            metadata: { sentTo: result.sentTo, amount: body.amount, dueDate: body.dueDate }
+        },
+        req
+    )
+
+    httpResponse(req, res, 200, responseMessage.SUCCESS, result)
+}
+
 // SUPER_ADMIN — flip status (suspend / reinstate). The accompanying audit log
 // is what makes this action accountable.
 export const setStatus = async (req: Request, res: Response): Promise<void> => {

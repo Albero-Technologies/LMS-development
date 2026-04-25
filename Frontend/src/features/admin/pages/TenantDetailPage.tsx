@@ -25,17 +25,21 @@ import { Badge } from '@shared/components/ui/Badge'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
 import { Input, Textarea } from '@shared/components/ui/Input'
+import { Select } from '@shared/components/ui/Select'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { useAuthStore } from '@shared/stores/authStore'
 import {
     FEATURE_FLAGS,
     getTenantDetail,
     isFeatureEnabled,
+    readBillingPlan,
     readContacts,
     readFeatureFlags,
     readNotes,
+    sendBillingReminder,
     setTenantStatus,
     updateTenantById,
+    type BillingPlan,
     type FeatureFlagKey,
     type FeatureFlags,
     type TenantContacts,
@@ -51,11 +55,12 @@ const STATUS_TONE: Record<TenantStatus, 'ok' | 'warn' | 'default'> = {
     SUSPENDED: 'default'
 }
 
-type Tab = 'overview' | 'features' | 'contacts' | 'notes'
+type Tab = 'overview' | 'features' | 'billing' | 'contacts' | 'notes'
 
 const TAB_DEFS = [
     { value: 'overview' as const, label: 'Overview' },
     { value: 'features' as const, label: 'Features' },
+    { value: 'billing' as const, label: 'Billing' },
     { value: 'contacts' as const, label: 'Contacts' },
     { value: 'notes' as const, label: 'Notes' }
 ]
@@ -158,6 +163,12 @@ export const TenantDetailPage = () => {
             {tab === 'overview' && <OverviewTab tenant={tenant} />}
             {tab === 'features' && (
                 <FeaturesTab
+                    tenant={tenant}
+                    queryKey={['tenants', id]}
+                />
+            )}
+            {tab === 'billing' && (
+                <BillingTab
                     tenant={tenant}
                     queryKey={['tenants', id]}
                 />
@@ -362,6 +373,184 @@ const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         />
     </button>
 )
+
+// -----------------------------------------------------------------------------
+// Billing tab — plan/cycle/amount + send-reminder flow (§4.2).
+// Plan settings live in `tenant.settings.billing`. Reminders go through the
+// notification queue (email + in-app) and append a Note for the audit trail.
+// -----------------------------------------------------------------------------
+
+const CYCLE_OPTIONS: { value: NonNullable<BillingPlan['cycle']>; label: string }[] = [
+    { value: 'daily', label: 'Daily' },
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'yearly', label: 'Yearly' }
+]
+
+const BillingTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: readonly unknown[] }) => {
+    const queryClient = useQueryClient()
+    const initial = useMemo(() => readBillingPlan(tenant), [tenant])
+    const [plan, setPlan] = useState<BillingPlan>(initial)
+    useEffect(() => setPlan(initial), [initial])
+
+    // Reminder draft state — separate from plan state because sending is a
+    // distinct mutation that can happen multiple times.
+    const [reminderAmount, setReminderAmount] = useState<string>('')
+    const [reminderDueDate, setReminderDueDate] = useState<string>('')
+    const [reminderNote, setReminderNote] = useState<string>('')
+
+    const dirty =
+        plan.cycle !== initial.cycle ||
+        plan.amount !== initial.amount ||
+        plan.currency !== initial.currency ||
+        plan.nextDueDate !== initial.nextDueDate ||
+        plan.notes !== initial.notes
+
+    const savePlanMutation = useMutation({
+        mutationFn: () => {
+            const settings: TenantSettings = { ...(tenant.settings ?? {}), billing: plan }
+            return updateTenantById(tenant.id, { settings })
+        },
+        onSuccess: () => {
+            toast.success('Billing plan saved')
+            void queryClient.invalidateQueries({ queryKey })
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save billing plan')
+    })
+
+    const reminderMutation = useMutation({
+        mutationFn: () =>
+            sendBillingReminder(tenant.id, {
+                amount: reminderAmount ? Number(reminderAmount) : plan.amount,
+                currency: plan.currency,
+                dueDate: reminderDueDate || plan.nextDueDate || undefined,
+                planLabel: tenant.plan + (plan.cycle ? ` · ${plan.cycle}` : ''),
+                note: reminderNote.trim() || undefined
+            }),
+        onSuccess: (res) => {
+            toast.success(`Reminder queued — sent to ${res.sentTo}`)
+            setReminderAmount('')
+            setReminderDueDate('')
+            setReminderNote('')
+            void queryClient.invalidateQueries({ queryKey })
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not send reminder')
+    })
+
+    return (
+        <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <h3 className="text-sm font-semibold text-fg">Plan & cycle</h3>
+                        <p className="mt-0.5 text-xs text-fg-muted">Used as the default for billing reminders. Stored on the tenant settings.</p>
+                    </div>
+                    <Button
+                        size="sm"
+                        leftIcon={<Save size={12} />}
+                        loading={savePlanMutation.isPending}
+                        disabled={!dirty}
+                        onClick={() => savePlanMutation.mutate()}>
+                        Save
+                    </Button>
+                </div>
+
+                <div className="space-y-3">
+                    <Select
+                        label="Billing cycle"
+                        value={plan.cycle ?? 'monthly'}
+                        onChange={(e) => setPlan({ ...plan, cycle: e.target.value as BillingPlan['cycle'] })}>
+                        {CYCLE_OPTIONS.map((c) => (
+                            <option
+                                key={c.value}
+                                value={c.value}>
+                                {c.label}
+                            </option>
+                        ))}
+                    </Select>
+                    <div className="grid grid-cols-[2fr_1fr] gap-3">
+                        <Input
+                            label="Amount"
+                            type="number"
+                            min={0}
+                            value={plan.amount ?? ''}
+                            onChange={(e) => setPlan({ ...plan, amount: e.target.value === '' ? undefined : Number(e.target.value) })}
+                            placeholder="0"
+                        />
+                        <Select
+                            label="Currency"
+                            value={plan.currency ?? 'INR'}
+                            onChange={(e) => setPlan({ ...plan, currency: e.target.value })}>
+                            <option value="INR">INR</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                        </Select>
+                    </div>
+                    <Input
+                        label="Next due date"
+                        type="date"
+                        value={plan.nextDueDate ? plan.nextDueDate.slice(0, 10) : ''}
+                        onChange={(e) => setPlan({ ...plan, nextDueDate: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                    />
+                    <Textarea
+                        label="Internal notes (optional)"
+                        rows={2}
+                        value={plan.notes ?? ''}
+                        onChange={(e) => setPlan({ ...plan, notes: e.target.value })}
+                        placeholder="Discount terms, contract end date, etc."
+                    />
+                </div>
+            </Card>
+
+            <Card>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <h3 className="text-sm font-semibold text-fg">Send a reminder</h3>
+                        <p className="mt-0.5 text-xs text-fg-muted">
+                            Emails the tenant's primary contact (or ADMIN), pings their bell, and logs a Note with what was sent.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Input
+                            label="Override amount"
+                            type="number"
+                            min={0}
+                            value={reminderAmount}
+                            onChange={(e) => setReminderAmount(e.target.value)}
+                            placeholder={plan.amount ? String(plan.amount) : 'plan default'}
+                        />
+                        <Input
+                            label="Override due date"
+                            type="date"
+                            value={reminderDueDate}
+                            onChange={(e) => setReminderDueDate(e.target.value)}
+                        />
+                    </div>
+                    <Textarea
+                        label="Note to admin (optional)"
+                        rows={3}
+                        value={reminderNote}
+                        onChange={(e) => setReminderNote(e.target.value)}
+                        placeholder="One-line context — e.g. 'Final reminder before access pause on Friday.'"
+                    />
+                    <div className="flex justify-end">
+                        <Button
+                            size="sm"
+                            leftIcon={<Mail size={12} />}
+                            loading={reminderMutation.isPending}
+                            onClick={() => reminderMutation.mutate()}>
+                            Send reminder
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    )
+}
 
 // -----------------------------------------------------------------------------
 // Contacts tab — primary + secondary email/phone, used for billing reminders.
