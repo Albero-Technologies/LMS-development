@@ -47,6 +47,7 @@ import { AuditLogsPage } from '@features/audit/pages/AuditLogsPage'
 
 // Super Admin · internal tooling
 import { TenantsPage } from '@features/admin/pages/TenantsPage'
+import { TenantDetailPage } from '@features/admin/pages/TenantDetailPage'
 import { WebsiteEditorPage } from '@features/admin/pages/WebsiteEditorPage'
 import { UtmBuilderPage } from '@features/admin/pages/UtmBuilderPage'
 import { SeoBuilderPage } from '@features/admin/pages/SeoBuilderPage'
@@ -260,6 +261,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.SUPER_ADMIN]}>
                         <TenantsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'admin/tenants/:id',
+                element: (
+                    <ProtectedRoute roles={[ROLES.SUPER_ADMIN]}>
+                        <TenantDetailPage />
                     </ProtectedRoute>
                 )
             },

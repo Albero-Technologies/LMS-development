@@ -14,4 +14,10 @@ router.post('/', requireAuth, requireRole(Role.SUPER_ADMIN), validate(createTena
 router.get('/me', requireAuth, requirePolicy('tenant', 'read'), asyncHandler(ctrl.getMyTenant))
 router.patch('/me', requireAuth, requirePolicy('tenant', 'write'), validate(updateTenantBrandingSchema), asyncHandler(ctrl.updateMyTenantBranding))
 
+// SUPER_ADMIN cross-tenant routes (§4.1). Mounted after /me so the literal
+// "me" isn't shadowed by the /:id pattern.
+router.get('/', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.listAllTenants))
+router.get('/:id', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.getTenantDetail))
+router.patch('/:id/status', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.setStatus))
+
 export default router

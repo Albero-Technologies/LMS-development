@@ -63,3 +63,74 @@ export const writeDemoConfig = async (tenant: Tenant, next: DemoModeConfig): Pro
     const settings: TenantSettings = { ...(tenant.settings ?? {}), demoMode: next }
     return updateMyTenant({ settings })
 }
+
+// ---- SUPER_ADMIN cross-tenant API (§4.1) -----------------------------------
+
+export type TenantStatus = 'ACTIVE' | 'SUSPENDED' | 'TRIAL'
+
+export type TenantListRow = {
+    id: string
+    name: string
+    slug: string
+    plan: Tenant['plan']
+    status: TenantStatus
+    brandingLogo: string | null
+    brandingColor: string | null
+    createdAt: string
+    updatedAt: string
+    userCount: number
+    courseCount: number
+}
+
+export type TenantAdminRef = {
+    id: string
+    email: string
+    firstName: string
+    lastName: string
+    phone: string | null
+    lastLoginAt: string | null
+    createdAt: string
+}
+
+export type TenantDetail = Tenant & {
+    updatedAt: string
+    admin: TenantAdminRef | null
+    counts: {
+        users: number
+        courses: number
+        enquiries: number
+        tickets: number
+    }
+}
+
+export const listAllTenants = async (): Promise<TenantListRow[]> => {
+    const { data } = await api.get<Envelope<TenantListRow[]>>('/tenants')
+    return data.data
+}
+
+export const getTenantDetail = async (id: string): Promise<TenantDetail> => {
+    const { data } = await api.get<Envelope<TenantDetail>>(`/tenants/${id}`)
+    return data.data
+}
+
+export const setTenantStatus = async (id: string, status: TenantStatus): Promise<Tenant> => {
+    const { data } = await api.patch<Envelope<Tenant>>(`/tenants/${id}/status`, { status })
+    return data.data
+}
+
+export type CreateTenantPayload = {
+    name: string
+    slug: string
+    plan?: Tenant['plan']
+    adminEmail: string
+    adminFirstName: string
+    adminLastName: string
+    adminPassword: string
+    brandingLogo?: string
+    brandingColor?: string
+}
+
+export const createTenant = async (payload: CreateTenantPayload): Promise<{ tenant: Tenant; admin: { id: string; email: string; role: string } }> => {
+    const { data } = await api.post<Envelope<{ tenant: Tenant; admin: { id: string; email: string; role: string } }>>('/tenants', payload)
+    return data.data
+}
