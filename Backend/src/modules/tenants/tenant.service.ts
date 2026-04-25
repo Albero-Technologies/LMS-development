@@ -196,10 +196,67 @@ export const sendBillingReminder = async (tenantId: string, input: TBillingRemin
     }
     await db.client.tenant.update({
         where: { id: tenantId },
-        data: { settings: nextSettings as Prisma.InputJsonValue }
+        data: { settings: nextSettings as unknown as Prisma.InputJsonValue }
     })
 
     return { sentTo: toEmail, queued: true }
+}
+
+// ---- Tenant SaaS billing (§4.4 + §10.2) ------------------------------------
+
+export interface TCreateTenantPaymentInput {
+    amount: number // paise
+    currency?: string
+    planLabel?: string
+    periodStart?: Date
+    periodEnd?: Date
+    description?: string
+    createdById: string
+}
+
+export const createTenantPayment = async (tenantId: string, input: TCreateTenantPaymentInput) => {
+    const tenant = await db.client.tenant.findUnique({ where: { id: tenantId } })
+    if (!tenant) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+
+    return db.client.tenantPayment.create({
+        data: {
+            tenantId,
+            amount: input.amount,
+            currency: input.currency ?? 'INR',
+            planLabel: input.planLabel,
+            periodStart: input.periodStart,
+            periodEnd: input.periodEnd,
+            description: input.description,
+            createdById: input.createdById
+        }
+    })
+}
+
+export const listTenantPayments = async (tenantId: string) => {
+    return db.client.tenantPayment.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' }
+    })
+}
+
+// Manual status flip (e.g. mark a wire transfer as PAID without going through
+// Razorpay). The Razorpay-driven happy path will update via webhook + a
+// separate verify endpoint in the next batch.
+export const setTenantPaymentStatus = async (
+    tenantId: string,
+    paymentId: string,
+    status: 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED' | 'REFUNDED'
+) => {
+    const payment = await db.client.tenantPayment.findFirst({ where: { id: paymentId, tenantId } })
+    if (!payment) throw AppError.notFound(responseMessage.NOT_FOUND('Payment'), 'PAYMENT_NOT_FOUND')
+
+    return db.client.tenantPayment.update({
+        where: { id: paymentId },
+        data: {
+            status,
+            paidAt: status === 'PAID' ? (payment.paidAt ?? new Date()) : null
+        }
+    })
 }
 
 export const updateBranding = async (tenantId: string, input: TUpdateTenantBrandingInput) => {

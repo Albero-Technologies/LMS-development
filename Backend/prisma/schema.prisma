@@ -209,9 +209,48 @@ model Tenant {
   notifications         Notification[]
   auditLogs             AuditLog[]
   enquiries             Enquiry[]
+  saasPayments          TenantPayment[]
 
   @@index([slug])
   @@map("tenants")
+}
+
+// SaaS-billing records: each row is an invoice the platform issues to the
+// tenant for their subscription. Distinct from Invoice (which is the tenant's
+// own invoices to its students). §4.4 + §10.2.
+model TenantPayment {
+  id          String              @id @default(uuid())
+  tenantId    String
+  amount      Int // total in paise (smallest currency unit)
+  currency    String              @default("INR")
+  planLabel   String? // free-form label like "GROWTH · monthly"
+  periodStart DateTime?
+  periodEnd   DateTime?
+  description String? // optional internal/customer-facing line item
+  status      TenantPaymentStatus @default(PENDING)
+  // Razorpay handshake — populated when a payment order is created.
+  gateway          PaymentGateway? @default(RAZORPAY)
+  gatewayOrderId   String?
+  gatewayPaymentId String?
+  // Audit / authorship.
+  createdById String? // SA who issued the invoice
+  paidAt      DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@map("tenant_payments")
+}
+
+enum TenantPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
 }
 
 model User {

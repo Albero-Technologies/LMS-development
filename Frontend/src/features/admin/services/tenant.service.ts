@@ -139,6 +139,53 @@ export const sendBillingReminder = async (id: string, payload: BillingReminderPa
     return data.data
 }
 
+// ---- Tenant SaaS payments (§4.4 + §10.2) -----------------------------------
+
+export type TenantPaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED' | 'REFUNDED'
+
+export type TenantPayment = {
+    id: string
+    tenantId: string
+    amount: number // paise
+    currency: string
+    planLabel: string | null
+    periodStart: string | null
+    periodEnd: string | null
+    description: string | null
+    status: TenantPaymentStatus
+    gateway: 'RAZORPAY' | 'STRIPE' | null
+    gatewayOrderId: string | null
+    gatewayPaymentId: string | null
+    createdById: string | null
+    paidAt: string | null
+    createdAt: string
+    updatedAt: string
+}
+
+export type CreateTenantPaymentPayload = {
+    amount: number // paise
+    currency?: string
+    planLabel?: string
+    periodStart?: string
+    periodEnd?: string
+    description?: string
+}
+
+export const listTenantPayments = async (tenantId: string): Promise<TenantPayment[]> => {
+    const { data } = await api.get<Envelope<TenantPayment[]>>(`/tenants/${tenantId}/payments`)
+    return data.data
+}
+
+export const createTenantPayment = async (tenantId: string, payload: CreateTenantPaymentPayload): Promise<TenantPayment> => {
+    const { data } = await api.post<Envelope<TenantPayment>>(`/tenants/${tenantId}/payments`, payload)
+    return data.data
+}
+
+export const setTenantPaymentStatus = async (tenantId: string, paymentId: string, status: TenantPaymentStatus): Promise<TenantPayment> => {
+    const { data } = await api.patch<Envelope<TenantPayment>>(`/tenants/${tenantId}/payments/${paymentId}/status`, { status })
+    return data.data
+}
+
 // Billing plan settings live in tenant.settings.billing — separate from the
 // Plan column on the tenant row (which is more like a tier name).
 export type BillingPlan = {

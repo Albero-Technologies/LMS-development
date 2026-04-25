@@ -20,6 +20,10 @@ router.get('/', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.li
 router.get('/:id', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.getTenantDetail))
 router.patch('/:id/status', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.setStatus))
 router.post('/:id/reminders', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.sendBillingReminder))
+// Tenant SaaS billing (§4.4 + §10.2). Mounted before the catch-all PATCH /:id.
+router.get('/:id/payments', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.listTenantPayments))
+router.post('/:id/payments', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.createTenantPayment))
+router.patch('/:id/payments/:paymentId/status', requireAuth, requireRole(Role.SUPER_ADMIN), asyncHandler(ctrl.setTenantPaymentStatus))
 router.patch('/:id', requireAuth, requireRole(Role.SUPER_ADMIN), validate(updateTenantBrandingSchema), asyncHandler(ctrl.updateTenantById))
 
 export default router

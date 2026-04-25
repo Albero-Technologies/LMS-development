@@ -25,18 +25,22 @@ import { Badge } from '@shared/components/ui/Badge'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
 import { Input, Textarea } from '@shared/components/ui/Input'
+import { Modal } from '@shared/components/ui/Modal'
 import { Select } from '@shared/components/ui/Select'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { useAuthStore } from '@shared/stores/authStore'
 import {
     FEATURE_FLAGS,
+    createTenantPayment,
     getTenantDetail,
     isFeatureEnabled,
+    listTenantPayments,
     readBillingPlan,
     readContacts,
     readFeatureFlags,
     readNotes,
     sendBillingReminder,
+    setTenantPaymentStatus,
     setTenantStatus,
     updateTenantById,
     type BillingPlan,
@@ -45,6 +49,7 @@ import {
     type TenantContacts,
     type TenantDetail,
     type TenantNote,
+    type TenantPaymentStatus,
     type TenantSettings,
     type TenantStatus
 } from '../services/tenant.service'
@@ -55,12 +60,13 @@ const STATUS_TONE: Record<TenantStatus, 'ok' | 'warn' | 'default'> = {
     SUSPENDED: 'default'
 }
 
-type Tab = 'overview' | 'features' | 'billing' | 'contacts' | 'notes'
+type Tab = 'overview' | 'features' | 'billing' | 'payments' | 'contacts' | 'notes'
 
 const TAB_DEFS = [
     { value: 'overview' as const, label: 'Overview' },
     { value: 'features' as const, label: 'Features' },
     { value: 'billing' as const, label: 'Billing' },
+    { value: 'payments' as const, label: 'Payments' },
     { value: 'contacts' as const, label: 'Contacts' },
     { value: 'notes' as const, label: 'Notes' }
 ]
@@ -173,6 +179,7 @@ export const TenantDetailPage = () => {
                     queryKey={['tenants', id]}
                 />
             )}
+            {tab === 'payments' && <PaymentsTab tenantId={id} />}
             {tab === 'contacts' && (
                 <ContactsTab
                     tenant={tenant}
@@ -255,10 +262,11 @@ const OverviewTab = ({ tenant }: { tenant: TenantDetail }) => (
 
         <Card className="lg:col-span-3">
             <h3 className="text-sm font-semibold text-fg mb-1">Coming next</h3>
-            <p className="text-xs text-fg-muted mb-3">Environment (per-tenant credentials) and Payments tabs land in a follow-up batch.</p>
+            <p className="text-xs text-fg-muted mb-3">
+                Environment (per-tenant credentials) lands in the next batch alongside the tenant-side Razorpay checkout.
+            </p>
             <div className="flex flex-wrap gap-2 text-xs text-fg-soft">
                 <span className="px-2 py-1 rounded border border-dashed">Environment (coming)</span>
-                <span className="px-2 py-1 rounded border border-dashed">Payments (coming)</span>
                 <Link
                     to="/app/audit-logs"
                     className="px-2 py-1 rounded border hover:bg-surface-hover text-[var(--color-brand-500)]">
@@ -549,6 +557,329 @@ const BillingTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: read
                 </div>
             </Card>
         </div>
+    )
+}
+
+// -----------------------------------------------------------------------------
+// Payments tab — SaaS billing records (platform invoicing the tenant). §4.4 + §10.2.
+// SA can issue an invoice; tenant-side Razorpay checkout lands in the next batch.
+// For now SA can also manually flip status (e.g. wire transfer reconciliation).
+// -----------------------------------------------------------------------------
+
+const PAYMENT_STATUS_TONE: Record<TenantPaymentStatus, 'ok' | 'warn' | 'danger' | 'default'> = {
+    PAID: 'ok',
+    PENDING: 'warn',
+    FAILED: 'danger',
+    CANCELLED: 'default',
+    REFUNDED: 'default'
+}
+
+const fmtCurrency = (paise: number, currency: string): string => {
+    if (currency === 'INR') return `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    return `${currency} ${(paise / 100).toFixed(2)}`
+}
+
+const PaymentsTab = ({ tenantId }: { tenantId: string }) => {
+    const queryClient = useQueryClient()
+    const [createOpen, setCreateOpen] = useState(false)
+
+    const paymentsQuery = useQuery({
+        queryKey: ['tenants', tenantId, 'payments'],
+        queryFn: () => listTenantPayments(tenantId),
+        staleTime: 30_000
+    })
+
+    const createMutation = useMutation({
+        mutationFn: (payload: {
+            amountRupees: number
+            currency: string
+            planLabel?: string
+            periodStart?: string
+            periodEnd?: string
+            description?: string
+        }) =>
+            createTenantPayment(tenantId, {
+                amount: Math.round(payload.amountRupees * 100),
+                currency: payload.currency,
+                planLabel: payload.planLabel,
+                periodStart: payload.periodStart ? new Date(payload.periodStart).toISOString() : undefined,
+                periodEnd: payload.periodEnd ? new Date(payload.periodEnd).toISOString() : undefined,
+                description: payload.description
+            }),
+        onSuccess: () => {
+            toast.success('Payment record created')
+            void queryClient.invalidateQueries({ queryKey: ['tenants', tenantId, 'payments'] })
+            setCreateOpen(false)
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not create payment')
+    })
+
+    const statusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string; status: TenantPaymentStatus }) => setTenantPaymentStatus(tenantId, id, status),
+        onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['tenants', tenantId, 'payments'] }),
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not update status')
+    })
+
+    const payments = paymentsQuery.data ?? []
+    const paidTotal = payments.filter((p) => p.status === 'PAID').reduce((n, p) => n + p.amount, 0)
+    const pendingTotal = payments.filter((p) => p.status === 'PENDING').reduce((n, p) => n + p.amount, 0)
+
+    return (
+        <div className="space-y-4">
+            <div className="grid sm:grid-cols-3 gap-3">
+                <SummaryCard
+                    label="Paid (lifetime)"
+                    value={fmtCurrency(paidTotal, 'INR')}
+                />
+                <SummaryCard
+                    label="Pending"
+                    value={fmtCurrency(pendingTotal, 'INR')}
+                />
+                <Card className="!p-4 flex items-center justify-end">
+                    <Button
+                        size="sm"
+                        leftIcon={<Plus size={12} />}
+                        onClick={() => setCreateOpen(true)}>
+                        New invoice
+                    </Button>
+                </Card>
+            </div>
+
+            {paymentsQuery.isLoading ? (
+                <Card>
+                    <Skeleton className="h-5 w-1/3 mb-2" />
+                    <Skeleton className="h-5 w-2/3" />
+                </Card>
+            ) : payments.length === 0 ? (
+                <Empty
+                    icon={<Mail size={32} />}
+                    title="No SaaS billing records yet"
+                    description="Create the first invoice to bill the tenant for their subscription."
+                />
+            ) : (
+                <Card padded={false}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
+                                    <th className="py-3 px-5">Created</th>
+                                    <th className="py-3 px-5">Plan / period</th>
+                                    <th className="py-3 px-5">Amount</th>
+                                    <th className="py-3 px-5">Status</th>
+                                    <th className="py-3 px-5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                                {payments.map((p) => (
+                                    <tr
+                                        key={p.id}
+                                        className="hover:bg-surface-hover">
+                                        <td className="py-3 px-5 text-xs text-fg-muted">{new Date(p.createdAt).toLocaleDateString()}</td>
+                                        <td className="py-3 px-5">
+                                            <div className="text-fg">{p.planLabel ?? '—'}</div>
+                                            {(p.periodStart || p.periodEnd) && (
+                                                <div className="text-xs text-fg-muted">
+                                                    {p.periodStart ? new Date(p.periodStart).toLocaleDateString() : '?'} →{' '}
+                                                    {p.periodEnd ? new Date(p.periodEnd).toLocaleDateString() : '?'}
+                                                </div>
+                                            )}
+                                            {p.description && <div className="text-xs text-fg-soft mt-0.5 line-clamp-1">{p.description}</div>}
+                                        </td>
+                                        <td className="py-3 px-5 font-mono text-sm">{fmtCurrency(p.amount, p.currency)}</td>
+                                        <td className="py-3 px-5">
+                                            <Badge tone={PAYMENT_STATUS_TONE[p.status]}>{p.status}</Badge>
+                                            {p.paidAt && (
+                                                <div className="text-[10px] text-fg-muted mt-0.5">Paid {new Date(p.paidAt).toLocaleDateString()}</div>
+                                            )}
+                                        </td>
+                                        <td className="py-3 px-5 text-right">
+                                            {p.status === 'PENDING' && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        loading={statusMutation.isPending && statusMutation.variables?.id === p.id}
+                                                        onClick={() => statusMutation.mutate({ id: p.id, status: 'PAID' })}>
+                                                        Mark paid
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => {
+                                                            if (window.confirm('Cancel this invoice?'))
+                                                                statusMutation.mutate({ id: p.id, status: 'CANCELLED' })
+                                                        }}
+                                                        className="!text-[var(--color-danger)]">
+                                                        Cancel
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {p.status === 'PAID' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => {
+                                                        if (window.confirm('Mark as refunded?'))
+                                                            statusMutation.mutate({ id: p.id, status: 'REFUNDED' })
+                                                    }}>
+                                                    Refund
+                                                </Button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
+
+            <CreatePaymentModal
+                open={createOpen}
+                onClose={() => setCreateOpen(false)}
+                onSubmit={(payload) => createMutation.mutate(payload)}
+                isPending={createMutation.isPending}
+            />
+        </div>
+    )
+}
+
+const SummaryCard = ({ label, value }: { label: string; value: string }) => (
+    <Card className="!p-4">
+        <div className="text-xs text-fg-muted">{label}</div>
+        <div className="mt-1 font-mono text-2xl font-semibold text-fg">{value}</div>
+    </Card>
+)
+
+const CreatePaymentModal = ({
+    open,
+    onClose,
+    onSubmit,
+    isPending
+}: {
+    open: boolean
+    onClose: () => void
+    onSubmit: (payload: {
+        amountRupees: number
+        currency: string
+        planLabel?: string
+        periodStart?: string
+        periodEnd?: string
+        description?: string
+    }) => void
+    isPending: boolean
+}) => {
+    const [amountRupees, setAmountRupees] = useState('')
+    const [currency, setCurrency] = useState('INR')
+    const [planLabel, setPlanLabel] = useState('')
+    const [periodStart, setPeriodStart] = useState('')
+    const [periodEnd, setPeriodEnd] = useState('')
+    const [description, setDescription] = useState('')
+
+    const reset = () => {
+        setAmountRupees('')
+        setCurrency('INR')
+        setPlanLabel('')
+        setPeriodStart('')
+        setPeriodEnd('')
+        setDescription('')
+    }
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault()
+        const n = Number(amountRupees)
+        if (!Number.isFinite(n) || n <= 0) return
+        onSubmit({
+            amountRupees: n,
+            currency,
+            planLabel: planLabel.trim() || undefined,
+            periodStart: periodStart || undefined,
+            periodEnd: periodEnd || undefined,
+            description: description.trim() || undefined
+        })
+    }
+
+    return (
+        <Modal
+            open={open}
+            onClose={() => {
+                reset()
+                onClose()
+            }}
+            title="New SaaS invoice"
+            description="Issues a billing record for this tenant. Razorpay payment flow lands in the next batch — for now you can mark wire transfers as paid manually."
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={() => {
+                            reset()
+                            onClose()
+                        }}>
+                        Cancel
+                    </Button>
+                    <Button
+                        form="new-tp-form"
+                        type="submit"
+                        loading={isPending}
+                        disabled={!amountRupees || Number(amountRupees) <= 0}>
+                        Create
+                    </Button>
+                </>
+            }>
+            <form
+                id="new-tp-form"
+                onSubmit={submit}
+                className="space-y-4">
+                <div className="grid grid-cols-[2fr_1fr] gap-3">
+                    <Input
+                        label="Amount"
+                        type="number"
+                        min={1}
+                        required
+                        value={amountRupees}
+                        onChange={(e) => setAmountRupees(e.target.value)}
+                        placeholder="2999"
+                    />
+                    <Select
+                        label="Currency"
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}>
+                        <option value="INR">INR</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                    </Select>
+                </div>
+                <Input
+                    label="Plan label (optional)"
+                    value={planLabel}
+                    onChange={(e) => setPlanLabel(e.target.value)}
+                    placeholder="e.g. GROWTH · monthly"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                    <Input
+                        label="Period start"
+                        type="date"
+                        value={periodStart}
+                        onChange={(e) => setPeriodStart(e.target.value)}
+                    />
+                    <Input
+                        label="Period end"
+                        type="date"
+                        value={periodEnd}
+                        onChange={(e) => setPeriodEnd(e.target.value)}
+                    />
+                </div>
+                <Textarea
+                    label="Description (optional)"
+                    rows={2}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Internal notes or line-item description for the invoice."
+                />
+            </form>
+        </Modal>
     )
 }
 
