@@ -65,30 +65,6 @@ export const me = (req: Request, res: Response): void => {
     httpResponse(req, res, 200, responseMessage.SUCCESS, { user: req.auth })
 }
 
-export const googleStart = (req: Request, res: Response): void => {
-    const tenantSlug = (req.query.tenantSlug as string) || undefined
-    const url = service.googleAuthUrl(tenantSlug)
-    res.redirect(url)
-}
-
-export const googleCallback = async (req: Request, res: Response): Promise<void> => {
-    const code = (req.query.code as string) || (req.body as { code?: string })?.code
-    const state = (req.query.state as string) || (req.body as { state?: string })?.state
-    if (!code) {
-        httpResponse(req, res, 400, 'Missing authorization code')
-        return
-    }
-    const result = await service.googleCallback({ code, state }, req)
-    setRefreshCookie(res, result.refreshToken)
-
-    if (config.GOOGLE_POST_LOGIN_REDIRECT) {
-        const sep = config.GOOGLE_POST_LOGIN_REDIRECT.includes('?') ? '&' : '?'
-        res.redirect(`${config.GOOGLE_POST_LOGIN_REDIRECT}${sep}accessToken=${encodeURIComponent(result.accessToken)}`)
-        return
-    }
-    httpResponse(req, res, 200, responseMessage.SUCCESS, { user: result.user, accessToken: result.accessToken })
-}
-
 export const acceptInvite = async (req: Request, res: Response): Promise<void> => {
     const result = await service.acceptInvite(req.body, req)
     setRefreshCookie(res, result.refreshToken)

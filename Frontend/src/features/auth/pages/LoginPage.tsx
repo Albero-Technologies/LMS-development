@@ -115,19 +115,6 @@ export const LoginPage = () => {
                     Sign in
                 </Button>
             </form>
-
-            <div className="flex items-center gap-3 my-6 text-xs text-fg-muted">
-                <span className="flex-1 h-px bg-[var(--color-border)]" />
-                OR
-                <span className="flex-1 h-px bg-[var(--color-border)]" />
-            </div>
-            <Button
-                variant="ghost"
-                size="lg"
-                className="w-full"
-                onClick={() => toast.info('Google OAuth — wire up in auth.service.ts once GOOGLE_CLIENT_ID is set')}>
-                Continue with Google
-            </Button>
         </AuthShell>
     )
 }

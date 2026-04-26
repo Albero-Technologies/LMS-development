@@ -41,11 +41,6 @@ export default {
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || undefined,
     COOKIE_SECURE: bool('COOKIE_SECURE', false),
 
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
-    GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || '',
-    GOOGLE_POST_LOGIN_REDIRECT: process.env.GOOGLE_POST_LOGIN_REDIRECT || '',
-
     // Nodemailer (default transport: Gmail App Password). For generic SMTP set
     // NODEMAILER_HOST + NODEMAILER_PORT + NODEMAILER_SECURE; otherwise the Gmail
     // service shorthand is used. Leave NODEMAILER_MAIL/PASS blank in dev to log

@@ -12,7 +12,7 @@ Express + TypeScript API server for LearnHub LMS, multi-tenant from day 0.
 
 | Module          | Epic   | Responsibilities                                                              |
 | --------------- | ------ | ----------------------------------------------------------------------------- |
-| `auth`          | E1     | Email/password + Google OAuth, JWT rotation, invite acceptance                |
+| `auth`          | E1     | Email/password, JWT rotation, invite acceptance                               |
 | `tenants`       | E10    | Tenant create (SUPER_ADMIN), branding, settings                               |
 | `users`         | E1     | User CRUD, role invites, 7-role policy                                        |
 | `courses`       | E2     | Courses, sections, YouTube-embedded lessons, progress tracking                |
@@ -157,7 +157,7 @@ Relaxed profiles for `test/` and `prisma/seed.ts`.
 - **Types:** `feat`, `fix`, `docs`, `chore`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `revert`, `security`
 - **Scopes (warn-only):** `auth`, `users`, `tenants`, `courses`, `lessons`, `enrollments`, `payments`, `quizzes`, `batches`, `leads`, `tickets`, `notifications`, `dashboards`, `uploads`, `docs`, `webhooks`, `infra`, `docker`, `nginx`, `ci`, `deps`, `db`, `prisma`, `config`, `security`, `release`, `repo`
 - Subject: 5–80 chars, no trailing period, not PascalCase/UPPER-CASE
-- Example: `feat(auth): add Google OAuth callback handler`
+- Example: `feat(auth): rotate refresh tokens on every refresh`
 
 ---
 
@@ -189,8 +189,6 @@ POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
 POST   /api/v1/auth/invites/accept
 GET    /api/v1/auth/me
-GET    /api/v1/auth/google
-GET    /api/v1/auth/google/callback
 
 POST   /api/v1/tenants                      (SUPER_ADMIN)
 GET    /api/v1/tenants/me

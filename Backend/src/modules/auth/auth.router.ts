@@ -24,7 +24,4 @@ router.post('/invites/accept', validate(acceptInviteSchema), asyncHandler(ctrl.a
 
 router.get('/me', requireAuth, ctrl.me)
 
-router.get('/google', ctrl.googleStart)
-router.get('/google/callback', asyncHandler(ctrl.googleCallback))
-
 export default router

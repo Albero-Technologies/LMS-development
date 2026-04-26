@@ -5,19 +5,11 @@ import responseMessage from '../../constant/responseMessage'
 import { comparePassword, hashPassword } from '../../util/password'
 import { hashToken, randomToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../../util/tokens'
 import config from '../../config/config'
-import { OAuth2Client } from 'google-auth-library'
-import { type TAcceptInviteInput, type TGoogleCodeInput, type TLoginInput, type TRegisterInput } from './auth.schema'
+import { type TAcceptInviteInput, type TLoginInput, type TRegisterInput } from './auth.schema'
 import { authLimiter } from '../../config/rateLimiter'
 import { writeAudit } from '../../util/audit'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 import type { Request } from 'express'
-
-const googleClient = () =>
-    new OAuth2Client({
-        clientId: config.GOOGLE_CLIENT_ID,
-        clientSecret: config.GOOGLE_CLIENT_SECRET,
-        redirectUri: config.GOOGLE_REDIRECT_URI
-    })
 
 interface TTokenBundle {
     accessToken: string
@@ -186,89 +178,6 @@ export const logout = async (refreshToken: string | undefined, userId: string) =
         // Revoke all active sessions.
         await db.client.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } })
     }
-}
-
-export const googleAuthUrl = (tenantSlug?: string): string => {
-    const client = googleClient()
-    const state = tenantSlug ? Buffer.from(JSON.stringify({ tenantSlug })).toString('base64url') : undefined
-    return client.generateAuthUrl({
-        access_type: 'offline',
-        prompt: 'consent',
-        scope: ['openid', 'email', 'profile'],
-        state
-    })
-}
-
-export const googleCallback = async (input: TGoogleCodeInput, req: Request) => {
-    if (!config.GOOGLE_CLIENT_ID) throw AppError.badRequest('Google OAuth not configured', 'GOOGLE_DISABLED')
-
-    const client = googleClient()
-    const { tokens } = await client.getToken(input.code).catch(() => {
-        throw AppError.badRequest('Failed to exchange Google code', 'GOOGLE_CODE_INVALID')
-    })
-    if (!tokens.id_token) throw AppError.badRequest('Google did not return id_token', 'GOOGLE_NO_ID_TOKEN')
-
-    const ticket = await client.verifyIdToken({ idToken: tokens.id_token, audience: config.GOOGLE_CLIENT_ID })
-    const payload = ticket.getPayload()
-    if (!payload?.email) throw AppError.badRequest('Google profile missing email', 'GOOGLE_NO_EMAIL')
-
-    let tenantSlug: string | undefined
-    if (input.state) {
-        try {
-            const parsed = JSON.parse(Buffer.from(input.state, 'base64url').toString('utf8'))
-            tenantSlug = parsed.tenantSlug
-        } catch {
-            /* ignore */
-        }
-    }
-
-    const tenant = tenantSlug ? await findTenantBySlug(tenantSlug) : null
-
-    // Prefer match by googleSub → email within tenant → create new student in tenant.
-    let user = await db.client.user.findFirst({ where: { googleSub: payload.sub, deletedAt: null } })
-    if (!user && tenant) {
-        user = await db.client.user.findUnique({
-            where: { tenantId_email: { tenantId: tenant.id, email: payload.email.toLowerCase() } }
-        })
-        if (user && !user.googleSub) {
-            user = await db.client.user.update({
-                where: { id: user.id },
-                data: { googleSub: payload.sub, provider: AuthProvider.GOOGLE, emailVerified: true }
-            })
-        }
-    }
-    if (!user) {
-        if (!tenant) throw AppError.badRequest('tenantSlug is required for first-time Google sign-in', 'TENANT_REQUIRED')
-        user = await db.client.user.create({
-            data: {
-                tenantId: tenant.id,
-                email: payload.email.toLowerCase(),
-                googleSub: payload.sub,
-                provider: AuthProvider.GOOGLE,
-                firstName: payload.given_name || 'User',
-                lastName: payload.family_name || '',
-                avatarUrl: payload.picture,
-                role: Role.STUDENT,
-                emailVerified: true,
-                status: UserStatus.ACTIVE
-            }
-        })
-        await notifyQueue.add(NOTIFY_JOB, {
-            tenantId: tenant.id,
-            userId: user.id,
-            template: 'welcome',
-            data: { firstName: user.firstName }
-        })
-    }
-
-    await db.client.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
-    await writeAudit({ action: 'auth.google_login', entityType: 'User', entityId: user.id, tenantId: user.tenantId, userId: user.id }, req)
-
-    const bundle = await issueTokens(user, {
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent']
-    })
-    return { user: sanitize(user), ...bundle }
 }
 
 export const acceptInvite = async (input: TAcceptInviteInput, req: Request) => {

@@ -41,7 +41,7 @@ mobile app talk to.
 
 **Phase 1** is a single Node.js process (a "monolith") that handles:
 
-- Authentication (email/password + Google)
+- Authentication (email/password)
 - Courses, lessons, quizzes, enrollments
 - Payments (Razorpay) with GST invoices (Zoho Books)
 - Support tickets, lead pipeline (for sales/counsellors)
@@ -472,7 +472,7 @@ Backend/
 │   │   └── requestId.ts
 │   │
 │   ├── modules/               ← ★ one folder per feature area
-│   │   ├── auth/              ← login, register, refresh, Google, invites
+│   │   ├── auth/              ← login, register, refresh, invites
 │   │   ├── tenants/
 │   │   ├── users/
 │   │   ├── courses/           ← courses, sections, lessons, progress

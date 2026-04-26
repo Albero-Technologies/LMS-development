@@ -14,7 +14,7 @@ const spec = {
     },
     servers: [{ url: `${config.SERVER_URL}/api/v1`, description: config.ENV }],
     tags: [
-        { name: 'Auth', description: 'Login, register, refresh, Google OAuth, invite accept' },
+        { name: 'Auth', description: 'Login, register, refresh, invite accept' },
         { name: 'Tenants', description: 'Tenant create + branding' },
         { name: 'Users', description: 'User CRUD + invitations' },
         { name: 'Courses', description: 'Course + section + lesson management, progress' },
@@ -220,12 +220,6 @@ const spec = {
         },
         '/auth/logout': { post: { tags: ['Auth'], summary: 'Revoke refresh session', responses: { '200': { description: 'OK' } } } },
         '/auth/me': { get: { tags: ['Auth'], summary: 'Decoded current user', responses: { '200': { description: 'OK' } } } },
-        '/auth/google': {
-            get: { tags: ['Auth'], summary: 'Begin Google OAuth flow', security: [], responses: { '302': { description: 'Redirect to Google' } } }
-        },
-        '/auth/google/callback': {
-            get: { tags: ['Auth'], summary: 'Google OAuth callback', security: [], responses: { '200': { description: 'OK' } } }
-        },
         '/auth/invites/accept': {
             post: {
                 tags: ['Auth'],

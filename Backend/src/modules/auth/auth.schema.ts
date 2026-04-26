@@ -23,11 +23,6 @@ export const refreshSchema = z.object({
     refreshToken: z.string().min(10).optional()
 })
 
-export const googleCodeSchema = z.object({
-    code: z.string().min(10),
-    state: z.string().optional()
-})
-
 export const acceptInviteSchema = z.object({
     token: z.string().min(10),
     password: z
@@ -43,5 +38,4 @@ export const acceptInviteSchema = z.object({
 export type TLoginInput = z.infer<typeof loginSchema>
 export type TRegisterInput = z.infer<typeof registerSchema>
 export type TRefreshInput = z.infer<typeof refreshSchema>
-export type TGoogleCodeInput = z.infer<typeof googleCodeSchema>
 export type TAcceptInviteInput = z.infer<typeof acceptInviteSchema>
