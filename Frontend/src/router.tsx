@@ -32,6 +32,8 @@ import { QuizBuilderPage } from '@features/quizzes/pages/QuizBuilderPage'
 import { TakeQuizPage } from '@features/quizzes/pages/TakeQuizPage'
 import { BatchesPage } from '@features/batches/pages/BatchesPage'
 import { StudentBatchesPage } from '@features/batches/pages/StudentBatchesPage'
+import { AssignmentsPage } from '@features/assignments/pages/AssignmentsPage'
+import { AssignmentDetailPage } from '@features/assignments/pages/AssignmentDetailPage'
 import { UsersPage } from '@features/users/pages/UsersPage'
 import { EnrollmentsPage } from '@features/enrollments/pages/EnrollmentsPage'
 import { PaymentsPage } from '@features/payments/pages/PaymentsPage'
@@ -311,6 +313,11 @@ export const router = createBrowserRouter([
                 )
             },
             { path: 'student/batches', element: <StudentBatchesPage /> },
+
+            // Assignments — list + detail. Service layer filters by role
+            // (students only see published, staff sees everything in tenant).
+            { path: 'assignments', element: <AssignmentsPage /> },
+            { path: 'assignments/:id', element: <AssignmentDetailPage /> },
 
             // Users
             {

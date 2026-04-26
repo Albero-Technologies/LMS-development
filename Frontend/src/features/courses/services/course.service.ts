@@ -64,6 +64,29 @@ export const createCourse = async (body: Partial<TCourse>): Promise<TCourse> => 
     return data.data
 }
 
+// Per-lesson progress mark — "I watched/read this lesson". Backend persists
+// the mark + recomputes course-level progressPct on the enrolment so the
+// student's "% complete" stays in sync. Idempotent: re-marking is a no-op
+// server-side.
+export type LessonProgressInput = { watchedSec?: number; completed?: boolean }
+
+export type LessonProgressResult = {
+    progress: { lessonId: string; enrollmentId: string; watchedSec: number; completed: boolean; completedAt: string | null }
+    enrollmentProgressPct: number
+}
+
+export const updateLessonProgress = async (
+    courseId: string,
+    lessonId: string,
+    input: LessonProgressInput
+): Promise<LessonProgressResult> => {
+    const { data } = await api.post<Envelope<LessonProgressResult>>(
+        `/courses/${courseId}/lessons/${lessonId}/progress`,
+        input
+    )
+    return data.data
+}
+
 // Format paise → "Free" / "₹1,499" / "USD 49.00".
 export const formatCoursePrice = (paise: number, currency = 'INR'): string => {
     if (!paise) return 'Free'

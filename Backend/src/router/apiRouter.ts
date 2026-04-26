@@ -22,6 +22,7 @@ import auditRouter from '../modules/audit/audit.router'
 import mediaRouter from '../modules/media/media.router'
 import cmsRouter from '../modules/cms/cms.router'
 import seoRouter from '../modules/seo/seo.router'
+import assignmentRouter from '../modules/assignments/assignment.router'
 import swaggerRouter from '../docs/swagger'
 
 const router = Router()
@@ -36,6 +37,7 @@ router.use('/users', userRouter)
 router.use('/courses', courseRouter)
 router.use('/enrollments', enrollmentRouter)
 router.use('/quizzes', quizRouter)
+router.use('/assignments', assignmentRouter)
 router.use('/batches', batchRouter)
 router.use('/counsellor', counsellorInviteRouter)
 router.use('/counsellor', counsellorManagementRouter)

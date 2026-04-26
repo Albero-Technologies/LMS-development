@@ -14,6 +14,8 @@ export type TModule =
     | 'payment'
     | 'quiz'
     | 'quiz_attempt'
+    | 'assignment'
+    | 'assignment_submission'
     | 'batch'
     | 'counsellor_invite'
     | 'counsellor_target'
@@ -67,6 +69,17 @@ export const POLICY: TPolicy = {
     quiz_attempt: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT],
         write: [Role.SUPER_ADMIN, Role.ADMIN, Role.STUDENT]
+    },
+    assignment: {
+        // Trainer/admin author + grade. Students read so they can see the brief.
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT],
+        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER]
+    },
+    assignment_submission: {
+        // Students submit; staff read everything (their own listings filter
+        // to "for assignments I authored / for my courses").
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT],
+        write: [Role.STUDENT]
     },
     batch: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.SUPPORT],

@@ -9,7 +9,8 @@
 // a separate piece of work.
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Play, CheckCircle2, Circle, ArrowLeft, Youtube, Wrench, FileText, LinkIcon, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -21,7 +22,8 @@ import { cn } from '@shared/helpers/cn'
 import { YouTubePlayer } from '../components/YouTubePlayer'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
-import { getCourse, type TLesson, type TSection } from '../services/course.service'
+import { getCourse, updateLessonProgress, type TLesson, type TSection } from '../services/course.service'
+import { listMyEnrollments } from '../services/enrollment.service'
 
 const LESSON_ICON: Record<string, typeof Youtube> = {
     YOUTUBE: Youtube,
@@ -31,6 +33,7 @@ const LESSON_ICON: Record<string, typeof Youtube> = {
 
 export const CourseDetailPage = () => {
     const { id = '' } = useParams()
+    const queryClient = useQueryClient()
     const courseQuery = useQuery({
         queryKey: ['courses', id],
         queryFn: () => getCourse(id),
@@ -42,6 +45,21 @@ export const CourseDetailPage = () => {
 
     const user = useAuthStore((s) => s.user)
     const canEdit = user && [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TRAINER].includes(user.role as never)
+    const isStudent = user?.role === ROLES.STUDENT
+
+    // Pull this student's enrolment so we know whether they own the course +
+    // can credit progress against their enrolment record. Skipped for
+    // staff (they're previewing, not learning).
+    const enrollmentsQuery = useQuery({
+        queryKey: ['enrollments', 'mine'],
+        queryFn: listMyEnrollments,
+        staleTime: 30_000,
+        enabled: !!isStudent
+    })
+    const myEnrollment = useMemo(
+        () => (enrollmentsQuery.data ?? []).find((e) => e.courseId === id) ?? null,
+        [enrollmentsQuery.data, id]
+    )
 
     const sections: TSection[] = course?.sections ?? []
     const flatLessons = useMemo(
@@ -55,6 +73,22 @@ export const CourseDetailPage = () => {
         if (!activeLesson && flatLessons.length > 0) setActiveLesson(flatLessons[0])
     }, [activeLesson, flatLessons])
 
+    // Local set of lesson ids the student has completed in this session.
+    // Seeds from the enrolment's stored progressPct on first load (we don't
+    // have per-lesson completion in the GET payload yet, so the seed is best-
+    // effort: fill the *first N* lessons proportional to progressPct so the
+    // tick marks line up with the bar). Each successful mark-complete API
+    // call adds the real lesson id, so the set converges to truth as the
+    // student watches.
+    const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+    useEffect(() => {
+        if (!isStudent || !myEnrollment || flatLessons.length === 0) return
+        const target = Math.round((myEnrollment.progressPct / 100) * flatLessons.length)
+        const seeded = new Set<string>()
+        for (let i = 0; i < target; i++) seeded.add(flatLessons[i].lessonId)
+        setCompletedIds(seeded)
+    }, [isStudent, myEnrollment?.progressPct, flatLessons])
+
     const current = activeLesson ?? flatLessons[0] ?? null
     const currentLesson: TLesson | null = useMemo(() => {
         if (!course || !current) return null
@@ -63,12 +97,47 @@ export const CourseDetailPage = () => {
     }, [course, current, sections])
 
     const totalLessons = flatLessons.length
-    // Backend completion tracking is per-lesson but not yet returned in this
-    // payload — show 0% for now and revisit when GET /courses/:id includes
-    // `progress.completedLessonIds` (or similar). Better an honest 0% than a
-    // misleading number from a stale local store.
-    const completedLessons = 0
-    const progress = totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100)
+    const completedLessons = completedIds.size
+    const progress = isStudent
+        ? // For the student, mirror what the server thinks (so the bar matches
+          // the dashboard) but reflect optimistic local marks immediately.
+          Math.max(myEnrollment?.progressPct ?? 0, totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100))
+        : 0
+
+    const markCompleteMutation = useMutation({
+        mutationFn: ({ lessonId, completed }: { lessonId: string; completed: boolean }) =>
+            updateLessonProgress(id, lessonId, { completed }),
+        onMutate: ({ lessonId, completed }) => {
+            // Optimistic — flip the tick immediately so the UI feels instant.
+            setCompletedIds((prev) => {
+                const next = new Set(prev)
+                if (completed) next.add(lessonId)
+                else next.delete(lessonId)
+                return next
+            })
+        },
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ['enrollments', 'mine'] })
+        },
+        onError: (err: unknown, vars) => {
+            // Roll the optimistic mark back on failure.
+            setCompletedIds((prev) => {
+                const next = new Set(prev)
+                if (vars.completed) next.delete(vars.lessonId)
+                else next.add(vars.lessonId)
+                return next
+            })
+            toast.error(err instanceof Error ? err.message : 'Could not save progress')
+        }
+    })
+
+    const isLessonCompleted = (lessonId: string) => completedIds.has(lessonId)
+    const toggleCurrentLessonComplete = () => {
+        if (!current || !currentLesson || !isStudent) return
+        const want = !isLessonCompleted(current.lessonId)
+        markCompleteMutation.mutate({ lessonId: current.lessonId, completed: want })
+        if (want) toast.success('Lesson marked complete')
+    }
 
     if (courseQuery.isLoading) {
         return (
@@ -149,11 +218,29 @@ export const CourseDetailPage = () => {
                                     title={currentLesson.title}
                                     autoplay={false}
                                 />
-                                <div className="p-5">
-                                    <div className="text-xs text-fg-muted font-medium">Now playing</div>
-                                    <div className="text-base font-semibold text-fg">{currentLesson.title}</div>
-                                    {currentLesson.description && (
-                                        <p className="mt-2 text-sm text-fg-soft">{currentLesson.description}</p>
+                                <div className="p-5 flex items-start justify-between gap-3 flex-wrap">
+                                    <div className="min-w-0">
+                                        <div className="text-xs text-fg-muted font-medium">Now playing</div>
+                                        <div className="text-base font-semibold text-fg">{currentLesson.title}</div>
+                                        {currentLesson.description && (
+                                            <p className="mt-2 text-sm text-fg-soft">{currentLesson.description}</p>
+                                        )}
+                                    </div>
+                                    {isStudent && current && (
+                                        <Button
+                                            size="sm"
+                                            variant={isLessonCompleted(current.lessonId) ? 'subtle' : 'primary'}
+                                            leftIcon={
+                                                isLessonCompleted(current.lessonId) ? (
+                                                    <CheckCircle2 size={14} />
+                                                ) : (
+                                                    <Circle size={14} />
+                                                )
+                                            }
+                                            loading={markCompleteMutation.isPending}
+                                            onClick={toggleCurrentLessonComplete}>
+                                            {isLessonCompleted(current.lessonId) ? 'Completed' : 'Mark complete'}
+                                        </Button>
                                     )}
                                 </div>
                             </>
@@ -229,6 +316,7 @@ export const CourseDetailPage = () => {
                                                 {sec.lessons.map((l) => {
                                                     const Icon = LESSON_ICON[l.type] ?? Play
                                                     const isActive = current?.sectionId === sec.id && current.lessonId === l.id
+                                                    const done = isLessonCompleted(l.id)
                                                     return (
                                                         <li
                                                             key={l.id}
@@ -236,10 +324,17 @@ export const CourseDetailPage = () => {
                                                                 'flex items-center gap-3 px-3 py-2.5 transition-colors',
                                                                 isActive && 'bg-[var(--color-brand-50)]'
                                                             )}>
-                                                            <Circle
-                                                                size={16}
-                                                                className="text-fg-muted shrink-0"
-                                                            />
+                                                            {done ? (
+                                                                <CheckCircle2
+                                                                    size={16}
+                                                                    className="text-[var(--color-success)] shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <Circle
+                                                                    size={16}
+                                                                    className="text-fg-muted shrink-0"
+                                                                />
+                                                            )}
                                                             <Icon
                                                                 size={14}
                                                                 className="text-fg-muted shrink-0"
