@@ -3,10 +3,11 @@
 //   centered → logo + links centred (logo above)
 //   with-cta → logo · links · CTA button (most marketing-friendly)
 //
-// Link targets resolve via the page list: a NavLink with `pageId` becomes
-// /t/<slug><page.slug>; with `url` becomes the literal URL (relative paths
-// resolve under /t/<slug>/).
-import { Link } from 'react-router-dom'
+// Mobile (< md) collapses every variant to a hamburger sheet that drops down
+// from the header. Desktop layout is unchanged.
+import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import type { LandingPage, NavLink, NavbarConfig } from '@features/admin/services/tenant.service'
@@ -48,17 +49,33 @@ const Brand = ({ tenant, slugBase }: { tenant: Props['tenant']; slugBase: string
     </Link>
 )
 
-const NavLinkItem = ({ link, pages, slugBase }: { link: NavLink; pages: LandingPage[]; slugBase: string }) => {
+const NavLinkItem = ({
+    link,
+    pages,
+    slugBase,
+    onNavigate,
+    fullWidth
+}: {
+    link: NavLink
+    pages: LandingPage[]
+    slugBase: string
+    onNavigate?: () => void
+    fullWidth?: boolean
+}) => {
     const href = resolveHref(link, pages, slugBase)
     const isExternal = /^https?:\/\//.test(href)
     const target = link.newTab || isExternal ? '_blank' : undefined
+    const cls = fullWidth
+        ? 'block w-full text-base text-fg-soft hover:text-fg transition-colors py-2 border-b border-[var(--color-border)]'
+        : 'text-sm text-fg-soft hover:text-fg transition-colors'
     if (isExternal || target === '_blank') {
         return (
             <a
                 href={href}
                 target={target}
                 rel={target === '_blank' ? 'noreferrer' : undefined}
-                className="text-sm text-fg-soft hover:text-fg transition-colors">
+                onClick={onNavigate}
+                className={cls}>
                 {link.label}
             </a>
         )
@@ -66,40 +83,141 @@ const NavLinkItem = ({ link, pages, slugBase }: { link: NavLink; pages: LandingP
     return (
         <Link
             to={href}
-            className="text-sm text-fg-soft hover:text-fg transition-colors">
+            onClick={onNavigate}
+            className={cls}>
             {link.label}
         </Link>
     )
 }
 
-const SignInButton = ({ label }: { label: string }) => (
-    <Link to="/login">
+const SignInButton = ({ label, fullWidth }: { label: string; fullWidth?: boolean }) => (
+    <Link
+        to="/login"
+        className={fullWidth ? 'block w-full' : ''}>
         <Button
             size="sm"
-            variant="ghost">
+            variant="ghost"
+            className={fullWidth ? 'w-full justify-start' : ''}>
             {label}
         </Button>
     </Link>
 )
 
-const CtaButton = ({ config, pages, slugBase }: { config: NavbarConfig; pages: LandingPage[]; slugBase: string }) => {
+const CtaButton = ({
+    config,
+    pages,
+    slugBase,
+    fullWidth
+}: {
+    config: NavbarConfig
+    pages: LandingPage[]
+    slugBase: string
+    fullWidth?: boolean
+}) => {
     if (!config.ctaLabel) return null
     const href = resolveHref({ pageId: config.ctaPageId, url: config.ctaUrl }, pages, slugBase)
     const isExternal = /^https?:\/\//.test(href)
+    const inner = (
+        <Button
+            size="sm"
+            className={fullWidth ? 'w-full' : ''}>
+            {config.ctaLabel}
+        </Button>
+    )
     if (isExternal) {
         return (
             <a
                 href={href}
                 target="_blank"
-                rel="noreferrer">
-                <Button size="sm">{config.ctaLabel}</Button>
+                rel="noreferrer"
+                className={fullWidth ? 'block w-full' : ''}>
+                {inner}
             </a>
         )
     }
     return (
-        <Link to={href}>
-            <Button size="sm">{config.ctaLabel}</Button>
+        <Link
+            to={href}
+            className={fullWidth ? 'block w-full' : ''}>
+            {inner}
         </Link>
+    )
+}
+
+// Hamburger toggle — shown only below md. Drops a full-width sheet from under
+// the header with the same nav links + actions stacked vertically. Auto-closes
+// when the route changes so links from inside the sheet don't leave it open.
+const MobileMenu = ({
+    config,
+    pages,
+    slugBase
+}: {
+    config: NavbarConfig
+    pages: LandingPage[]
+    slugBase: string
+}) => {
+    const [open, setOpen] = useState(false)
+    const location = useLocation()
+    useEffect(() => {
+        setOpen(false)
+    }, [location.pathname])
+    // Lock body scroll while the sheet is open so the hero behind doesn't scroll under it.
+    useEffect(() => {
+        if (!open) return
+        const prev = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => {
+            document.body.style.overflow = prev
+        }
+    }, [open])
+    const showSignIn = config.showSignIn !== false
+    return (
+        <>
+            <button
+                type="button"
+                aria-label={open ? 'Close menu' : 'Open menu'}
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+                className="md:hidden p-2 -mr-2 text-fg-muted hover:text-fg transition-colors">
+                {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            {open && (
+                <div
+                    className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-bg/95 backdrop-blur border-t border-[var(--color-border)] overflow-y-auto"
+                    role="dialog"
+                    aria-modal="true">
+                    <div className="px-4 py-4 flex flex-col gap-1">
+                        {config.links.map((l) => (
+                            <NavLinkItem
+                                key={l.id}
+                                link={l}
+                                pages={pages}
+                                slugBase={slugBase}
+                                onNavigate={() => setOpen(false)}
+                                fullWidth
+                            />
+                        ))}
+                        <div className="flex items-center justify-between pt-3 mt-2">
+                            <span className="text-xs text-fg-muted">Theme</span>
+                            <ThemeToggle />
+                        </div>
+                        {(showSignIn || config.variant === 'with-cta') && (
+                            <div className="flex flex-col gap-2 mt-3">
+                                {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
+                                {config.variant === 'with-cta' && (
+                                    <CtaButton
+                                        config={config}
+                                        pages={pages}
+                                        slugBase={slugBase}
+                                        fullWidth
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
     )
 }
 
@@ -110,7 +228,17 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
     if (config.variant === 'centered') {
         return (
             <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/85 backdrop-blur">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col items-center gap-2">
+                {/* Mobile row — brand + hamburger; sheet is rendered inside MobileMenu. */}
+                <div className="md:hidden h-14 px-4 flex items-center justify-between">
+                    {showLogo ? <Brand tenant={tenant} slugBase={slugBase} /> : <span />}
+                    <MobileMenu
+                        config={config}
+                        pages={pages}
+                        slugBase={slugBase}
+                    />
+                </div>
+                {/* Desktop layout — original centered stack. */}
+                <div className="hidden md:flex max-w-6xl mx-auto px-6 py-3 flex-col items-center gap-2">
                     {showLogo && (
                         <Brand
                             tenant={tenant}
@@ -151,7 +279,8 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
                 ) : (
                     <span />
                 )}
-                <div className="flex items-center gap-5 flex-wrap justify-end">
+                {/* Desktop links — hidden under md, replaced by hamburger. */}
+                <div className="hidden md:flex items-center gap-5 flex-wrap justify-end">
                     {config.links.map((l) => (
                         <NavLinkItem
                             key={l.id}
@@ -170,6 +299,11 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
                         />
                     )}
                 </div>
+                <MobileMenu
+                    config={config}
+                    pages={pages}
+                    slugBase={slugBase}
+                />
             </div>
         </header>
     )

@@ -2096,7 +2096,7 @@ const StyleClassEditor = ({
 )
 
 const IdentityFields = ({ site, onChange }: { site: SiteIdentity; onChange: (s: SiteIdentity) => void }) => {
-    const [pickerOpen, setPickerOpen] = useState(false)
+    const [pickerKind, setPickerKind] = useState<null | 'favicon' | 'og'>(null)
     const set = (patch: Partial<SiteIdentity>) => onChange({ ...site, ...patch })
     return (
         <div className="space-y-4">
@@ -2120,7 +2120,7 @@ const IdentityFields = ({ site, onChange }: { site: SiteIdentity; onChange: (s: 
                         size="sm"
                         variant="ghost"
                         leftIcon={<ImageIcon size={12} />}
-                        onClick={() => setPickerOpen(true)}>
+                        onClick={() => setPickerKind('favicon')}>
                         Library
                     </Button>
                 </div>
@@ -2134,15 +2134,49 @@ const IdentityFields = ({ site, onChange }: { site: SiteIdentity; onChange: (s: 
                         <span className="text-xs text-fg-muted">Preview</span>
                     </div>
                 )}
-                <MediaPickerModal
-                    open={pickerOpen}
-                    onClose={() => setPickerOpen(false)}
-                    onPick={(url) => {
-                        set({ faviconUrl: url })
-                        setPickerOpen(false)
-                    }}
-                />
             </div>
+
+            <div>
+                <label className="block text-xs font-medium text-fg-soft mb-1.5">Social share image (Open Graph)</label>
+                <div className="flex items-center gap-2">
+                    <Input
+                        value={site.ogImageUrl ?? ''}
+                        onChange={(e) => set({ ogImageUrl: e.target.value })}
+                        placeholder="https:// …og-banner.png"
+                        className="flex-1"
+                    />
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<ImageIcon size={12} />}
+                        onClick={() => setPickerKind('og')}>
+                        Library
+                    </Button>
+                </div>
+                <p className="mt-1 text-[11px] text-fg-muted">
+                    Shown when your site is linked on WhatsApp, X, LinkedIn, Slack. Recommended 1200×630.
+                </p>
+                {site.ogImageUrl && (
+                    <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] p-1.5">
+                        <img
+                            src={site.ogImageUrl}
+                            alt="OG preview"
+                            className="h-16 w-32 object-cover rounded"
+                        />
+                        <span className="text-xs text-fg-muted pr-2">Preview</span>
+                    </div>
+                )}
+            </div>
+
+            <MediaPickerModal
+                open={pickerKind !== null}
+                onClose={() => setPickerKind(null)}
+                onPick={(url) => {
+                    if (pickerKind === 'favicon') set({ faviconUrl: url })
+                    else if (pickerKind === 'og') set({ ogImageUrl: url })
+                    setPickerKind(null)
+                }}
+            />
         </div>
     )
 }

@@ -363,10 +363,23 @@ const slugify = (s: string): string =>
 
 const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (c: Collection) => void }) => {
     const queryClient = useQueryClient()
+    const [presetId, setPresetId] = useState<CollectionPresetId>('blank')
     const [name, setName] = useState('')
     const [slug, setSlug] = useState('')
     const [description, setDescription] = useState('')
     const [slugTouched, setSlugTouched] = useState(false)
+    const [nameTouched, setNameTouched] = useState(false)
+
+    const preset = COLLECTION_PRESETS[presetId]
+
+    // Picking a preset prefills name/slug — but only if the user hasn't started
+    // typing their own. Editing the preset stays non-destructive that way.
+    const applyPreset = (id: CollectionPresetId) => {
+        setPresetId(id)
+        const p = COLLECTION_PRESETS[id]
+        if (!nameTouched && p.defaultName) setName(p.defaultName)
+        if (!slugTouched && p.defaultSlug) setSlug(p.defaultSlug)
+    }
 
     const mutation = useMutation({
         mutationFn: () =>
@@ -374,16 +387,18 @@ const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClo
                 name: name.trim(),
                 slug: slug.trim(),
                 description: description.trim() || undefined,
-                fields: STARTER_FIELDS
+                fields: preset.fields
             }),
         onSuccess: (c) => {
             toast.success('Collection created — add items now')
             void queryClient.invalidateQueries({ queryKey: ['cms', 'collections'] })
             onCreated(c)
+            setPresetId('blank')
             setName('')
             setSlug('')
             setDescription('')
             setSlugTouched(false)
+            setNameTouched(false)
         },
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not create')
     })
@@ -410,11 +425,25 @@ const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClo
                 </>
             }>
             <div className="space-y-3">
+                <Select
+                    label="Start from"
+                    value={presetId}
+                    onChange={(e) => applyPreset(e.target.value as CollectionPresetId)}
+                    hint={preset.description}>
+                    {(Object.keys(COLLECTION_PRESETS) as CollectionPresetId[]).map((id) => (
+                        <option
+                            key={id}
+                            value={id}>
+                            {COLLECTION_PRESETS[id].label}
+                        </option>
+                    ))}
+                </Select>
                 <Input
                     label="Name"
                     value={name}
                     onChange={(e) => {
                         setName(e.target.value)
+                        setNameTouched(true)
                         if (!slugTouched) setSlug(slugify(e.target.value))
                     }}
                     placeholder="Blog posts"
@@ -435,19 +464,128 @@ const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClo
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                 />
-                <div className="text-[11px] text-fg-muted">
-                    Starter schema: <strong>title</strong>, <strong>summary</strong>, <strong>cover image</strong>. Extend after creating.
+                <div className="rounded-md border border-[var(--color-border)] bg-surface-hover/50 px-3 py-2">
+                    <div className="text-[11px] font-medium text-fg-soft mb-1">Schema preview</div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {preset.fields.map((f) => (
+                            <span
+                                key={f.key}
+                                className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-[11px] text-fg-soft border border-[var(--color-border)]">
+                                {f.label}
+                                <span className="text-fg-muted text-[10px]">· {FIELD_TYPE_LABEL[f.type] ?? f.type}</span>
+                                {f.required && <span className="text-[var(--color-brand-600)] text-[10px]">*</span>}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="mt-1.5 text-[10px] text-fg-muted">Edit fields after creating from the schema editor.</div>
                 </div>
             </div>
         </Modal>
     )
 }
 
-const STARTER_FIELDS: FieldDef[] = [
-    { key: 'title', label: 'Title', type: 'text', required: true },
-    { key: 'summary', label: 'Summary', type: 'longtext' },
-    { key: 'coverImage', label: 'Cover image', type: 'image' }
-]
+// Curated starter schemas. Picking one in the New-collection modal swaps the
+// fields wholesale — tenants can still edit/extend the schema after creation.
+type CollectionPresetId = 'blank' | 'blog' | 'events' | 'team' | 'testimonials' | 'faqs' | 'press'
+
+interface CollectionPreset {
+    label: string
+    description: string
+    defaultName?: string
+    defaultSlug?: string
+    fields: FieldDef[]
+}
+
+const COLLECTION_PRESETS: Record<CollectionPresetId, CollectionPreset> = {
+    blank: {
+        label: 'Blank — title, summary, cover image',
+        description: 'A minimal starter. Add your own fields after creating.',
+        fields: [
+            { key: 'title', label: 'Title', type: 'text', required: true },
+            { key: 'summary', label: 'Summary', type: 'longtext' },
+            { key: 'coverImage', label: 'Cover image', type: 'image' }
+        ]
+    },
+    blog: {
+        label: 'Blog posts',
+        description: 'Title, body, cover image, author, publish date.',
+        defaultName: 'Blog posts',
+        defaultSlug: 'blog',
+        fields: [
+            { key: 'title', label: 'Title', type: 'text', required: true },
+            { key: 'summary', label: 'Summary', type: 'longtext' },
+            { key: 'body', label: 'Body', type: 'richtext' },
+            { key: 'coverImage', label: 'Cover image', type: 'image' },
+            { key: 'author', label: 'Author', type: 'text' },
+            { key: 'publishedAt', label: 'Publish date', type: 'date' }
+        ]
+    },
+    events: {
+        label: 'Events',
+        description: 'Title, date/time, location, description, registration link.',
+        defaultName: 'Events',
+        defaultSlug: 'events',
+        fields: [
+            { key: 'title', label: 'Title', type: 'text', required: true },
+            { key: 'startsAt', label: 'Starts at', type: 'date', required: true },
+            { key: 'location', label: 'Location', type: 'text' },
+            { key: 'mode', label: 'Mode', type: 'select', options: ['Online', 'In-person', 'Hybrid'] },
+            { key: 'summary', label: 'Summary', type: 'longtext' },
+            { key: 'coverImage', label: 'Cover image', type: 'image' },
+            { key: 'registerUrl', label: 'Registration URL', type: 'text' }
+        ]
+    },
+    team: {
+        label: 'Team members',
+        description: 'Name, role, photo, bio, LinkedIn.',
+        defaultName: 'Team',
+        defaultSlug: 'team',
+        fields: [
+            { key: 'name', label: 'Name', type: 'text', required: true },
+            { key: 'role', label: 'Role', type: 'text', required: true },
+            { key: 'photo', label: 'Photo', type: 'image' },
+            { key: 'bio', label: 'Bio', type: 'longtext' },
+            { key: 'linkedin', label: 'LinkedIn URL', type: 'text' }
+        ]
+    },
+    testimonials: {
+        label: 'Testimonials',
+        description: 'Quote, student name, cohort, photo, rating.',
+        defaultName: 'Testimonials',
+        defaultSlug: 'testimonials',
+        fields: [
+            { key: 'quote', label: 'Quote', type: 'longtext', required: true },
+            { key: 'studentName', label: 'Student name', type: 'text', required: true },
+            { key: 'cohort', label: 'Cohort / role', type: 'text' },
+            { key: 'photo', label: 'Photo', type: 'image' },
+            { key: 'rating', label: 'Rating (1-5)', type: 'number' }
+        ]
+    },
+    faqs: {
+        label: 'FAQs',
+        description: 'Question + answer pairs, optional category.',
+        defaultName: 'FAQs',
+        defaultSlug: 'faqs',
+        fields: [
+            { key: 'question', label: 'Question', type: 'text', required: true },
+            { key: 'answer', label: 'Answer', type: 'richtext', required: true },
+            { key: 'category', label: 'Category', type: 'select', options: ['General', 'Admissions', 'Fees', 'Curriculum', 'Placement'] }
+        ]
+    },
+    press: {
+        label: 'Press releases',
+        description: 'Title, source publication, date, body, link to original.',
+        defaultName: 'Press',
+        defaultSlug: 'press',
+        fields: [
+            { key: 'title', label: 'Title', type: 'text', required: true },
+            { key: 'source', label: 'Source publication', type: 'text' },
+            { key: 'publishedAt', label: 'Publish date', type: 'date' },
+            { key: 'summary', label: 'Summary', type: 'longtext' },
+            { key: 'externalUrl', label: 'Original article URL', type: 'text' }
+        ]
+    }
+}
 
 // ---- Schema editor modal ---------------------------------------------------
 

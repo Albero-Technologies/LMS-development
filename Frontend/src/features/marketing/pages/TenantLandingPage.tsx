@@ -66,12 +66,42 @@ export const TenantLandingPage = () => {
             favicon.setAttribute('href', site.faviconUrl)
         }
 
+        // Open Graph image — the social-card preview when the URL is shared on
+        // WhatsApp / Slack / Twitter / LinkedIn. Falls back to the home page's
+        // per-page ogImageUrl if no site-level default is set.
+        const ogImage = site?.ogImageUrl || homePage?.seo?.ogImageUrl
+        let ogTag: HTMLMetaElement | null = null
+        let prevOg: string | null = null
+        let ogTwitter: HTMLMetaElement | null = null
+        let prevOgTwitter: string | null = null
+        if (ogImage) {
+            ogTag = document.querySelector("meta[property='og:image']")
+            if (!ogTag) {
+                ogTag = document.createElement('meta')
+                ogTag.setAttribute('property', 'og:image')
+                document.head.appendChild(ogTag)
+            }
+            prevOg = ogTag.getAttribute('content')
+            ogTag.setAttribute('content', ogImage)
+            // Mirror to twitter:image so X/Twitter cards pick it up too.
+            ogTwitter = document.querySelector("meta[name='twitter:image']")
+            if (!ogTwitter) {
+                ogTwitter = document.createElement('meta')
+                ogTwitter.setAttribute('name', 'twitter:image')
+                document.head.appendChild(ogTwitter)
+            }
+            prevOgTwitter = ogTwitter.getAttribute('content')
+            ogTwitter.setAttribute('content', ogImage)
+        }
+
         return () => {
             document.title = prevTitle
             if (metaDesc && prevDesc !== null) metaDesc.setAttribute('content', prevDesc)
             if (favicon && prevHref !== null) favicon.setAttribute('href', prevHref)
+            if (ogTag && prevOg !== null) ogTag.setAttribute('content', prevOg)
+            if (ogTwitter && prevOgTwitter !== null) ogTwitter.setAttribute('content', prevOgTwitter)
         }
-    }, [site?.title, site?.faviconUrl, homePage?.seo])
+    }, [site?.title, site?.faviconUrl, site?.ogImageUrl, homePage?.seo])
 
     return (
         <div className="min-h-screen bg-bg text-fg">

@@ -647,6 +647,7 @@ export type FooterConfig = {
 export type SiteIdentity = {
     title?: string
     faviconUrl?: string
+    ogImageUrl?: string
 }
 
 export type LandingContent = {
@@ -891,6 +892,77 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
                 titleField: 'title',
                 summaryField: 'summary',
                 limit: 10
+            }
+        }
+    },
+    {
+        label: 'Hero · Cohort starting',
+        description: 'Date-led hero — tells visitors when the next batch begins.',
+        section: {
+            type: 'hero',
+            variant: 'split',
+            data: {
+                eyebrow: 'Cohort 12 · starts March 4',
+                title: 'Build a portfolio that gets you hired',
+                subtitle: '14-week live cohort with placement support and a refund safety net.',
+                primaryCtaLabel: 'Reserve my seat',
+                primaryCtaLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'Features · What you will learn',
+        description: 'Curriculum-style 4-up — frame each pillar as a learning outcome.',
+        section: {
+            type: 'features',
+            variant: 'four-up',
+            data: {
+                title: 'What you will learn',
+                pillars: [
+                    { title: 'Foundations', description: 'Data structures, algorithms, and system thinking.' },
+                    { title: 'Build phase', description: 'Ship three production-grade projects to your portfolio.' },
+                    { title: 'Interview prep', description: 'Mock interviews with engineers from FAANG + Indian unicorns.' },
+                    { title: 'Placement push', description: 'Direct referrals to our 40+ partner companies.' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'CTA · Book a counselling call',
+        description: 'High-intent CTA for prospects ready to talk to admissions.',
+        section: {
+            type: 'cta',
+            variant: 'banner',
+            data: {
+                title: 'Not sure if this is right for you?',
+                subtitle: 'Hop on a free 20-minute counselling call. No pressure, no sales script.',
+                buttonLabel: 'Book my call',
+                buttonLink: 'enquiry'
+            }
+        }
+    },
+    {
+        label: 'Callout · Limited-time discount',
+        description: 'Urgency banner for an active offer or seasonal scholarship.',
+        section: {
+            type: 'callout',
+            variant: 'info',
+            data: {
+                title: 'Early-bird scholarship — 30% off',
+                body: 'Valid until the cohort fills. First 10 enrolments lock in the lowest fee we will offer this year.'
+            }
+        }
+    },
+    {
+        label: 'Embed · Calendly booking',
+        description: 'Drop-in Calendly inline widget so visitors can self-book a counselling slot.',
+        section: {
+            type: 'embed',
+            variant: 'iframe',
+            data: {
+                html: '<iframe src="https://calendly.com/your-handle/counselling-call?embed_domain=embed&embed_type=Inline" width="100%" height="700" frameborder="0"></iframe>',
+                height: 700,
+                title: 'Book a counselling call'
             }
         }
     }
