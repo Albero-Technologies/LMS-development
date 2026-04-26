@@ -617,8 +617,16 @@ export type NavLink = {
 }
 
 // Top-of-page navbar config. Three layouts; logo + sign-in default on.
+//
+// `mobileVariant` controls how the hamburger menu opens on viewports below md:
+//   sheet         → full-width drop-down sheet from below the header (default)
+//   drawer-right  → slide-in panel from the right edge, 80vw wide
+//   fullscreen    → fullscreen overlay with centered links, big tap targets
+export type MobileNavVariant = 'sheet' | 'drawer-right' | 'fullscreen'
+
 export type NavbarConfig = {
     variant: 'simple' | 'centered' | 'with-cta'
+    mobileVariant?: MobileNavVariant
     showLogo?: boolean
     showSignIn?: boolean
     signInLabel?: string
@@ -971,7 +979,7 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
 export const newSectionId = (): string =>
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `sec_${Math.random().toString(36).slice(2, 10)}`
 
-const newPageId = (): string =>
+export const newPageId = (): string =>
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pg_${Math.random().toString(36).slice(2, 10)}`
 
 export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() } as LandingSection)

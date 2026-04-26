@@ -81,6 +81,7 @@ import {
     instantiateTemplate,
     listAllTenants,
     newLinkId,
+    newPageId,
     newSectionId,
     readLandingContent,
     updateTenantById,
@@ -308,6 +309,22 @@ export const WebsiteEditorPage = () => {
         setActivePageId(page.id)
         setSelectedSectionId(null)
     }
+    // Import a fully-formed page from another tenant. Every section needs a
+    // fresh id so it can coexist with whatever's already on the destination —
+    // and isHome is dropped so the import never overwrites the home page.
+    const importPage = (source: LandingPage, opts?: { slug?: string; name?: string }) => {
+        const cloned: LandingPage = {
+            ...source,
+            id: newPageId(),
+            name: opts?.name ?? source.name,
+            slug: opts?.slug ?? source.slug,
+            isHome: false,
+            sections: source.sections.map((s) => ({ ...s, id: newSectionId() }) as LandingSection)
+        }
+        setPages([...pages, cloned])
+        setActivePageId(cloned.id)
+        setSelectedSectionId(null)
+    }
     const deletePage = (id: string) => {
         const target = pages.find((p) => p.id === id)
         if (!target) return
@@ -418,12 +435,14 @@ export const WebsiteEditorPage = () => {
                     <PagesBar
                         pages={pages}
                         activePageId={activePageId}
+                        currentTenantId={tenant.id}
                         onSelect={(id) => {
                             setActivePageId(id)
                             const p = pages.find((x) => x.id === id)
                             setSelectedSectionId(p?.sections[0]?.id ?? null)
                         }}
                         onAdd={(name, slug) => addPage(name, slug)}
+                        onImport={importPage}
                         onDuplicate={duplicatePage}
                         onDelete={deletePage}
                         onSetHome={setHome}
@@ -582,8 +601,10 @@ const DeviceToggle = ({ value, onChange }: { value: DeviceView; onChange: (d: De
 const PagesBar = ({
     pages,
     activePageId,
+    currentTenantId,
     onSelect,
     onAdd,
+    onImport,
     onDuplicate,
     onDelete,
     onSetHome,
@@ -591,14 +612,17 @@ const PagesBar = ({
 }: {
     pages: LandingPage[]
     activePageId: string
+    currentTenantId: string
     onSelect: (id: string) => void
     onAdd: (name: string, slug: string) => void
+    onImport: (source: LandingPage, opts?: { slug?: string; name?: string }) => void
     onDuplicate: (id: string) => void
     onDelete: (id: string) => void
     onSetHome: (id: string) => void
     onUpdateMeta: (id: string, patch: Partial<LandingPage>) => void
 }) => {
     const [newOpen, setNewOpen] = useState(false)
+    const [importOpen, setImportOpen] = useState(false)
     const [seoFor, setSeoFor] = useState<LandingPage | null>(null)
     return (
         <Card
@@ -624,6 +648,14 @@ const PagesBar = ({
                     onClick={() => setNewOpen(true)}>
                     New page
                 </Button>
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<CopyIcon size={12} />}
+                    onClick={() => setImportOpen(true)}
+                    title="Import a page from another tenant">
+                    Import
+                </Button>
             </div>
 
             <NewPageModal
@@ -632,6 +664,18 @@ const PagesBar = ({
                 onCreate={(name, slug) => {
                     onAdd(name, slug)
                     setNewOpen(false)
+                }}
+            />
+
+            <ImportPageModal
+                open={importOpen}
+                onClose={() => setImportOpen(false)}
+                currentTenantId={currentTenantId}
+                existingSlugs={pages.map((p) => p.slug)}
+                onImport={(page, opts) => {
+                    onImport(page, opts)
+                    setImportOpen(false)
+                    toast.success(`Imported "${opts?.name ?? page.name}"`)
                 }}
             />
 
@@ -644,6 +688,171 @@ const PagesBar = ({
                 }}
             />
         </Card>
+    )
+}
+
+// Import a page from another tenant — pulls that tenant's full landing
+// content via getTenantDetail (SUPER_ADMIN gated on the backend), shows the
+// page list with a section-count summary, and lets the SA tweak the
+// destination slug before importing. Section IDs are reissued on the parent
+// side so paste-collisions can't happen.
+const ImportPageModal = ({
+    open,
+    onClose,
+    currentTenantId,
+    existingSlugs,
+    onImport
+}: {
+    open: boolean
+    onClose: () => void
+    currentTenantId: string
+    existingSlugs: string[]
+    onImport: (page: LandingPage, opts: { slug: string; name: string }) => void
+}) => {
+    const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000, enabled: open })
+    const allTenants = tenantsQuery.data ?? []
+    const sourceTenants = useMemo(() => allTenants.filter((t) => t.id !== currentTenantId), [allTenants, currentTenantId])
+
+    const [sourceTenantId, setSourceTenantId] = useState('')
+    useEffect(() => {
+        if (open && !sourceTenantId && sourceTenants.length > 0) setSourceTenantId(sourceTenants[0].id)
+    }, [open, sourceTenantId, sourceTenants])
+
+    const detailQuery = useQuery({
+        queryKey: ['tenants', sourceTenantId, 'detail'],
+        queryFn: () => getTenantDetail(sourceTenantId),
+        enabled: open && sourceTenantId.length > 0,
+        staleTime: 30_000
+    })
+    const sourceLanding = useMemo(() => readLandingContent(detailQuery.data ?? undefined), [detailQuery.data])
+    const sourcePages = sourceLanding.pages ?? []
+
+    const [selectedPageId, setSelectedPageId] = useState('')
+    const selected = sourcePages.find((p) => p.id === selectedPageId) ?? null
+    useEffect(() => {
+        // Reset selection whenever the source tenant changes.
+        setSelectedPageId('')
+    }, [sourceTenantId])
+
+    const [destName, setDestName] = useState('')
+    const [destSlug, setDestSlug] = useState('')
+    useEffect(() => {
+        if (selected) {
+            setDestName(selected.name)
+            // Avoid colliding with an existing slug — append a suffix if needed.
+            let candidate = selected.slug && selected.slug !== '/' ? selected.slug : `/${selected.name.toLowerCase().replace(/\s+/g, '-')}`
+            if (!candidate.startsWith('/')) candidate = `/${candidate}`
+            const taken = new Set(existingSlugs)
+            if (taken.has(candidate)) {
+                let n = 2
+                while (taken.has(`${candidate}-${n}`)) n++
+                candidate = `${candidate}-${n}`
+            }
+            setDestSlug(candidate)
+        }
+    }, [selected, existingSlugs])
+
+    const slugConflict = destSlug && existingSlugs.includes(destSlug)
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Import page from another tenant"
+            description="Pick a source tenant, choose a page, tweak the slug, and import. Sections are deep-cloned so the source page is never modified."
+            size="lg"
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        disabled={!selected || !destSlug || !destName || !!slugConflict}
+                        onClick={() => {
+                            if (!selected) return
+                            onImport(selected, { slug: destSlug, name: destName })
+                        }}>
+                        Import page
+                    </Button>
+                </>
+            }>
+            <div className="space-y-4">
+                <Select
+                    label="Source tenant"
+                    value={sourceTenantId}
+                    onChange={(e) => setSourceTenantId(e.target.value)}>
+                    {tenantsQuery.isLoading && <option value="">Loading…</option>}
+                    {!tenantsQuery.isLoading && sourceTenants.length === 0 && <option value="">No other tenants available</option>}
+                    {sourceTenants.map((t) => (
+                        <option
+                            key={t.id}
+                            value={t.id}>
+                            {t.name} (/{t.slug})
+                        </option>
+                    ))}
+                </Select>
+
+                <div>
+                    <label className="block text-xs font-medium text-fg-soft mb-1.5">Page to import</label>
+                    {detailQuery.isLoading ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    ) : sourcePages.length === 0 ? (
+                        <div className="text-sm text-fg-muted px-3 py-4 border border-dashed rounded-md text-center">
+                            That tenant has no pages to import yet.
+                        </div>
+                    ) : (
+                        <div className="border rounded-md divide-y max-h-64 overflow-y-auto">
+                            {sourcePages.map((p) => {
+                                const sectionCount = p.sections.length
+                                const isActive = p.id === selectedPageId
+                                return (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => setSelectedPageId(p.id)}
+                                        className={cn(
+                                            'w-full text-left px-3 py-2.5 transition-colors flex items-center justify-between gap-3',
+                                            isActive ? 'bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover'
+                                        )}>
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-medium text-fg flex items-center gap-2">
+                                                {p.isHome && <Home size={11} />}
+                                                {p.name}
+                                            </div>
+                                            <div className="text-[11px] text-fg-muted font-mono truncate">{p.slug}</div>
+                                        </div>
+                                        <span className="text-[11px] text-fg-muted shrink-0">
+                                            {sectionCount} section{sectionCount === 1 ? '' : 's'}
+                                        </span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {selected && (
+                    <div className="grid grid-cols-2 gap-3">
+                        <Input
+                            label="Page name (destination)"
+                            value={destName}
+                            onChange={(e) => setDestName(e.target.value)}
+                        />
+                        <Input
+                            label="Slug (destination)"
+                            value={destSlug}
+                            onChange={(e) => setDestSlug(e.target.value)}
+                            hint={slugConflict ? 'A page with this slug already exists' : undefined}
+                        />
+                    </div>
+                )}
+            </div>
+        </Modal>
     )
 }
 
@@ -2200,6 +2409,16 @@ const NavbarFields = ({
                 <option value="simple">Simple — logo left, links right</option>
                 <option value="centered">Centered — logo above links</option>
                 <option value="with-cta">With CTA — links + brand-coloured CTA button</option>
+            </Select>
+
+            <Select
+                label="Mobile menu style"
+                value={navbar.mobileVariant ?? 'sheet'}
+                onChange={(e) => set({ mobileVariant: e.target.value as NavbarConfig['mobileVariant'] })}
+                hint="How the hamburger menu opens on phones. Desktop layout is unchanged.">
+                <option value="sheet">Sheet — drops down from under the header</option>
+                <option value="drawer-right">Drawer — slides in from the right edge</option>
+                <option value="fullscreen">Fullscreen — overlay with centred links, big tap targets</option>
             </Select>
 
             <div className="grid grid-cols-2 gap-3">

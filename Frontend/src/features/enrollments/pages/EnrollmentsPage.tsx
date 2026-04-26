@@ -1,7 +1,12 @@
-// Admin / counsellor enrollments dashboard. Real-time visibility into who has
-// enrolled and paid — refreshes from the backend every 30s and on manual
-// refetch. The Razorpay webhook flips PENDING_PAYMENT → ACTIVE on capture, so
-// pending rows turn into active rows here without anyone having to do anything.
+// Enrollments page — role-aware.
+//
+//   STUDENT   → "My enrollments": their own rows only, no Student column
+//   admin/counsellor/trainer/SA → tenant-wide enrolments dashboard
+//
+// Real-time visibility for staff: refreshes from the backend every 30s and on
+// window focus. The Razorpay webhook flips PENDING_PAYMENT → ACTIVE on capture,
+// so pending rows turn into active rows here without anyone having to do
+// anything. STUDENT polls the same way, but only sees their own enrolments.
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { GraduationCap, Download, Search, AlertCircle } from 'lucide-react'
@@ -14,7 +19,15 @@ import { Input } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
-import { adminListEnrollments, type EnrollmentStatus } from '@features/courses/services/enrollment.service'
+import {
+    adminListEnrollments,
+    listMyEnrollments,
+    type AdminEnrollmentRow,
+    type Enrollment,
+    type EnrollmentStatus
+} from '@features/courses/services/enrollment.service'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
 
 const STATUS_TONE: Record<EnrollmentStatus, 'ok' | 'brand' | 'warn' | 'danger' | 'default'> = {
     ACTIVE: 'brand',
@@ -44,14 +57,17 @@ const fullName = (u: { firstName: string | null; lastName: string | null; email:
 }
 
 export const EnrollmentsPage = () => {
+    const user = useAuthStore((s) => s.user)
+    const isStudent = user?.role === ROLES.STUDENT
     const [q, setQ] = useState('')
     const [statusFilter, setStatusFilter] = useState<'' | EnrollmentStatus>('')
 
-    const enrollmentsQuery = useQuery({
-        queryKey: ['admin-enrollments', statusFilter || 'all'],
-        queryFn: () => adminListEnrollments(statusFilter ? { status: statusFilter } : undefined),
-        // Pull fresh every 30s so payments flowing through the webhook show up
-        // without a hard refresh. Refocus also refetches.
+    // Students hit /enrollments/mine — backend ignores any tenant-wide filters
+    // and only ever returns the caller's own enrolments. Staff hit the admin
+    // endpoint scoped to their tenant.
+    const enrollmentsQuery = useQuery<(AdminEnrollmentRow | Enrollment)[]>({
+        queryKey: isStudent ? ['my-enrollments'] : ['admin-enrollments', statusFilter || 'all'],
+        queryFn: () => (isStudent ? listMyEnrollments() : adminListEnrollments(statusFilter ? { status: statusFilter } : undefined)),
         refetchInterval: 30_000,
         staleTime: 15_000
     })
@@ -61,8 +77,9 @@ export const EnrollmentsPage = () => {
         const needle = q.trim().toLowerCase()
         if (!needle) return rows
         return rows.filter((r) => {
-            const name = fullName(r.user).toLowerCase()
-            const email = r.user?.email.toLowerCase() ?? ''
+            const adminRow = r as AdminEnrollmentRow
+            const name = adminRow.user ? fullName(adminRow.user).toLowerCase() : ''
+            const email = adminRow.user?.email.toLowerCase() ?? ''
             const courseTitle = r.course?.title.toLowerCase() ?? ''
             return name.includes(needle) || email.includes(needle) || courseTitle.includes(needle)
         })
@@ -80,16 +97,21 @@ export const EnrollmentsPage = () => {
             toast.error('Nothing to export')
             return
         }
-        const header = ['Student', 'Email', 'Course', 'Progress%', 'Status', 'Enrolled', 'Started']
-        const body = filtered.map((r) => [
-            fullName(r.user),
-            r.user?.email ?? '',
-            r.course?.title ?? '',
-            String(r.progressPct ?? 0),
-            STATUS_LABEL[r.status],
-            fmtDate(r.createdAt),
-            fmtDate(r.startedAt)
-        ])
+        const header = isStudent
+            ? ['Course', 'Progress%', 'Status', 'Enrolled', 'Started']
+            : ['Student', 'Email', 'Course', 'Progress%', 'Status', 'Enrolled', 'Started']
+        const body = filtered.map((r) => {
+            const base = [
+                r.course?.title ?? '',
+                String(r.progressPct ?? 0),
+                STATUS_LABEL[r.status],
+                fmtDate(r.createdAt),
+                fmtDate(r.startedAt)
+            ]
+            if (isStudent) return base
+            const adminRow = r as AdminEnrollmentRow
+            return [fullName(adminRow.user), adminRow.user?.email ?? '', ...base]
+        })
         const csv = [header, ...body].map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
         const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
         const a = document.createElement('a')
@@ -103,33 +125,39 @@ export const EnrollmentsPage = () => {
     return (
         <>
             <PageHeader
-                eyebrow="Revenue-generating"
-                title="Enrollments"
-                description="Live view of every student enrollment in your institute. Updates as Razorpay payments are captured."
+                eyebrow={isStudent ? 'My learning' : 'Revenue-generating'}
+                title={isStudent ? 'My enrollments' : 'Enrollments'}
+                description={
+                    isStudent
+                        ? 'Every course you have enrolled in. Pending-payment rows update to Active automatically once your payment clears.'
+                        : 'Live view of every student enrollment in your institute. Updates as Razorpay payments are captured.'
+                }
                 actions={
                     <>
                         <div className="w-48 hidden sm:block">
                             <Input
-                                placeholder="Search student / course"
+                                placeholder={isStudent ? 'Search course' : 'Search student / course'}
                                 leftIcon={<Search size={14} />}
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
                                 aria-label="Search enrollments"
                             />
                         </div>
-                        <div className="w-44 hidden sm:block">
-                            <Select
-                                aria-label="Filter by status"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as '' | EnrollmentStatus)}>
-                                <option value="">All statuses</option>
-                                <option value="PENDING_PAYMENT">Pending payment</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="COMPLETED">Completed</option>
-                                <option value="REFUNDED">Refunded</option>
-                                <option value="CANCELLED">Cancelled</option>
-                            </Select>
-                        </div>
+                        {!isStudent && (
+                            <div className="w-44 hidden sm:block">
+                                <Select
+                                    aria-label="Filter by status"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value as '' | EnrollmentStatus)}>
+                                    <option value="">All statuses</option>
+                                    <option value="PENDING_PAYMENT">Pending payment</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="COMPLETED">Completed</option>
+                                    <option value="REFUNDED">Refunded</option>
+                                    <option value="CANCELLED">Cancelled</option>
+                                </Select>
+                            </div>
+                        )}
                         <Button
                             size="sm"
                             leftIcon={<Download size={14} />}
@@ -208,7 +236,7 @@ export const EnrollmentsPage = () => {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="text-left text-xs text-fg-muted font-medium bg-surface-2">
-                                    <th className="py-3 px-5">Student</th>
+                                    {!isStudent && <th className="py-3 px-5">Student</th>}
                                     <th className="py-3 px-5">Course</th>
                                     <th className="py-3 px-5">Progress</th>
                                     <th className="py-3 px-5">Status</th>
@@ -216,34 +244,41 @@ export const EnrollmentsPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
-                                {filtered.map((row) => (
-                                    <tr
-                                        key={row.id}
-                                        className="hover:bg-surface-hover">
-                                        <td className="py-3 px-5">
-                                            <div className="font-medium text-fg">{fullName(row.user)}</div>
-                                            {row.user?.email && <div className="text-xs text-fg-muted">{row.user.email}</div>}
-                                        </td>
-                                        <td className="py-3 px-5 text-fg-soft">{row.course?.title ?? '—'}</td>
-                                        <td className="py-3 px-5">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-1 h-1.5 bg-surface-2 rounded-full overflow-hidden w-32">
-                                                    <div
-                                                        className="h-full bg-[var(--color-brand-500)]"
-                                                        style={{ width: `${row.progressPct ?? 0}%` }}
-                                                    />
+                                {filtered.map((row) => {
+                                    const adminRow = row as AdminEnrollmentRow
+                                    return (
+                                        <tr
+                                            key={row.id}
+                                            className="hover:bg-surface-hover">
+                                            {!isStudent && (
+                                                <td className="py-3 px-5">
+                                                    <div className="font-medium text-fg">{fullName(adminRow.user)}</div>
+                                                    {adminRow.user?.email && (
+                                                        <div className="text-xs text-fg-muted">{adminRow.user.email}</div>
+                                                    )}
+                                                </td>
+                                            )}
+                                            <td className="py-3 px-5 text-fg-soft">{row.course?.title ?? '—'}</td>
+                                            <td className="py-3 px-5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex-1 h-1.5 bg-surface-2 rounded-full overflow-hidden w-32">
+                                                        <div
+                                                            className="h-full bg-[var(--color-brand-500)]"
+                                                            style={{ width: `${row.progressPct ?? 0}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="font-mono text-xs">{row.progressPct ?? 0}%</span>
                                                 </div>
-                                                <span className="font-mono text-xs">{row.progressPct ?? 0}%</span>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-5">
-                                            <Badge tone={STATUS_TONE[row.status]}>
-                                                <GraduationCap size={10} /> {STATUS_LABEL[row.status]}
-                                            </Badge>
-                                        </td>
-                                        <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(row.createdAt)}</td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="py-3 px-5">
+                                                <Badge tone={STATUS_TONE[row.status]}>
+                                                    <GraduationCap size={10} /> {STATUS_LABEL[row.status]}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(row.createdAt)}</td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </div>

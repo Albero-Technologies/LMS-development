@@ -144,9 +144,10 @@ const CtaButton = ({
     )
 }
 
-// Hamburger toggle — shown only below md. Drops a full-width sheet from under
-// the header with the same nav links + actions stacked vertically. Auto-closes
-// when the route changes so links from inside the sheet don't leave it open.
+// Hamburger toggle — shown only below md. The variant ('sheet' | 'drawer-right'
+// | 'fullscreen') decides how the menu opens; the contents are identical so
+// each tenant only changes a CSS-level concern, not their info architecture.
+// Auto-closes on route change so links don't leave the menu open behind them.
 const MobileMenu = ({
     config,
     pages,
@@ -156,12 +157,13 @@ const MobileMenu = ({
     pages: LandingPage[]
     slugBase: string
 }) => {
+    const variant: NavbarConfig['mobileVariant'] = config.mobileVariant ?? 'sheet'
     const [open, setOpen] = useState(false)
     const location = useLocation()
     useEffect(() => {
         setOpen(false)
     }, [location.pathname])
-    // Lock body scroll while the sheet is open so the hero behind doesn't scroll under it.
+    // Lock body scroll while the menu is open so content behind doesn't scroll under it.
     useEffect(() => {
         if (!open) return
         const prev = document.body.style.overflow
@@ -171,6 +173,39 @@ const MobileMenu = ({
         }
     }, [open])
     const showSignIn = config.showSignIn !== false
+
+    const linksContent = (
+        <>
+            {config.links.map((l) => (
+                <NavLinkItem
+                    key={l.id}
+                    link={l}
+                    pages={pages}
+                    slugBase={slugBase}
+                    onNavigate={() => setOpen(false)}
+                    fullWidth
+                />
+            ))}
+            <div className="flex items-center justify-between pt-3 mt-2">
+                <span className="text-xs text-fg-muted">Theme</span>
+                <ThemeToggle />
+            </div>
+            {(showSignIn || config.variant === 'with-cta') && (
+                <div className="flex flex-col gap-2 mt-3">
+                    {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
+                    {config.variant === 'with-cta' && (
+                        <CtaButton
+                            config={config}
+                            pages={pages}
+                            slugBase={slugBase}
+                            fullWidth
+                        />
+                    )}
+                </div>
+            )}
+        </>
+    )
+
     return (
         <>
             <button
@@ -181,12 +216,58 @@ const MobileMenu = ({
                 className="md:hidden p-2 -mr-2 text-fg-muted hover:text-fg transition-colors">
                 {open ? <X size={20} /> : <Menu size={20} />}
             </button>
-            {open && (
+
+            {open && variant === 'sheet' && (
                 <div
                     className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-bg/95 backdrop-blur border-t border-[var(--color-border)] overflow-y-auto"
                     role="dialog"
                     aria-modal="true">
-                    <div className="px-4 py-4 flex flex-col gap-1">
+                    <div className="px-4 py-4 flex flex-col gap-1">{linksContent}</div>
+                </div>
+            )}
+
+            {open && variant === 'drawer-right' && (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Close menu"
+                        onClick={() => setOpen(false)}
+                        className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+                    />
+                    <div
+                        className="md:hidden fixed top-0 right-0 bottom-0 w-[80vw] max-w-sm z-50 bg-bg border-l border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-right duration-200"
+                        role="dialog"
+                        aria-modal="true">
+                        <div className="flex items-center justify-between px-4 h-14 border-b border-[var(--color-border)]">
+                            <span className="text-sm font-semibold">Menu</span>
+                            <button
+                                type="button"
+                                aria-label="Close menu"
+                                onClick={() => setOpen(false)}
+                                className="p-2 -mr-2 text-fg-muted hover:text-fg">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="px-4 py-4 flex flex-col gap-1">{linksContent}</div>
+                    </div>
+                </>
+            )}
+
+            {open && variant === 'fullscreen' && (
+                <div
+                    className="md:hidden fixed inset-0 z-40 bg-bg overflow-y-auto"
+                    role="dialog"
+                    aria-modal="true">
+                    <div className="flex items-center justify-end px-4 h-14">
+                        <button
+                            type="button"
+                            aria-label="Close menu"
+                            onClick={() => setOpen(false)}
+                            className="p-2 -mr-2 text-fg-muted hover:text-fg">
+                            <X size={20} />
+                        </button>
+                    </div>
+                    <div className="px-6 py-8 flex flex-col gap-2 max-w-sm mx-auto text-center">
                         {config.links.map((l) => (
                             <NavLinkItem
                                 key={l.id}
@@ -197,12 +278,12 @@ const MobileMenu = ({
                                 fullWidth
                             />
                         ))}
-                        <div className="flex items-center justify-between pt-3 mt-2">
+                        <div className="flex items-center justify-center gap-3 pt-4">
                             <span className="text-xs text-fg-muted">Theme</span>
                             <ThemeToggle />
                         </div>
                         {(showSignIn || config.variant === 'with-cta') && (
-                            <div className="flex flex-col gap-2 mt-3">
+                            <div className="flex flex-col gap-2 mt-4">
                                 {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
                                 {config.variant === 'with-cta' && (
                                     <CtaButton

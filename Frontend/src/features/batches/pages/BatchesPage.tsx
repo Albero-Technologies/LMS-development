@@ -1,101 +1,616 @@
-import { CalendarCheck, Users, Plus, ArrowRight } from 'lucide-react'
+// Batches — operations view for tenant admins, trainers, counsellors.
+//
+//   Trainer / Admin: full CRUD — create batch under a course, assign students,
+//                    edit name / trainer / dates / capacity, transfer students.
+//   Counsellor:      read-only view — see which batches have which students,
+//                    monitor capacity. Backend gates writes via the 'batch'
+//                    write policy (TRAINER, ADMIN, SUPER_ADMIN), so the UI
+//                    just hides the action buttons for read-only roles.
+//
+// Course-scoped: every batch belongs to one Course, students must already be
+// enrolled in that course before they can be assigned to a batch.
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CalendarCheck, Users, Plus, ArrowRight, AlertCircle, UserPlus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
+import { Input } from '@shared/components/ui/Input'
+import { Select } from '@shared/components/ui/Select'
+import { Modal } from '@shared/components/ui/Modal'
+import { Skeleton } from '@shared/components/ui/Skeleton'
+import { Empty } from '@shared/components/ui/Empty'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import {
+    assignStudentsToBatch,
+    createBatch,
+    fmtBatchDate,
+    getBatchStatusTone,
+    listBatches,
+    type BatchRow
+} from '../services/batch.service'
+import { listCourses } from '@features/courses/services/course.service'
+import { listUsers } from '@features/users/services/user.service'
 
-const BATCHES = [
-    {
-        id: 'b1',
-        name: 'Batch 2026 · April cohort',
-        students: 42,
-        capacity: 60,
-        trainer: 'Anuj Verma',
-        start: 'Apr 15',
-        status: 'running' as const
-    },
-    {
-        id: 'b2',
-        name: 'Weekend · DSA',
-        students: 28,
-        capacity: 40,
-        trainer: 'Priya Iyer',
-        start: 'May 04',
-        status: 'upcoming' as const
-    },
-    {
-        id: 'b3',
-        name: 'Corporate · Kintsu',
-        students: 15,
-        capacity: 15,
-        trainer: 'Rohan Das',
-        start: 'Mar 01',
-        status: 'ended' as const
-    }
-]
+const slugifyCode = (s: string): string =>
+    s
+        .toUpperCase()
+        .trim()
+        .replace(/[^A-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 16) || 'BATCH'
 
-const STATUS_TONE = {
-    running: 'ok',
-    upcoming: 'brand',
-    ended: 'default'
-} as const
+export const BatchesPage = () => {
+    const user = useAuthStore((s) => s.user)
+    const canEdit = user && [ROLES.TRAINER, ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(user.role as never)
 
-export const BatchesPage = () => (
-    <>
-        <PageHeader
-            eyebrow="Operations"
-            title="Batches"
-            description="Group students by cohort. Assign trainers, transfer students, take attendance."
-            actions={
-                <Button
-                    size="sm"
-                    leftIcon={<Plus size={14} />}
-                    onClick={() => toast.info('Batch creation coming next — wiring to POST /batches')}>
-                    New batch
-                </Button>
-            }
-        />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {BATCHES.map((b) => {
-                const pct = Math.round((b.students / b.capacity) * 100)
-                return (
-                    <Card key={b.id}>
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="w-10 h-10 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-700)] flex items-center justify-center">
-                                <CalendarCheck size={18} />
-                            </div>
-                            <Badge tone={STATUS_TONE[b.status]}>{b.status}</Badge>
+    const [createOpen, setCreateOpen] = useState(false)
+    const [manageBatch, setManageBatch] = useState<BatchRow | null>(null)
+    const [courseFilter, setCourseFilter] = useState('')
+
+    const batchesQuery = useQuery({
+        queryKey: ['batches', courseFilter || 'all'],
+        queryFn: () => listBatches(courseFilter ? { courseId: courseFilter } : undefined),
+        staleTime: 30_000
+    })
+    const coursesQuery = useQuery({
+        queryKey: ['courses', 'for-batches'],
+        queryFn: () => listCourses(),
+        staleTime: 60_000
+    })
+
+    const batches = batchesQuery.data ?? []
+    const courses = coursesQuery.data ?? []
+
+    return (
+        <>
+            <PageHeader
+                eyebrow="Operations"
+                title="Batches"
+                description="Group students by cohort. Assign trainers, transfer students, monitor capacity."
+                actions={
+                    <>
+                        <div className="w-56 hidden sm:block">
+                            <Select
+                                aria-label="Filter by course"
+                                value={courseFilter}
+                                onChange={(e) => setCourseFilter(e.target.value)}>
+                                <option value="">All courses</option>
+                                {courses.map((c) => (
+                                    <option
+                                        key={c.id}
+                                        value={c.id}>
+                                        {c.title}
+                                    </option>
+                                ))}
+                            </Select>
                         </div>
-                        <h3 className="text-base font-semibold text-fg">{b.name}</h3>
-                        <div className="mt-2 flex items-center gap-3 text-xs text-fg-muted">
-                            <span className="inline-flex items-center gap-1">
-                                <Users size={12} />
-                                {b.students}/{b.capacity}
-                            </span>
-                            <span>·</span>
-                            <span>{b.trainer}</span>
-                            <span>·</span>
-                            <span>Starts {b.start}</span>
-                        </div>
-                        <div className="mt-3 h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-[var(--color-brand-500)]"
-                                style={{ width: `${pct}%` }}
-                            />
-                        </div>
-                        <div className="mt-4 flex gap-2">
+                        {canEdit && (
                             <Button
-                                variant="ghost"
-                                className="flex-1"
-                                rightIcon={<ArrowRight size={14} />}
-                                onClick={() => toast.info('Batch detail page coming next.')}>
-                                Manage
+                                size="sm"
+                                leftIcon={<Plus size={14} />}
+                                onClick={() => setCreateOpen(true)}>
+                                New batch
                             </Button>
+                        )}
+                    </>
+                }
+            />
+
+            {batchesQuery.isLoading ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[0, 1, 2].map((i) => (
+                        <Card key={i}>
+                            <Skeleton className="h-10 w-10 rounded-md mb-3" />
+                            <Skeleton className="h-5 w-2/3 mb-2" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </Card>
+                    ))}
+                </div>
+            ) : batchesQuery.isError ? (
+                <Card>
+                    <div className="flex items-center gap-3 text-fg-soft">
+                        <AlertCircle
+                            size={18}
+                            className="text-[var(--color-danger)]"
+                        />
+                        <span className="text-sm">Could not load batches.</span>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => batchesQuery.refetch()}>
+                            Retry
+                        </Button>
+                    </div>
+                </Card>
+            ) : batches.length === 0 ? (
+                <Empty
+                    icon={<CalendarCheck size={36} />}
+                    title={courseFilter ? 'No batches for this course yet' : 'No batches yet'}
+                    description={
+                        canEdit
+                            ? 'Create the first cohort to start grouping students together.'
+                            : 'Once your trainer or admin creates batches, they will show up here.'
+                    }
+                    action={
+                        canEdit ? (
+                            <Button
+                                leftIcon={<Plus size={14} />}
+                                onClick={() => setCreateOpen(true)}>
+                                New batch
+                            </Button>
+                        ) : null
+                    }
+                />
+            ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {batches.map((b) => {
+                        const enrolled = b._count.enrollments
+                        const pct = b.capacity ? Math.round((enrolled / b.capacity) * 100) : 0
+                        const trainerName = b.trainer ? [b.trainer.firstName, b.trainer.lastName].filter(Boolean).join(' ').trim() : 'Unassigned'
+                        return (
+                            <Card key={b.id}>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="w-10 h-10 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-700)] flex items-center justify-center">
+                                        <CalendarCheck size={18} />
+                                    </div>
+                                    <Badge tone={getBatchStatusTone(b.status)}>{b.status.toLowerCase()}</Badge>
+                                </div>
+                                <h3 className="text-base font-semibold text-fg">{b.name}</h3>
+                                <div className="text-[11px] text-fg-muted font-mono">{b.code}</div>
+                                <div className="mt-1 text-xs text-fg-soft truncate">{b.course?.title ?? '—'}</div>
+                                <div className="mt-2 flex items-center gap-3 text-xs text-fg-muted">
+                                    <span className="inline-flex items-center gap-1">
+                                        <Users size={12} />
+                                        {enrolled}/{b.capacity}
+                                    </span>
+                                    <span>·</span>
+                                    <span className="truncate">{trainerName}</span>
+                                </div>
+                                <div className="mt-1 text-[11px] text-fg-muted">Starts {fmtBatchDate(b.startDate)}</div>
+                                <div className="mt-3 h-1.5 bg-surface-2 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-[var(--color-brand-500)]"
+                                        style={{ width: `${Math.min(pct, 100)}%` }}
+                                    />
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        className="flex-1"
+                                        rightIcon={<ArrowRight size={14} />}
+                                        onClick={() => setManageBatch(b)}>
+                                        {canEdit ? 'Manage' : 'View'}
+                                    </Button>
+                                </div>
+                            </Card>
+                        )
+                    })}
+                </div>
+            )}
+
+            <CreateBatchModal
+                open={createOpen}
+                onClose={() => setCreateOpen(false)}
+                courses={courses}
+            />
+
+            <ManageBatchModal
+                batch={manageBatch}
+                onClose={() => setManageBatch(null)}
+                canEdit={!!canEdit}
+            />
+        </>
+    )
+}
+
+const CreateBatchModal = ({
+    open,
+    onClose,
+    courses
+}: {
+    open: boolean
+    onClose: () => void
+    courses: { id: string; title: string }[]
+}) => {
+    const queryClient = useQueryClient()
+    const [courseId, setCourseId] = useState('')
+    const [name, setName] = useState('')
+    const [code, setCode] = useState('')
+    const [codeTouched, setCodeTouched] = useState(false)
+    const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10))
+    const [endDate, setEndDate] = useState('')
+    const [capacity, setCapacity] = useState('50')
+
+    const reset = () => {
+        setCourseId('')
+        setName('')
+        setCode('')
+        setCodeTouched(false)
+        setStartDate(new Date().toISOString().slice(0, 10))
+        setEndDate('')
+        setCapacity('50')
+    }
+
+    const mutation = useMutation({
+        mutationFn: () =>
+            createBatch({
+                courseId,
+                name: name.trim(),
+                code: code.trim(),
+                startDate: new Date(startDate).toISOString(),
+                endDate: endDate ? new Date(endDate).toISOString() : undefined,
+                capacity: Number(capacity) || 50
+            }),
+        onSuccess: () => {
+            toast.success('Batch created')
+            void queryClient.invalidateQueries({ queryKey: ['batches'] })
+            reset()
+            onClose()
+        },
+        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not create batch')
+    })
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="New batch"
+            description="A cohort of students taking one course together. Assign trainer + dates here, then add students from the manage view."
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        loading={mutation.isPending}
+                        disabled={!courseId || !name || !code || !startDate}
+                        onClick={() => mutation.mutate()}>
+                        Create batch
+                    </Button>
+                </>
+            }>
+            <div className="space-y-3">
+                <Select
+                    label="Course"
+                    value={courseId}
+                    onChange={(e) => setCourseId(e.target.value)}>
+                    <option value="">Pick a course…</option>
+                    {courses.map((c) => (
+                        <option
+                            key={c.id}
+                            value={c.id}>
+                            {c.title}
+                        </option>
+                    ))}
+                </Select>
+                <Input
+                    label="Batch name"
+                    value={name}
+                    onChange={(e) => {
+                        setName(e.target.value)
+                        if (!codeTouched) setCode(slugifyCode(e.target.value))
+                    }}
+                    placeholder="April 2026 cohort"
+                />
+                <Input
+                    label="Code"
+                    value={code}
+                    onChange={(e) => {
+                        setCode(e.target.value)
+                        setCodeTouched(true)
+                    }}
+                    placeholder="APR2026"
+                    hint="Short identifier shown on attendance sheets and certificates. Must be unique within the tenant."
+                />
+                <div className="grid grid-cols-2 gap-3">
+                    <Input
+                        label="Starts"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                    />
+                    <Input
+                        label="Ends (optional)"
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                    />
+                </div>
+                <Input
+                    label="Capacity"
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value)}
+                    hint="Maximum students this batch can hold."
+                />
+            </div>
+        </Modal>
+    )
+}
+
+const ManageBatchModal = ({
+    batch,
+    onClose,
+    canEdit
+}: {
+    batch: BatchRow | null
+    onClose: () => void
+    canEdit: boolean
+}) => {
+    const queryClient = useQueryClient()
+    const [assignOpen, setAssignOpen] = useState(false)
+    const [search, setSearch] = useState('')
+
+    // Refresh the batch detail so the assigned-students list is current.
+    const detailQuery = useQuery({
+        queryKey: ['batch', batch?.id],
+        queryFn: () => (batch ? import('../services/batch.service').then((m) => m.getBatch(batch.id)) : null),
+        enabled: !!batch,
+        staleTime: 10_000
+    })
+    const detail = detailQuery.data ?? null
+
+    if (!batch) return null
+
+    const enrolled = detail?.enrollments ?? []
+    const filtered = enrolled.filter((e) => {
+        const needle = search.trim().toLowerCase()
+        if (!needle) return true
+        const name = [e.user.firstName, e.user.lastName].filter(Boolean).join(' ').toLowerCase()
+        return name.includes(needle) || e.user.email.toLowerCase().includes(needle)
+    })
+
+    return (
+        <>
+            <Modal
+                open={!!batch}
+                onClose={onClose}
+                title={batch.name}
+                description={`${batch.course?.title ?? '—'} · code ${batch.code}`}
+                size="lg"
+                footer={<Button onClick={onClose}>Done</Button>}>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <Stat
+                            label="Status"
+                            value={batch.status.toLowerCase()}
+                        />
+                        <Stat
+                            label="Capacity"
+                            value={`${enrolled.length}/${batch.capacity}`}
+                        />
+                        <Stat
+                            label="Starts"
+                            value={fmtBatchDate(batch.startDate)}
+                        />
+                        <Stat
+                            label="Ends"
+                            value={fmtBatchDate(batch.endDate)}
+                        />
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-2 gap-3">
+                            <h3 className="text-sm font-semibold text-fg">Students in this batch</h3>
+                            <div className="flex items-center gap-2">
+                                <div className="w-44 hidden sm:block">
+                                    <Input
+                                        placeholder="Search"
+                                        leftIcon={<Search size={14} />}
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                                {canEdit && (
+                                    <Button
+                                        size="sm"
+                                        leftIcon={<UserPlus size={12} />}
+                                        onClick={() => setAssignOpen(true)}>
+                                        Assign students
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                    </Card>
-                )
-            })}
-        </div>
-    </>
+                        {detailQuery.isLoading ? (
+                            <div className="space-y-2">
+                                {[0, 1, 2].map((i) => (
+                                    <Skeleton
+                                        key={i}
+                                        className="h-10 w-full"
+                                    />
+                                ))}
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="text-sm text-fg-muted px-3 py-6 border border-dashed rounded-md text-center">
+                                {search
+                                    ? 'No students match your search.'
+                                    : 'No students assigned yet. Use Assign students to add enrolled students to this batch.'}
+                            </div>
+                        ) : (
+                            <div className="border rounded-md divide-y max-h-72 overflow-y-auto">
+                                {filtered.map((e) => {
+                                    const fullName =
+                                        [e.user.firstName, e.user.lastName].filter(Boolean).join(' ').trim() || e.user.email
+                                    return (
+                                        <div
+                                            key={e.id}
+                                            className="flex items-center justify-between px-3 py-2.5 hover:bg-surface-hover">
+                                            <div className="min-w-0">
+                                                <div className="text-sm font-medium text-fg truncate">{fullName}</div>
+                                                <div className="text-[11px] text-fg-muted truncate">{e.user.email}</div>
+                                            </div>
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <span className="text-[11px] text-fg-muted">{e.progressPct ?? 0}%</span>
+                                                <Badge tone={e.status === 'ACTIVE' ? 'brand' : e.status === 'COMPLETED' ? 'ok' : 'warn'}>
+                                                    {e.status === 'PENDING_PAYMENT' ? 'Pending pay' : e.status.toLowerCase()}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Modal>
+
+            <AssignStudentsModal
+                open={assignOpen}
+                onClose={() => setAssignOpen(false)}
+                batch={batch}
+                alreadyAssignedUserIds={new Set(enrolled.map((e) => e.userId))}
+                onAssigned={() => {
+                    void queryClient.invalidateQueries({ queryKey: ['batches'] })
+                    void queryClient.invalidateQueries({ queryKey: ['batch', batch.id] })
+                }}
+            />
+        </>
+    )
+}
+
+const Stat = ({ label, value }: { label: string; value: string }) => (
+    <div className="rounded-md border border-[var(--color-border)] px-3 py-2">
+        <div className="text-[10px] uppercase tracking-wider text-fg-muted">{label}</div>
+        <div className="text-sm font-medium text-fg mt-0.5 capitalize">{value}</div>
+    </div>
 )
+
+// Pick students who are enrolled in this batch's course but not yet in any
+// batch (or in another batch). The backend's assign endpoint filters by
+// courseId server-side, so we don't have to be perfectly clean here — but a
+// pre-filter UI keeps the picker short and reduces "no-op" assignments.
+const AssignStudentsModal = ({
+    open,
+    onClose,
+    batch,
+    alreadyAssignedUserIds,
+    onAssigned
+}: {
+    open: boolean
+    onClose: () => void
+    batch: BatchRow
+    alreadyAssignedUserIds: Set<string>
+    onAssigned: () => void
+}) => {
+    const [picked, setPicked] = useState<Set<string>>(new Set())
+    const [q, setQ] = useState('')
+
+    const studentsQuery = useQuery({
+        queryKey: ['users', 'students', batch.id],
+        queryFn: () => listUsers({ role: 'STUDENT', pageSize: 100 }),
+        enabled: open,
+        staleTime: 30_000
+    })
+    const students = studentsQuery.data?.items ?? []
+    const filtered = students.filter((u) => {
+        const needle = q.trim().toLowerCase()
+        if (!needle) return true
+        const name = [u.firstName, u.lastName].filter(Boolean).join(' ').toLowerCase()
+        return name.includes(needle) || u.email.toLowerCase().includes(needle)
+    })
+
+    const togglePick = (id: string) => {
+        const next = new Set(picked)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        setPicked(next)
+    }
+
+    const mutation = useMutation({
+        mutationFn: () => assignStudentsToBatch(batch.id, Array.from(picked)),
+        onSuccess: ({ assigned }) => {
+            toast.success(`Assigned ${assigned} student${assigned === 1 ? '' : 's'}`)
+            setPicked(new Set())
+            onAssigned()
+            onClose()
+        },
+        onError: (err: unknown) => {
+            const msg = err instanceof Error ? err.message : 'Could not assign'
+            toast.error(msg)
+        }
+    })
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={`Assign students to ${batch.name}`}
+            description="Only students who are already enrolled in this batch's course will be moved into the batch — the backend silently drops any who aren't enrolled, so it's safe to multi-select."
+            size="lg"
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        loading={mutation.isPending}
+                        disabled={picked.size === 0}
+                        onClick={() => mutation.mutate()}>
+                        Assign {picked.size > 0 ? `(${picked.size})` : ''}
+                    </Button>
+                </>
+            }>
+            <div className="space-y-3">
+                <Input
+                    placeholder="Search students by name or email"
+                    leftIcon={<Search size={14} />}
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                />
+                {studentsQuery.isLoading ? (
+                    <div className="space-y-2">
+                        {[0, 1, 2, 3].map((i) => (
+                            <Skeleton
+                                key={i}
+                                className="h-10 w-full"
+                            />
+                        ))}
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="text-sm text-fg-muted text-center py-6 border border-dashed rounded-md">
+                        No students {q ? 'match your search' : 'in your tenant yet'}.
+                    </div>
+                ) : (
+                    <div className="border rounded-md divide-y max-h-80 overflow-y-auto">
+                        {filtered.map((u) => {
+                            const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ').trim() || u.email
+                            const alreadyIn = alreadyAssignedUserIds.has(u.id)
+                            const checked = picked.has(u.id)
+                            return (
+                                <label
+                                    key={u.id}
+                                    className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer ${
+                                        alreadyIn ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-hover'
+                                    }`}>
+                                    <input
+                                        type="checkbox"
+                                        className="accent-[var(--color-brand-500)]"
+                                        disabled={alreadyIn}
+                                        checked={checked}
+                                        onChange={() => togglePick(u.id)}
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="text-sm font-medium text-fg truncate">{fullName}</div>
+                                        <div className="text-[11px] text-fg-muted truncate">{u.email}</div>
+                                    </div>
+                                    {alreadyIn && <span className="text-[11px] text-fg-muted">Already in batch</span>}
+                                </label>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
+        </Modal>
+    )
+}
+
