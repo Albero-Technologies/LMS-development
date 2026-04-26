@@ -531,19 +531,22 @@ export const WebsiteEditorPage = () => {
                 onPick={insertTemplate}
             />
 
-            <SiteSettingsModal
-                open={siteOpen}
-                onClose={() => setSiteOpen(false)}
-                pages={pages}
-                site={site}
-                navbar={navbar}
-                footer={footer}
-                styleClasses={styleClasses}
-                onChangeSite={setSite}
-                onChangeNavbar={setNavbar}
-                onChangeFooter={setFooter}
-                onChangeStyleClasses={setStyleClasses}
-            />
+            {tenant && (
+                <SiteSettingsModal
+                    open={siteOpen}
+                    onClose={() => setSiteOpen(false)}
+                    pages={pages}
+                    site={site}
+                    navbar={navbar}
+                    footer={footer}
+                    styleClasses={styleClasses}
+                    tenantSlug={tenant.slug}
+                    onChangeSite={setSite}
+                    onChangeNavbar={setNavbar}
+                    onChangeFooter={setFooter}
+                    onChangeStyleClasses={setStyleClasses}
+                />
+            )}
         </>
     )
 }
@@ -1759,6 +1762,7 @@ const SiteSettingsModal = ({
     navbar,
     footer,
     styleClasses,
+    tenantSlug,
     onChangeSite,
     onChangeNavbar,
     onChangeFooter,
@@ -1771,17 +1775,19 @@ const SiteSettingsModal = ({
     navbar: NavbarConfig
     footer: FooterConfig
     styleClasses: StyleClass[]
+    tenantSlug: string
     onChangeSite: (s: SiteIdentity) => void
     onChangeNavbar: (n: NavbarConfig) => void
     onChangeFooter: (f: FooterConfig) => void
     onChangeStyleClasses: (c: StyleClass[]) => void
 }) => {
-    const [tab, setTab] = useState<'identity' | 'navbar' | 'footer' | 'classes'>('identity')
+    const [tab, setTab] = useState<'identity' | 'navbar' | 'footer' | 'classes' | 'seo'>('identity')
     const tabs: { id: typeof tab; label: string }[] = [
         { id: 'identity', label: 'Identity' },
         { id: 'navbar', label: 'Navbar' },
         { id: 'footer', label: 'Footer' },
-        { id: 'classes', label: 'Style classes' }
+        { id: 'classes', label: 'Style classes' },
+        { id: 'seo', label: 'Search engines' }
     ]
     return (
         <Modal
@@ -1836,7 +1842,84 @@ const SiteSettingsModal = ({
                     onChange={onChangeStyleClasses}
                 />
             )}
+            {tab === 'seo' && <SeoFields tenantSlug={tenantSlug} />}
         </Modal>
+    )
+}
+
+// Auto-generated discoverability artefacts for search engines. The URLs are
+// served by the API and pull from landing.pages + published collection items —
+// no manual editing here. Tenants copy these into Google Search Console.
+const SeoFields = ({ tenantSlug }: { tenantSlug: string }) => {
+    const apiBase = (typeof window !== 'undefined' ? window.location.origin : '') + '/api/v1'
+    const sitemapUrl = `${apiBase}/sites/${tenantSlug}/sitemap.xml`
+    const robotsUrl = `${apiBase}/sites/${tenantSlug}/robots.txt`
+
+    const copy = async (label: string, value: string) => {
+        try {
+            await navigator.clipboard.writeText(value)
+            toast.success(`${label} copied`)
+        } catch {
+            toast.error('Copy failed — select and copy manually')
+        }
+    }
+
+    const Row = ({ label, hint, url }: { label: string; hint: string; url: string }) => (
+        <div className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <div className="text-sm font-medium text-fg">{label}</div>
+                    <div className="text-xs text-fg-muted mt-0.5">{hint}</div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<CopyIcon size={12} />}
+                        onClick={() => void copy(label, url)}>
+                        Copy
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<Eye size={12} />}
+                        onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}>
+                        Open
+                    </Button>
+                </div>
+            </div>
+            <code className="block text-xs font-mono text-fg-soft break-all bg-surface-hover rounded px-2 py-1.5">{url}</code>
+        </div>
+    )
+
+    return (
+        <div className="space-y-4">
+            <div className="text-xs text-fg-muted">
+                Generated automatically from your pages and published collection items. Submit the sitemap URL to{' '}
+                <a
+                    href="https://search.google.com/search-console"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-[var(--color-brand-600)]">
+                    Google Search Console
+                </a>{' '}
+                to get your tenant site indexed.
+            </div>
+            <Row
+                label="sitemap.xml"
+                hint="Lists every published page and collection item so crawlers can find them."
+                url={sitemapUrl}
+            />
+            <Row
+                label="robots.txt"
+                hint="Tells crawlers what they can index. Honours the per-tenant SEO `robots` directive."
+                url={robotsUrl}
+            />
+            <div className="text-xs text-fg-muted">
+                Tip: set a <span className="font-mono">canonicalUrl</span> in the SEO Builder if you've pointed a custom
+                domain at your site — the sitemap will switch to absolute URLs on that domain.
+            </div>
+        </div>
     )
 }
 

@@ -29,6 +29,10 @@ export default {
     PORT: num('PORT', 3000),
     SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000',
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    // Where the tenant-facing public site is served (the SPA host). Used to
+    // build absolute <loc> entries in sitemap.xml. Defaults to CORS_ORIGIN
+    // so dev "just works"; set explicitly in prod (e.g. https://www.albero.in).
+    PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL || process.env.CORS_ORIGIN || 'http://localhost:5173',
 
     DATABASE_URL: process.env.DATABASE_URL || '',
     REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
