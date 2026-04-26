@@ -24,6 +24,10 @@ export const updateCourseSchema = createCourseSchema.partial().extend({
 export const listCoursesQuerySchema = z.object({
     publishState: z.nativeEnum(CoursePublishState).optional(),
     trainerId: z.string().uuid().optional(),
+    // SUPER_ADMIN cross-tenant scope. Ignored for any other role; lets the SA
+    // panel pick a specific tenant from a dropdown instead of always seeing
+    // the platform tenant's catalog.
+    tenantId: z.string().uuid().optional(),
     q: z.string().max(100).optional(),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(100).default(20)

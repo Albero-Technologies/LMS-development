@@ -13,7 +13,11 @@ import {
 } from './course.schema'
 
 export const listCourses = async (tenantId: string, role: Role, userId: string, query: TListCoursesQuery) => {
-    const where: Prisma.CourseWhereInput = { tenantId }
+    // SUPER_ADMIN can scope to any tenant via ?tenantId=. Other roles always
+    // use their auth tenant — the override is silently ignored to avoid leaking
+    // courses across tenants if a malicious client tries to set it.
+    const effectiveTenantId = role === Role.SUPER_ADMIN && query.tenantId ? query.tenantId : tenantId
+    const where: Prisma.CourseWhereInput = { tenantId: effectiveTenantId }
 
     // Students only see PUBLISHED courses unless they are enrolled.
     if (role === Role.STUDENT) {

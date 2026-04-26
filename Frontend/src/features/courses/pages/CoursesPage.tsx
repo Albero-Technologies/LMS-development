@@ -1,19 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, BookOpen, ArrowRight, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Input } from '@shared/components/ui/Input'
 import { Textarea } from '@shared/components/ui/Input'
+import { Select } from '@shared/components/ui/Select'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
+import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Modal } from '@shared/components/ui/Modal'
 import { useCourseStore } from '../stores/courseStore'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
 import { StudentCoursesView } from '../components/StudentCoursesView'
+import { listAllTenants } from '@features/admin/services/tenant.service'
+import { listCourses, type TCourse as ApiCourse } from '../services/course.service'
 
 const slugify = (s: string): string =>
     s
@@ -29,7 +34,161 @@ export const CoursesPage = () => {
     // Students get the catalog + enrol/pay flow, not the publish-and-curate view.
     if (user?.role === ROLES.STUDENT) return <StudentCoursesView />
 
+    // SUPER_ADMIN sees a per-tenant catalog drilled in via picker — actual
+    // courses come from the backend, scoped to the chosen tenant. Tenant
+    // ADMIN/TRAINER stay on the local Zustand mock until the backend wiring
+    // for create/edit lands.
+    if (user?.role === ROLES.SUPER_ADMIN) return <SuperAdminCoursesView />
+
     return <AdminCoursesView />
+}
+
+// SUPER_ADMIN cross-tenant courses view. Mirrors the Website Editor's tenant
+// picker: pick a tenant, see their published + draft course catalog. Read-only
+// for now — SAs don't author courses on tenants' behalf, that's tenant ADMIN's
+// job; the SA just monitors enrolment counts and publish state.
+const SuperAdminCoursesView = () => {
+    const [q, setQ] = useState('')
+    const [tenantId, setTenantId] = useState('')
+
+    const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
+    const tenants = tenantsQuery.data ?? []
+
+    useEffect(() => {
+        if (!tenantId && tenants.length > 0) setTenantId(tenants[0].id)
+    }, [tenantId, tenants])
+
+    const coursesQuery = useQuery({
+        queryKey: ['courses', 'sa', tenantId, q],
+        queryFn: () => listCourses({ tenantId, q: q || undefined }),
+        enabled: tenantId.length > 0,
+        staleTime: 30_000
+    })
+    const courses = coursesQuery.data ?? []
+
+    const activeTenant = tenants.find((t) => t.id === tenantId)
+
+    return (
+        <>
+            <PageHeader
+                eyebrow="Catalog"
+                title="Courses"
+                description={
+                    activeTenant
+                        ? `Catalog for ${activeTenant.name}. Switch tenants to monitor a different institute.`
+                        : 'Pick a tenant to see their course catalog.'
+                }
+                actions={
+                    <>
+                        <div className="w-64">
+                            <Select
+                                aria-label="Choose tenant"
+                                value={tenantId}
+                                onChange={(e) => setTenantId(e.target.value)}>
+                                {tenants.length === 0 && <option value="">Loading…</option>}
+                                {tenants.map((t) => (
+                                    <option
+                                        key={t.id}
+                                        value={t.id}>
+                                        {t.name} (/{t.slug})
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div className="w-64 hidden sm:block">
+                            <Input
+                                placeholder="Search courses"
+                                leftIcon={<Search size={14} />}
+                                value={q}
+                                onChange={(e) => setQ(e.target.value)}
+                                aria-label="Search courses"
+                            />
+                        </div>
+                    </>
+                }
+            />
+
+            {coursesQuery.isLoading && (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => (
+                        <Card key={i}>
+                            <Skeleton className="h-32 w-full mb-4" />
+                            <Skeleton className="h-5 w-2/3 mb-2" />
+                            <Skeleton className="h-4 w-full" />
+                        </Card>
+                    ))}
+                </div>
+            )}
+
+            {!coursesQuery.isLoading && courses.length === 0 && (
+                <Empty
+                    icon={<BookOpen size={36} />}
+                    title={q ? 'No matches' : 'No courses for this tenant'}
+                    description={
+                        q
+                            ? 'Try a different search.'
+                            : 'This tenant has not published any courses yet. Tenant ADMINs add courses from their own panel.'
+                    }
+                />
+            )}
+
+            {courses.length > 0 && (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {courses.map((c) => (
+                        <SuperAdminCourseCard
+                            key={c.id}
+                            course={c}
+                        />
+                    ))}
+                </div>
+            )}
+        </>
+    )
+}
+
+const SuperAdminCourseCard = ({ course }: { course: ApiCourse }) => {
+    const isPublished = course.publishState === 'PUBLISHED' || course.isPublished === true
+    const enrolled = course.enrolledCount ?? 0
+    const cover = course.thumbnailUrl ?? course.coverUrl ?? null
+    const priceRupees = Math.round((course.price ?? 0) / 100)
+    return (
+        <Card className="flex flex-col">
+            <div
+                className="h-32 rounded-md mb-4 relative overflow-hidden grid-dots"
+                style={{
+                    background: cover ? undefined : 'linear-gradient(135deg, var(--color-brand-50), var(--color-surface-2))'
+                }}>
+                {cover ? (
+                    <img
+                        src={cover}
+                        alt={course.title}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <BookOpen
+                            size={36}
+                            className="text-[var(--color-brand-500)]/60"
+                        />
+                    </div>
+                )}
+            </div>
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <h3 className="text-base font-semibold text-fg truncate">{course.title}</h3>
+                    <p className="text-xs text-fg-muted mt-1 font-mono">/{course.slug}</p>
+                </div>
+                <Badge tone={isPublished ? 'ok' : 'default'}>{isPublished ? 'Live' : 'Draft'}</Badge>
+            </div>
+            {course.description && <p className="mt-2 text-sm text-fg-soft line-clamp-2">{course.description}</p>}
+            <div className="mt-3 flex items-center justify-between text-sm text-fg-soft">
+                <span className="font-mono font-semibold">
+                    {priceRupees > 0 ? `₹${priceRupees.toLocaleString('en-IN')}` : 'Free'}
+                </span>
+                <span className="text-xs text-fg-muted">{enrolled} enrolled</span>
+            </div>
+        </Card>
+    )
 }
 
 const AdminCoursesView = () => {

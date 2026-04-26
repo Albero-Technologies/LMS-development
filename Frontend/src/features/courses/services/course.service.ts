@@ -22,7 +22,9 @@ export type TCourse = {
 type Envelope<T> = { success: boolean; data: T; message: string }
 type PagedResponse<T> = Envelope<{ items: T[]; total: number; page: number; pageSize: number }>
 
-export const listCourses = async (params?: { q?: string; page?: number }): Promise<TCourse[]> => {
+// `tenantId` is honoured for SUPER_ADMIN only — the backend silently drops it
+// for any other role, so it's safe to always pass through.
+export const listCourses = async (params?: { q?: string; page?: number; tenantId?: string }): Promise<TCourse[]> => {
     const { data } = await api.get<PagedResponse<TCourse>>('/courses', { params })
     return data.data.items
 }
