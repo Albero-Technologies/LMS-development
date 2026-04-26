@@ -984,6 +984,226 @@ export const newPageId = (): string =>
 
 export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() } as LandingSection)
 
+// ---- Page templates -------------------------------------------------------
+//
+// Whole-page presets for the "New page" modal. Each entry is a curated bundle
+// of sections (taken from LANDING_TEMPLATES section shapes) plus a default
+// name / slug. Picking a template in the New Page modal pre-fills name + slug
+// and instantiates all sections with fresh ids.
+//
+// "Blank" is special — no sections — so the picker can default to the
+// existing zero-config behaviour.
+export type PageTemplate = {
+    id: string
+    label: string
+    description: string
+    defaultName: string
+    defaultSlug: string
+    sections: Omit<LandingSection, 'id'>[]
+}
+
+export const PAGE_TEMPLATES: PageTemplate[] = [
+    {
+        id: 'blank',
+        label: 'Blank — start empty',
+        description: 'No sections. Add them yourself from the section picker.',
+        defaultName: 'New page',
+        defaultSlug: '/new-page',
+        sections: []
+    },
+    {
+        id: 'about',
+        label: 'About us',
+        description: 'Hero + three pillars + tenant image + CTA. Drops in as a polished About page out of the box.',
+        defaultName: 'About',
+        defaultSlug: '/about',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'centered',
+                data: {
+                    eyebrow: 'About us',
+                    title: 'We build careers, not just courses.',
+                    subtitle: 'Mentor-led cohorts, real industry projects, and lifelong placement support.'
+                }
+            },
+            {
+                type: 'features',
+                variant: 'three-up',
+                data: {
+                    title: 'What sets us apart',
+                    pillars: [
+                        { title: 'Senior mentors', description: 'Every cohort is led by working professionals from top product companies.' },
+                        { title: 'Industry-graded projects', description: 'You ship real work, not toy assignments. Every project is reviewed.' },
+                        { title: 'Placement-first', description: 'Resume reviews, mock interviews, and direct partner-company referrals.' }
+                    ]
+                }
+            },
+            {
+                type: 'image',
+                variant: 'contained',
+                data: { src: '', alt: 'Our campus', rounded: true }
+            },
+            {
+                type: 'cta',
+                variant: 'banner',
+                data: {
+                    title: 'Curious about our cohorts?',
+                    subtitle: 'A 20-minute counselling call is the fastest way to figure out if we are the right fit.',
+                    buttonLabel: 'Talk to a counsellor',
+                    buttonLink: 'enquiry'
+                }
+            }
+        ]
+    },
+    {
+        id: 'pricing',
+        label: 'Pricing',
+        description: 'Hero + four pricing pillars + closing CTA. Edit the pillar copy with your tier names and amounts.',
+        defaultName: 'Pricing',
+        defaultSlug: '/pricing',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'centered',
+                data: {
+                    eyebrow: 'Pricing',
+                    title: 'Pay once. Learn for life.',
+                    subtitle: 'Lifetime access to course content, weekly mentor hours during your cohort, and our placement network.'
+                }
+            },
+            {
+                type: 'features',
+                variant: 'four-up',
+                data: {
+                    title: 'Three plans, one promise.',
+                    pillars: [
+                        { title: '₹19,999 · Self-paced', description: 'All recorded content + community access.' },
+                        { title: '₹49,999 · Cohort', description: 'Live mentorship + projects + placement help.' },
+                        { title: '₹99,999 · 1:1 mentor', description: 'Everything in Cohort + weekly 1:1 reviews.' },
+                        { title: 'No-cost EMI', description: 'On all major banks, up to 12 months.' }
+                    ]
+                }
+            },
+            {
+                type: 'cta',
+                variant: 'banner',
+                data: {
+                    title: 'Not sure which plan fits?',
+                    subtitle: 'Hop on a free counselling call — we will recommend honestly, no sales script.',
+                    buttonLabel: 'Book my call',
+                    buttonLink: 'enquiry'
+                }
+            }
+        ]
+    },
+    {
+        id: 'contact',
+        label: 'Contact',
+        description: 'Hero + Calendly inline embed + softer CTA. Replace the iframe URL with your own.',
+        defaultName: 'Contact',
+        defaultSlug: '/contact',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'centered',
+                data: {
+                    eyebrow: 'Contact',
+                    title: 'Talk to a counsellor.',
+                    subtitle: 'Pick a slot below — we usually respond within one working day.'
+                }
+            },
+            {
+                type: 'embed',
+                variant: 'iframe',
+                data: {
+                    html: '<iframe src="https://calendly.com/your-handle/counselling-call?embed_domain=embed&embed_type=Inline" width="100%" height="700" frameborder="0"></iframe>',
+                    height: 700,
+                    title: 'Book a counselling call'
+                }
+            },
+            {
+                type: 'cta',
+                variant: 'card',
+                data: {
+                    title: 'Prefer email?',
+                    subtitle: 'Drop us a line — we read every message.',
+                    buttonLabel: 'Email us',
+                    buttonLink: 'mailto:hello@example.com'
+                }
+            }
+        ]
+    },
+    {
+        id: 'faq',
+        label: 'FAQ (uses CMS collection)',
+        description: 'Hero + a Collection-list block pointing to your "FAQs" CMS collection. Create the FAQs collection first if you have not already.',
+        defaultName: 'FAQ',
+        defaultSlug: '/faq',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'centered',
+                data: {
+                    eyebrow: 'Help centre',
+                    title: 'Frequently asked questions',
+                    subtitle: 'Cannot find what you are looking for? Reach out via the support widget.'
+                }
+            },
+            {
+                type: 'collectionList',
+                variant: 'list',
+                data: {
+                    collectionSlug: 'faqs',
+                    title: 'Browse by topic',
+                    titleField: 'question',
+                    summaryField: 'answer',
+                    limit: 50
+                }
+            }
+        ]
+    },
+    {
+        id: 'blog-index',
+        label: 'Blog index (uses CMS collection)',
+        description: 'Hero + a Collection-list grid for your "Blog posts" CMS collection. Pair with a detail-template page so individual posts route to /blog/<slug>.',
+        defaultName: 'Blog',
+        defaultSlug: '/blog',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'centered',
+                data: {
+                    eyebrow: 'Writing',
+                    title: 'Notes from the cohort',
+                    subtitle: 'Lessons, project breakdowns, and student stories — the long-form stuff our team wishes they had read first.'
+                }
+            },
+            {
+                type: 'collectionList',
+                variant: 'cards',
+                data: {
+                    collectionSlug: 'blog',
+                    title: 'Latest posts',
+                    titleField: 'title',
+                    summaryField: 'summary',
+                    imageField: 'coverImage',
+                    limit: 12
+                }
+            }
+        ]
+    }
+]
+
+// Instantiate a page from a template — fresh ids on the page and every section.
+export const instantiatePageTemplate = (t: PageTemplate, opts: { name?: string; slug?: string }): LandingPage => ({
+    id: newPageId(),
+    name: opts.name ?? t.defaultName,
+    slug: opts.slug ?? t.defaultSlug,
+    isHome: false,
+    sections: t.sections.map((s) => ({ ...s, id: newSectionId() }) as LandingSection)
+})
+
 export const newLinkId = (): string =>
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `lnk_${Math.random().toString(36).slice(2, 10)}`
 

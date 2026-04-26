@@ -10,7 +10,6 @@ import {
     Bell,
     Settings,
     LogOut,
-    Search,
     Menu,
     X,
     CalendarCheck,
@@ -34,6 +33,7 @@ import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { NotificationBell } from '@features/notifications/components/NotificationBell'
+import { CommandPalette, CommandPaletteTrigger, useCommandPaletteShortcut } from '@shared/components/CommandPalette'
 import { useRealtimeSync } from '@shared/hooks/useRealtimeSync'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore } from '@shared/stores/authStore'
@@ -90,6 +90,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/student', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/quizzes', label: 'Quizzes', icon: ClipboardList },
+        { to: '/app/student/batches', label: 'My Batches', icon: CalendarCheck },
         { to: '/app/enrollments', label: 'My Enrollments', icon: GraduationCap },
         { to: '/app/payments', label: 'Fees', icon: CreditCard },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
@@ -140,6 +141,7 @@ export const AppLayout = () => {
     const navigate = useNavigate()
     const [openMobile, setOpenMobile] = useState(false)
     const [collapsed, setCollapsed] = useState(false)
+    const [paletteOpen, setPaletteOpen] = useState(false)
 
     const nav = useMemo<NavItem[]>(() => (user ? (NAV_BY_ROLE[user.role] ?? []) : []), [user])
     const roleAccent = user ? ROLE_ACCENT[user.role] : undefined
@@ -148,6 +150,9 @@ export const AppLayout = () => {
     // Open the socket connection while authenticated and route push events to
     // TanStack Query invalidations.
     useRealtimeSync()
+
+    // Cmd+K (or Ctrl+K) and "/" toggle the global command palette.
+    useCommandPaletteShortcut(() => setPaletteOpen((v) => !v))
 
     const handleLogout = () => {
         clear()
@@ -323,19 +328,8 @@ export const AppLayout = () => {
                                 <Menu size={16} />
                             </button>
 
-                            {/* Search */}
-                            <div className="relative flex-1 max-w-md">
-                                <Search
-                                    size={14}
-                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted"
-                                />
-                                <input
-                                    placeholder="Search courses, students, tickets…"
-                                    className="input pl-9 pr-14 h-9"
-                                    aria-label="Global search"
-                                />
-                                <span className="kbd absolute right-2 top-1/2 -translate-y-1/2 h-5">⌘ K</span>
-                            </div>
+                            {/* Search — opens the Cmd+K command palette. */}
+                            <CommandPaletteTrigger onClick={() => setPaletteOpen(true)} />
 
                             <div className="flex items-center gap-1.5">
                                 <ThemeToggle />
@@ -367,6 +361,10 @@ export const AppLayout = () => {
                     </main>
                 </div>
             </div>
+            <CommandPalette
+                open={paletteOpen}
+                onClose={() => setPaletteOpen(false)}
+            />
         </div>
     )
 }

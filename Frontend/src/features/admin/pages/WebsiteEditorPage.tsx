@@ -83,6 +83,8 @@ import {
     newLinkId,
     newPageId,
     newSectionId,
+    PAGE_TEMPLATES,
+    instantiatePageTemplate,
     readLandingContent,
     updateTenantById,
     type FooterColumn,
@@ -92,6 +94,7 @@ import {
     type LandingPillar,
     type LandingSection,
     type LandingTemplate,
+    type PageTemplate,
     type NavLink,
     type NavbarConfig,
     type SectionStyle,
@@ -303,11 +306,17 @@ export const WebsiteEditorPage = () => {
     }
 
     // ---- Page-level mutators ------------------------------------------------
-    const addPage = (name: string, slug: string) => {
-        const page = createBlankPage(name, slug, false)
+    // Add a new page. If `template` is provided we instantiate it (with fresh
+    // ids on every section); otherwise we drop in an empty page using the
+    // existing createBlankPage helper. Either way the new page is appended to
+    // the page list and made active.
+    const addPage = (name: string, slug: string, template?: PageTemplate | null) => {
+        const page = template && template.id !== 'blank'
+            ? instantiatePageTemplate(template, { name, slug })
+            : createBlankPage(name, slug, false)
         setPages([...pages, page])
         setActivePageId(page.id)
-        setSelectedSectionId(null)
+        setSelectedSectionId(page.sections[0]?.id ?? null)
     }
     // Import a fully-formed page from another tenant. Every section needs a
     // fresh id so it can coexist with whatever's already on the destination —
@@ -441,7 +450,7 @@ export const WebsiteEditorPage = () => {
                             const p = pages.find((x) => x.id === id)
                             setSelectedSectionId(p?.sections[0]?.id ?? null)
                         }}
-                        onAdd={(name, slug) => addPage(name, slug)}
+                        onAdd={(name, slug, template) => addPage(name, slug, template)}
                         onImport={importPage}
                         onDuplicate={duplicatePage}
                         onDelete={deletePage}
@@ -614,7 +623,7 @@ const PagesBar = ({
     activePageId: string
     currentTenantId: string
     onSelect: (id: string) => void
-    onAdd: (name: string, slug: string) => void
+    onAdd: (name: string, slug: string, template: PageTemplate | null) => void
     onImport: (source: LandingPage, opts?: { slug?: string; name?: string }) => void
     onDuplicate: (id: string) => void
     onDelete: (id: string) => void
@@ -661,8 +670,8 @@ const PagesBar = ({
             <NewPageModal
                 open={newOpen}
                 onClose={() => setNewOpen(false)}
-                onCreate={(name, slug) => {
-                    onAdd(name, slug)
+                onCreate={(name, slug, template) => {
+                    onAdd(name, slug, template)
                     setNewOpen(false)
                 }}
             />
@@ -921,15 +930,40 @@ const PageTab = ({
     </div>
 )
 
-const NewPageModal = ({ open, onClose, onCreate }: { open: boolean; onClose: () => void; onCreate: (name: string, slug: string) => void }) => {
+const NewPageModal = ({
+    open,
+    onClose,
+    onCreate
+}: {
+    open: boolean
+    onClose: () => void
+    onCreate: (name: string, slug: string, template: PageTemplate | null) => void
+}) => {
+    const [templateId, setTemplateId] = useState<string>('blank')
     const [name, setName] = useState('')
     const [slug, setSlug] = useState('')
+    const [nameTouched, setNameTouched] = useState(false)
+    const [slugTouched, setSlugTouched] = useState(false)
+
+    const template = PAGE_TEMPLATES.find((t) => t.id === templateId) ?? PAGE_TEMPLATES[0]
+
+    // Picking a template prefills the name + slug — but only if the user
+    // hasn't started typing their own. Editing the template doesn't clobber
+    // their input.
+    const pickTemplate = (id: string) => {
+        setTemplateId(id)
+        const t = PAGE_TEMPLATES.find((x) => x.id === id)
+        if (!t) return
+        if (!nameTouched) setName(t.defaultName)
+        if (!slugTouched) setSlug(t.defaultSlug)
+    }
+
     return (
         <Modal
             open={open}
             onClose={onClose}
             title="New page"
-            description="Pages can be linked to from the navbar or any block CTA."
+            description="Pick a template to start with sections pre-filled, or pick Blank for an empty page."
             footer={
                 <>
                     <Button
@@ -939,25 +973,66 @@ const NewPageModal = ({ open, onClose, onCreate }: { open: boolean; onClose: () 
                     </Button>
                     <Button
                         disabled={!name || !slug}
-                        onClick={() => onCreate(name.trim(), slug.trim())}>
+                        onClick={() => {
+                            onCreate(name.trim(), slug.trim(), template)
+                            setTemplateId('blank')
+                            setName('')
+                            setSlug('')
+                            setNameTouched(false)
+                            setSlugTouched(false)
+                        }}>
                         Create
                     </Button>
                 </>
             }>
             <div className="space-y-3">
+                <Select
+                    label="Start from"
+                    value={templateId}
+                    onChange={(e) => pickTemplate(e.target.value)}
+                    hint={template.description}>
+                    {PAGE_TEMPLATES.map((t) => (
+                        <option
+                            key={t.id}
+                            value={t.id}>
+                            {t.label}
+                        </option>
+                    ))}
+                </Select>
                 <Input
                     label="Page name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                        setName(e.target.value)
+                        setNameTouched(true)
+                    }}
                     placeholder="About"
                 />
                 <Input
                     label="URL path"
                     value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
+                    onChange={(e) => {
+                        setSlug(e.target.value)
+                        setSlugTouched(true)
+                    }}
                     placeholder="/about"
                     hint="Use a leading slash. Nested paths like /blog/post are supported."
                 />
+                {template.sections.length > 0 && (
+                    <div className="rounded-md border border-[var(--color-border)] bg-surface-hover/50 px-3 py-2">
+                        <div className="text-[11px] font-medium text-fg-soft mb-1">Sections you'll get</div>
+                        <div className="flex flex-wrap gap-1.5">
+                            {template.sections.map((s, i) => (
+                                <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-[11px] text-fg-soft border border-[var(--color-border)]">
+                                    {SECTION_LABEL[s.type]} · {s.variant}
+                                </span>
+                            ))}
+                        </div>
+                        <div className="mt-1.5 text-[10px] text-fg-muted">Edit each section after creating.</div>
+                    </div>
+                )}
             </div>
         </Modal>
     )

@@ -56,26 +56,43 @@ export const startEnrollment = async (tenantId: string, userId: string, courseId
                   }
               })
 
-        const number = await generateInvoiceNumber(tenantId)
+        // Idempotent invoice handling — when the student first hits "Enrol" we
+        // create a DUE invoice. When they hit "Pay now" the controller calls
+        // this same service (the Razorpay order is re-issued each time so the
+        // checkout always works), but the invoice itself must be reused —
+        // otherwise we'd ship two invoices for the same course and the
+        // student's Fees page would show a "ghost" pending balance even after
+        // they paid the first one.
+        const reusableInvoice = existing
+            ? await tx.invoice.findFirst({
+                  where: { enrollmentId: existing.id, status: InvoiceStatus.DUE }
+              })
+            : null
 
         // For a free course, skip Razorpay entirely — mark invoice PAID and activate enrollment.
         if (totalAmount === 0) {
-            const invoice = await tx.invoice.create({
-                data: {
-                    tenantId,
-                    userId,
-                    enrollmentId: enrollment.id,
-                    number,
-                    amount: course.price,
-                    currency: course.currency,
-                    gstPercent: course.gstPercent,
-                    gstAmount,
-                    totalAmount,
-                    gateway: PaymentGateway.RAZORPAY,
-                    status: InvoiceStatus.PAID,
-                    paidAt: new Date()
-                }
-            })
+            const number = reusableInvoice ? reusableInvoice.number : await generateInvoiceNumber(tenantId)
+            const invoice = reusableInvoice
+                ? await tx.invoice.update({
+                      where: { id: reusableInvoice.id },
+                      data: { status: InvoiceStatus.PAID, paidAt: new Date() }
+                  })
+                : await tx.invoice.create({
+                      data: {
+                          tenantId,
+                          userId,
+                          enrollmentId: enrollment.id,
+                          number,
+                          amount: course.price,
+                          currency: course.currency,
+                          gstPercent: course.gstPercent,
+                          gstAmount,
+                          totalAmount,
+                          gateway: PaymentGateway.RAZORPAY,
+                          status: InvoiceStatus.PAID,
+                          paidAt: new Date()
+                      }
+                  })
             await tx.enrollment.update({
                 where: { id: enrollment.id },
                 data: { status: EnrollmentStatus.ACTIVE, startedAt: new Date() }
@@ -86,6 +103,7 @@ export const startEnrollment = async (tenantId: string, userId: string, courseId
         // Paid course — create Razorpay order using the tenant's own keys
         // when configured, otherwise the platform default.
         const rp = await resolveRazorpay(tenantId)
+        const number = reusableInvoice ? reusableInvoice.number : await generateInvoiceNumber(tenantId)
         const order = await rp.client.orders.create({
             amount: totalAmount,
             currency: course.currency,
@@ -93,23 +111,31 @@ export const startEnrollment = async (tenantId: string, userId: string, courseId
             notes: { tenantId, courseId, enrollmentId: enrollment.id, userId }
         })
 
-        const invoice = await tx.invoice.create({
-            data: {
-                tenantId,
-                userId,
-                enrollmentId: enrollment.id,
-                number,
-                amount: course.price,
-                currency: course.currency,
-                gstPercent: course.gstPercent,
-                gstAmount,
-                totalAmount,
-                gateway: PaymentGateway.RAZORPAY,
-                gatewayOrderId: order.id,
-                status: InvoiceStatus.DUE,
-                dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-            }
-        })
+        const invoice = reusableInvoice
+            ? await tx.invoice.update({
+                  where: { id: reusableInvoice.id },
+                  // Refresh the order id so the client checkout uses the latest
+                  // order (Razorpay orders can expire). Amount/total stay the
+                  // same since the course price hasn't moved.
+                  data: { gatewayOrderId: order.id }
+              })
+            : await tx.invoice.create({
+                  data: {
+                      tenantId,
+                      userId,
+                      enrollmentId: enrollment.id,
+                      number,
+                      amount: course.price,
+                      currency: course.currency,
+                      gstPercent: course.gstPercent,
+                      gstAmount,
+                      totalAmount,
+                      gateway: PaymentGateway.RAZORPAY,
+                      gatewayOrderId: order.id,
+                      status: InvoiceStatus.DUE,
+                      dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+                  }
+              })
 
         return {
             enrollment,

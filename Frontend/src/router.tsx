@@ -31,6 +31,7 @@ import { QuizzesPage } from '@features/quizzes/pages/QuizzesPage'
 import { QuizBuilderPage } from '@features/quizzes/pages/QuizBuilderPage'
 import { TakeQuizPage } from '@features/quizzes/pages/TakeQuizPage'
 import { BatchesPage } from '@features/batches/pages/BatchesPage'
+import { StudentBatchesPage } from '@features/batches/pages/StudentBatchesPage'
 import { UsersPage } from '@features/users/pages/UsersPage'
 import { EnrollmentsPage } from '@features/enrollments/pages/EnrollmentsPage'
 import { PaymentsPage } from '@features/payments/pages/PaymentsPage'
@@ -291,8 +292,25 @@ export const router = createBrowserRouter([
             },
             { path: 'quizzes/:id/take', element: <TakeQuizPage /> },
 
-            // Batches
-            { path: 'batches', element: <BatchesPage /> },
+            // Batches — staff get the full management view, students get
+            // their own read-only "what cohort am I in" page.
+            {
+                path: 'batches',
+                element: (
+                    <ProtectedRoute
+                        roles={[
+                            ROLES.ADMIN,
+                            ROLES.SUPER_ADMIN,
+                            ROLES.TRAINER,
+                            ROLES.COUNSELLOR,
+                            ROLES.COUNSELLING_MANAGER,
+                            ROLES.SUPPORT
+                        ]}>
+                        <BatchesPage />
+                    </ProtectedRoute>
+                )
+            },
+            { path: 'student/batches', element: <StudentBatchesPage /> },
 
             // Users
             {

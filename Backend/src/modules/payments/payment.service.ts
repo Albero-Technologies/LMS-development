@@ -29,12 +29,28 @@ const baseInvoiceSelect = {
     }
 } satisfies Prisma.InvoiceSelect
 
+// Filter out invoices that are orphaned by an ACTIVE / COMPLETED enrollment.
+// These can exist on accounts that pre-date the idempotency fix in
+// startEnrollment, where each click of "Pay now" used to mint a fresh invoice
+// and only one of them got paid — leaving the others dangling as "you still
+// owe ₹X" ghosts. The enum has no CANCELLED state, so we just hide them on
+// read instead of mutating.
+const orphanFilter = {
+    NOT: {
+        AND: [
+            { status: { in: [InvoiceStatus.DUE, InvoiceStatus.FAILED] } },
+            { enrollment: { status: { in: ['ACTIVE' as const, 'COMPLETED' as const] } } }
+        ]
+    }
+} satisfies Prisma.InvoiceWhereInput
+
 export const listMyPendingInvoices = async (tenantId: string, userId: string) => {
     return db.client.invoice.findMany({
         where: {
             tenantId,
             userId,
-            status: { in: [InvoiceStatus.DUE, InvoiceStatus.FAILED] }
+            status: { in: [InvoiceStatus.DUE, InvoiceStatus.FAILED] },
+            ...orphanFilter
         },
         select: baseInvoiceSelect,
         orderBy: [{ dueAt: 'asc' }, { createdAt: 'desc' }]
@@ -43,7 +59,7 @@ export const listMyPendingInvoices = async (tenantId: string, userId: string) =>
 
 export const listMyInvoices = async (tenantId: string, userId: string) => {
     return db.client.invoice.findMany({
-        where: { tenantId, userId },
+        where: { tenantId, userId, ...orphanFilter },
         select: baseInvoiceSelect,
         orderBy: { createdAt: 'desc' }
     })
