@@ -8,7 +8,15 @@ export const createBatchSchema = z.object({
     trainerId: z.string().uuid().optional(),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().optional(),
-    capacity: z.number().int().min(1).max(1000).default(50)
+    capacity: z.number().int().min(1).max(1000).default(50),
+    // SUPER_ADMIN cross-tenant scope. Silently ignored for any other role —
+    // the service layer falls back to req.auth.tenantId.
+    tenantId: z.string().uuid().optional()
+})
+
+export const listBatchesQuerySchema = z.object({
+    courseId: z.string().uuid().optional(),
+    tenantId: z.string().uuid().optional()
 })
 
 export const updateBatchSchema = z.object({
@@ -31,5 +39,6 @@ export const transferStudentSchema = z.object({
 
 export type TCreateBatchInput = z.infer<typeof createBatchSchema>
 export type TUpdateBatchInput = z.infer<typeof updateBatchSchema>
+export type TListBatchesQuery = z.infer<typeof listBatchesQuerySchema>
 export type TAssignStudentsInput = z.infer<typeof assignStudentsSchema>
 export type TTransferStudentInput = z.infer<typeof transferStudentSchema>

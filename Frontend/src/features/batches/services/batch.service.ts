@@ -45,6 +45,8 @@ export type CreateBatchInput = {
     startDate: string // ISO
     endDate?: string
     capacity?: number
+    // SUPER_ADMIN only — backend silently drops it for any other role.
+    tenantId?: string
 }
 
 export type UpdateBatchInput = Partial<{
@@ -56,7 +58,7 @@ export type UpdateBatchInput = Partial<{
     status: BatchStatus
 }>
 
-export const listBatches = async (params?: { courseId?: string }): Promise<BatchRow[]> => {
+export const listBatches = async (params?: { courseId?: string; tenantId?: string }): Promise<BatchRow[]> => {
     const { data } = await api.get<Envelope<BatchRow[]>>('/batches', { params })
     return data.data
 }

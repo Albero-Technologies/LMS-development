@@ -64,6 +64,15 @@ export const createCourse = async (body: Partial<TCourse>): Promise<TCourse> => 
     return data.data
 }
 
+export const updateCourse = async (id: string, body: Partial<TCourse>): Promise<TCourse> => {
+    const { data } = await api.patch<Envelope<TCourse>>(`/courses/${id}`, body)
+    return data.data
+}
+
+export const deleteCourse = async (id: string): Promise<void> => {
+    await api.delete(`/courses/${id}`)
+}
+
 // Per-lesson progress mark — "I watched/read this lesson". Backend persists
 // the mark + recomputes course-level progressPct on the enrolment so the
 // student's "% complete" stays in sync. Idempotent: re-marking is a no-op

@@ -1,10 +1,20 @@
-import { type Prisma } from '@prisma/client'
+import { type Prisma, Role } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { type TAssignStudentsInput, type TCreateBatchInput, type TTransferStudentInput, type TUpdateBatchInput } from './batch.schema'
 
-export const createBatch = async (tenantId: string, input: TCreateBatchInput) => {
+// SUPER_ADMIN can scope every batch operation to any tenant via the
+// `tenantId` override. For any other role we silently use the caller's
+// auth tenant — passing a body/query tenantId from a non-SA client is
+// dropped, not validated, so a malicious client can't escalate.
+const resolveTargetTenant = (role: Role, authTenantId: string, override?: string): string => {
+    if (role === Role.SUPER_ADMIN && override) return override
+    return authTenantId
+}
+
+export const createBatch = async (role: Role, authTenantId: string, input: TCreateBatchInput) => {
+    const tenantId = resolveTargetTenant(role, authTenantId, input.tenantId)
     const course = await db.client.course.findFirst({ where: { id: input.courseId, tenantId } })
     if (!course) throw AppError.notFound(responseMessage.NOT_FOUND('Course'))
 
@@ -27,8 +37,10 @@ export const createBatch = async (tenantId: string, input: TCreateBatchInput) =>
     })
 }
 
-export const updateBatch = async (tenantId: string, id: string, input: TUpdateBatchInput) => {
-    const batch = await db.client.batch.findFirst({ where: { id, tenantId } })
+export const updateBatch = async (role: Role, authTenantId: string, id: string, input: TUpdateBatchInput) => {
+    // SA can edit any tenant's batch; everyone else stays in their own tenant.
+    const where = role === Role.SUPER_ADMIN ? { id } : { id, tenantId: authTenantId }
+    const batch = await db.client.batch.findFirst({ where })
     if (!batch) throw AppError.notFound(responseMessage.NOT_FOUND('Batch'))
     const data: Prisma.BatchUpdateInput = {}
     if (input.name !== undefined) data.name = input.name
@@ -42,9 +54,14 @@ export const updateBatch = async (tenantId: string, id: string, input: TUpdateBa
     return db.client.batch.update({ where: { id }, data })
 }
 
-export const listBatches = async (tenantId: string, courseId?: string) => {
+export const listBatches = async (
+    role: Role,
+    authTenantId: string,
+    opts: { courseId?: string; tenantId?: string }
+) => {
+    const tenantId = resolveTargetTenant(role, authTenantId, opts.tenantId)
     return db.client.batch.findMany({
-        where: { tenantId, ...(courseId ? { courseId } : {}) },
+        where: { tenantId, deletedAt: null, ...(opts.courseId ? { courseId: opts.courseId } : {}) },
         include: {
             course: { select: { id: true, title: true } },
             trainer: { select: { id: true, firstName: true, lastName: true } },
@@ -54,9 +71,10 @@ export const listBatches = async (tenantId: string, courseId?: string) => {
     })
 }
 
-export const getBatch = async (tenantId: string, id: string) => {
+export const getBatch = async (role: Role, authTenantId: string, id: string) => {
+    const where = role === Role.SUPER_ADMIN ? { id } : { id, tenantId: authTenantId }
     const batch = await db.client.batch.findFirst({
-        where: { id, tenantId },
+        where,
         include: {
             course: { select: { id: true, title: true } },
             trainer: { select: { id: true, firstName: true, lastName: true } },
@@ -71,15 +89,22 @@ export const getBatch = async (tenantId: string, id: string) => {
     return batch
 }
 
-export const deleteBatch = async (tenantId: string, id: string) => {
-    const batch = await db.client.batch.findFirst({ where: { id, tenantId } })
+export const deleteBatch = async (role: Role, authTenantId: string, id: string) => {
+    const where = role === Role.SUPER_ADMIN ? { id } : { id, tenantId: authTenantId }
+    const batch = await db.client.batch.findFirst({ where })
     if (!batch) throw AppError.notFound(responseMessage.NOT_FOUND('Batch'))
     await db.client.batch.update({ where: { id }, data: { deletedAt: new Date() } })
 }
 
 // Assign an existing enrollment (by userId) to this batch. Assumes the student is already enrolled.
-export const assignStudents = async (tenantId: string, batchId: string, input: TAssignStudentsInput) => {
-    const batch = await db.client.batch.findFirst({ where: { id: batchId, tenantId } })
+export const assignStudents = async (
+    role: Role,
+    authTenantId: string,
+    batchId: string,
+    input: TAssignStudentsInput
+) => {
+    const where = role === Role.SUPER_ADMIN ? { id: batchId } : { id: batchId, tenantId: authTenantId }
+    const batch = await db.client.batch.findFirst({ where })
     if (!batch) throw AppError.notFound(responseMessage.NOT_FOUND('Batch'))
 
     const count = await db.client.enrollment.count({ where: { batchId } })
@@ -87,27 +112,36 @@ export const assignStudents = async (tenantId: string, batchId: string, input: T
         throw AppError.badRequest('Capacity exceeded', 'CAPACITY_EXCEEDED')
     }
 
-    // Only update enrollments that match the course of this batch.
+    // Only update enrollments that match the course of this batch + tenant.
     await db.client.enrollment.updateMany({
-        where: { tenantId, userId: { in: input.userIds }, courseId: batch.courseId },
+        where: { tenantId: batch.tenantId, userId: { in: input.userIds }, courseId: batch.courseId },
         data: { batchId }
     })
     return { assigned: input.userIds.length }
 }
 
 // Transfer a student (preserves progress — we only rewrite batchId).
-export const transferStudent = async (tenantId: string, fromBatchId: string, input: TTransferStudentInput) => {
+export const transferStudent = async (
+    role: Role,
+    authTenantId: string,
+    fromBatchId: string,
+    input: TTransferStudentInput
+) => {
+    const tenantWhere = role === Role.SUPER_ADMIN ? {} : { tenantId: authTenantId }
     const [from, to] = await Promise.all([
-        db.client.batch.findFirst({ where: { id: fromBatchId, tenantId } }),
-        db.client.batch.findFirst({ where: { id: input.targetBatchId, tenantId } })
+        db.client.batch.findFirst({ where: { id: fromBatchId, ...tenantWhere } }),
+        db.client.batch.findFirst({ where: { id: input.targetBatchId, ...tenantWhere } })
     ])
     if (!from || !to) throw AppError.notFound(responseMessage.NOT_FOUND('Batch'))
     if (from.courseId !== to.courseId) {
         throw AppError.badRequest('Cannot transfer across different courses', 'COURSE_MISMATCH')
     }
+    if (from.tenantId !== to.tenantId) {
+        throw AppError.badRequest('Cannot transfer across different tenants', 'TENANT_MISMATCH')
+    }
 
     const enrollment = await db.client.enrollment.findFirst({
-        where: { tenantId, userId: input.userId, courseId: from.courseId, batchId: fromBatchId }
+        where: { tenantId: from.tenantId, userId: input.userId, courseId: from.courseId, batchId: fromBatchId }
     })
     if (!enrollment) throw AppError.notFound(responseMessage.NOT_FOUND('Enrollment'))
 

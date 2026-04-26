@@ -83,7 +83,9 @@ export const POLICY: TPolicy = {
     },
     batch: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, Role.SUPPORT],
-        write: [Role.SUPER_ADMIN, Role.ADMIN]
+        // Trainers create + manage their cohorts; admins + SA can do
+        // everything across the tenant.
+        write: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER]
     },
     counsellor_invite: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, ...COUNSELLING_ROLES],

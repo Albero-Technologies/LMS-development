@@ -9,9 +9,9 @@
 //
 // Course-scoped: every batch belongs to one Course, students must already be
 // enrolled in that course before they can be assigned to a batch.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarCheck, Users, Plus, ArrowRight, AlertCircle, UserPlus, Search } from 'lucide-react'
+import { CalendarCheck, Users, Plus, ArrowRight, AlertCircle, UserPlus, Search, Trash2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -27,13 +27,17 @@ import { ROLES } from '@shared/constants/roles'
 import {
     assignStudentsToBatch,
     createBatch,
+    deleteBatch,
     fmtBatchDate,
     getBatchStatusTone,
     listBatches,
-    type BatchRow
+    updateBatch,
+    type BatchRow,
+    type BatchStatus
 } from '../services/batch.service'
 import { listCourses } from '@features/courses/services/course.service'
 import { listUsers } from '@features/users/services/user.service'
+import { listAllTenants } from '@features/admin/services/tenant.service'
 
 const slugifyCode = (s: string): string =>
     s
@@ -45,34 +49,84 @@ const slugifyCode = (s: string): string =>
 
 export const BatchesPage = () => {
     const user = useAuthStore((s) => s.user)
+    const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
     const canEdit = user && [ROLES.TRAINER, ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(user.role as never)
 
     const [createOpen, setCreateOpen] = useState(false)
+    const [editBatch, setEditBatch] = useState<BatchRow | null>(null)
     const [manageBatch, setManageBatch] = useState<BatchRow | null>(null)
     const [courseFilter, setCourseFilter] = useState('')
 
+    // SUPER_ADMIN flow — pick a tenant, then see + author batches inside it.
+    // Other roles operate inside their own tenant; the picker stays hidden.
+    const [tenantId, setTenantId] = useState('')
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        staleTime: 60_000,
+        enabled: !!isSuperAdmin
+    })
+    const tenants = tenantsQuery.data ?? []
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        if (!tenantId && tenants.length > 0) setTenantId(tenants[0].id)
+    }, [isSuperAdmin, tenantId, tenants])
+
     const batchesQuery = useQuery({
-        queryKey: ['batches', courseFilter || 'all'],
-        queryFn: () => listBatches(courseFilter ? { courseId: courseFilter } : undefined),
-        staleTime: 30_000
+        queryKey: ['batches', tenantId || 'mine', courseFilter || 'all'],
+        queryFn: () =>
+            listBatches({
+                courseId: courseFilter || undefined,
+                tenantId: isSuperAdmin ? tenantId || undefined : undefined
+            }),
+        staleTime: 30_000,
+        // SA must wait for a tenant pick before issuing the request — otherwise
+        // the page lands in the platform tenant and the user wonders why
+        // their newly-created batches aren't there.
+        enabled: !isSuperAdmin || tenantId.length > 0
     })
     const coursesQuery = useQuery({
-        queryKey: ['courses', 'for-batches'],
-        queryFn: () => listCourses(),
-        staleTime: 60_000
+        queryKey: ['courses', 'for-batches', tenantId || 'mine'],
+        queryFn: () => listCourses(isSuperAdmin && tenantId ? { tenantId } : undefined),
+        staleTime: 60_000,
+        enabled: !isSuperAdmin || tenantId.length > 0
     })
 
     const batches = batchesQuery.data ?? []
     const courses = coursesQuery.data ?? []
+    const activeTenantSlug = tenants.find((t) => t.id === tenantId)?.slug
 
     return (
         <>
             <PageHeader
-                eyebrow="Operations"
+                eyebrow={isSuperAdmin ? 'Super Admin' : 'Operations'}
                 title="Batches"
-                description="Group students by cohort. Assign trainers, transfer students, monitor capacity."
+                description={
+                    isSuperAdmin
+                        ? activeTenantSlug
+                            ? `Cohorts at /${activeTenantSlug}. Switch tenants to monitor a different institute.`
+                            : 'Pick a tenant to see their cohorts.'
+                        : 'Group students by cohort. Assign trainers, transfer students, monitor capacity.'
+                }
                 actions={
                     <>
+                        {isSuperAdmin && (
+                            <div className="w-64 hidden sm:block">
+                                <Select
+                                    aria-label="Choose tenant"
+                                    value={tenantId}
+                                    onChange={(e) => setTenantId(e.target.value)}>
+                                    {tenants.length === 0 && <option value="">Loading…</option>}
+                                    {tenants.map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.id}>
+                                            {t.name} (/{t.slug})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
                         <div className="w-56 hidden sm:block">
                             <Select
                                 aria-label="Filter by course"
@@ -92,6 +146,7 @@ export const BatchesPage = () => {
                             <Button
                                 size="sm"
                                 leftIcon={<Plus size={14} />}
+                                disabled={isSuperAdmin && !tenantId}
                                 onClick={() => setCreateOpen(true)}>
                                 New batch
                             </Button>
@@ -177,7 +232,7 @@ export const BatchesPage = () => {
                                         style={{ width: `${Math.min(pct, 100)}%` }}
                                     />
                                 </div>
-                                <div className="mt-4 flex gap-2">
+                                <div className="mt-4 flex items-center gap-1.5">
                                     <Button
                                         variant="ghost"
                                         className="flex-1"
@@ -185,6 +240,18 @@ export const BatchesPage = () => {
                                         onClick={() => setManageBatch(b)}>
                                         {canEdit ? 'Manage' : 'View'}
                                     </Button>
+                                    {canEdit && (
+                                        <>
+                                            <Button
+                                                size="icon"
+                                                variant="subtle"
+                                                aria-label="Edit batch"
+                                                onClick={() => setEditBatch(b)}>
+                                                <Pencil size={14} />
+                                            </Button>
+                                            <DeleteBatchButton batch={b} />
+                                        </>
+                                    )}
                                 </div>
                             </Card>
                         )
@@ -196,6 +263,12 @@ export const BatchesPage = () => {
                 open={createOpen}
                 onClose={() => setCreateOpen(false)}
                 courses={courses}
+                tenantId={isSuperAdmin ? tenantId : undefined}
+            />
+
+            <EditBatchModal
+                batch={editBatch}
+                onClose={() => setEditBatch(null)}
             />
 
             <ManageBatchModal
@@ -210,11 +283,13 @@ export const BatchesPage = () => {
 const CreateBatchModal = ({
     open,
     onClose,
-    courses
+    courses,
+    tenantId
 }: {
     open: boolean
     onClose: () => void
     courses: { id: string; title: string }[]
+    tenantId?: string
 }) => {
     const queryClient = useQueryClient()
     const [courseId, setCourseId] = useState('')
@@ -243,7 +318,8 @@ const CreateBatchModal = ({
                 code: code.trim(),
                 startDate: new Date(startDate).toISOString(),
                 endDate: endDate ? new Date(endDate).toISOString() : undefined,
-                capacity: Number(capacity) || 50
+                capacity: Number(capacity) || 50,
+                tenantId
             }),
         onSuccess: () => {
             toast.success('Batch created')
@@ -609,6 +685,138 @@ const AssignStudentsModal = ({
                         })}
                     </div>
                 )}
+            </div>
+        </Modal>
+    )
+}
+
+// Delete a batch (soft-delete server-side). Confirms first, then invalidates
+// the batches list so the deleted card disappears immediately.
+const DeleteBatchButton = ({ batch }: { batch: BatchRow }) => {
+    const queryClient = useQueryClient()
+    const mutation = useMutation({
+        mutationFn: () => deleteBatch(batch.id),
+        onSuccess: () => {
+            toast.success('Batch deleted')
+            void queryClient.invalidateQueries({ queryKey: ['batches'] })
+        },
+        onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Could not delete')
+    })
+    return (
+        <Button
+            size="icon"
+            variant="subtle"
+            aria-label="Delete batch"
+            loading={mutation.isPending}
+            onClick={() => {
+                if (window.confirm(`Delete "${batch.name}"? Existing student assignments stay on their enrolment, just unlinked.`)) {
+                    mutation.mutate()
+                }
+            }}>
+            <Trash2 size={14} />
+        </Button>
+    )
+}
+
+// Edit a batch — name, capacity, dates, status. Course + code are immutable
+// post-creation so attendance sheets and certificates that reference the code
+// don't break retroactively.
+const EditBatchModal = ({ batch, onClose }: { batch: BatchRow | null; onClose: () => void }) => {
+    const queryClient = useQueryClient()
+    const [name, setName] = useState('')
+    const [startDate, setStartDate] = useState('')
+    const [endDate, setEndDate] = useState('')
+    const [capacity, setCapacity] = useState('50')
+    const [status, setStatus] = useState<BatchStatus>('UPCOMING')
+
+    useEffect(() => {
+        if (!batch) return
+        setName(batch.name)
+        setStartDate(batch.startDate ? batch.startDate.slice(0, 10) : '')
+        setEndDate(batch.endDate ? batch.endDate.slice(0, 10) : '')
+        setCapacity(String(batch.capacity))
+        setStatus(batch.status)
+    }, [batch])
+
+    const mutation = useMutation({
+        mutationFn: () =>
+            updateBatch(batch!.id, {
+                name: name.trim(),
+                startDate: startDate ? new Date(startDate).toISOString() : undefined,
+                endDate: endDate ? new Date(endDate).toISOString() : null,
+                capacity: Number(capacity) || batch!.capacity,
+                status
+            }),
+        onSuccess: () => {
+            toast.success('Batch updated')
+            void queryClient.invalidateQueries({ queryKey: ['batches'] })
+            onClose()
+        },
+        onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Could not save')
+    })
+
+    if (!batch) return null
+
+    return (
+        <Modal
+            open={!!batch}
+            onClose={onClose}
+            title={`Edit ${batch.name}`}
+            description={`Course ${batch.course?.title ?? '—'} · code ${batch.code}. Course and code are locked once a batch exists.`}
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        loading={mutation.isPending}
+                        disabled={!name}
+                        onClick={() => mutation.mutate()}>
+                        Save
+                    </Button>
+                </>
+            }>
+            <div className="space-y-3">
+                <Input
+                    label="Batch name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                    <Input
+                        label="Starts"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                    />
+                    <Input
+                        label="Ends (optional)"
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <Input
+                        label="Capacity"
+                        type="number"
+                        min={1}
+                        max={1000}
+                        value={capacity}
+                        onChange={(e) => setCapacity(e.target.value)}
+                    />
+                    <Select
+                        label="Status"
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value as BatchStatus)}>
+                        <option value="UPCOMING">Upcoming</option>
+                        <option value="RUNNING">Running</option>
+                        <option value="ENDED">Ended</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </Select>
+                </div>
             </div>
         </Modal>
     )

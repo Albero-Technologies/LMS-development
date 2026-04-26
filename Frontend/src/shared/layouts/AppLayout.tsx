@@ -58,6 +58,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/admin/utm-builder', label: 'UTM Builder', icon: Link2 },
         { to: '/app/admin/seo-builder', label: 'SEO Builder', icon: Telescope },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
+        { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/users', label: 'Users', icon: Users },
         { to: '/app/payments', label: 'Client Payments', icon: CreditCard },

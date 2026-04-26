@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardList, Plus, Timer, TrendingUp, Wrench, Play } from 'lucide-react'
+import { ClipboardList, Plus, Timer, TrendingUp, Wrench, Play, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -16,6 +16,7 @@ export const QuizzesPage = () => {
     const quizzes = useQuizStore((s) => s.quizzes)
     const attempts = useQuizStore((s) => s.attempts)
     const upsertQuiz = useQuizStore((s) => s.upsertQuiz)
+    const deleteQuiz = useQuizStore((s) => s.deleteQuiz)
     const [newOpen, setNewOpen] = useState(false)
 
     const user = useAuthStore((s) => s.user)
@@ -127,6 +128,20 @@ export const QuizzesPage = () => {
                                             <Wrench size={12} />
                                         </Button>
                                     </Link>
+                                )}
+                                {canEdit && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        aria-label="Delete quiz"
+                                        onClick={() => {
+                                            if (window.confirm(`Delete "${q.title}"? Past attempts stay on the student record.`)) {
+                                                deleteQuiz(q.id)
+                                                toast.success('Quiz deleted')
+                                            }
+                                        }}>
+                                        <Trash2 size={12} />
+                                    </Button>
                                 )}
                             </div>
                         </Card>
