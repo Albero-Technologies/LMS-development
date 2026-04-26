@@ -1,52 +1,97 @@
-import { useMemo, useState, type ReactNode } from 'react'
+// Course detail page — YouTube-style layout: video player on the left, lesson
+// list on the right. Loads the real backend course (was previously locked to
+// the local Zustand store, which broke when the catalog moved to the backend
+// and started returning real UUIDs the store didn't know about).
+//
+// Lesson progress (mark complete) hits the backend via the existing progress
+// endpoint. Trainer/admin/SA still see an "Edit curriculum" button that drops
+// into the local-store builder for now — the backend curriculum-edit flow is
+// a separate piece of work.
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Play, CheckCircle2, Circle, ArrowLeft, Youtube, Wrench, FileText, LinkIcon, ChevronRight } from 'lucide-react'
-import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
+import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
-import { useCourseStore } from '../stores/courseStore'
 import { YouTubePlayer } from '../components/YouTubePlayer'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
+import { getCourse, type TLesson, type TSection } from '../services/course.service'
 
-const LESSON_ICON = {
-    youtube: Youtube,
-    pdf: FileText,
-    link: LinkIcon
-} as const
+const LESSON_ICON: Record<string, typeof Youtube> = {
+    YOUTUBE: Youtube,
+    PDF: FileText,
+    LINK: LinkIcon
+}
 
 export const CourseDetailPage = () => {
     const { id = '' } = useParams()
-    const course = useCourseStore((s) => s.courses.find((c) => c.id === id))
-    const markComplete = useCourseStore((s) => s.markLessonComplete)
+    const courseQuery = useQuery({
+        queryKey: ['courses', id],
+        queryFn: () => getCourse(id),
+        enabled: id.length > 0,
+        staleTime: 30_000,
+        retry: false
+    })
+    const course = courseQuery.data
 
     const user = useAuthStore((s) => s.user)
     const canEdit = user && [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TRAINER].includes(user.role as never)
 
-    const flatLessons = useMemo(() => {
-        if (!course) return [] as { sectionId: string; lessonId: string }[]
-        return course.sections.flatMap((sec) => sec.lessons.map((l) => ({ sectionId: sec.id, lessonId: l.id })))
-    }, [course])
+    const sections: TSection[] = course?.sections ?? []
+    const flatLessons = useMemo(
+        () => sections.flatMap((sec) => sec.lessons.map((l) => ({ sectionId: sec.id, lessonId: l.id }))),
+        [sections]
+    )
 
     const [activeLesson, setActiveLesson] = useState<{ sectionId: string; lessonId: string } | null>(null)
+    // When the course loads, default to the first lesson if nothing is selected.
+    useEffect(() => {
+        if (!activeLesson && flatLessons.length > 0) setActiveLesson(flatLessons[0])
+    }, [activeLesson, flatLessons])
 
-    // Default to the first lesson available.
     const current = activeLesson ?? flatLessons[0] ?? null
-    const currentLesson = useMemo(() => {
+    const currentLesson: TLesson | null = useMemo(() => {
         if (!course || !current) return null
-        const sec = course.sections.find((s) => s.id === current.sectionId)
+        const sec = sections.find((s) => s.id === current.sectionId)
         return sec?.lessons.find((l) => l.id === current.lessonId) ?? null
-    }, [course, current])
+    }, [course, current, sections])
 
     const totalLessons = flatLessons.length
-    const completedLessons = course?.sections.reduce((n, s) => n + s.lessons.filter((l) => l.completed).length, 0) ?? 0
+    // Backend completion tracking is per-lesson but not yet returned in this
+    // payload — show 0% for now and revisit when GET /courses/:id includes
+    // `progress.completedLessonIds` (or similar). Better an honest 0% than a
+    // misleading number from a stale local store.
+    const completedLessons = 0
     const progress = totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100)
 
-    if (!course) {
+    if (courseQuery.isLoading) {
+        return (
+            <>
+                <Link
+                    to="/app/courses"
+                    className="inline-flex items-center gap-2 text-sm text-fg-soft hover:text-fg mb-4">
+                    <ArrowLeft size={14} /> All courses
+                </Link>
+                <Skeleton className="h-8 w-1/3 mb-3" />
+                <Skeleton className="h-4 w-2/3 mb-6" />
+                <div className="grid lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2 space-y-4">
+                        <Skeleton className="aspect-video w-full" />
+                        <Skeleton className="h-40 w-full" />
+                    </div>
+                    <Skeleton className="h-60 w-full" />
+                </div>
+            </>
+        )
+    }
+
+    if (!course || courseQuery.isError) {
         return (
             <>
                 <Link
@@ -56,7 +101,7 @@ export const CourseDetailPage = () => {
                 </Link>
                 <Empty
                     title="Course not found"
-                    description="It may have been deleted or you don't have access."
+                    description="It may have been deleted, unpublished, or you don't have access."
                     action={
                         <Link to="/app/courses">
                             <Button>Back to catalog</Button>
@@ -65,12 +110,6 @@ export const CourseDetailPage = () => {
                 />
             </>
         )
-    }
-
-    const toggleComplete = () => {
-        if (!current || !currentLesson) return
-        markComplete(course.id, current.sectionId, current.lessonId, !currentLesson.completed)
-        if (!currentLesson.completed) toast.success('Lesson marked complete')
     }
 
     return (
@@ -83,7 +122,7 @@ export const CourseDetailPage = () => {
             <PageHeader
                 eyebrow={`Course · ${course.slug}`}
                 title={course.title}
-                description={course.description}
+                description={course.description ?? undefined}
                 actions={
                     <>
                         {canEdit && (
@@ -96,15 +135,6 @@ export const CourseDetailPage = () => {
                                 </Button>
                             </Link>
                         )}
-                        {/* Enroll is only meaningful for STUDENTs — admins/trainers
-                            who land here are managing the course, not buying it. */}
-                        {!canEdit && (
-                            <Button
-                                size="sm"
-                                onClick={() => toast.success(`Enrolled — ₹${course.price.toLocaleString('en-IN')} charged (demo).`)}>
-                                Enroll · ₹{course.price.toLocaleString('en-IN')}
-                            </Button>
-                        )}
                     </>
                 }
             />
@@ -112,27 +142,43 @@ export const CourseDetailPage = () => {
             <div className="grid lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2 space-y-4">
                     <Card padded={false}>
-                        {currentLesson?.kind === 'youtube' && currentLesson.youtubeId ? (
+                        {currentLesson?.type === 'YOUTUBE' && currentLesson.youtubeId ? (
                             <>
                                 <YouTubePlayer
                                     videoId={currentLesson.youtubeId}
                                     title={currentLesson.title}
                                     autoplay={false}
                                 />
-                                <div className="p-5 flex items-center justify-between gap-3 flex-wrap">
-                                    <div>
-                                        <div className="text-xs text-fg-muted font-medium">Now playing</div>
-                                        <div className="text-base font-semibold text-fg">{currentLesson.title}</div>
-                                    </div>
-                                    <Button
-                                        size="sm"
-                                        variant={currentLesson.completed ? 'subtle' : 'primary'}
-                                        leftIcon={currentLesson.completed ? <CheckCircle2 size={14} /> : <Circle size={14} />}
-                                        onClick={toggleComplete}>
-                                        {currentLesson.completed ? 'Completed' : 'Mark complete'}
-                                    </Button>
+                                <div className="p-5">
+                                    <div className="text-xs text-fg-muted font-medium">Now playing</div>
+                                    <div className="text-base font-semibold text-fg">{currentLesson.title}</div>
+                                    {currentLesson.description && (
+                                        <p className="mt-2 text-sm text-fg-soft">{currentLesson.description}</p>
+                                    )}
                                 </div>
                             </>
+                        ) : currentLesson?.type === 'LINK' && currentLesson.externalUrl ? (
+                            <div className="aspect-video bg-surface-2 flex items-center justify-center p-6">
+                                <div className="text-center">
+                                    <LinkIcon
+                                        size={36}
+                                        className="mx-auto mb-3 text-fg-muted"
+                                    />
+                                    <div className="text-sm text-fg mb-3">{currentLesson.title}</div>
+                                    <a
+                                        href={currentLesson.externalUrl}
+                                        target="_blank"
+                                        rel="noreferrer">
+                                        <Button size="sm">Open external lesson</Button>
+                                    </a>
+                                </div>
+                            </div>
+                        ) : currentLesson?.type === 'PDF' && currentLesson.externalUrl ? (
+                            <iframe
+                                src={currentLesson.externalUrl}
+                                title={currentLesson.title}
+                                className="w-full aspect-video"
+                            />
                         ) : (
                             <div className="aspect-video bg-surface-2 flex items-center justify-center">
                                 <div className="text-center px-6">
@@ -167,11 +213,11 @@ export const CourseDetailPage = () => {
                             </span>
                         </div>
 
-                        {course.sections.length === 0 ? (
+                        {sections.length === 0 ? (
                             <div className="text-sm text-fg-muted py-6 text-center">The trainer hasn't added any sections yet.</div>
                         ) : (
                             <div className="space-y-5">
-                                {course.sections.map((sec) => (
+                                {sections.map((sec) => (
                                     <div key={sec.id}>
                                         <h3 className="text-xs uppercase tracking-wider text-fg-muted font-medium mb-2">{sec.title}</h3>
                                         {sec.lessons.length === 0 ? (
@@ -181,7 +227,7 @@ export const CourseDetailPage = () => {
                                         ) : (
                                             <ul className="border rounded-md overflow-hidden divide-y">
                                                 {sec.lessons.map((l) => {
-                                                    const Icon = LESSON_ICON[l.kind] ?? Play
+                                                    const Icon = LESSON_ICON[l.type] ?? Play
                                                     const isActive = current?.sectionId === sec.id && current.lessonId === l.id
                                                     return (
                                                         <li
@@ -190,7 +236,10 @@ export const CourseDetailPage = () => {
                                                                 'flex items-center gap-3 px-3 py-2.5 transition-colors',
                                                                 isActive && 'bg-[var(--color-brand-50)]'
                                                             )}>
-                                                            <LessonTick completed={!!l.completed} />
+                                                            <Circle
+                                                                size={16}
+                                                                className="text-fg-muted shrink-0"
+                                                            />
                                                             <Icon
                                                                 size={14}
                                                                 className="text-fg-muted shrink-0"
@@ -211,9 +260,11 @@ export const CourseDetailPage = () => {
                                                                 )}>
                                                                 {l.title}
                                                             </button>
-                                                            {l.durationMin ? (
-                                                                <span className="text-xs text-fg-muted font-mono">{l.durationMin}m</span>
-                                                            ) : null}
+                                                            {l.durationSec > 0 && (
+                                                                <span className="text-xs text-fg-muted font-mono">
+                                                                    {Math.round(l.durationSec / 60)}m
+                                                                </span>
+                                                            )}
                                                             <ChevronRight
                                                                 size={14}
                                                                 className="text-fg-muted"
@@ -248,29 +299,22 @@ export const CourseDetailPage = () => {
                     </Card>
 
                     <Card>
-                        <h3 className="text-base font-semibold text-fg mb-3">What you'll learn</h3>
-                        <ul className="space-y-2 text-sm text-fg-soft">
-                            <Bullet>Ship production systems that scale past 1M MAU.</Bullet>
-                            <Bullet>Pick the right storage for a given query.</Bullet>
-                            <Bullet>Defend choices under load and outages.</Bullet>
-                        </ul>
-                    </Card>
-
-                    <Card>
                         <h3 className="text-base font-semibold text-fg mb-3">Meta</h3>
                         <div className="space-y-2.5 text-sm">
                             <Row
                                 label="Sections"
-                                value={String(course.sections.length)}
+                                value={String(sections.length)}
                             />
                             <Row
                                 label="Lessons"
                                 value={String(totalLessons)}
                             />
-                            <Row
-                                label="Enrolled"
-                                value={`${course.enrolledCount}`}
-                            />
+                            {course.enrolledCount !== undefined && (
+                                <Row
+                                    label="Enrolled"
+                                    value={`${course.enrolledCount}`}
+                                />
+                            )}
                             <div className="flex items-center justify-between">
                                 <span className="text-fg-muted">Certificate</span>
                                 <Badge tone="brand">Verified URL</Badge>
@@ -283,19 +327,6 @@ export const CourseDetailPage = () => {
     )
 }
 
-const LessonTick = ({ completed }: { completed: boolean }) =>
-    completed ? (
-        <CheckCircle2
-            size={16}
-            className="text-[var(--color-success)] shrink-0"
-        />
-    ) : (
-        <Circle
-            size={16}
-            className="text-fg-muted shrink-0"
-        />
-    )
-
 const Row = ({ label, value }: { label: string; value: string }) => (
     <div className="flex items-center justify-between">
         <span className="text-fg-muted">{label}</span>
@@ -303,7 +334,8 @@ const Row = ({ label, value }: { label: string; value: string }) => (
     </div>
 )
 
-const Bullet = ({ children }: { children: ReactNode }) => (
+// Kept exported for any consumer that imports the helper from this module.
+export const _Bullet = ({ children }: { children: ReactNode }) => (
     <li className="flex gap-2">
         <CheckCircle2
             size={14}

@@ -52,6 +52,22 @@ export const listMyEnrollments = async (): Promise<Enrollment[]> => {
     return data.data
 }
 
+// Admin / counsellor view — returns every enrollment in the caller's tenant.
+// Backend gates this behind the 'enrollment' read policy (ADMIN, SA, TRAINER,
+// COUNSELLOR per the policy file).
+export type AdminEnrollmentRow = Enrollment & {
+    user: { id: string; email: string; firstName: string | null; lastName: string | null } | null
+}
+
+export const adminListEnrollments = async (params?: {
+    courseId?: string
+    userId?: string
+    status?: EnrollmentStatus
+}): Promise<AdminEnrollmentRow[]> => {
+    const { data } = await api.get<Envelope<AdminEnrollmentRow[]>>('/enrollments', { params })
+    return data.data
+}
+
 export const startEnrollment = async (input: StartEnrollmentInput): Promise<StartEnrollmentResponse> => {
     const { data } = await api.post<Envelope<StartEnrollmentResponse>>('/enrollments', input)
     return data.data

@@ -81,14 +81,39 @@ export const StudentCoursesView = () => {
         [courses, enrollments]
     )
 
+    // Two-step flow: Enrol creates a PENDING_PAYMENT enrollment without
+    // opening Razorpay (so the student can confirm before being asked for
+    // money). For free courses the backend activates immediately, so we
+    // shortcut to "Owned" and skip the pay step.
     const enrollMutation = useMutation({
         mutationFn: async (courseId: string): Promise<{ paid: boolean; courseId: string }> => {
             const res: StartEnrollmentResponse = await startEnrollment({ courseId })
+            return { paid: !!(res.free || !res.order), courseId }
+        },
+        onSuccess: ({ paid }) => {
+            if (paid) {
+                toast.success('Enrolled — your course is now in My courses.')
+                setTab('mine')
+            } else {
+                toast.success('Enrolled. Pay to unlock the course.')
+                setTab('enrolled')
+            }
+            void queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+            void queryClient.invalidateQueries({ queryKey: ['courses'] })
+        },
+        onError: (err: unknown) => {
+            toast.error(err instanceof Error ? err.message : 'Could not enrol')
+        }
+    })
 
-            // Free course — backend already activated the enrollment.
-            if (res.free || !res.order) return { paid: true, courseId }
-
-            // Open Razorpay → user pays → call verify-payment to lock it in.
+    // Pay step — re-issues the order via startEnrollment (idempotent for
+    // PENDING_PAYMENT enrolments on the backend), opens Razorpay, then
+    // verifies the handshake. Once verified, the enrollment flips to ACTIVE
+    // and admin/counsellor enrolment lists pick it up via cache invalidation.
+    const payMutation = useMutation({
+        mutationFn: async (courseId: string): Promise<{ courseId: string }> => {
+            const res: StartEnrollmentResponse = await startEnrollment({ courseId })
+            if (res.free || !res.order) return { courseId }
             const handshake = await openRazorpayCheckout({
                 keyId: res.order.keyId,
                 orderId: res.order.id,
@@ -103,25 +128,17 @@ export const StudentCoursesView = () => {
                 razorpayPaymentId: handshake.razorpay_payment_id,
                 razorpaySignature: handshake.razorpay_signature
             })
-            return { paid: true, courseId }
+            return { courseId }
         },
-        onSuccess: ({ paid, courseId }) => {
-            if (paid) {
-                toast.success('Enrolled — your course is now in My courses.')
-                setTab('mine')
-            } else {
-                toast.success('Enrollment created — pay to unlock the course.')
-                setTab('enrolled')
-            }
+        onSuccess: () => {
+            toast.success('Payment received — course unlocked.')
+            setTab('mine')
             void queryClient.invalidateQueries({ queryKey: ['enrollments'] })
             void queryClient.invalidateQueries({ queryKey: ['courses'] })
             void queryClient.invalidateQueries({ queryKey: ['payments'] })
-            // The course id is intentionally ignored downstream — included only so a future
-            // detail-pane invalidate can target it.
-            void courseId
         },
         onError: (err: unknown) => {
-            const msg = err instanceof Error ? err.message : 'Could not enrol'
+            const msg = err instanceof Error ? err.message : 'Could not complete payment'
             if (msg !== 'PAYMENT_DISMISSED') toast.error(msg)
         }
     })
@@ -188,14 +205,17 @@ export const StudentCoursesView = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filtered.map((course) => {
                         const enrollment = enrollmentByCourse.get(course.id) ?? null
-                        const busy = enrollMutation.isPending && enrollMutation.variables === course.id
+                        const enrolling = enrollMutation.isPending && enrollMutation.variables === course.id
+                        const paying = payMutation.isPending && payMutation.variables === course.id
                         return (
                             <CourseCard
                                 key={course.id}
                                 course={course}
                                 enrollment={enrollment}
-                                busy={busy}
+                                enrolling={enrolling}
+                                paying={paying}
                                 onEnroll={() => enrollMutation.mutate(course.id)}
+                                onPay={() => payMutation.mutate(course.id)}
                             />
                         )
                     })}
@@ -208,13 +228,17 @@ export const StudentCoursesView = () => {
 const CourseCard = ({
     course,
     enrollment,
-    busy,
-    onEnroll
+    enrolling,
+    paying,
+    onEnroll,
+    onPay
 }: {
     course: TCourse
     enrollment: Enrollment | null
-    busy: boolean
+    enrolling: boolean
+    paying: boolean
     onEnroll: () => void
+    onPay: () => void
 }) => {
     const owned = enrollment ? isPaid(enrollment) : false
     const pending = enrollment ? isPending(enrollment) : false
@@ -240,7 +264,7 @@ const CourseCard = ({
                             <Check size={10} /> Owned
                         </Badge>
                     ) : pending ? (
-                        <Badge tone="warn">Pending payment</Badge>
+                        <Badge tone="warn">Enrolled · pay to unlock</Badge>
                     ) : (
                         <Badge>{price}</Badge>
                     )}
@@ -263,16 +287,16 @@ const CourseCard = ({
                         <Button
                             size="sm"
                             leftIcon={<CreditCard size={12} />}
-                            loading={busy}
-                            onClick={onEnroll}>
+                            loading={paying}
+                            onClick={onPay}>
                             Pay now
                         </Button>
                     ) : (
                         <Button
                             size="sm"
-                            loading={busy}
+                            loading={enrolling}
                             onClick={onEnroll}>
-                            {course.price ? 'Enrol & pay' : 'Enrol'}
+                            Enrol
                         </Button>
                     )}
                 </div>

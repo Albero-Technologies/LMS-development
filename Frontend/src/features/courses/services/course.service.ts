@@ -2,6 +2,28 @@ import { api } from '@shared/libs/api'
 
 export type CoursePublishState = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 
+export type LessonType = 'YOUTUBE' | 'PDF' | 'LINK'
+
+export type TLesson = {
+    id: string
+    sectionId: string
+    title: string
+    description?: string | null
+    type: LessonType
+    youtubeId?: string | null
+    externalUrl?: string | null
+    durationSec: number
+    order: number
+}
+
+export type TSection = {
+    id: string
+    courseId: string
+    title: string
+    order: number
+    lessons: TLesson[]
+}
+
 export type TCourse = {
     id: string
     title: string
@@ -17,6 +39,9 @@ export type TCourse = {
     coverUrl?: string | null
     enrolledCount?: number
     tags?: string[]
+    // getCourse returns the full curriculum; listCourses omits these fields.
+    sections?: TSection[]
+    trainer?: { id: string; firstName: string | null; lastName: string | null } | null
 }
 
 type Envelope<T> = { success: boolean; data: T; message: string }
