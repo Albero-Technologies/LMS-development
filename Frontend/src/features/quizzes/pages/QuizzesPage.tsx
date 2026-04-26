@@ -11,12 +11,14 @@ import { Input } from '@shared/components/ui/Input'
 import { useQuizStore } from '../stores/quizStore'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 export const QuizzesPage = () => {
     const quizzes = useQuizStore((s) => s.quizzes)
     const attempts = useQuizStore((s) => s.attempts)
     const upsertQuiz = useQuizStore((s) => s.upsertQuiz)
     const deleteQuiz = useQuizStore((s) => s.deleteQuiz)
+    const confirm = useConfirm()
     const [newOpen, setNewOpen] = useState(false)
 
     const user = useAuthStore((s) => s.user)
@@ -134,8 +136,14 @@ export const QuizzesPage = () => {
                                         variant="ghost"
                                         size="icon-sm"
                                         aria-label="Delete quiz"
-                                        onClick={() => {
-                                            if (window.confirm(`Delete "${q.title}"? Past attempts stay on the student record.`)) {
+                                        onClick={async () => {
+                                            const ok = await confirm({
+                                                title: `Delete "${q.title}"?`,
+                                                description: 'Past attempts stay on the student record. The quiz itself is removed.',
+                                                confirmLabel: 'Delete',
+                                                tone: 'danger'
+                                            })
+                                            if (ok) {
                                                 deleteQuiz(q.id)
                                                 toast.success('Quiz deleted')
                                             }

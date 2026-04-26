@@ -12,6 +12,7 @@ import { Modal } from '@shared/components/ui/Modal'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES, type TRole } from '@shared/constants/roles'
 import { inviteUser, listUsers, updateUserStatus, type UserRow, type UserStatus } from '../services/user.service'
@@ -354,6 +355,7 @@ const UserListRow = ({
     onOpenDetail: () => void
     onSetStatus: (s: UserStatus) => void
 }) => {
+    const confirm = useConfirm()
     const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email
     return (
         <tr
@@ -403,9 +405,14 @@ const UserListRow = ({
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => {
-                                    if (!window.confirm(`Suspend ${fullName}?`)) return
-                                    onSetStatus('SUSPENDED')
+                                onClick={async () => {
+                                    const ok = await confirm({
+                                        title: `Suspend ${fullName}?`,
+                                        description: `${user.email} will be locked out immediately and any active session is invalidated. You can reinstate them anytime.`,
+                                        confirmLabel: 'Suspend',
+                                        tone: 'danger'
+                                    })
+                                    if (ok) onSetStatus('SUSPENDED')
                                 }}
                                 className="!text-[var(--color-danger)]">
                                 Suspend

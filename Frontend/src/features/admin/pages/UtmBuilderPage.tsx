@@ -20,9 +20,11 @@ import {
     type TenantSettings,
     type UtmLink
 } from '../services/tenant.service'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 export const UtmBuilderPage = () => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
     const [tenantId, setTenantId] = useState('')
 
@@ -109,8 +111,14 @@ export const UtmBuilderPage = () => {
         })
     }
 
-    const remove = (id: string) => {
-        if (!window.confirm('Delete this UTM link?')) return
+    const remove = async (id: string) => {
+        const ok = await confirm({
+            title: 'Delete this UTM link?',
+            description: 'Anyone holding the tagged URL keeps reaching the target page; only the saved entry in this builder is removed.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
         persistMutation.mutate(links.filter((l) => l.id !== id), {
             onSuccess: () => toast.success('UTM link deleted')
         })

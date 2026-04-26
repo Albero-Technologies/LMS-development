@@ -104,6 +104,7 @@ import {
 } from '../services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
 import { MediaPickerModal } from '../components/MediaPickerModal'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 const SECTION_ICON: Record<LandingSection['type'], typeof Sparkles> = {
     hero: Sparkles,
@@ -135,6 +136,7 @@ const DEVICE_WIDTH: Record<DeviceView, string> = {
 
 export const WebsiteEditorPage = () => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
     const [tenantId, setTenantId] = useState('')
 
@@ -334,14 +336,21 @@ export const WebsiteEditorPage = () => {
         setActivePageId(cloned.id)
         setSelectedSectionId(null)
     }
-    const deletePage = (id: string) => {
+    const deletePage = async (id: string) => {
         const target = pages.find((p) => p.id === id)
         if (!target) return
         if (target.isHome) {
             toast.error('Set another page as home first.')
             return
         }
-        if (!window.confirm(`Delete the "${target.name}" page? This can be undone by hitting Cancel before saving.`)) return
+        const ok = await confirm({
+            title: `Delete the "${target.name}" page?`,
+            description:
+                'You can undo by hitting Cancel before clicking Save changes — the deletion is staged locally until you save.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
         const next = pages.filter((p) => p.id !== id)
         setPages(next)
         if (activePageId === id) setActivePageId(next[0]?.id ?? '')
@@ -1169,6 +1178,7 @@ const SortableSectionItem = ({
 }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id })
     const Icon = SECTION_ICON[section.type]
+    const confirm = useConfirm()
     return (
         <li
             ref={setNodeRef}
@@ -1217,8 +1227,14 @@ const SortableSectionItem = ({
                     type="button"
                     aria-label="Remove"
                     title="Remove"
-                    onClick={() => {
-                        if (window.confirm('Remove this section?')) onRemove()
+                    onClick={async () => {
+                        const ok = await confirm({
+                            title: 'Remove this section?',
+                            description: 'It is removed from this page only. The change stages locally until you click Save changes.',
+                            confirmLabel: 'Remove',
+                            tone: 'danger'
+                        })
+                        if (ok) onRemove()
                     }}
                     className="p-1 text-fg-muted hover:text-[var(--color-danger)]">
                     <Trash2 size={14} />
@@ -2278,7 +2294,9 @@ const StyleClassEditor = ({
     cls: StyleClass
     onChange: (patch: Partial<StyleClass>) => void
     onDelete: () => void
-}) => (
+}) => {
+    const confirm = useConfirm()
+    return (
     <div className="space-y-4">
         <div className="flex items-end gap-2">
             <Input
@@ -2291,8 +2309,14 @@ const StyleClassEditor = ({
                 size="sm"
                 variant="ghost"
                 leftIcon={<Trash2 size={14} />}
-                onClick={() => {
-                    if (window.confirm(`Delete the "${cls.name}" class? Sections that reference it will fall back to defaults.`)) onDelete()
+                onClick={async () => {
+                    const ok = await confirm({
+                        title: `Delete the "${cls.name}" class?`,
+                        description: 'Sections that reference this class will fall back to their default styles. Per-section overrides stay intact.',
+                        confirmLabel: 'Delete',
+                        tone: 'danger'
+                    })
+                    if (ok) onDelete()
                 }}>
                 Delete
             </Button>
@@ -2377,7 +2401,8 @@ const StyleClassEditor = ({
             onChange={(t) => onChange({ bodyType: t })}
         />
     </div>
-)
+    )
+}
 
 const IdentityFields = ({ site, onChange }: { site: SiteIdentity; onChange: (s: SiteIdentity) => void }) => {
     const [pickerKind, setPickerKind] = useState<null | 'favicon' | 'og'>(null)

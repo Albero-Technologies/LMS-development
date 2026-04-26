@@ -22,7 +22,6 @@ import {
     BookOpen,
     Users,
     GraduationCap,
-    X,
     LayoutDashboard,
     Building2,
     Globe,
@@ -247,11 +246,13 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
             <button
                 type="button"
                 aria-label="Close"
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-md"
                 onClick={onClose}
             />
-            <div className="relative w-full max-w-2xl bg-bg rounded-2xl border border-[var(--color-border)] shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] overflow-hidden flex flex-col max-h-[72vh]">
-                <div className="flex items-center gap-3 px-4 h-14 border-b border-[var(--color-border)] bg-surface">
+            <div
+                className="relative w-full max-w-2xl bg-surface rounded-3xl border border-[var(--color-border)] overflow-hidden flex flex-col max-h-[72vh] ring-1 ring-black/5"
+                style={{ boxShadow: '0 32px 80px -16px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.04)' }}>
+                <div className="flex items-center gap-3 px-5 h-16">
                     <Search
                         size={18}
                         className="text-fg-muted shrink-0"
@@ -261,34 +262,43 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
                         type="text"
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        placeholder="Type to search pages, courses, people…"
-                        className="flex-1 bg-transparent border-0 focus:outline-none text-[15px] text-fg placeholder:text-fg-muted"
+                        placeholder="Type a command, page, course, or person…"
+                        className="flex-1 bg-transparent border-0 focus:outline-none text-[15px] font-medium text-fg placeholder:text-fg-muted/70 placeholder:font-normal"
                     />
                     <button
                         type="button"
                         aria-label="Close"
                         onClick={onClose}
-                        className="p-1.5 -mr-1 rounded-md text-fg-muted hover:text-fg hover:bg-surface-hover">
-                        <X size={16} />
+                        className="text-[10px] text-fg-muted hover:text-fg px-2 py-1 rounded-md hover:bg-surface-hover transition-colors inline-flex items-center gap-1">
+                        <kbd className="kbd text-[10px] h-4 px-1">esc</kbd>
                     </button>
                 </div>
-                <div className="overflow-y-auto flex-1 py-2">
+                <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-border)] to-transparent" />
+                <div className="overflow-y-auto flex-1 px-2 py-2">
                     {items.length === 0 ? (
-                        <div className="px-4 py-12 text-sm text-fg-muted text-center">
-                            {q.trim() ? (
-                                <>
-                                    No matches for <span className="font-mono text-fg-soft">"{q.trim()}"</span>
-                                </>
-                            ) : (
-                                'Start typing — or pick a destination below.'
-                            )}
+                        <div className="px-4 py-16 text-center">
+                            <div className="w-12 h-12 mx-auto rounded-full bg-surface-2 flex items-center justify-center mb-3">
+                                <Search
+                                    size={18}
+                                    className="text-fg-muted"
+                                />
+                            </div>
+                            <div className="text-sm text-fg-soft">
+                                {q.trim() ? (
+                                    <>
+                                        No matches for <span className="font-mono text-fg">"{q.trim()}"</span>
+                                    </>
+                                ) : (
+                                    'Start typing to find anything in your workspace.'
+                                )}
+                            </div>
                         </div>
                     ) : (
                         sections.map((sec) => (
                             <div
                                 key={sec.name}
-                                className="px-2 mb-1 last:mb-0">
-                                <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-fg-muted font-semibold">
+                                className="mb-2 last:mb-0">
+                                <div className="px-4 pt-2 pb-1.5 text-[10px] uppercase tracking-[0.1em] text-fg-muted/80 font-semibold">
                                     {sec.name}
                                 </div>
                                 {sec.rows.map((it, j) => {
@@ -302,27 +312,35 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
                                             onMouseEnter={() => setHighlight(idx)}
                                             onClick={() => it.onSelect()}
                                             className={cn(
-                                                'w-full px-3 py-2 rounded-md flex items-center gap-3 text-left transition-colors',
-                                                active ? 'bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover'
+                                                'w-full px-3 py-2.5 rounded-xl flex items-center gap-3 text-left transition-all relative',
+                                                active
+                                                    ? 'bg-gradient-to-r from-[var(--color-brand-50)] to-transparent'
+                                                    : 'hover:bg-surface-hover'
                                             )}>
+                                            {active && (
+                                                <span
+                                                    aria-hidden
+                                                    className="absolute left-0 top-2.5 bottom-2.5 w-0.5 rounded-r bg-[var(--color-brand-500)]"
+                                                />
+                                            )}
                                             <span
                                                 className={cn(
-                                                    'w-7 h-7 rounded-md flex items-center justify-center shrink-0 transition-colors',
+                                                    'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all',
                                                     active
-                                                        ? 'bg-[var(--color-brand-100)] text-[var(--color-brand-700)]'
+                                                        ? 'bg-[var(--color-brand-500)] text-white shadow-sm'
                                                         : 'bg-surface-2 text-fg-soft'
                                                 )}>
-                                                <Icon size={14} />
+                                                <Icon size={15} />
                                             </span>
                                             <div className="min-w-0 flex-1">
                                                 <div
                                                     className={cn(
                                                         'text-sm truncate',
-                                                        active ? 'text-[var(--color-brand-700)] font-medium' : 'text-fg'
+                                                        active ? 'text-fg font-semibold' : 'text-fg font-medium'
                                                     )}>
                                                     {it.label}
                                                 </div>
-                                                {it.hint && <div className="text-[11px] text-fg-muted truncate">{it.hint}</div>}
+                                                {it.hint && <div className="text-[11px] text-fg-muted truncate mt-0.5">{it.hint}</div>}
                                             </div>
                                             <ArrowRight
                                                 size={14}
@@ -338,7 +356,8 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
                         ))
                     )}
                 </div>
-                <div className="flex items-center justify-between px-4 h-10 border-t border-[var(--color-border)] bg-surface text-[11px] text-fg-muted gap-3">
+                <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-border)] to-transparent" />
+                <div className="flex items-center justify-between px-5 h-11 bg-surface-2/30 text-[11px] text-fg-muted gap-3">
                     <div className="flex items-center gap-4 flex-wrap">
                         <span className="inline-flex items-center gap-1.5">
                             <kbd className="kbd">↑</kbd>

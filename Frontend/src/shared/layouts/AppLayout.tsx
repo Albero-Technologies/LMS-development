@@ -34,6 +34,7 @@ import { ScrollToTop } from '@shared/components/ScrollToTop'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { NotificationBell } from '@features/notifications/components/NotificationBell'
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteShortcut } from '@shared/components/CommandPalette'
+import { ConfirmProvider, useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { useRealtimeSync } from '@shared/hooks/useRealtimeSync'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore } from '@shared/stores/authStore'
@@ -140,10 +141,20 @@ const BOTTOM: NavItem[] = [
 
 // -----------------------------------------------------------------------------
 
-export const AppLayout = () => {
+// Provides the global confirm-dialog context so any descendant of the layout
+// can call `useConfirm()` to show a confirmation modal. Body of the layout
+// lives in `AppLayoutBody` so it can `useConfirm` itself (e.g. for logout).
+export const AppLayout = () => (
+    <ConfirmProvider>
+        <AppLayoutBody />
+    </ConfirmProvider>
+)
+
+const AppLayoutBody = () => {
     const user = useAuthStore((s) => s.user)
     const clear = useAuthStore((s) => s.clear)
     const navigate = useNavigate()
+    const confirm = useConfirm()
     const [openMobile, setOpenMobile] = useState(false)
     const [collapsed, setCollapsed] = useState(false)
     const [paletteOpen, setPaletteOpen] = useState(false)
@@ -159,7 +170,14 @@ export const AppLayout = () => {
     // Cmd+K (or Ctrl+K) and "/" toggle the global command palette.
     useCommandPaletteShortcut(() => setPaletteOpen((v) => !v))
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        const ok = await confirm({
+            title: 'Sign out?',
+            description: "You'll need to sign in again to come back. Any unsaved work in this tab will be lost.",
+            confirmLabel: 'Sign out',
+            tone: 'warning'
+        })
+        if (!ok) return
         clear()
         navigate('/login', { replace: true })
     }

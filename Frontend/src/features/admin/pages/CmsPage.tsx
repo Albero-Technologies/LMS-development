@@ -20,6 +20,7 @@ import { Button } from '@shared/components/ui/Button'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Modal } from '@shared/components/ui/Modal'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Badge } from '@shared/components/ui/Badge'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
@@ -43,6 +44,7 @@ import {
 
 export const CmsPage = () => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [newCollectionOpen, setNewCollectionOpen] = useState(false)
     const [schemaOpen, setSchemaOpen] = useState(false)
@@ -142,10 +144,14 @@ export const CmsPage = () => {
                             onSchema={() => setSchemaOpen(true)}
                             onNewItem={() => setEditingItem('new')}
                             onEditItem={(it) => setEditingItem(it)}
-                            onDeleteCollection={() => {
-                                if (window.confirm(`Delete "${selected.name}"? Every item is removed too. This cannot be undone.`)) {
-                                    deleteCollectionMutation.mutate(selected.id)
-                                }
+                            onDeleteCollection={async () => {
+                                const ok = await confirm({
+                                    title: `Delete "${selected.name}"?`,
+                                    description: 'Every item inside this collection is also removed. Pages that reference this collection will show an empty list. This cannot be undone.',
+                                    confirmLabel: 'Delete',
+                                    tone: 'danger'
+                                })
+                                if (ok) deleteCollectionMutation.mutate(selected.id)
                             }}
                         />
                     ) : (
@@ -204,6 +210,7 @@ const CollectionPane = ({
     onDeleteCollection: () => void
 }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const fields = collection.fields ?? []
 
     const togglePublishMutation = useMutation({
@@ -328,8 +335,14 @@ const CollectionPane = ({
                                                 size="sm"
                                                 variant="ghost"
                                                 className="!text-[var(--color-danger)]"
-                                                onClick={() => {
-                                                    if (window.confirm('Delete this item?')) deleteItemMutation.mutate(it)
+                                                onClick={async () => {
+                                                    const ok = await confirm({
+                                                        title: 'Delete this item?',
+                                                        description: 'It is removed from the collection. Public pages that listed it will skip it on the next refresh.',
+                                                        confirmLabel: 'Delete',
+                                                        tone: 'danger'
+                                                    })
+                                                    if (ok) deleteItemMutation.mutate(it)
                                                 }}>
                                                 <Trash2 size={12} />
                                             </Button>

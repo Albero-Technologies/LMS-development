@@ -18,6 +18,7 @@ import { ROLES } from '@shared/constants/roles'
 import { StudentCoursesView } from '../components/StudentCoursesView'
 import { listAllTenants } from '@features/admin/services/tenant.service'
 import { createCourse, deleteCourse, listCourses, type TCourse as ApiCourse } from '../services/course.service'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 const slugify = (s: string): string =>
     s
@@ -285,6 +286,7 @@ const AdminCoursesView = () => {
 
 const AdminCourseCard = ({ course, canEdit }: { course: ApiCourse; canEdit: boolean }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const isPublished = course.publishState === 'PUBLISHED' || course.isPublished === true
     const enrolled = course.enrolledCount ?? 0
     const cover = course.thumbnailUrl ?? course.coverUrl ?? null
@@ -360,14 +362,14 @@ const AdminCourseCard = ({ course, canEdit }: { course: ApiCourse; canEdit: bool
                         size="icon"
                         aria-label="Delete course"
                         loading={deleteMutation.isPending}
-                        onClick={() => {
-                            if (
-                                window.confirm(
-                                    `Delete "${course.title}"? Enrolments and lesson progress are preserved server-side, but the course is hidden from the catalog.`
-                                )
-                            ) {
-                                deleteMutation.mutate()
-                            }
+                        onClick={async () => {
+                            const ok = await confirm({
+                                title: `Delete "${course.title}"?`,
+                                description: 'Enrolments and lesson progress are preserved server-side, but the course is hidden from the catalog.',
+                                confirmLabel: 'Delete',
+                                tone: 'danger'
+                            })
+                            if (ok) deleteMutation.mutate()
                         }}>
                         <Trash2 size={14} />
                     </Button>

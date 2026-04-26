@@ -9,6 +9,7 @@ import { Button } from '@shared/components/ui/Button'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { useAuthStore } from '@shared/stores/authStore'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { ROLES, type TRole } from '@shared/constants/roles'
 import { StudentFeesPage } from './StudentFeesPage'
 import { listAdminInvoices, refundInvoice, type AdminInvoiceRow, type InvoiceStatus } from '../services/payment.service'
@@ -248,6 +249,7 @@ const SuperAdminClientPaymentsPage = () => {
 
 const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const isTrainer = role === ROLES.TRAINER
 
     const invoicesQuery = useQuery({
@@ -375,9 +377,15 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
                 <InvoiceTable
                     invoices={invoices}
                     isTrainer={isTrainer}
-                    onRefund={(id) => {
-                        if (!window.confirm('Refund this invoice? This cannot be undone.')) return
-                        refundMutation.mutate(id)
+                    onRefund={async (id) => {
+                        const ok = await confirm({
+                            title: 'Refund this invoice?',
+                            description:
+                                'The student keeps access until you separately revoke their enrolment. Razorpay-side refunds must be triggered from the Razorpay dashboard. This cannot be undone here.',
+                            confirmLabel: 'Refund',
+                            tone: 'danger'
+                        })
+                        if (ok) refundMutation.mutate(id)
                     }}
                 />
             )}

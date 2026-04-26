@@ -29,6 +29,7 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import { Modal } from '@shared/components/ui/Modal'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Select } from '@shared/components/ui/Select'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { useAuthStore } from '@shared/stores/authStore'
@@ -81,6 +82,7 @@ export const TenantDetailPage = () => {
     const { id = '' } = useParams()
     const [tab, setTab] = useState<Tab>('overview')
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
 
     const detailQuery = useQuery({
         queryKey: ['tenants', id],
@@ -152,10 +154,14 @@ export const TenantDetailPage = () => {
                                 variant="ghost"
                                 leftIcon={<Pause size={12} />}
                                 loading={statusMutation.isPending}
-                                onClick={() => {
-                                    if (window.confirm(`Suspend ${tenant.name}? Their users will be locked out until you reinstate.`)) {
-                                        statusMutation.mutate('SUSPENDED')
-                                    }
+                                onClick={async () => {
+                                    const ok = await confirm({
+                                        title: `Suspend ${tenant.name}?`,
+                                        description: 'Every user in this tenant is locked out until you reinstate. Public landing pages also stop loading.',
+                                        confirmLabel: 'Suspend',
+                                        tone: 'danger'
+                                    })
+                                    if (ok) statusMutation.mutate('SUSPENDED')
                                 }}
                                 className="!text-[var(--color-danger)]">
                                 Suspend
@@ -593,6 +599,7 @@ const fmtCurrency = (paise: number, currency: string): string => {
 
 const PaymentsTab = ({ tenantId }: { tenantId: string }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const [createOpen, setCreateOpen] = useState(false)
 
     const paymentsQuery = useQuery({
@@ -717,9 +724,15 @@ const PaymentsTab = ({ tenantId }: { tenantId: string }) => {
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        onClick={() => {
-                                                            if (window.confirm('Cancel this invoice?'))
-                                                                statusMutation.mutate({ id: p.id, status: 'CANCELLED' })
+                                                        onClick={async () => {
+                                                            const ok = await confirm({
+                                                                title: 'Cancel this invoice?',
+                                                                description: 'It is removed from the outstanding ledger. The tenant is no longer billed for this entry.',
+                                                                confirmLabel: 'Cancel invoice',
+                                                                cancelLabel: 'Keep',
+                                                                tone: 'danger'
+                                                            })
+                                                            if (ok) statusMutation.mutate({ id: p.id, status: 'CANCELLED' })
                                                         }}
                                                         className="!text-[var(--color-danger)]">
                                                         Cancel
@@ -730,9 +743,14 @@ const PaymentsTab = ({ tenantId }: { tenantId: string }) => {
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    onClick={() => {
-                                                        if (window.confirm('Mark as refunded?'))
-                                                            statusMutation.mutate({ id: p.id, status: 'REFUNDED' })
+                                                    onClick={async () => {
+                                                        const ok = await confirm({
+                                                            title: 'Mark as refunded?',
+                                                            description: "This only flips the local status — issue the actual refund from your Razorpay dashboard.",
+                                                            confirmLabel: 'Mark refunded',
+                                                            tone: 'warning'
+                                                        })
+                                                        if (ok) statusMutation.mutate({ id: p.id, status: 'REFUNDED' })
                                                     }}>
                                                     Refund
                                                 </Button>
@@ -987,6 +1005,7 @@ const ContactsTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: rea
 
 const NotesTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: readonly unknown[] }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const author = useAuthStore((s) => s.user)
     const notes = useMemo(() => readNotes(tenant), [tenant])
     const [draft, setDraft] = useState('')
@@ -1019,8 +1038,14 @@ const NotesTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: readon
         })
     }
 
-    const deleteNote = (noteId: string) => {
-        if (!window.confirm('Delete this note?')) return
+    const deleteNote = async (noteId: string) => {
+        const ok = await confirm({
+            title: 'Delete this note?',
+            description: 'Once deleted, the note is gone for everyone with access to this tenant.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
         writeNotes.mutate(
             notes.filter((n) => n.id !== noteId),
             {

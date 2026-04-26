@@ -9,6 +9,7 @@ import { Input, Textarea } from '@shared/components/ui/Input'
 import { Empty } from '@shared/components/ui/Empty'
 import { cn } from '@shared/helpers/cn'
 import { useQuizStore, type TQuestion } from '../stores/quizStore'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 export const QuizBuilderPage = () => {
     const { id = '' } = useParams()
@@ -17,6 +18,7 @@ export const QuizBuilderPage = () => {
     const addQuestion = useQuizStore((s) => s.addQuestion)
     const updateQuestion = useQuizStore((s) => s.updateQuestion)
     const removeQuestion = useQuizStore((s) => s.removeQuestion)
+    const confirm = useConfirm()
 
     const [activeId, setActiveId] = useState<string | null>(quiz?.questions[0]?.id ?? null)
     const active = useMemo(() => quiz?.questions.find((q) => q.id === activeId) ?? null, [quiz, activeId])
@@ -133,8 +135,14 @@ export const QuizBuilderPage = () => {
                                 key={active.id}
                                 question={active}
                                 onChange={(q) => updateQuestion(quiz.id, q)}
-                                onDelete={() => {
-                                    if (!window.confirm('Delete this question?')) return
+                                onDelete={async () => {
+                                    const ok = await confirm({
+                                        title: 'Delete this question?',
+                                        description: 'This question and any related answer history are removed from the quiz.',
+                                        confirmLabel: 'Delete',
+                                        tone: 'danger'
+                                    })
+                                    if (!ok) return
                                     removeQuestion(quiz.id, active.id)
                                     setActiveId(quiz.questions.find((q) => q.id !== active.id)?.id ?? null)
                                 }}

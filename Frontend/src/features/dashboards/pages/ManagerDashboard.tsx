@@ -18,6 +18,7 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Modal } from '@shared/components/ui/Modal'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Input } from '@shared/components/ui/Input'
 import { Empty } from '@shared/components/ui/Empty'
 import { fmtPaiseINR } from '@shared/libs/pdf'
@@ -320,6 +321,7 @@ const IncentiveSlabsCard = ({ slabs }: { slabs: ManagerDashboard['incentiveSlabs
 // status mutation; first/last/phone editable in a single submit.
 const EditMemberModal = ({ member, onClose }: { member: ManagerMember | null; onClose: () => void }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [phone, setPhone] = useState('')
@@ -385,8 +387,14 @@ const EditMemberModal = ({ member, onClose }: { member: ManagerMember | null; on
                                 leftIcon={<Pause size={12} />}
                                 className="!text-[var(--color-danger)]"
                                 loading={statusMutation.isPending && statusMutation.variables === 'SUSPENDED'}
-                                onClick={() => {
-                                    if (window.confirm(`Suspend ${member.name}? They'll lose access until reinstated.`)) statusMutation.mutate('SUSPENDED')
+                                onClick={async () => {
+                                    const ok = await confirm({
+                                        title: `Suspend ${member.name}?`,
+                                        description: "They lose dashboard access immediately and any active session is invalidated. You can reinstate anytime.",
+                                        confirmLabel: 'Suspend',
+                                        tone: 'danger'
+                                    })
+                                    if (ok) statusMutation.mutate('SUSPENDED')
                                 }}>
                                 Suspend
                             </Button>

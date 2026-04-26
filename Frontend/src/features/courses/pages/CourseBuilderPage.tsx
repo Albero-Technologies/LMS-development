@@ -13,6 +13,7 @@ import { cn } from '@shared/helpers/cn'
 import { useCourseStore, type TSection } from '../stores/courseStore'
 import { YouTubePlayer } from '../components/YouTubePlayer'
 import { parseYouTubeId, youtubeThumbUrl } from '../helpers/youtube'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 export const CourseBuilderPage = () => {
     const { id = '' } = useParams()
@@ -24,6 +25,7 @@ export const CourseBuilderPage = () => {
     const removeLesson = useCourseStore((s) => s.removeLesson)
     const publish = useCourseStore((s) => s.publishCourse)
 
+    const confirm = useConfirm()
     const [activeSectionId, setActiveSectionId] = useState<string | null>(null)
     const [previewLessonId, setPreviewLessonId] = useState<string | null>(null)
     const [lessonModalOpen, setLessonModalOpen] = useState(false)
@@ -60,14 +62,26 @@ export const CourseBuilderPage = () => {
         renameSection(course.id, sec.id, title)
     }
 
-    const handleRemoveSection = (sec: TSection) => {
-        if (!window.confirm(`Delete section "${sec.title}" and all its lessons?`)) return
+    const handleRemoveSection = async (sec: TSection) => {
+        const ok = await confirm({
+            title: `Delete section "${sec.title}"?`,
+            description: 'Every lesson inside this section is also removed. Student progress on those lessons is preserved on the enrolment record.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
         removeSection(course.id, sec.id)
         if (activeSectionId === sec.id) setActiveSectionId(null)
     }
 
-    const handleRemoveLesson = (sectionId: string, lessonId: string, title: string) => {
-        if (!window.confirm(`Delete lesson "${title}"?`)) return
+    const handleRemoveLesson = async (sectionId: string, lessonId: string, title: string) => {
+        const ok = await confirm({
+            title: `Delete lesson "${title}"?`,
+            description: 'Students lose access to this lesson immediately. Past progress on it stays in the analytics.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
         removeLesson(course.id, sectionId, lessonId)
     }
 

@@ -47,6 +47,7 @@ import {
     updateAssignment,
     type SubmissionRow
 } from '../services/assignment.service'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 export const AssignmentDetailPage = () => {
     const { id = '' } = useParams()
@@ -219,6 +220,7 @@ const StaffActions = ({
     onDeleted: () => void
 }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const togglePublish = useMutation({
         mutationFn: () => updateAssignment(assignmentId, { isPublished: !isPublished }),
         onSuccess: () => {
@@ -239,6 +241,30 @@ const StaffActions = ({
         onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Could not delete')
     })
 
+    const handleTogglePublish = async () => {
+        // Publishing makes a draft visible to students; unpublishing pulls it
+        // out of their list. Both are recoverable but loud enough to confirm.
+        const ok = await confirm({
+            title: isPublished ? 'Unpublish this assignment?' : 'Publish this assignment?',
+            description: isPublished
+                ? "Students will no longer see this assignment in their list. Existing submissions are kept."
+                : 'Students enrolled in this course will see the assignment immediately in their list.',
+            confirmLabel: isPublished ? 'Unpublish' : 'Publish',
+            tone: isPublished ? 'warning' : 'info'
+        })
+        if (ok) togglePublish.mutate()
+    }
+
+    const handleDelete = async () => {
+        const ok = await confirm({
+            title: 'Delete this assignment?',
+            description: 'Every student submission for it is also removed. This cannot be undone.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (ok) remove.mutate()
+    }
+
     return (
         <>
             <Button
@@ -246,7 +272,7 @@ const StaffActions = ({
                 variant="ghost"
                 leftIcon={isPublished ? <EyeOff size={12} /> : <Eye size={12} />}
                 loading={togglePublish.isPending}
-                onClick={() => togglePublish.mutate()}>
+                onClick={handleTogglePublish}>
                 {isPublished ? 'Unpublish' : 'Publish'}
             </Button>
             <Button
@@ -254,9 +280,7 @@ const StaffActions = ({
                 variant="ghost"
                 leftIcon={<Trash2 size={12} />}
                 loading={remove.isPending}
-                onClick={() => {
-                    if (window.confirm('Delete this assignment? Existing submissions are also removed.')) remove.mutate()
-                }}>
+                onClick={handleDelete}>
                 Delete
             </Button>
         </>

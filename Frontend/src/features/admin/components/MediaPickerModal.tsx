@@ -17,6 +17,7 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
 import { cn } from '@shared/helpers/cn'
 import { deleteMedia, listMedia, uploadMedia, type MediaAsset } from '../services/media.service'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 type Tab = 'library' | 'upload'
 
@@ -28,6 +29,7 @@ interface Props {
 
 export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const [tab, setTab] = useState<Tab>('library')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [dragOver, setDragOver] = useState(false)
@@ -127,8 +129,14 @@ export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
                                     key={asset.id}
                                     asset={asset}
                                     onPick={() => onPick(asset.url)}
-                                    onDelete={() => {
-                                        if (window.confirm('Remove this asset from the library?')) deleteMutation.mutate(asset.id)
+                                    onDelete={async () => {
+                                        const ok = await confirm({
+                                            title: 'Remove this asset?',
+                                            description: 'It is removed from the library. Pages still using this URL keep working until you replace the image.',
+                                            confirmLabel: 'Remove',
+                                            tone: 'danger'
+                                        })
+                                        if (ok) deleteMutation.mutate(asset.id)
                                     }}
                                     isDeleting={deleteMutation.isPending && deleteMutation.variables === asset.id}
                                 />

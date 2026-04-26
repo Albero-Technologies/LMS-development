@@ -1,4 +1,4 @@
-import { EnrollmentStatus, InvoiceStatus, QuizAttemptStatus, Role, TicketStatus } from '@prisma/client'
+import { EnrollmentStatus, InvoiceStatus, type Prisma, QuizAttemptStatus, Role, TicketStatus } from '@prisma/client'
 import db from '../../service/db'
 import quicker from '../../util/quicker'
 import { getCounsellorTarget } from '../counsellor-invites/counsellor-invite.service'
@@ -156,14 +156,30 @@ const trainerDashboard = async (tenantId: string, userId: string) => {
 }
 
 const studentDashboard = async (tenantId: string, userId: string) => {
+    // Pending fees only count when the underlying enrollment is genuinely
+    // unpaid (PENDING_PAYMENT) or unresolved. Orphan DUE invoices left over
+    // from the pre-idempotency-fix days (where the same course had a paid
+    // invoice plus a ghost DUE one) are silently excluded — same filter as
+    // listMyInvoices in payment.service.ts. Without this, paid students see
+    // a phantom "Pending fees ₹X" tile on the dashboard forever.
+    const pendingInvoiceWhere: Prisma.InvoiceWhereInput = {
+        tenantId,
+        userId,
+        status: InvoiceStatus.DUE,
+        OR: [
+            { enrollmentId: null }, // standalone invoice with no enrolment
+            { enrollment: { status: { in: [EnrollmentStatus.PENDING_PAYMENT] } } }
+        ]
+    }
+
     const [activeEnrollments, completedCourses, pendingInvoices, quizzesAttempted, pendingTotalAgg] = await Promise.all([
         db.client.enrollment.count({ where: { tenantId, userId, status: EnrollmentStatus.ACTIVE } }),
         db.client.enrollment.count({ where: { tenantId, userId, status: EnrollmentStatus.COMPLETED } }),
-        db.client.invoice.count({ where: { tenantId, userId, status: InvoiceStatus.DUE } }),
+        db.client.invoice.count({ where: pendingInvoiceWhere }),
         db.client.quizAttempt.count({ where: { tenantId, userId, status: QuizAttemptStatus.SUBMITTED } }),
         db.client.invoice.aggregate({
             _sum: { totalAmount: true },
-            where: { tenantId, userId, status: InvoiceStatus.DUE }
+            where: pendingInvoiceWhere
         })
     ])
 
@@ -183,7 +199,7 @@ const studentDashboard = async (tenantId: string, userId: string) => {
             activeEnrollments,
             completedCourses,
             pendingInvoices,
-            pendingAmount: pendingTotalAgg._sum.totalAmount ?? 0,
+            pendingAmount: pendingTotalAgg._sum?.totalAmount ?? 0,
             quizzesAttempted
         },
         nextActions: actions

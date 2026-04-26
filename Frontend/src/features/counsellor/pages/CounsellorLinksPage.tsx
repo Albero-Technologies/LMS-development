@@ -8,6 +8,7 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Input } from '@shared/components/ui/Input'
 import { Modal } from '@shared/components/ui/Modal'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import {
@@ -143,6 +144,7 @@ const LinkRow = ({
 }) => {
     const url = buildInviteUrl(link.token)
     const [copied, setCopied] = useState(false)
+    const confirm = useConfirm()
 
     const copy = async () => {
         const ok = await copyToClipboard(url)
@@ -201,8 +203,14 @@ const LinkRow = ({
                         variant="ghost"
                         leftIcon={<Trash2 size={12} />}
                         loading={isRevoking}
-                        onClick={() => {
-                            if (window.confirm('Revoke this link? Anyone who already saved it can no longer use it.')) onRevoke()
+                        onClick={async () => {
+                            const ok = await confirm({
+                                title: 'Revoke this link?',
+                                description: 'Anyone holding the URL can no longer use it. New signups must come through a different link.',
+                                confirmLabel: 'Revoke',
+                                tone: 'danger'
+                            })
+                            if (ok) onRevoke()
                         }}
                         className="!text-[var(--color-danger)]">
                         Revoke

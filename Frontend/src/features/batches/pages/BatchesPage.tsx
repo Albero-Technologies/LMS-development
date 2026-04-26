@@ -31,6 +31,7 @@ import {
     fmtBatchDate,
     getBatchStatusTone,
     listBatches,
+    transferStudent,
     updateBatch,
     type BatchRow,
     type BatchStatus
@@ -38,6 +39,7 @@ import {
 import { listCourses } from '@features/courses/services/course.service'
 import { listUsers } from '@features/users/services/user.service'
 import { listAllTenants } from '@features/admin/services/tenant.service'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 const slugifyCode = (s: string): string =>
     s
@@ -424,6 +426,7 @@ const ManageBatchModal = ({
     const queryClient = useQueryClient()
     const [assignOpen, setAssignOpen] = useState(false)
     const [search, setSearch] = useState('')
+    const [transferTarget, setTransferTarget] = useState<{ userId: string; name: string } | null>(null)
 
     // Refresh the batch detail so the assigned-students list is current.
     const detailQuery = useQuery({
@@ -518,8 +521,8 @@ const ManageBatchModal = ({
                                     return (
                                         <div
                                             key={e.id}
-                                            className="flex items-center justify-between px-3 py-2.5 hover:bg-surface-hover">
-                                            <div className="min-w-0">
+                                            className="flex items-center justify-between px-3 py-2.5 hover:bg-surface-hover gap-3">
+                                            <div className="min-w-0 flex-1">
                                                 <div className="text-sm font-medium text-fg truncate">{fullName}</div>
                                                 <div className="text-[11px] text-fg-muted truncate">{e.user.email}</div>
                                             </div>
@@ -528,6 +531,14 @@ const ManageBatchModal = ({
                                                 <Badge tone={e.status === 'ACTIVE' ? 'brand' : e.status === 'COMPLETED' ? 'ok' : 'warn'}>
                                                     {e.status === 'PENDING_PAYMENT' ? 'Pending pay' : e.status.toLowerCase()}
                                                 </Badge>
+                                                {canEdit && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => setTransferTarget({ userId: e.userId, name: fullName })}>
+                                                        Transfer
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     )
@@ -548,7 +559,113 @@ const ManageBatchModal = ({
                     void queryClient.invalidateQueries({ queryKey: ['batch', batch.id] })
                 }}
             />
+
+            <TransferStudentModal
+                target={transferTarget}
+                fromBatch={batch}
+                onClose={() => setTransferTarget(null)}
+                onTransferred={() => {
+                    setTransferTarget(null)
+                    void queryClient.invalidateQueries({ queryKey: ['batches'] })
+                    void queryClient.invalidateQueries({ queryKey: ['batch', batch.id] })
+                }}
+            />
         </>
+    )
+}
+
+// Transfer a single student from this batch to another batch of the SAME
+// course. Lists candidate target batches via listBatches({ courseId }) and
+// excludes the current batch + any batch that's at capacity.
+const TransferStudentModal = ({
+    target,
+    fromBatch,
+    onClose,
+    onTransferred
+}: {
+    target: { userId: string; name: string } | null
+    fromBatch: BatchRow
+    onClose: () => void
+    onTransferred: () => void
+}) => {
+    const [targetBatchId, setTargetBatchId] = useState('')
+
+    // Reset selection when the picker opens with a new student.
+    useEffect(() => {
+        if (target) setTargetBatchId('')
+    }, [target?.userId])
+
+    const candidatesQuery = useQuery({
+        queryKey: ['batches', 'transfer-candidates', fromBatch.courseId, fromBatch.tenantId],
+        queryFn: () => listBatches({ courseId: fromBatch.courseId, tenantId: fromBatch.tenantId }),
+        enabled: !!target,
+        staleTime: 30_000
+    })
+    const candidates = (candidatesQuery.data ?? []).filter((b) => {
+        if (b.id === fromBatch.id) return false
+        if (b.status === 'CANCELLED' || b.status === 'ENDED') return false
+        return b._count.enrollments < b.capacity
+    })
+
+    const mutation = useMutation({
+        mutationFn: () => {
+            if (!target) throw new Error('No target student')
+            return transferStudent(fromBatch.id, { userId: target.userId, targetBatchId })
+        },
+        onSuccess: () => {
+            toast.success('Student transferred')
+            onTransferred()
+        },
+        onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Could not transfer')
+    })
+
+    if (!target) return null
+
+    return (
+        <Modal
+            open={!!target}
+            onClose={onClose}
+            title={`Transfer ${target.name}`}
+            description={`Move from "${fromBatch.name}" to another batch in the same course. The student's progress is preserved.`}
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        loading={mutation.isPending}
+                        disabled={!targetBatchId}
+                        onClick={() => mutation.mutate()}>
+                        Transfer
+                    </Button>
+                </>
+            }>
+            <div className="space-y-3">
+                {candidatesQuery.isLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                ) : candidates.length === 0 ? (
+                    <div className="text-sm text-fg-muted px-3 py-6 border border-dashed rounded-md text-center">
+                        No other batches in this course have spare capacity. Create one first or wait for an existing batch to open up.
+                    </div>
+                ) : (
+                    <Select
+                        label="Move to"
+                        value={targetBatchId}
+                        onChange={(e) => setTargetBatchId(e.target.value)}>
+                        <option value="">Pick a target batch…</option>
+                        {candidates.map((b) => (
+                            <option
+                                key={b.id}
+                                value={b.id}>
+                                {b.name} ({b._count.enrollments}/{b.capacity}) · {b.code}
+                            </option>
+                        ))}
+                    </Select>
+                )}
+            </div>
+        </Modal>
     )
 }
 
@@ -694,6 +811,7 @@ const AssignStudentsModal = ({
 // the batches list so the deleted card disappears immediately.
 const DeleteBatchButton = ({ batch }: { batch: BatchRow }) => {
     const queryClient = useQueryClient()
+    const confirm = useConfirm()
     const mutation = useMutation({
         mutationFn: () => deleteBatch(batch.id),
         onSuccess: () => {
@@ -708,10 +826,14 @@ const DeleteBatchButton = ({ batch }: { batch: BatchRow }) => {
             variant="subtle"
             aria-label="Delete batch"
             loading={mutation.isPending}
-            onClick={() => {
-                if (window.confirm(`Delete "${batch.name}"? Existing student assignments stay on their enrolment, just unlinked.`)) {
-                    mutation.mutate()
-                }
+            onClick={async () => {
+                const ok = await confirm({
+                    title: `Delete "${batch.name}"?`,
+                    description: 'Existing student assignments stay on their enrolment, just unlinked from this batch.',
+                    confirmLabel: 'Delete',
+                    tone: 'danger'
+                })
+                if (ok) mutation.mutate()
             }}>
             <Trash2 size={14} />
         </Button>
