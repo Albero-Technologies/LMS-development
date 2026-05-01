@@ -290,6 +290,8 @@ export const LandingSectionRenderer = ({ section, slugBase, tenantName, styleCla
                 )
             case 'callout':
                 return <CalloutBlock section={section} />
+            case 'prose':
+                return <ProseBlock section={section} />
             case 'image':
                 return <ImageBlock section={section} />
             case 'embed':
@@ -804,6 +806,26 @@ const CalloutBlock = ({ section }: { section: Extract<Section, { type: 'callout'
                     {body && <p className="text-xs text-fg-soft mt-0.5">{body}</p>}
                 </div>
             </div>
+        </section>
+    )
+}
+
+// ---- Prose block ------------------------------------------------------------
+//
+// Long-form text — primarily used for policy / legal pages. `body` is rendered
+// with `whitespace-pre-line` so newline-separated paragraphs in the source
+// JSON paint as separate paragraphs without a full markdown stack. Variant
+// `narrow` is the legal-document column (~600px); `wide` extends to the
+// standard reading column for less-dense content.
+
+const ProseBlock = ({ section }: { section: Extract<Section, { type: 'prose' }> }) => {
+    const { eyebrow, title, body } = section.data
+    const containerClass = section.variant === 'wide' ? 'max-w-4xl' : 'max-w-3xl'
+    return (
+        <section className={`${containerClass} mx-auto px-4 sm:px-6 py-10`}>
+            {eyebrow && <div className="text-xs uppercase tracking-wider text-[var(--color-brand-600)] font-medium mb-2">{eyebrow}</div>}
+            {title && <h2 className="text-2xl font-semibold tracking-tight text-fg mb-4">{title}</h2>}
+            {body && <div className="text-sm text-fg-soft leading-relaxed whitespace-pre-line">{body}</div>}
         </section>
     )
 }

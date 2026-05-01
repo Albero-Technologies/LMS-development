@@ -481,6 +481,17 @@ export type CalloutSectionData = {
     body?: string
 }
 
+// Long-form prose section — used for policy / legal pages where the existing
+// hero + features blocks would compress the content into something illegible.
+// `body` is rendered with `whitespace-pre-line` so newline-separated paragraphs
+// keep their structure without needing a full markdown renderer. Variant
+// switches between a wide reading column and a narrower legal-document feel.
+export type ProseSectionData = {
+    eyebrow?: string
+    title?: string
+    body?: string
+}
+
 export type ImageSectionData = {
     src?: string
     alt?: string
@@ -639,6 +650,7 @@ export type LandingSection =
     | { id: string; type: 'features'; variant: 'three-up' | 'four-up' | 'list'; data: FeaturesSectionData; style?: SectionStyle }
     | { id: string; type: 'cta'; variant: 'banner' | 'card'; data: CtaSectionData; style?: SectionStyle }
     | { id: string; type: 'callout'; variant: 'info' | 'success'; data: CalloutSectionData; style?: SectionStyle }
+    | { id: string; type: 'prose'; variant: 'narrow' | 'wide'; data: ProseSectionData; style?: SectionStyle }
     | { id: string; type: 'image'; variant: 'full' | 'contained'; data: ImageSectionData; style?: SectionStyle }
     | { id: string; type: 'embed'; variant: 'iframe'; data: EmbedSectionData; style?: SectionStyle }
     | {
@@ -978,6 +990,31 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
             data: {
                 title: 'Now hiring',
                 body: 'Top performers from each cohort are referred to our 40+ partner companies.'
+            }
+        }
+    },
+    {
+        label: 'Prose · Narrow',
+        description: 'Long-form text in a narrow legal-document column. Use for policies and terms.',
+        section: {
+            type: 'prose',
+            variant: 'narrow',
+            data: {
+                eyebrow: 'POLICY',
+                title: 'Section heading',
+                body: 'Write the policy body here.\n\nBlank lines separate paragraphs. Use this section for terms, privacy, refund, and similar long-form content.'
+            }
+        }
+    },
+    {
+        label: 'Prose · Wide',
+        description: 'Long-form text in the standard reading column.',
+        section: {
+            type: 'prose',
+            variant: 'wide',
+            data: {
+                title: 'About this page',
+                body: 'Write the body here.\n\nNewlines are preserved.'
             }
         }
     },

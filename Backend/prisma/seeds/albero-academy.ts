@@ -8,6 +8,7 @@
 import { AuthProvider, CoursePublishState, LessonType, PrismaClient, Role, UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import { randomUUID } from 'crypto'
+import { POLICY_PAGES } from './albero-policies'
 
 type Prisma = PrismaClient
 
@@ -941,7 +942,19 @@ const buildLandingJson = () => {
                 title: 'Apply to Albero Academy · Cohort 14',
                 description: 'Reserve your seat in Cohort 14. 60-second application — a counsellor calls within one working day.'
             }
-        }
+        },
+        // Policy pages — referenced from the footer "Policies" column. Content
+        // lives in albero-policies.ts so legal-text edits don't churn this file.
+        ...POLICY_PAGES.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            sections: p.sections,
+            seo: {
+                title: p.title,
+                description: p.seoDescription
+            }
+        }))
     ]
 
     return {
@@ -1037,6 +1050,17 @@ const buildLandingJson = () => {
                     links: [
                         { id: linkId('foot-contact'), label: 'Contact', pageId: pageId('contact') },
                         { id: linkId('foot-enquire'), label: 'Talk to counsellor', url: 'enquiry' }
+                    ]
+                },
+                {
+                    id: 'col-policies',
+                    title: 'Policies',
+                    links: [
+                        { id: linkId('foot-terms'), label: 'Terms of Use', pageId: 'pg-terms-of-use' },
+                        { id: linkId('foot-privacy'), label: 'Privacy Policy', pageId: 'pg-privacy-policy' },
+                        { id: linkId('foot-refund'), label: 'Refund Policy', pageId: 'pg-refund-policy' },
+                        { id: linkId('foot-escalation'), label: 'Escalation Policy', pageId: 'pg-escalation-policy' },
+                        { id: linkId('foot-exam'), label: 'Examination & Certification Policy', pageId: 'pg-examination-policy' }
                     ]
                 }
             ]

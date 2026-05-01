@@ -126,6 +126,7 @@ const SECTION_LABEL: Record<LandingSection['type'], string> = {
     features: 'Features',
     cta: 'CTA',
     callout: 'Callout',
+    prose: 'Prose',
     image: 'Image',
     embed: 'Embed',
     collectionList: 'Collection',
@@ -1280,6 +1281,8 @@ const getSectionPreviewText = (s: LandingSection): string => {
             return s.data.title || (s.data.collectionSlug ? `/${s.data.collectionSlug}` : 'Collection')
         case 'callout':
             return s.data.title || 'Callout'
+        case 'prose':
+            return s.data.title || 'Prose'
         case 'testimonials':
             return s.data.title || `${s.data.items?.length ?? 0} testimonials`
         case 'stats':
@@ -1370,6 +1373,12 @@ const SectionEditor = ({
                             onChange={onUpdateData}
                         />
                     )}
+                    {section.type === 'prose' && (
+                        <ProseFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
                     {section.type === 'image' && (
                         <ImageFields
                             data={section.data}
@@ -1431,6 +1440,7 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
     features: ['three-up', 'four-up', 'list'],
     cta: ['banner', 'card'],
     callout: ['info', 'success'],
+    prose: ['narrow', 'wide'],
     image: ['contained', 'full'],
     embed: ['iframe'],
     collectionList: ['cards', 'list', 'accordion'],
@@ -1884,6 +1894,29 @@ const CalloutFields = ({ data, onChange }: { data: Extract<LandingSection, { typ
             rows={3}
             value={data.body ?? ''}
             onChange={(e) => onChange({ body: e.target.value })}
+        />
+    </div>
+)
+
+const ProseFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'prose' }>['data']; onChange: (p: object) => void }) => (
+    <div className="space-y-3">
+        <Input
+            label="Eyebrow (optional)"
+            value={data.eyebrow ?? ''}
+            onChange={(e) => onChange({ eyebrow: e.target.value })}
+            placeholder="e.g. SECTION 1"
+        />
+        <Input
+            label="Title"
+            value={data.title ?? ''}
+            onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <Textarea
+            label="Body"
+            rows={12}
+            value={data.body ?? ''}
+            onChange={(e) => onChange({ body: e.target.value })}
+            hint="Newlines are preserved. Use blank lines between paragraphs."
         />
     </div>
 )

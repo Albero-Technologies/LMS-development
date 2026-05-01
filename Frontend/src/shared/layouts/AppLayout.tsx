@@ -43,6 +43,7 @@ import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { ROLES, ROLE_LABEL, type TRole } from '@shared/constants/roles'
 import { meRequest } from '@features/auth/services/auth.service'
 import { getMyTenant } from '@features/admin/services/tenant.service'
+import { applyBrandPalette, deriveBrandPalette } from '@shared/helpers/brandPalette'
 
 // -----------------------------------------------------------------------------
 // Nav config — mirrors lms.pen's per-role sidebars. Each role only sees its own
@@ -202,20 +203,7 @@ const AppLayoutBody = () => {
     const brandColor = brandingQuery.data?.brandingColor
     useEffect(() => {
         if (!brandColor) return
-        const root = document.documentElement
-        const original = {
-            500: root.style.getPropertyValue('--color-brand-500'),
-            600: root.style.getPropertyValue('--color-brand-600'),
-            700: root.style.getPropertyValue('--color-brand-700')
-        }
-        root.style.setProperty('--color-brand-500', brandColor)
-        root.style.setProperty('--color-brand-600', brandColor)
-        root.style.setProperty('--color-brand-700', brandColor)
-        return () => {
-            root.style.setProperty('--color-brand-500', original[500])
-            root.style.setProperty('--color-brand-600', original[600])
-            root.style.setProperty('--color-brand-700', original[700])
-        }
+        return applyBrandPalette(deriveBrandPalette(brandColor))
     }, [brandColor])
 
     // Open the socket connection while authenticated and route push events to

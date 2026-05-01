@@ -141,10 +141,15 @@ export const TenantFooter = ({ config, pages, tenant, slugBase }: Props) => {
     }
 
     if (config.variant === 'columns') {
+        // Cap at 4 columns so the brand + columns row stays readable on
+        // desktop. Policies / Support / Programs / Company is the typical
+        // upper bound; anything beyond can be merged into another column.
+        const columns = (config.columns ?? []).slice(0, 4)
+        const colCountCls = columns.length >= 4 ? 'md:grid-cols-[1.2fr_repeat(4,1fr)]' : 'md:grid-cols-[1.4fr_repeat(3,1fr)]'
         return (
             <footer className="border-t border-[var(--color-border)]">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-                    <div className="grid gap-8 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+                    <div className={`grid gap-8 ${colCountCls}`}>
                         <div>
                             <Brand
                                 tenant={tenant}
@@ -157,7 +162,7 @@ export const TenantFooter = ({ config, pages, tenant, slugBase }: Props) => {
                                 </div>
                             )}
                         </div>
-                        {(config.columns ?? []).slice(0, 3).map((c) => (
+                        {columns.map((c) => (
                             <Column
                                 key={c.id}
                                 column={c}

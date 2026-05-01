@@ -5,6 +5,7 @@ import { Building2 } from 'lucide-react'
 import { getPublicTenantBySlug, type PublicTenantBrand } from '@features/admin/services/tenant.service'
 import { BoxLoader } from '@shared/components/BoxLoader'
 import { Empty } from '@shared/components/ui/Empty'
+import { applyBrandPalette, deriveBrandPalette } from '@shared/helpers/brandPalette'
 
 // Multi-tenant routing scaffold (§3). The slug-prefixed public surfaces
 // (`/t/:slug/...`) wrap their children in this provider. It:
@@ -41,25 +42,12 @@ export const TenantBrandingProvider = ({ children }: Props) => {
 
     const color = query.data?.brandingColor
 
-    // Apply the tenant brand color to CSS variables for the page lifetime.
-    // Restoring on unmount prevents the color from sticking when the user
-    // navigates back to a non-tenant page.
+    // Apply the full tenant palette (brand-50 through brand-900) for the page
+    // lifetime. Restoring on unmount prevents the color from sticking when
+    // the user navigates back to a non-tenant page.
     useEffect(() => {
         if (!color) return
-        const root = document.documentElement
-        const original = {
-            500: root.style.getPropertyValue('--color-brand-500'),
-            600: root.style.getPropertyValue('--color-brand-600'),
-            700: root.style.getPropertyValue('--color-brand-700')
-        }
-        root.style.setProperty('--color-brand-500', color)
-        root.style.setProperty('--color-brand-600', color)
-        root.style.setProperty('--color-brand-700', color)
-        return () => {
-            root.style.setProperty('--color-brand-500', original[500])
-            root.style.setProperty('--color-brand-600', original[600])
-            root.style.setProperty('--color-brand-700', original[700])
-        }
+        return applyBrandPalette(deriveBrandPalette(color))
     }, [color])
 
     if (query.isLoading)

@@ -34,9 +34,41 @@ export const SettingsPage = () => {
 type PersonalTab = 'profile' | 'security' | 'appearance'
 
 const PersonalSettings = () => {
+    const [tab, setTab] = useState<PersonalTab>('profile')
+
+    return (
+        <>
+            <PageHeader
+                eyebrow="Account"
+                title="Your settings"
+                description="Update your profile, secure your account, and manage platform preferences."
+            />
+
+            <Tabs
+                tabs={[
+                    { value: 'profile', label: 'Profile' },
+                    { value: 'security', label: 'Security' },
+                    { value: 'appearance', label: 'Appearance' }
+                ]}
+                value={tab}
+                onChange={setTab}
+                className="mb-6"
+            />
+
+            {tab === 'profile' && <ProfilePanel />}
+            {tab === 'security' && <SecurityPanel />}
+            {tab === 'appearance' && <AppearancePanel />}
+        </>
+    )
+}
+
+// Reusable profile editor — used by every role (admin gets it under the
+// tenant Settings page; everyone else under personal Settings). Reads the
+// auth store so it stays in sync with the boot-time /auth/me hydration; the
+// PATCH /auth/me mutation writes through and refreshes the store on success.
+const ProfilePanel = () => {
     const user = useAuthStore((s) => s.user)
     const setUser = useAuthStore((s) => s.setUser)
-    const [tab, setTab] = useState<PersonalTab>('profile')
 
     const [firstName, setFirstName] = useState(user?.firstName ?? '')
     const [lastName, setLastName] = useState(user?.lastName ?? '')
@@ -74,93 +106,68 @@ const PersonalSettings = () => {
     }
 
     return (
-        <>
-            <PageHeader
-                eyebrow="Account"
-                title="Your settings"
-                description="Update your profile, secure your account, and manage platform preferences."
-            />
-
-            <Tabs
-                tabs={[
-                    { value: 'profile', label: 'Profile' },
-                    { value: 'security', label: 'Security' },
-                    { value: 'appearance', label: 'Appearance' }
-                ]}
-                value={tab}
-                onChange={setTab}
-                className="mb-6"
-            />
-
-            {tab === 'profile' && (
-                <div className="grid lg:grid-cols-3 gap-4">
-                    <Card className="lg:col-span-2 space-y-4">
-                        <h2 className="text-sm font-semibold text-fg inline-flex items-center gap-2">
-                            <User size={14} /> Profile details
-                        </h2>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            <Input
-                                label="First name"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                            />
-                            <Input
-                                label="Last name"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                            />
-                        </div>
-                        <Input
-                            label="Email"
-                            type="email"
-                            value={user?.email ?? ''}
-                            readOnly
-                            disabled
-                        />
-                        <Input
-                            label="Phone"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="+91 98000 00000"
-                        />
-                        <div className="flex justify-end pt-2">
-                            <Button
-                                onClick={saveProfile}
-                                loading={mutation.isPending}
-                                leftIcon={<Save size={14} />}>
-                                Save profile
-                            </Button>
-                        </div>
-                    </Card>
-                    <Card>
-                        <h2 className="text-sm font-semibold text-fg mb-3">Signed in as</h2>
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-[var(--color-brand-500)] text-white flex items-center justify-center text-base font-semibold">
-                                {(fullName(user) || user?.email || '?')[0]?.toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                                <div className="font-medium text-fg truncate">{fullName(user) || '—'}</div>
-                                <div className="text-xs text-fg-muted truncate">{user?.email}</div>
-                            </div>
-                        </div>
-                        <div className="mt-4 space-y-2 text-xs">
-                            <div className="flex items-center justify-between">
-                                <span className="text-fg-muted">Role</span>
-                                <Badge tone={user?.role === ROLES.SUPER_ADMIN ? 'danger' : 'brand'}>{user ? ROLE_LABEL[user.role] : '—'}</Badge>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-fg-muted">User ID</span>
-                                <span className="font-mono text-fg">{user?.id.slice(0, 8) ?? '—'}</span>
-                            </div>
-                        </div>
-                    </Card>
+        <div className="grid lg:grid-cols-3 gap-4">
+            <Card className="lg:col-span-2 space-y-4">
+                <h2 className="text-sm font-semibold text-fg inline-flex items-center gap-2">
+                    <User size={14} /> Profile details
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Input
+                        label="First name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                    />
+                    <Input
+                        label="Last name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                    />
                 </div>
-            )}
-
-            {tab === 'security' && <SecurityPanel />}
-
-            {tab === 'appearance' && <AppearancePanel />}
-        </>
+                <Input
+                    label="Email"
+                    type="email"
+                    value={user?.email ?? ''}
+                    readOnly
+                    disabled
+                />
+                <Input
+                    label="Phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98000 00000"
+                />
+                <div className="flex justify-end pt-2">
+                    <Button
+                        onClick={saveProfile}
+                        loading={mutation.isPending}
+                        leftIcon={<Save size={14} />}>
+                        Save profile
+                    </Button>
+                </div>
+            </Card>
+            <Card>
+                <h2 className="text-sm font-semibold text-fg mb-3">Signed in as</h2>
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[var(--color-brand-500)] text-white flex items-center justify-center text-base font-semibold">
+                        {(fullName(user) || user?.email || '?')[0]?.toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="font-medium text-fg truncate">{fullName(user) || '—'}</div>
+                        <div className="text-xs text-fg-muted truncate">{user?.email}</div>
+                    </div>
+                </div>
+                <div className="mt-4 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                        <span className="text-fg-muted">Role</span>
+                        <Badge tone={user?.role === ROLES.SUPER_ADMIN ? 'danger' : 'brand'}>{user ? ROLE_LABEL[user.role] : '—'}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-fg-muted">User ID</span>
+                        <span className="font-mono text-fg">{user?.id.slice(0, 8) ?? '—'}</span>
+                    </div>
+                </div>
+            </Card>
+        </div>
     )
 }
 
@@ -269,7 +276,7 @@ const AppearancePanel = () => {
 
 // ----- Tenant settings (Admin) -----------------------------------------------
 
-type TenantTab = 'branding' | 'appearance' | 'plan' | 'security'
+type TenantTab = 'profile' | 'branding' | 'appearance' | 'plan' | 'security'
 
 const PLAN_SEATS: Record<Tenant['plan'], number> = {
     FREE: 25,
@@ -279,17 +286,18 @@ const PLAN_SEATS: Record<Tenant['plan'], number> = {
 }
 
 const TenantSettings = () => {
-    const [tab, setTab] = useState<TenantTab>('branding')
+    const [tab, setTab] = useState<TenantTab>('profile')
 
     return (
         <>
             <PageHeader
                 title="Settings"
-                description="Branding, appearance, plan, and account security for your tenant."
+                description="Profile, branding, appearance, plan, and account security for your tenant."
             />
 
             <Tabs
                 tabs={[
+                    { value: 'profile', label: 'Profile' },
                     { value: 'branding', label: 'Branding' },
                     { value: 'appearance', label: 'Appearance' },
                     { value: 'plan', label: 'Plan' },
@@ -300,6 +308,7 @@ const TenantSettings = () => {
                 className="mb-6"
             />
 
+            {tab === 'profile' && <ProfilePanel />}
             {tab === 'branding' && <BrandingPanel />}
             {tab === 'appearance' && <AppearancePanel />}
             {tab === 'plan' && <PlanPanel />}
