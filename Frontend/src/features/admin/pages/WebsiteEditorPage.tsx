@@ -107,7 +107,9 @@ import {
     type TenantSettings,
     type TestimonialItem,
     type StatItem,
-    type LogoItem
+    type LogoItem,
+    type NavIconToken,
+    NAV_ICON_LABELS
 } from '../services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
 import { MediaPickerModal } from '../components/MediaPickerModal'
@@ -1735,37 +1737,81 @@ const TypographyEditor = ({
     )
 }
 
-const HeroFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'hero' }>['data']; onChange: (p: object) => void }) => (
-    <div className="space-y-3">
-        <Input
-            label="Eyebrow"
-            value={data.eyebrow ?? ''}
-            onChange={(e) => onChange({ eyebrow: e.target.value })}
-        />
-        <Input
-            label="Title"
-            value={data.title ?? ''}
-            onChange={(e) => onChange({ title: e.target.value })}
-        />
-        <Textarea
-            label="Subtitle"
-            rows={2}
-            value={data.subtitle ?? ''}
-            onChange={(e) => onChange({ subtitle: e.target.value })}
-        />
-        <Input
-            label="Primary CTA label"
-            value={data.primaryCtaLabel ?? ''}
-            onChange={(e) => onChange({ primaryCtaLabel: e.target.value })}
-        />
-        <Input
-            label="Primary CTA link (path or URL)"
-            value={data.primaryCtaLink ?? ''}
-            onChange={(e) => onChange({ primaryCtaLink: e.target.value })}
-            hint="Use a relative path like 'enquiry' to stay inside this tenant."
-        />
-    </div>
-)
+const HeroFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'hero' }>['data']; onChange: (p: object) => void }) => {
+    const [pickerOpen, setPickerOpen] = useState(false)
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Eyebrow"
+                value={data.eyebrow ?? ''}
+                onChange={(e) => onChange({ eyebrow: e.target.value })}
+            />
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Textarea
+                label="Subtitle"
+                rows={2}
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <Input
+                label="Primary CTA label"
+                value={data.primaryCtaLabel ?? ''}
+                onChange={(e) => onChange({ primaryCtaLabel: e.target.value })}
+            />
+            <Input
+                label="Primary CTA link (path or URL)"
+                value={data.primaryCtaLink ?? ''}
+                onChange={(e) => onChange({ primaryCtaLink: e.target.value })}
+                hint="Use a relative path like 'enquiry' to stay inside this tenant."
+            />
+            <div>
+                <label className="block text-xs font-medium text-fg-soft mb-1.5">Hero image (split variant)</label>
+                <div className="flex items-center gap-2">
+                    <Input
+                        value={data.imageUrl ?? ''}
+                        onChange={(e) => onChange({ imageUrl: e.target.value })}
+                        placeholder="https:// …"
+                        className="flex-1"
+                    />
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<ImageIcon size={12} />}
+                        onClick={() => setPickerOpen(true)}>
+                        Library
+                    </Button>
+                </div>
+                {data.imageUrl && (
+                    <div className="mt-2 rounded-md border overflow-hidden">
+                        <img
+                            src={data.imageUrl}
+                            alt={data.imageAlt ?? ''}
+                            className="w-full h-32 object-cover"
+                        />
+                    </div>
+                )}
+            </div>
+            <Input
+                label="Image alt text"
+                value={data.imageAlt ?? ''}
+                onChange={(e) => onChange({ imageAlt: e.target.value })}
+                placeholder="Describe the image for screen readers"
+            />
+            <MediaPickerModal
+                open={pickerOpen}
+                onClose={() => setPickerOpen(false)}
+                onPick={(url) => {
+                    onChange({ imageUrl: url })
+                    setPickerOpen(false)
+                }}
+            />
+        </div>
+    )
+}
 
 const FeaturesFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'features' }>['data']; onChange: (p: object) => void }) => {
     const pillars = data.pillars ?? []
@@ -2756,6 +2802,7 @@ const FooterFields = ({
                         links={footer.links ?? []}
                         pages={pages}
                         onChange={(links) => set({ links })}
+                        allowDropdown={false}
                     />
                 </div>
             )}
@@ -2770,11 +2817,17 @@ const FooterFields = ({
 const LinkListEditor = ({
     links,
     pages,
-    onChange
+    onChange,
+    allowDropdown = true,
+    showIconAndDescription = false
 }: {
     links: NavLink[]
     pages: LandingPage[]
     onChange: (next: NavLink[]) => void
+    // Footer link rows reuse this editor — pass false there so footers stay flat.
+    allowDropdown?: boolean
+    // When true, each row gets icon + description fields (mega-menu children).
+    showIconAndDescription?: boolean
 }) => {
     const update = (i: number, patch: Partial<NavLink>) => onChange(links.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
     const remove = (i: number) => onChange(links.filter((_, idx) => idx !== i))
@@ -2786,6 +2839,21 @@ const LinkListEditor = ({
         onChange(next)
     }
     const add = () => onChange([...links, { id: newLinkId(), label: 'New link', url: '' }])
+    const toggleDropdown = (i: number) => {
+        const link = links[i]
+        const becomingDropdown = !link.children
+        if (becomingDropdown) {
+            // Switching to dropdown: drop the link's own target and seed an empty children list.
+            update(i, {
+                pageId: undefined,
+                url: undefined,
+                children: [{ id: newLinkId(), label: 'New item', url: '' }]
+            })
+        } else {
+            // Switching back to a regular link: clear children.
+            update(i, { children: undefined })
+        }
+    }
 
     return (
         <div className="space-y-2">
@@ -2794,61 +2862,142 @@ const LinkListEditor = ({
                     No links yet.
                 </div>
             )}
-            {links.map((link, i) => (
-                <div
-                    key={link.id}
-                    className="rounded-md border border-[var(--color-border)] p-3 space-y-2 bg-surface-2/40">
-                    <div className="flex items-start gap-2">
-                        <div className="flex-1 grid grid-cols-2 gap-2">
-                            <Input
-                                label="Label"
-                                value={link.label}
-                                onChange={(e) => update(i, { label: e.target.value })}
-                            />
-                            <label className="flex items-end pb-1.5 text-sm cursor-pointer select-none">
+            {links.map((link, i) => {
+                const isDropdown = !!link.children
+                return (
+                    <div
+                        key={link.id}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2 bg-surface-2/40">
+                        <div className="flex items-start gap-2">
+                            <div className="flex-1 grid grid-cols-2 gap-2">
+                                <Input
+                                    label="Label"
+                                    value={link.label}
+                                    onChange={(e) => update(i, { label: e.target.value })}
+                                />
+                                <label className="flex items-end pb-1.5 text-sm cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!link.newTab}
+                                        onChange={(e) => update(i, { newTab: e.target.checked })}
+                                        disabled={isDropdown}
+                                        className="accent-[var(--color-brand-500)] mr-2 disabled:opacity-40"
+                                    />
+                                    Open in new tab
+                                </label>
+                            </div>
+                            <div className="flex flex-col items-center pt-5">
+                                <button
+                                    type="button"
+                                    aria-label="Move up"
+                                    onClick={() => move(i, -1)}
+                                    disabled={i === 0}
+                                    className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                    <ChevronUp size={14} />
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-label="Move down"
+                                    onClick={() => move(i, 1)}
+                                    disabled={i === links.length - 1}
+                                    className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
+                                    <ChevronDown size={14} />
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                aria-label="Remove link"
+                                onClick={() => remove(i)}
+                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                                <X size={14} />
+                            </button>
+                        </div>
+
+                        {allowDropdown && (
+                            <label className="flex items-center gap-2 text-xs text-fg-soft cursor-pointer select-none">
                                 <input
                                     type="checkbox"
-                                    checked={!!link.newTab}
-                                    onChange={(e) => update(i, { newTab: e.target.checked })}
-                                    className="accent-[var(--color-brand-500)] mr-2"
+                                    checked={isDropdown}
+                                    onChange={() => toggleDropdown(i)}
+                                    className="accent-[var(--color-brand-500)]"
                                 />
-                                Open in new tab
+                                Render as dropdown menu
+                                <span className="text-fg-muted">(parent label is not clickable)</span>
                             </label>
-                        </div>
-                        <div className="flex flex-col items-center pt-5">
-                            <button
-                                type="button"
-                                aria-label="Move up"
-                                onClick={() => move(i, -1)}
-                                disabled={i === 0}
-                                className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
-                                <ChevronUp size={14} />
-                            </button>
-                            <button
-                                type="button"
-                                aria-label="Move down"
-                                onClick={() => move(i, 1)}
-                                disabled={i === links.length - 1}
-                                className="p-1 text-fg-muted hover:text-fg disabled:opacity-30">
-                                <ChevronDown size={14} />
-                            </button>
-                        </div>
-                        <button
-                            type="button"
-                            aria-label="Remove link"
-                            onClick={() => remove(i)}
-                            className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
-                            <X size={14} />
-                        </button>
+                        )}
+
+                        {isDropdown ? (
+                            <div className="rounded-md border border-dashed border-[var(--color-border)] bg-surface p-3 space-y-3">
+                                {/* Mega-menu mode toggle + columns. When mega is on, each child
+                                    can carry an icon + description for the rich card layout. */}
+                                <div className="grid sm:grid-cols-[1fr_120px] gap-2">
+                                    <label className="flex items-center gap-2 text-xs text-fg-soft cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!link.mega}
+                                            onChange={(e) => update(i, { mega: e.target.checked })}
+                                            className="accent-[var(--color-brand-500)]"
+                                        />
+                                        Mega menu
+                                        <span className="text-fg-muted">(icons + descriptions)</span>
+                                    </label>
+                                    {link.mega && (
+                                        <Select
+                                            aria-label="Columns"
+                                            value={String(link.columns ?? 1)}
+                                            onChange={(e) => update(i, { columns: e.target.value === '2' ? 2 : 1 })}>
+                                            <option value="1">1 column</option>
+                                            <option value="2">2 columns</option>
+                                        </Select>
+                                    )}
+                                </div>
+
+                                <div className="text-[11px] font-semibold text-fg-soft uppercase tracking-wide">Dropdown items</div>
+                                <LinkListEditor
+                                    links={link.children ?? []}
+                                    pages={pages}
+                                    onChange={(next) => update(i, { children: next })}
+                                    allowDropdown={false}
+                                    showIconAndDescription={link.mega}
+                                />
+                            </div>
+                        ) : (
+                            <LinkTargetPicker
+                                pageId={link.pageId}
+                                url={link.url}
+                                pages={pages}
+                                onChange={(t) => update(i, { pageId: t.pageId, url: t.url })}
+                            />
+                        )}
+
+                        {/* Per-link rich fields — only shown when this link is itself a child
+                            inside a mega-menu parent (showIconAndDescription = true). */}
+                        {showIconAndDescription && !isDropdown && (
+                            <div className="grid grid-cols-[140px_1fr] gap-2 pt-1">
+                                <Select
+                                    label="Icon"
+                                    value={link.icon ?? ''}
+                                    onChange={(e) => update(i, { icon: (e.target.value || undefined) as NavIconToken | undefined })}>
+                                    <option value="">— none —</option>
+                                    {(Object.keys(NAV_ICON_LABELS) as NavIconToken[]).map((k) => (
+                                        <option
+                                            key={k}
+                                            value={k}>
+                                            {NAV_ICON_LABELS[k]}
+                                        </option>
+                                    ))}
+                                </Select>
+                                <Input
+                                    label="Description"
+                                    value={link.description ?? ''}
+                                    onChange={(e) => update(i, { description: e.target.value })}
+                                    placeholder="Short subtitle shown under the label"
+                                />
+                            </div>
+                        )}
                     </div>
-                    <LinkTargetPicker
-                        pageId={link.pageId}
-                        url={link.url}
-                        pages={pages}
-                        onChange={(t) => update(i, { pageId: t.pageId, url: t.url })}
-                    />
-                </div>
-            ))}
+                )
+            })}
             <Button
                 size="sm"
                 variant="ghost"
@@ -2989,6 +3138,7 @@ const FooterColumnsEditor = ({
                         links={col.links}
                         pages={pages}
                         onChange={(links) => update(i, { links })}
+                        allowDropdown={false}
                     />
                 </div>
             ))}

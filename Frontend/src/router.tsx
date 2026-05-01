@@ -112,6 +112,17 @@ export const router = createBrowserRouter([
             </TenantBrandingProvider>
         )
     },
+    // Dynamic subpages from `landing.pages` (Business Analytics, Blog, About …).
+    // React Router ranks static segments above dynamic ones, so /enquiry and
+    // /courses above still win even though this path matches anything.
+    {
+        path: '/t/:slug/:pageSlug',
+        element: (
+            <TenantBrandingProvider>
+                <TenantLandingPage />
+            </TenantBrandingProvider>
+        )
+    },
     // Generic collection-item detail. Two trailing segments
     // (:collectionSlug/:itemSlug) keep this from colliding with the static
     // single-segment routes above (courses/enquiry/login). Renders whichever

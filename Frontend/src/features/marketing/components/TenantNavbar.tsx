@@ -5,12 +5,57 @@
 //
 // Mobile (< md) collapses every variant to a hamburger sheet that drops down
 // from the header. Desktop layout is unchanged.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import {
+    Award,
+    BarChart3,
+    BookOpen,
+    Brain,
+    Briefcase,
+    ChevronDown,
+    Code,
+    Compass,
+    Cpu,
+    Database,
+    Globe,
+    GraduationCap,
+    Mail,
+    Menu,
+    MessageCircle,
+    Phone,
+    Rocket,
+    Shield,
+    Sparkles,
+    Users,
+    X
+} from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
-import type { LandingPage, NavLink, NavbarConfig } from '@features/admin/services/tenant.service'
+import type { LandingPage, NavIconToken, NavLink, NavbarConfig } from '@features/admin/services/tenant.service'
+
+// Curated icon palette — keeps bundle size predictable (vs dynamic lookup
+// across all of lucide-react) and makes the editor a closed-set picker.
+const NAV_ICON: Record<NavIconToken, ComponentType<{ size?: number; className?: string }>> = {
+    book: BookOpen,
+    graduation: GraduationCap,
+    chart: BarChart3,
+    database: Database,
+    sparkles: Sparkles,
+    code: Code,
+    brain: Brain,
+    cpu: Cpu,
+    briefcase: Briefcase,
+    globe: Globe,
+    users: Users,
+    message: MessageCircle,
+    mail: Mail,
+    phone: Phone,
+    award: Award,
+    rocket: Rocket,
+    compass: Compass,
+    shield: Shield
+}
 
 interface Props {
     config: NavbarConfig
@@ -62,12 +107,26 @@ const NavLinkItem = ({
     onNavigate?: () => void
     fullWidth?: boolean
 }) => {
+    // When the link has children, render a dropdown trigger instead of a
+    // navigable link. The trigger itself doesn't navigate; clicking opens the
+    // menu (mobile) or hovering does (desktop).
+    if (link.children && link.children.length > 0) {
+        return (
+            <NavDropdown
+                link={link}
+                pages={pages}
+                slugBase={slugBase}
+                onNavigate={onNavigate}
+                fullWidth={fullWidth}
+            />
+        )
+    }
     const href = resolveHref(link, pages, slugBase)
     const isExternal = /^https?:\/\//.test(href)
     const target = link.newTab || isExternal ? '_blank' : undefined
     const cls = fullWidth
-        ? 'block w-full text-base text-fg-soft hover:text-fg transition-colors py-2 border-b border-[var(--color-border)]'
-        : 'text-sm text-fg-soft hover:text-fg transition-colors'
+        ? 'block w-full text-base text-fg hover:text-[var(--color-brand-600)] transition-colors py-2 border-b border-[var(--color-border)]'
+        : 'text-sm font-medium text-fg/85 hover:text-[var(--color-brand-600)] transition-colors'
     if (isExternal || target === '_blank') {
         return (
             <a
@@ -86,6 +145,268 @@ const NavLinkItem = ({
             onClick={onNavigate}
             className={cls}>
             {link.label}
+        </Link>
+    )
+}
+
+// Dropdown trigger + menu. Hover/focus opens it on desktop; tapping toggles
+// it on mobile (where hover is unreliable). Closes on outside click and on
+// Escape so keyboard + mouse users both have a clean exit.
+const NavDropdown = ({
+    link,
+    pages,
+    slugBase,
+    onNavigate,
+    fullWidth
+}: {
+    link: NavLink
+    pages: LandingPage[]
+    slugBase: string
+    onNavigate?: () => void
+    fullWidth?: boolean
+}) => {
+    const [open, setOpen] = useState(false)
+    const wrapRef = useRef<HTMLDivElement | null>(null)
+
+    // Close on outside click + Escape. Skipped when the menu isn't open.
+    useEffect(() => {
+        if (!open) return
+        const onDown = (e: MouseEvent) => {
+            if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+        }
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false)
+        }
+        document.addEventListener('mousedown', onDown)
+        document.addEventListener('keydown', onKey)
+        return () => {
+            document.removeEventListener('mousedown', onDown)
+            document.removeEventListener('keydown', onKey)
+        }
+    }, [open])
+
+    if (fullWidth) {
+        // Mobile / sheet — render the children inline as a nested list under
+        // a tap-to-expand header. Avoids hover state on touch devices.
+        return (
+            <div className="border-b border-[var(--color-border)]">
+                <button
+                    type="button"
+                    onClick={() => setOpen((v) => !v)}
+                    className="w-full flex items-center justify-between text-base text-fg hover:text-[var(--color-brand-600)] transition-colors py-2"
+                    aria-expanded={open}>
+                    <span>{link.label}</span>
+                    <ChevronDown
+                        size={16}
+                        className={`transition-transform ${open ? 'rotate-180' : ''}`}
+                    />
+                </button>
+                {open && (
+                    <ul className="pl-2 pb-3 space-y-1">
+                        {link.children!.map((c) => {
+                            const Icon = c.icon ? NAV_ICON[c.icon] : null
+                            const href = resolveHref(c, pages, slugBase)
+                            const isExternal = /^https?:\/\//.test(href)
+                            const target = c.newTab || isExternal ? '_blank' : undefined
+                            const inner = (
+                                <span className="flex items-start gap-3 px-2 py-2 rounded-md hover:bg-surface-hover transition-colors">
+                                    {Icon && (
+                                        <span className="h-9 w-9 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center shrink-0">
+                                            <Icon size={16} />
+                                        </span>
+                                    )}
+                                    <span className="min-w-0">
+                                        <span className="block text-sm font-semibold text-fg">{c.label}</span>
+                                        {c.description && <span className="block text-xs text-fg-muted">{c.description}</span>}
+                                    </span>
+                                </span>
+                            )
+                            return (
+                                <li key={c.id}>
+                                    {isExternal || target === '_blank' ? (
+                                        <a
+                                            href={href}
+                                            target={target}
+                                            rel={target === '_blank' ? 'noreferrer' : undefined}
+                                            onClick={onNavigate}>
+                                            {inner}
+                                        </a>
+                                    ) : (
+                                        <Link
+                                            to={href}
+                                            onClick={onNavigate}>
+                                            {inner}
+                                        </Link>
+                                    )}
+                                </li>
+                            )
+                        })}
+                    </ul>
+                )}
+            </div>
+        )
+    }
+
+    const isMega = !!link.mega
+    const cols = link.columns === 2 ? 2 : 1
+    return (
+        <div
+            ref={wrapRef}
+            className="relative"
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}>
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={open}
+                className="inline-flex items-center gap-1 text-sm font-medium text-fg/85 hover:text-[var(--color-brand-600)] transition-colors">
+                {link.label}
+                <ChevronDown
+                    size={14}
+                    className={`transition-transform ${open ? 'rotate-180' : ''}`}
+                />
+            </button>
+            {open && (
+                <div
+                    role="menu"
+                    className={
+                        'absolute top-full mt-2 z-40 rounded-2xl border border-[var(--color-border)] bg-bg shadow-xl ring-1 ring-black/[0.04] animate-in fade-in slide-in-from-top-1 duration-150 ' +
+                        (isMega
+                            ? `left-1/2 -translate-x-1/2 p-3 ${cols === 2 ? 'w-[640px]' : 'w-[380px]'}`
+                            : 'left-1/2 -translate-x-1/2 min-w-[240px] py-2')
+                    }>
+                    {isMega ? (
+                        <div
+                            className={cols === 2 ? 'grid grid-cols-2 gap-1' : 'grid grid-cols-1 gap-1'}>
+                            {link.children!.map((c) => (
+                                <MegaItem
+                                    key={c.id}
+                                    link={c}
+                                    pages={pages}
+                                    slugBase={slugBase}
+                                    onNavigate={() => {
+                                        setOpen(false)
+                                        onNavigate?.()
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        link.children!.map((c) => (
+                            <DropdownItem
+                                key={c.id}
+                                link={c}
+                                pages={pages}
+                                slugBase={slugBase}
+                                onNavigate={() => {
+                                    setOpen(false)
+                                    onNavigate?.()
+                                }}
+                            />
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
+
+// Rich mega-menu item: icon tile + label + description. Used inside an `mega`
+// dropdown grid. Clicking navigates like a normal link.
+const MegaItem = ({
+    link,
+    pages,
+    slugBase,
+    onNavigate
+}: {
+    link: NavLink
+    pages: LandingPage[]
+    slugBase: string
+    onNavigate?: () => void
+}) => {
+    const href = resolveHref(link, pages, slugBase)
+    const isExternal = /^https?:\/\//.test(href)
+    const target = link.newTab || isExternal ? '_blank' : undefined
+    const Icon = link.icon ? NAV_ICON[link.icon] : null
+    const inner = (
+        <>
+            <div className="h-10 w-10 rounded-lg bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center shrink-0 group-hover:bg-[var(--color-brand-500)] group-hover:text-white transition-colors">
+                {Icon ? <Icon size={18} /> : <Sparkles size={18} />}
+            </div>
+            <div className="min-w-0">
+                <div className="text-sm font-semibold text-fg leading-tight">{link.label}</div>
+                {link.description && (
+                    <div className="text-xs text-fg-muted mt-0.5 leading-snug">{link.description}</div>
+                )}
+            </div>
+        </>
+    )
+    const cls = 'group flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-hover transition-colors'
+    if (isExternal || target === '_blank') {
+        return (
+            <a
+                href={href}
+                target={target}
+                rel={target === '_blank' ? 'noreferrer' : undefined}
+                onClick={onNavigate}
+                className={cls}
+                role="menuitem">
+                {inner}
+            </a>
+        )
+    }
+    return (
+        <Link
+            to={href}
+            onClick={onNavigate}
+            className={cls}
+            role="menuitem">
+            {inner}
+        </Link>
+    )
+}
+
+const DropdownItem = ({
+    link,
+    pages,
+    slugBase,
+    onNavigate
+}: {
+    link: NavLink
+    pages: LandingPage[]
+    slugBase: string
+    onNavigate?: () => void
+}) => {
+    const href = resolveHref(link, pages, slugBase)
+    const isExternal = /^https?:\/\//.test(href)
+    const target = link.newTab || isExternal ? '_blank' : undefined
+    const inner = (
+        <span className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-fg">{link.label}</span>
+        </span>
+    )
+    const cls = 'block px-4 py-2.5 hover:bg-surface-hover transition-colors'
+    if (isExternal || target === '_blank') {
+        return (
+            <a
+                href={href}
+                target={target}
+                rel={target === '_blank' ? 'noreferrer' : undefined}
+                onClick={onNavigate}
+                className={cls}
+                role="menuitem">
+                {inner}
+            </a>
+        )
+    }
+    return (
+        <Link
+            to={href}
+            onClick={onNavigate}
+            className={cls}
+            role="menuitem">
+            {inner}
         </Link>
     )
 }
@@ -308,7 +629,7 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
 
     if (config.variant === 'centered') {
         return (
-            <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/85 backdrop-blur">
+            <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
                 {/* Mobile row — brand + hamburger; sheet is rendered inside MobileMenu. */}
                 <div className="md:hidden h-14 px-4 flex items-center justify-between">
                     {showLogo ? <Brand tenant={tenant} slugBase={slugBase} /> : <span />}
@@ -350,7 +671,7 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
 
     // simple + with-cta share the row layout
     return (
-        <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/85 backdrop-blur">
+        <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
                 {showLogo ? (
                     <Brand

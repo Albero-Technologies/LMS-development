@@ -458,6 +458,10 @@ export type HeroSectionData = {
     subtitle?: string
     primaryCtaLabel?: string
     primaryCtaLink?: string
+    // Optional hero illustration / photo. When set, the split variant renders
+    // it inside the right-hand card instead of the placeholder badge.
+    imageUrl?: string
+    imageAlt?: string
 }
 
 export type FeaturesSectionData = {
@@ -669,16 +673,78 @@ export type LandingPage = {
     }
 }
 
+// Curated icon palette for nav-menu items. Keys are plain strings stored on
+// NavLink.icon; the renderer maps them to actual lucide components. Stored as
+// a string (rather than the component) so the catalog stays JSON-friendly.
+export type NavIconToken =
+    | 'book'
+    | 'graduation'
+    | 'chart'
+    | 'database'
+    | 'sparkles'
+    | 'code'
+    | 'brain'
+    | 'cpu'
+    | 'briefcase'
+    | 'globe'
+    | 'users'
+    | 'message'
+    | 'mail'
+    | 'phone'
+    | 'award'
+    | 'rocket'
+    | 'compass'
+    | 'shield'
+
+// User-facing labels for the curated nav-icon palette. Editor surfaces these
+// in the icon picker; the renderer maps tokens to actual lucide components.
+export const NAV_ICON_LABELS: Record<NavIconToken, string> = {
+    book: 'Book',
+    graduation: 'Graduation cap',
+    chart: 'Chart',
+    database: 'Database',
+    sparkles: 'Sparkles',
+    code: 'Code',
+    brain: 'Brain',
+    cpu: 'CPU',
+    briefcase: 'Briefcase',
+    globe: 'Globe',
+    users: 'Users',
+    message: 'Message',
+    mail: 'Mail',
+    phone: 'Phone',
+    award: 'Award',
+    rocket: 'Rocket',
+    compass: 'Compass',
+    shield: 'Shield'
+}
+
 // One link in a navbar or footer. Target is one of:
-//   - `pageId`  → an internal page from `landing.pages`
-//   - `url`     → external absolute URL
+//   - `pageId`   → an internal page from `landing.pages`
+//   - `url`      → external absolute URL or relative path
+//   - `children` → makes this a dropdown trigger; the link itself stops being
+//                  navigable (the trigger stays inert) and the menu opens on
+//                  hover (desktop) or tap (mobile)
 // Marketing UI lets SAs add/remove/reorder these without touching code.
+//
+// Mega-menu fields (parent-only):
+//   - `mega`    → render the dropdown as a rich card grid with icons +
+//                 descriptions instead of the flat link list.
+//   - `columns` → 1 or 2 column layout in mega mode (default 1).
+// Mega-menu fields (child-only):
+//   - `icon`        → NavIconToken rendered in a rounded square left of the label
+//   - `description` → small grey sub-text under the label
 export type NavLink = {
     id: string
     label: string
     pageId?: string
     url?: string
     newTab?: boolean
+    children?: NavLink[]
+    mega?: boolean
+    columns?: 1 | 2
+    icon?: NavIconToken
+    description?: string
 }
 
 // Top-of-page navbar config. Three layouts; logo + sign-in default on.

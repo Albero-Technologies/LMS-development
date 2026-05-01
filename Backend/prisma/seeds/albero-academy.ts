@@ -95,7 +95,9 @@ const homeSections = (): unknown[] => [
             subtitle:
                 'Live mentor-led cohorts in Business Analytics, Data Analytics, and AI/ML. Real projects, hands-on labs, and a placement guarantee that puts our money where our mouth is.',
             primaryCtaLabel: 'Talk to a counsellor',
-            primaryCtaLink: 'enquiry'
+            primaryCtaLink: 'enquiry',
+            imageUrl: IMG.heroLearners,
+            imageAlt: 'Cohort of Albero Academy students collaborating in a live class'
         }
     },
     {
@@ -264,7 +266,9 @@ const courseSections = (opts: {
             title: opts.title,
             subtitle: opts.overview,
             primaryCtaLabel: 'Reserve my seat',
-            primaryCtaLink: 'enquiry'
+            primaryCtaLink: 'enquiry',
+            imageUrl: opts.image,
+            imageAlt: `${opts.title} program illustration`
         }
     },
     {
@@ -698,11 +702,38 @@ const buildLandingJson = () => {
             ctaPageId: pageId('contact'),
             links: [
                 { id: linkId('nav-home'), label: 'Home', pageId: pageId('home') },
-                { id: linkId('nav-ba'), label: 'Business Analytics', pageId: pageId('business-analytics') },
-                { id: linkId('nav-da'), label: 'Data Analytics', pageId: pageId('data-analytics') },
-                { id: linkId('nav-aiml'), label: 'AI/ML Programs', pageId: pageId('ai-ml') },
+                {
+                    id: linkId('nav-courses'),
+                    label: 'Courses',
+                    mega: true,
+                    columns: 1,
+                    children: [
+                        {
+                            id: linkId('nav-courses-ba'),
+                            label: 'Business Analytics',
+                            pageId: pageId('business-analytics'),
+                            icon: 'chart',
+                            description: 'SQL · Power BI · Tableau · A/B testing'
+                        },
+                        {
+                            id: linkId('nav-courses-da'),
+                            label: 'Data Analytics',
+                            pageId: pageId('data-analytics'),
+                            icon: 'database',
+                            description: 'Python · statistics · ML · cloud warehousing'
+                        },
+                        {
+                            id: linkId('nav-courses-aiml'),
+                            label: 'AI/ML Programs',
+                            pageId: pageId('ai-ml'),
+                            icon: 'sparkles',
+                            description: 'PyTorch · transformers · RAG · MLOps'
+                        }
+                    ]
+                },
                 { id: linkId('nav-about'), label: 'About', pageId: pageId('about') },
-                { id: linkId('nav-blog'), label: 'Blog', pageId: pageId('blog') }
+                { id: linkId('nav-blog'), label: 'Blog', pageId: pageId('blog') },
+                { id: linkId('nav-faq'), label: 'FAQ', pageId: pageId('faq') }
             ]
         },
         footer: {

@@ -324,7 +324,7 @@ const HeroBlock = ({
     slugBase: string
     tenantName: string
 }) => {
-    const { eyebrow, title, subtitle, primaryCtaLabel, primaryCtaLink } = section.data
+    const { eyebrow, title, subtitle, primaryCtaLabel, primaryCtaLink, imageUrl, imageAlt } = section.data
     const ctaHref = resolveLink(slugBase, primaryCtaLink)
 
     if (section.variant === 'centered') {
@@ -400,15 +400,24 @@ const HeroBlock = ({
                     </div>
                 )}
             </div>
-            <Card className="!p-6 bg-gradient-to-br from-[var(--color-brand-50)] to-transparent">
-                <div className="aspect-video grid place-items-center rounded-md bg-[var(--color-brand-500)]/10 border border-[var(--color-brand-500)]/20">
-                    <div className="text-center">
-                        <div className="mx-auto mb-3 h-14 w-14 rounded-full bg-[var(--color-brand-500)] grid place-items-center text-white">
-                            <Sparkles size={22} />
+            <Card className="!p-0 overflow-hidden bg-gradient-to-br from-[var(--color-brand-50)] to-transparent">
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt={imageAlt ?? title ?? tenantName}
+                        loading="eager"
+                        className="w-full aspect-video object-cover block"
+                    />
+                ) : (
+                    <div className="aspect-video grid place-items-center rounded-md bg-[var(--color-brand-500)]/10 border border-[var(--color-brand-500)]/20 m-6">
+                        <div className="text-center">
+                            <div className="mx-auto mb-3 h-14 w-14 rounded-full bg-[var(--color-brand-500)] grid place-items-center text-white">
+                                <Sparkles size={22} />
+                            </div>
+                            <p className="text-sm text-fg-soft">{tenantName}</p>
                         </div>
-                        <p className="text-sm text-fg-soft">{tenantName}</p>
                     </div>
-                </div>
+                )}
             </Card>
         </section>
     )
