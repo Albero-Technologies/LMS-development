@@ -13,19 +13,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-    ArrowLeft,
-    ClipboardList,
-    Save,
-    Send,
-    CalendarDays,
-    Award,
-    AlertCircle,
-    User as UserIcon,
-    Trash2,
-    Eye,
-    EyeOff
-} from 'lucide-react'
+import { ArrowLeft, ClipboardList, Save, Send, CalendarDays, Award, AlertCircle, User as UserIcon, Trash2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -210,15 +198,7 @@ export const AssignmentDetailPage = () => {
     )
 }
 
-const StaffActions = ({
-    assignmentId,
-    isPublished,
-    onDeleted
-}: {
-    assignmentId: string
-    isPublished: boolean
-    onDeleted: () => void
-}) => {
+const StaffActions = ({ assignmentId, isPublished, onDeleted }: { assignmentId: string; isPublished: boolean; onDeleted: () => void }) => {
     const queryClient = useQueryClient()
     const confirm = useConfirm()
     const togglePublish = useMutation({
@@ -247,7 +227,7 @@ const StaffActions = ({
         const ok = await confirm({
             title: isPublished ? 'Unpublish this assignment?' : 'Publish this assignment?',
             description: isPublished
-                ? "Students will no longer see this assignment in their list. Existing submissions are kept."
+                ? 'Students will no longer see this assignment in their list. Existing submissions are kept.'
                 : 'Students enrolled in this course will see the assignment immediately in their list.',
             confirmLabel: isPublished ? 'Unpublish' : 'Publish',
             tone: isPublished ? 'warning' : 'info'
@@ -431,9 +411,7 @@ const SubmissionsTable = ({ rows, maxScore, onGraded }: { rows: SubmissionRow[];
                     </thead>
                     <tbody className="divide-y">
                         {rows.map((s) => {
-                            const fullName = s.user
-                                ? [s.user.firstName, s.user.lastName].filter(Boolean).join(' ').trim() || s.user.email
-                                : 'Unknown'
+                            const fullName = s.user ? [s.user.firstName, s.user.lastName].filter(Boolean).join(' ').trim() || s.user.email : 'Unknown'
                             return (
                                 <tr
                                     key={s.id}
@@ -453,9 +431,7 @@ const SubmissionsTable = ({ rows, maxScore, onGraded }: { rows: SubmissionRow[];
                                     <td className="py-3 px-5">
                                         <Badge tone={submissionTone(s.status)}>{s.status.toLowerCase()}</Badge>
                                     </td>
-                                    <td className="py-3 px-5 font-mono text-xs">
-                                        {s.score === null ? '—' : `${s.score}/${maxScore}`}
-                                    </td>
+                                    <td className="py-3 px-5 font-mono text-xs">{s.score === null ? '—' : `${s.score}/${maxScore}`}</td>
                                     <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(s.submittedAt)}</td>
                                     <td className="py-3 px-5 text-right">
                                         {s.status !== 'DRAFT' && (

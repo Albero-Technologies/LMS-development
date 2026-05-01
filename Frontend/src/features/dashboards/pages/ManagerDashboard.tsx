@@ -171,7 +171,9 @@ const TeamTable = ({ data, onEdit }: { data: ManagerDashboard; onEdit: (m: Manag
         className="mb-4">
         <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
             <h2 className="text-base font-semibold text-fg">Team breakdown · this month</h2>
-            <span className="text-xs text-fg-muted">{data.teamSize} counsellor{data.teamSize === 1 ? '' : 's'}</span>
+            <span className="text-xs text-fg-muted">
+                {data.teamSize} counsellor{data.teamSize === 1 ? '' : 's'}
+            </span>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -228,11 +230,16 @@ const TeamTable = ({ data, onEdit }: { data: ManagerDashboard; onEdit: (m: Manag
                                 <div className="w-28">
                                     <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
                                         <div
-                                            className={cn('h-full transition-all', m.completionPct >= 100 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-brand-500)]')}
+                                            className={cn(
+                                                'h-full transition-all',
+                                                m.completionPct >= 100 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-brand-500)]'
+                                            )}
                                             style={{ width: `${m.target.revenue > 0 ? m.completionPct : 0}%` }}
                                         />
                                     </div>
-                                    <div className="text-[10px] font-mono text-fg-muted mt-0.5">{m.target.revenue > 0 ? `${m.completionPct}%` : '—'}</div>
+                                    <div className="text-[10px] font-mono text-fg-muted mt-0.5">
+                                        {m.target.revenue > 0 ? `${m.completionPct}%` : '—'}
+                                    </div>
                                 </div>
                             </td>
                             <td className="py-3 px-5 text-xs">
@@ -306,9 +313,7 @@ const IncentiveSlabsCard = ({ slabs }: { slabs: ManagerDashboard['incentiveSlabs
                     key={s.minPct}
                     className="rounded-md border p-4">
                     <div className="text-sm font-semibold text-fg">{s.label}</div>
-                    <div className="mt-1 text-xs text-fg-muted">
-                        ≥ {s.minPct}% completion
-                    </div>
+                    <div className="mt-1 text-xs text-fg-muted">≥ {s.minPct}% completion</div>
                     <div className="mt-2 text-2xl font-semibold text-fg">{s.rate}%</div>
                     <div className="text-[11px] text-fg-muted">of revenue</div>
                 </div>
@@ -390,7 +395,8 @@ const EditMemberModal = ({ member, onClose }: { member: ManagerMember | null; on
                                 onClick={async () => {
                                     const ok = await confirm({
                                         title: `Suspend ${member.name}?`,
-                                        description: "They lose dashboard access immediately and any active session is invalidated. You can reinstate anytime.",
+                                        description:
+                                            'They lose dashboard access immediately and any active session is invalidated. You can reinstate anytime.',
                                         confirmLabel: 'Suspend',
                                         tone: 'danger'
                                     })

@@ -20,13 +20,7 @@ import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { useAuthStore } from '@shared/stores/authStore'
 import { ROLES } from '@shared/constants/roles'
-import {
-    createAssignment,
-    fmtDate,
-    listAssignments,
-    submissionTone,
-    type AssignmentRow
-} from '../services/assignment.service'
+import { createAssignment, fmtDate, listAssignments, submissionTone, type AssignmentRow } from '../services/assignment.service'
 import { listCourses } from '@features/courses/services/course.service'
 
 export const AssignmentsPage = () => {
@@ -215,7 +209,9 @@ const AssignmentCard = ({ row, isStaff, onOpen }: { row: AssignmentRow; isStaff:
                 <span>Max {row.maxScore}</span>
             </div>
             <div className="mt-3 flex items-center justify-between text-[11px] text-fg-muted">
-                <span>{row._count.submissions} submission{row._count.submissions === 1 ? '' : 's'}</span>
+                <span>
+                    {row._count.submissions} submission{row._count.submissions === 1 ? '' : 's'}
+                </span>
                 <Button
                     size="sm"
                     variant="ghost"
@@ -227,15 +223,7 @@ const AssignmentCard = ({ row, isStaff, onOpen }: { row: AssignmentRow; isStaff:
     )
 }
 
-const CreateAssignmentModal = ({
-    open,
-    onClose,
-    courses
-}: {
-    open: boolean
-    onClose: () => void
-    courses: { id: string; title: string }[]
-}) => {
+const CreateAssignmentModal = ({ open, onClose, courses }: { open: boolean; onClose: () => void; courses: { id: string; title: string }[] }) => {
     const queryClient = useQueryClient()
     const [courseId, setCourseId] = useState('')
     const [title, setTitle] = useState('')

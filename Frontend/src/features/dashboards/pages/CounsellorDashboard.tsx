@@ -31,7 +31,6 @@ const CounsellorView = () => {
     const role = useAuthStore((s) => s.user?.role)
     const isManager = role === ROLES.COUNSELLING_MANAGER
 
-
     const dashQuery = useQuery({ queryKey: ['dashboard', 'me'], queryFn: getMyDashboard, staleTime: 60_000 })
     const historyQuery = useQuery({
         queryKey: ['counsellor', 'targets', 'history'],
@@ -133,11 +132,7 @@ const CounsellorView = () => {
                         />
                         <StatCard
                             label="To hit target"
-                            value={
-                                currentMonth && currentMonth.target.revenue > 0
-                                    ? fmtPaiseINR(currentMonth.revenueRemaining)
-                                    : fmtPaiseINR(0)
-                            }
+                            value={currentMonth && currentMonth.target.revenue > 0 ? fmtPaiseINR(currentMonth.revenueRemaining) : fmtPaiseINR(0)}
                             delta={
                                 currentMonth && currentMonth.target.enrolments > 0
                                     ? `${currentMonth.enrolmentsRemaining} enrolment(s) remaining`
@@ -230,9 +225,7 @@ const MonthlyTracker = ({ history, loading }: { history: CounsellorMonthBucket[]
                             key={m.period.start}
                             className={cn(
                                 'rounded-md border p-3 transition-colors',
-                                isCurrent
-                                    ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)]'
-                                    : 'border-[var(--color-border)] bg-surface'
+                                isCurrent ? 'border-[var(--color-brand-500)] bg-[var(--color-brand-50)]' : 'border-[var(--color-border)] bg-surface'
                             )}>
                             <div className="flex items-center justify-between text-[11px] text-fg-muted mb-2">
                                 <span className="font-mono uppercase">{m.period.label}</span>
@@ -247,10 +240,7 @@ const MonthlyTracker = ({ history, loading }: { history: CounsellorMonthBucket[]
                             <div className="text-[11px] text-fg-muted">of {noTarget ? '—' : fmtPaiseINR(m.target.revenue)}</div>
                             <div className="mt-2 h-1.5 bg-surface-2 rounded-full overflow-hidden">
                                 <div
-                                    className={cn(
-                                        'h-full transition-all',
-                                        hit ? 'bg-[var(--color-success)]' : 'bg-[var(--color-brand-500)]'
-                                    )}
+                                    className={cn('h-full transition-all', hit ? 'bg-[var(--color-success)]' : 'bg-[var(--color-brand-500)]')}
                                     style={{ width: `${noTarget ? 0 : pct}%` }}
                                 />
                             </div>

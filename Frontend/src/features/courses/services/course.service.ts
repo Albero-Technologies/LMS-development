@@ -84,15 +84,8 @@ export type LessonProgressResult = {
     enrollmentProgressPct: number
 }
 
-export const updateLessonProgress = async (
-    courseId: string,
-    lessonId: string,
-    input: LessonProgressInput
-): Promise<LessonProgressResult> => {
-    const { data } = await api.post<Envelope<LessonProgressResult>>(
-        `/courses/${courseId}/lessons/${lessonId}/progress`,
-        input
-    )
+export const updateLessonProgress = async (courseId: string, lessonId: string, input: LessonProgressInput): Promise<LessonProgressResult> => {
+    const { data } = await api.post<Envelope<LessonProgressResult>>(`/courses/${courseId}/lessons/${lessonId}/progress`, input)
     return data.data
 }
 

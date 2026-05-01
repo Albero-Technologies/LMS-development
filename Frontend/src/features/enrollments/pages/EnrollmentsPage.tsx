@@ -101,13 +101,7 @@ export const EnrollmentsPage = () => {
             ? ['Course', 'Progress%', 'Status', 'Enrolled', 'Started']
             : ['Student', 'Email', 'Course', 'Progress%', 'Status', 'Enrolled', 'Started']
         const body = filtered.map((r) => {
-            const base = [
-                r.course?.title ?? '',
-                String(r.progressPct ?? 0),
-                STATUS_LABEL[r.status],
-                fmtDate(r.createdAt),
-                fmtDate(r.startedAt)
-            ]
+            const base = [r.course?.title ?? '', String(r.progressPct ?? 0), STATUS_LABEL[r.status], fmtDate(r.createdAt), fmtDate(r.startedAt)]
             if (isStudent) return base
             const adminRow = r as AdminEnrollmentRow
             return [fullName(adminRow.user), adminRow.user?.email ?? '', ...base]
@@ -253,9 +247,7 @@ export const EnrollmentsPage = () => {
                                             {!isStudent && (
                                                 <td className="py-3 px-5">
                                                     <div className="font-medium text-fg">{fullName(adminRow.user)}</div>
-                                                    {adminRow.user?.email && (
-                                                        <div className="text-xs text-fg-muted">{adminRow.user.email}</div>
-                                                    )}
+                                                    {adminRow.user?.email && <div className="text-xs text-fg-muted">{adminRow.user.email}</div>}
                                                 </td>
                                             )}
                                             <td className="py-3 px-5 text-fg-soft">{row.course?.title ?? '—'}</td>

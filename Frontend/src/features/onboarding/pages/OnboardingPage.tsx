@@ -300,9 +300,7 @@ export const OnboardingPage = () => {
                 {/* Greeting + counsellor card */}
                 <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-brand-50)] to-transparent p-5 sm:p-6 mb-6">
                     <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome to {tenant.name}</h1>
-                    <p className="text-sm text-fg-soft mt-2">
-                        Tell us a little about yourself so we can enrol you and email your login credentials.
-                    </p>
+                    <p className="text-sm text-fg-soft mt-2">Tell us a little about yourself so we can enrol you and email your login credentials.</p>
                     <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 border border-[var(--color-border)]">
                             <BadgeCheck
@@ -509,10 +507,7 @@ const Section = ({
         <button
             type="button"
             onClick={onToggle}
-            className={cn(
-                'w-full flex items-center justify-between px-5 py-4 text-left',
-                open ? 'border-b border-[var(--color-border)]' : ''
-            )}>
+            className={cn('w-full flex items-center justify-between px-5 py-4 text-left', open ? 'border-b border-[var(--color-border)]' : '')}>
             <div className="flex items-center gap-3">
                 <span className="h-8 w-8 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center">{icon}</span>
                 <div>
@@ -527,7 +522,15 @@ const Section = ({
 )
 
 type RegisterFn = ReturnType<typeof useForm<TForm>>['register']
-const EducationFields = ({ heading, prefix, register }: { heading: string; prefix: 'education.graduation' | 'education.masters'; register: RegisterFn }) => (
+const EducationFields = ({
+    heading,
+    prefix,
+    register
+}: {
+    heading: string
+    prefix: 'education.graduation' | 'education.masters'
+    register: RegisterFn
+}) => (
     <div>
         <div className="text-xs font-semibold uppercase tracking-wider text-fg-muted mb-2">{heading}</div>
         <div className="grid sm:grid-cols-2 gap-3">

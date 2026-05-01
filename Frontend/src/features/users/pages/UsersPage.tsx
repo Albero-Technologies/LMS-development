@@ -53,7 +53,8 @@ const HEADER_BY_ROLE: Partial<Record<TRole, { eyebrow: string; title: string; de
     SUPER_ADMIN: {
         eyebrow: 'Super Admin',
         title: 'Users',
-        description: "Every account across all tenants. Pick a tenant from the dropdown to drill in, or leave on 'All tenants' for the platform-wide view."
+        description:
+            "Every account across all tenants. Pick a tenant from the dropdown to drill in, or leave on 'All tenants' for the platform-wide view."
     },
     ADMIN: {
         eyebrow: 'Tenant',

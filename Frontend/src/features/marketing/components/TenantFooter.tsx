@@ -8,12 +8,7 @@
 // variant.
 import { Link } from 'react-router-dom'
 import { Github, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react'
-import type {
-    LandingPage,
-    NavLink,
-    FooterConfig,
-    FooterColumn
-} from '@features/admin/services/tenant.service'
+import type { LandingPage, NavLink, FooterConfig, FooterColumn } from '@features/admin/services/tenant.service'
 
 interface Props {
     config: FooterConfig

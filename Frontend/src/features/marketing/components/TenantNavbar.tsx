@@ -302,9 +302,7 @@ const NavDropdown = ({
                 <div
                     className={
                         'absolute top-full z-40 pt-4 ' +
-                        (isMega
-                            ? `left-1/2 -translate-x-1/2 ${cols === 2 ? 'w-[640px]' : 'w-[380px]'}`
-                            : 'left-1/2 -translate-x-1/2 min-w-[240px]')
+                        (isMega ? `left-1/2 -translate-x-1/2 ${cols === 2 ? 'w-[640px]' : 'w-[380px]'}` : 'left-1/2 -translate-x-1/2 min-w-[240px]')
                     }>
                     <div
                         role="menu"
@@ -350,17 +348,7 @@ const NavDropdown = ({
 
 // Rich mega-menu item: icon tile + label + description. Used inside an `mega`
 // dropdown grid. Clicking navigates like a normal link.
-const MegaItem = ({
-    link,
-    pages,
-    slugBase,
-    onNavigate
-}: {
-    link: NavLink
-    pages: LandingPage[]
-    slugBase: string
-    onNavigate?: () => void
-}) => {
+const MegaItem = ({ link, pages, slugBase, onNavigate }: { link: NavLink; pages: LandingPage[]; slugBase: string; onNavigate?: () => void }) => {
     const href = resolveHref(link, pages, slugBase)
     const isExternal = /^https?:\/\//.test(href)
     const target = link.newTab || isExternal ? '_blank' : undefined
@@ -372,9 +360,7 @@ const MegaItem = ({
             </div>
             <div className="min-w-0">
                 <div className="text-sm font-semibold text-fg leading-tight">{link.label}</div>
-                {link.description && (
-                    <div className="text-xs text-fg-muted mt-0.5 leading-snug">{link.description}</div>
-                )}
+                {link.description && <div className="text-xs text-fg-muted mt-0.5 leading-snug">{link.description}</div>}
             </div>
         </>
     )
@@ -403,17 +389,7 @@ const MegaItem = ({
     )
 }
 
-const DropdownItem = ({
-    link,
-    pages,
-    slugBase,
-    onNavigate
-}: {
-    link: NavLink
-    pages: LandingPage[]
-    slugBase: string
-    onNavigate?: () => void
-}) => {
+const DropdownItem = ({ link, pages, slugBase, onNavigate }: { link: NavLink; pages: LandingPage[]; slugBase: string; onNavigate?: () => void }) => {
     const href = resolveHref(link, pages, slugBase)
     const isExternal = /^https?:\/\//.test(href)
     const target = link.newTab || isExternal ? '_blank' : undefined
@@ -460,17 +436,7 @@ const SignInButton = ({ label, fullWidth }: { label: string; fullWidth?: boolean
     </Link>
 )
 
-const CtaButton = ({
-    config,
-    pages,
-    slugBase,
-    fullWidth
-}: {
-    config: NavbarConfig
-    pages: LandingPage[]
-    slugBase: string
-    fullWidth?: boolean
-}) => {
+const CtaButton = ({ config, pages, slugBase, fullWidth }: { config: NavbarConfig; pages: LandingPage[]; slugBase: string; fullWidth?: boolean }) => {
     if (!config.ctaLabel) return null
     const href = resolveHref({ pageId: config.ctaPageId, url: config.ctaUrl }, pages, slugBase)
     const isExternal = /^https?:\/\//.test(href)
@@ -505,15 +471,7 @@ const CtaButton = ({
 // | 'fullscreen') decides how the menu opens; the contents are identical so
 // each tenant only changes a CSS-level concern, not their info architecture.
 // Auto-closes on route change so links don't leave the menu open behind them.
-const MobileMenu = ({
-    config,
-    pages,
-    slugBase
-}: {
-    config: NavbarConfig
-    pages: LandingPage[]
-    slugBase: string
-}) => {
+const MobileMenu = ({ config, pages, slugBase }: { config: NavbarConfig; pages: LandingPage[]; slugBase: string }) => {
     const variant: NavbarConfig['mobileVariant'] = config.mobileVariant ?? 'sheet'
     const [open, setOpen] = useState(false)
     const location = useLocation()
@@ -545,7 +503,12 @@ const MobileMenu = ({
             ))}
             {(showSignIn || config.variant === 'with-cta') && (
                 <div className="flex flex-col gap-2 mt-5">
-                    {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
+                    {showSignIn && (
+                        <SignInButton
+                            label={config.signInLabel ?? 'Sign in'}
+                            fullWidth
+                        />
+                    )}
                     {config.variant === 'with-cta' && (
                         <CtaButton
                             config={config}
@@ -624,7 +587,12 @@ const MobileMenu = ({
                         ))}
                         {(showSignIn || config.variant === 'with-cta') && (
                             <div className="flex flex-col gap-2 mt-4">
-                                {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
+                                {showSignIn && (
+                                    <SignInButton
+                                        label={config.signInLabel ?? 'Sign in'}
+                                        fullWidth
+                                    />
+                                )}
                                 {config.variant === 'with-cta' && (
                                     <CtaButton
                                         config={config}
@@ -687,7 +655,14 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
             <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-surface/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
                 {/* Mobile row — brand + hamburger; sheet is rendered inside MobileMenu. */}
                 <div className="md:hidden h-14 px-4 flex items-center justify-between">
-                    {showLogo ? <Brand tenant={tenant} slugBase={slugBase} /> : <span />}
+                    {showLogo ? (
+                        <Brand
+                            tenant={tenant}
+                            slugBase={slugBase}
+                        />
+                    ) : (
+                        <span />
+                    )}
                     <MobileMenu
                         config={config}
                         pages={pages}

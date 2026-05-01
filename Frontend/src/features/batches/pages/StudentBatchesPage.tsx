@@ -90,9 +90,7 @@ export const StudentBatchesPage = () => {
                                         style={{ width: `${e.progressPct ?? 0}%` }}
                                     />
                                 </div>
-                                <div className="text-[11px] text-fg-muted mt-1">
-                                    {e.progressPct ?? 0}% complete
-                                </div>
+                                <div className="text-[11px] text-fg-muted mt-1">{e.progressPct ?? 0}% complete</div>
                                 {course && (
                                     <div className="mt-4">
                                         <Link to={`/app/courses/${course.id}`}>

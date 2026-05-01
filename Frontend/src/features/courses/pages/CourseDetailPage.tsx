@@ -7,7 +7,7 @@
 // endpoint. Trainer/admin/SA still see an "Edit curriculum" button that drops
 // into the local-store builder for now — the backend curriculum-edit flow is
 // a separate piece of work.
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -56,16 +56,10 @@ export const CourseDetailPage = () => {
         staleTime: 30_000,
         enabled: !!isStudent
     })
-    const myEnrollment = useMemo(
-        () => (enrollmentsQuery.data ?? []).find((e) => e.courseId === id) ?? null,
-        [enrollmentsQuery.data, id]
-    )
+    const myEnrollment = useMemo(() => (enrollmentsQuery.data ?? []).find((e) => e.courseId === id) ?? null, [enrollmentsQuery.data, id])
 
     const sections: TSection[] = course?.sections ?? []
-    const flatLessons = useMemo(
-        () => sections.flatMap((sec) => sec.lessons.map((l) => ({ sectionId: sec.id, lessonId: l.id }))),
-        [sections]
-    )
+    const flatLessons = useMemo(() => sections.flatMap((sec) => sec.lessons.map((l) => ({ sectionId: sec.id, lessonId: l.id }))), [sections])
 
     const [activeLesson, setActiveLesson] = useState<{ sectionId: string; lessonId: string } | null>(null)
     // When the course loads, default to the first lesson if nothing is selected.
@@ -105,8 +99,7 @@ export const CourseDetailPage = () => {
         : 0
 
     const markCompleteMutation = useMutation({
-        mutationFn: ({ lessonId, completed }: { lessonId: string; completed: boolean }) =>
-            updateLessonProgress(id, lessonId, { completed }),
+        mutationFn: ({ lessonId, completed }: { lessonId: string; completed: boolean }) => updateLessonProgress(id, lessonId, { completed }),
         onMutate: ({ lessonId, completed }) => {
             // Optimistic — flip the tick immediately so the UI feels instant.
             setCompletedIds((prev) => {
@@ -222,21 +215,13 @@ export const CourseDetailPage = () => {
                                     <div className="min-w-0">
                                         <div className="text-xs text-fg-muted font-medium">Now playing</div>
                                         <div className="text-base font-semibold text-fg">{currentLesson.title}</div>
-                                        {currentLesson.description && (
-                                            <p className="mt-2 text-sm text-fg-soft">{currentLesson.description}</p>
-                                        )}
+                                        {currentLesson.description && <p className="mt-2 text-sm text-fg-soft">{currentLesson.description}</p>}
                                     </div>
                                     {isStudent && current && (
                                         <Button
                                             size="sm"
                                             variant={isLessonCompleted(current.lessonId) ? 'subtle' : 'primary'}
-                                            leftIcon={
-                                                isLessonCompleted(current.lessonId) ? (
-                                                    <CheckCircle2 size={14} />
-                                                ) : (
-                                                    <Circle size={14} />
-                                                )
-                                            }
+                                            leftIcon={isLessonCompleted(current.lessonId) ? <CheckCircle2 size={14} /> : <Circle size={14} />}
                                             loading={markCompleteMutation.isPending}
                                             onClick={toggleCurrentLessonComplete}>
                                             {isLessonCompleted(current.lessonId) ? 'Completed' : 'Mark complete'}
@@ -427,15 +412,4 @@ const Row = ({ label, value }: { label: string; value: string }) => (
         <span className="text-fg-muted">{label}</span>
         <span className="font-medium text-fg font-mono">{value}</span>
     </div>
-)
-
-// Kept exported for any consumer that imports the helper from this module.
-export const _Bullet = ({ children }: { children: ReactNode }) => (
-    <li className="flex gap-2">
-        <CheckCircle2
-            size={14}
-            className="mt-0.5 text-[var(--color-success)] shrink-0"
-        />
-        <span>{children}</span>
-    </li>
 )

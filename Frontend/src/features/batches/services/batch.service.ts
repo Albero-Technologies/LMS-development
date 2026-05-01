@@ -87,10 +87,7 @@ export const assignStudentsToBatch = async (id: string, userIds: string[]): Prom
     return data.data
 }
 
-export const transferStudent = async (
-    fromBatchId: string,
-    input: { userId: string; targetBatchId: string }
-): Promise<{ ok: boolean }> => {
+export const transferStudent = async (fromBatchId: string, input: { userId: string; targetBatchId: string }): Promise<{ ok: boolean }> => {
     const { data } = await api.post<Envelope<{ ok: boolean }>>(`/batches/${fromBatchId}/transfer`, input)
     return data.data
 }

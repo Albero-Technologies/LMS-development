@@ -107,11 +107,7 @@ export const deleteCollection = async (tenantId: string, id: string) => {
 
 // ---- Items --------------------------------------------------------------
 
-export const listItems = async (
-    tenantId: string,
-    collectionIdOrSlug: string,
-    opts: { publishedOnly?: boolean } = {}
-) => {
+export const listItems = async (tenantId: string, collectionIdOrSlug: string, opts: { publishedOnly?: boolean } = {}) => {
     const collection = await getCollection(tenantId, collectionIdOrSlug)
     return db.client.collectionItem.findMany({
         where: { collectionId: collection.id, published: opts.publishedOnly ? true : undefined },

@@ -76,12 +76,7 @@ export const getRazorpay = (): Razorpay => {
 // Verify the handshake signature returned by the Razorpay Checkout callback.
 // Pass the tenantId for tenant-scoped flows (student payments) so the right
 // secret is used; omit for platform-scoped flows (SaaS invoices).
-export const verifyPaymentSignature = async (
-    orderId: string,
-    paymentId: string,
-    signature: string,
-    tenantId?: string
-): Promise<boolean> => {
+export const verifyPaymentSignature = async (orderId: string, paymentId: string, signature: string, tenantId?: string): Promise<boolean> => {
     let secret: string | undefined
     if (tenantId) {
         const cfg = await resolveTenantCfg(tenantId)

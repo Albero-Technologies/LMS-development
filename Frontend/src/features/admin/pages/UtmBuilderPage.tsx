@@ -12,14 +12,7 @@ import { Input } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
-import {
-    getTenantDetail,
-    listAllTenants,
-    readUtmLinks,
-    updateTenantById,
-    type TenantSettings,
-    type UtmLink
-} from '../services/tenant.service'
+import { getTenantDetail, listAllTenants, readUtmLinks, updateTenantById, type TenantSettings, type UtmLink } from '../services/tenant.service'
 import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 
 export const UtmBuilderPage = () => {
@@ -133,9 +126,12 @@ export const UtmBuilderPage = () => {
             tone: 'danger'
         })
         if (!ok) return
-        persistMutation.mutate(links.filter((l) => l.id !== id), {
-            onSuccess: () => toast.success('UTM link deleted')
-        })
+        persistMutation.mutate(
+            links.filter((l) => l.id !== id),
+            {
+                onSuccess: () => toast.success('UTM link deleted')
+            }
+        )
     }
 
     if (tenantsQuery.isLoading) {
@@ -286,7 +282,7 @@ export const UtmBuilderPage = () => {
                                         </div>
                                         <code className="block font-mono text-xs text-fg-soft mt-2 break-all">{l.fullUrl}</code>
                                         <div className="mt-2 text-[11px] text-fg-muted font-mono">
-                                            {(l.clickCount ?? 0)} click{(l.clickCount ?? 0) === 1 ? '' : 's'} ·{' '}
+                                            {l.clickCount ?? 0} click{(l.clickCount ?? 0) === 1 ? '' : 's'} ·{' '}
                                             {new Date(l.createdAt).toLocaleDateString()}
                                         </div>
                                     </div>

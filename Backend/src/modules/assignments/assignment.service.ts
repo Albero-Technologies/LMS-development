@@ -18,12 +18,7 @@ import {
 // Trainer scope: trainers only see assignments they created OR for courses
 // where they are the assigned trainer — this matches the existing course list
 // pattern so a trainer doesn't accidentally see another trainer's drafts.
-export const listAssignments = async (
-    tenantId: string,
-    role: Role,
-    userId: string,
-    query: TListAssignmentsQuery
-) => {
+export const listAssignments = async (tenantId: string, role: Role, userId: string, query: TListAssignmentsQuery) => {
     const where: Prisma.AssignmentWhereInput = { tenantId, deletedAt: null }
     if (query.courseId) where.courseId = query.courseId
 
@@ -34,9 +29,7 @@ export const listAssignments = async (
             where: { tenantId, userId, status: { in: ['ACTIVE', 'COMPLETED'] } },
             select: { courseId: true }
         })
-        where.courseId = query.courseId
-            ? query.courseId
-            : { in: myEnrolledCourses.map((e) => e.courseId) }
+        where.courseId = query.courseId ? query.courseId : { in: myEnrolledCourses.map((e) => e.courseId) }
     } else if (role === Role.TRAINER) {
         // Trainers see assignments they created or for courses where they are the trainer of record.
         where.OR = [{ trainerId: userId }, { course: { trainerId: userId } }]
@@ -198,12 +191,7 @@ export const submitAssignment = async (tenantId: string, userId: string, assignm
 
 // ---- Staff grading -------------------------------------------------------
 
-export const gradeSubmission = async (
-    tenantId: string,
-    graderId: string,
-    submissionId: string,
-    input: TGradeSubmissionInput
-) => {
+export const gradeSubmission = async (tenantId: string, graderId: string, submissionId: string, input: TGradeSubmissionInput) => {
     const submission = await db.client.assignmentSubmission.findFirst({
         where: { id: submissionId, tenantId },
         include: { assignment: true }

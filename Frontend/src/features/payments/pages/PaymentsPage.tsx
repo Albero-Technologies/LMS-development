@@ -209,7 +209,11 @@ const SuperAdminClientPaymentsPage = () => {
                                                 {!c.contactEmail && !c.contactPhone && <span className="text-xs text-fg-muted">—</span>}
                                             </td>
                                             <td className="py-3 px-5 font-mono">
-                                                {isClear ? <span className="text-fg-muted">—</span> : <span className="font-semibold text-fg">{fmtPaiseINR(c.outstanding)}</span>}
+                                                {isClear ? (
+                                                    <span className="text-fg-muted">—</span>
+                                                ) : (
+                                                    <span className="font-semibold text-fg">{fmtPaiseINR(c.outstanding)}</span>
+                                                )}
                                             </td>
                                             <td className="py-3 px-5">
                                                 {c.overdueCount > 0 && <Badge tone="danger">{c.overdueCount} overdue</Badge>}
@@ -269,10 +273,7 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not refund')
     })
 
-    const overdue = useMemo(
-        () => invoices.filter((i) => i.status === 'DUE' && i.dueAt && new Date(i.dueAt).getTime() < Date.now()),
-        [invoices]
-    )
+    const overdue = useMemo(() => invoices.filter((i) => i.status === 'DUE' && i.dueAt && new Date(i.dueAt).getTime() < Date.now()), [invoices])
     const overdueTotal = overdue.reduce((n, i) => n + i.totalAmount, 0)
     const collected = invoices.filter((i) => i.status === 'PAID').reduce((n, i) => n + i.totalAmount, 0)
 
@@ -310,7 +311,7 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
         : {
               eyebrow: 'Finance',
               title: 'Payments & overdue',
-              description: "Razorpay + GST invoices. Follow up on overdue, refund in one click with an audit note."
+              description: 'Razorpay + GST invoices. Follow up on overdue, refund in one click with an audit note.'
           }
 
     return (
@@ -393,15 +394,7 @@ const AdminPaymentsPage = ({ role }: { role: TRole | undefined }) => {
     )
 }
 
-const InvoiceTable = ({
-    invoices,
-    isTrainer,
-    onRefund
-}: {
-    invoices: AdminInvoiceRow[]
-    isTrainer: boolean
-    onRefund: (id: string) => void
-}) => (
+const InvoiceTable = ({ invoices, isTrainer, onRefund }: { invoices: AdminInvoiceRow[]; isTrainer: boolean; onRefund: (id: string) => void }) => (
     <Card padded={false}>
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -454,4 +447,3 @@ const InvoiceTable = ({
         </div>
     </Card>
 )
-

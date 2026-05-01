@@ -6,12 +6,7 @@ import { type TInviteUserInput, type TListUsersQuery, type TUpdateUserInput } fr
 import { createInvite } from '../auth/auth.service'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
 
-export const listUsers = async (
-    tenantId: string,
-    actorId: string,
-    actorRole: Role,
-    query: TListUsersQuery & { tenantSlug?: string }
-) => {
+export const listUsers = async (tenantId: string, actorId: string, actorRole: Role, query: TListUsersQuery & { tenantSlug?: string }) => {
     // SUPER_ADMIN can scope to any tenant via ?tenantSlug=foo, or pass
     // tenantSlug=__all__ to list across every customer tenant (the platform
     // tenant — where the SA themselves lives — is excluded so it stays
@@ -73,9 +68,7 @@ export const listUsers = async (
     } satisfies Prisma.UserSelect
 
     const userSelect: Prisma.UserSelect =
-        actorRole === Role.SUPER_ADMIN
-            ? { ...baseSelect, tenant: { select: { id: true, name: true, slug: true } } }
-            : baseSelect
+        actorRole === Role.SUPER_ADMIN ? { ...baseSelect, tenant: { select: { id: true, name: true, slug: true } } } : baseSelect
 
     const [items, total] = await Promise.all([
         db.client.user.findMany({

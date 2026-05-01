@@ -157,7 +157,8 @@ export const TenantDetailPage = () => {
                                 onClick={async () => {
                                     const ok = await confirm({
                                         title: `Suspend ${tenant.name}?`,
-                                        description: 'Every user in this tenant is locked out until you reinstate. Public landing pages also stop loading.',
+                                        description:
+                                            'Every user in this tenant is locked out until you reinstate. Public landing pages also stop loading.',
                                         confirmLabel: 'Suspend',
                                         tone: 'danger'
                                     })
@@ -727,7 +728,8 @@ const PaymentsTab = ({ tenantId }: { tenantId: string }) => {
                                                         onClick={async () => {
                                                             const ok = await confirm({
                                                                 title: 'Cancel this invoice?',
-                                                                description: 'It is removed from the outstanding ledger. The tenant is no longer billed for this entry.',
+                                                                description:
+                                                                    'It is removed from the outstanding ledger. The tenant is no longer billed for this entry.',
                                                                 confirmLabel: 'Cancel invoice',
                                                                 cancelLabel: 'Keep',
                                                                 tone: 'danger'
@@ -746,7 +748,8 @@ const PaymentsTab = ({ tenantId }: { tenantId: string }) => {
                                                     onClick={async () => {
                                                         const ok = await confirm({
                                                             title: 'Mark as refunded?',
-                                                            description: "This only flips the local status — issue the actual refund from your Razorpay dashboard.",
+                                                            description:
+                                                                'This only flips the local status — issue the actual refund from your Razorpay dashboard.',
                                                             confirmLabel: 'Mark refunded',
                                                             tone: 'warning'
                                                         })
@@ -1209,8 +1212,7 @@ const EnvironmentTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: 
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save environment')
     })
 
-    const updateSmtp = (patch: Partial<NonNullable<TenantEnvironment['smtp']>>) =>
-        setEnv((e) => ({ ...e, smtp: { ...(e.smtp ?? {}), ...patch } }))
+    const updateSmtp = (patch: Partial<NonNullable<TenantEnvironment['smtp']>>) => setEnv((e) => ({ ...e, smtp: { ...(e.smtp ?? {}), ...patch } }))
     const updateRzp = (patch: Partial<NonNullable<TenantEnvironment['razorpay']>>) =>
         setEnv((e) => ({ ...e, razorpay: { ...(e.razorpay ?? {}), ...patch } }))
     const updateGS = (patch: Partial<NonNullable<TenantEnvironment['googleSheets']>>) =>
@@ -1291,8 +1293,8 @@ const EnvironmentTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: 
             <Card>
                 <h3 className="text-sm font-semibold text-fg mb-3">Razorpay</h3>
                 <p className="text-xs text-fg-muted mb-4">
-                    Tenant-specific Razorpay keys. When configured, course payments go straight to this tenant's Razorpay account. Webhook secret
-                    must match the one set on the Razorpay dashboard for this account.
+                    Tenant-specific Razorpay keys. When configured, course payments go straight to this tenant's Razorpay account. Webhook secret must
+                    match the one set on the Razorpay dashboard for this account.
                 </p>
                 <div className="grid sm:grid-cols-2 gap-3">
                     <Input

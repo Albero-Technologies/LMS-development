@@ -29,11 +29,6 @@ router.delete('/:id', requirePolicy('assignment', 'write'), asyncHandler(ctrl.re
 router.post('/:id/submit', requirePolicy('assignment_submission', 'write'), validate(submitAssignmentSchema), asyncHandler(ctrl.submit))
 
 // Staff grading — `assignment.write` policy (TRAINER, ADMIN, SUPER_ADMIN).
-router.post(
-    '/submissions/:submissionId/grade',
-    requirePolicy('assignment', 'write'),
-    validate(gradeSubmissionSchema),
-    asyncHandler(ctrl.grade)
-)
+router.post('/submissions/:submissionId/grade', requirePolicy('assignment', 'write'), validate(gradeSubmissionSchema), asyncHandler(ctrl.grade))
 
 export default router

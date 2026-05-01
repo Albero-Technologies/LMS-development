@@ -11,14 +11,7 @@ import { Button } from '@shared/components/ui/Button'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import { Select } from '@shared/components/ui/Select'
 import { Skeleton } from '@shared/components/ui/Skeleton'
-import {
-    getTenantDetail,
-    listAllTenants,
-    readTenantSeo,
-    updateTenantById,
-    type TenantSeo,
-    type TenantSettings
-} from '../services/tenant.service'
+import { getTenantDetail, listAllTenants, readTenantSeo, updateTenantById, type TenantSeo, type TenantSettings } from '../services/tenant.service'
 
 export const SeoBuilderPage = () => {
     const queryClient = useQueryClient()
@@ -207,7 +200,9 @@ export const SeoBuilderPage = () => {
                         <h3 className="text-sm font-semibold text-fg mb-3">Google preview</h3>
                         <div className="p-4 rounded-md border bg-surface">
                             <div className="text-xs text-fg-muted truncate">{draft.canonicalUrl || `https://albero.academy/t/${tenant.slug}`}</div>
-                            <div className="text-[#1a0dab] dark:text-[#8ab4f8] text-lg font-medium mt-1 leading-snug">{draft.metaTitle || 'Untitled'}</div>
+                            <div className="text-[#1a0dab] dark:text-[#8ab4f8] text-lg font-medium mt-1 leading-snug">
+                                {draft.metaTitle || 'Untitled'}
+                            </div>
                             <div className="text-sm text-fg-soft mt-1 leading-relaxed line-clamp-3">{draft.metaDescription || '—'}</div>
                         </div>
 

@@ -9,18 +9,18 @@ import { PLATFORM_TENANT_SLUG } from '../tenants/tenant.service'
 // marked as the detail template for that collection. Both endpoints are
 // public — no auth, no rate limiting beyond the global IP limiter.
 
-type LandingPageEntry = {
+interface LandingPageEntry {
     id?: string
     slug?: string
     isHome?: boolean
     detailTemplate?: { collectionSlug?: string }
 }
 
-type LandingContent = {
+interface LandingContent {
     pages?: LandingPageEntry[]
 }
 
-type SeoSettings = {
+interface SeoSettings {
     canonicalUrl?: string
     robots?: string
 }
@@ -115,7 +115,8 @@ export const buildTenantSitemap = async (tenantSlug: string): Promise<TenantSite
     }
 
     const settings = (tenant.settings as { landing?: LandingContent; seo?: SeoSettings } | null) ?? {}
-    const landingPages = Array.isArray(settings.landing?.pages) ? settings.landing!.pages! : []
+    const pages = settings.landing?.pages
+    const landingPages = Array.isArray(pages) ? pages : []
     const seo = settings.seo ?? {}
     const { base } = resolveTenantBase(seo.canonicalUrl)
 

@@ -14,8 +14,8 @@ describe('payments/razorpay.client', () => {
         const paymentId = 'pay_xyz'
         const expected = crypto.createHmac('sha256', 'test-key-secret').update(`${orderId}|${paymentId}`).digest('hex')
 
-        expect(mod.verifyPaymentSignature(orderId, paymentId, expected)).toBe(true)
-        expect(mod.verifyPaymentSignature(orderId, paymentId, 'wrong')).toBe(false)
+        await expect(mod.verifyPaymentSignature(orderId, paymentId, expected)).resolves.toBe(true)
+        await expect(mod.verifyPaymentSignature(orderId, paymentId, 'wrong')).resolves.toBe(false)
     })
 
     it('verifyWebhookSignature matches a body signed with the shared secret', async () => {
@@ -23,12 +23,12 @@ describe('payments/razorpay.client', () => {
         const body = JSON.stringify({ event: 'payment.captured', id: 'evt_1' })
         const expected = crypto.createHmac('sha256', 'test-webhook-secret').update(body).digest('hex')
 
-        expect(mod.verifyWebhookSignature(body, expected)).toBe(true)
-        expect(mod.verifyWebhookSignature(body, expected + 'a')).toBe(false)
+        await expect(mod.verifyWebhookSignature(body, expected)).resolves.toBe(true)
+        await expect(mod.verifyWebhookSignature(body, expected + 'a')).resolves.toBe(false)
     })
 
     it('verifyWebhookSignature rejects an empty signature without throwing', async () => {
         const mod = await import('../../src/modules/payments/razorpay.client')
-        expect(mod.verifyWebhookSignature('{}', '')).toBe(false)
+        await expect(mod.verifyWebhookSignature('{}', '')).resolves.toBe(false)
     })
 })

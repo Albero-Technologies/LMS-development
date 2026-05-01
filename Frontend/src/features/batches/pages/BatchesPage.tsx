@@ -414,15 +414,7 @@ const CreateBatchModal = ({
     )
 }
 
-const ManageBatchModal = ({
-    batch,
-    onClose,
-    canEdit
-}: {
-    batch: BatchRow | null
-    onClose: () => void
-    canEdit: boolean
-}) => {
+const ManageBatchModal = ({ batch, onClose, canEdit }: { batch: BatchRow | null; onClose: () => void; canEdit: boolean }) => {
     const queryClient = useQueryClient()
     const [assignOpen, setAssignOpen] = useState(false)
     const [search, setSearch] = useState('')
@@ -516,8 +508,7 @@ const ManageBatchModal = ({
                         ) : (
                             <div className="border rounded-md divide-y max-h-72 overflow-y-auto">
                                 {filtered.map((e) => {
-                                    const fullName =
-                                        [e.user.firstName, e.user.lastName].filter(Boolean).join(' ').trim() || e.user.email
+                                    const fullName = [e.user.firstName, e.user.lastName].filter(Boolean).join(' ').trim() || e.user.email
                                     return (
                                         <div
                                             key={e.id}
@@ -943,4 +934,3 @@ const EditBatchModal = ({ batch, onClose }: { batch: BatchRow | null; onClose: (
         </Modal>
     )
 }
-

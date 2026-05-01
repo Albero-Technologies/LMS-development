@@ -66,7 +66,15 @@ export const router = createBrowserRouter([
     // Root has no platform-level marketing surface — the only landings that
     // exist live under /t/:slug. Hitting `/` directly drops you on the login
     // screen so SAs and tenant users have one obvious entry point.
-    { path: '/', element: <Navigate to="/login" replace /> },
+    {
+        path: '/',
+        element: (
+            <Navigate
+                to="/login"
+                replace
+            />
+        )
+    },
 
     // -------------------------------------------------------------- Public --
     // Platform-level marketing pages (kept for direct links — courses listing,
@@ -311,14 +319,7 @@ export const router = createBrowserRouter([
                 path: 'batches',
                 element: (
                     <ProtectedRoute
-                        roles={[
-                            ROLES.ADMIN,
-                            ROLES.SUPER_ADMIN,
-                            ROLES.TRAINER,
-                            ROLES.COUNSELLOR,
-                            ROLES.COUNSELLING_MANAGER,
-                            ROLES.SUPPORT
-                        ]}>
+                        roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TRAINER, ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.SUPPORT]}>
                         <BatchesPage />
                     </ProtectedRoute>
                 )

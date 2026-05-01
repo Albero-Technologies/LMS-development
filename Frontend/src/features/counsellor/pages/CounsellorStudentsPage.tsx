@@ -111,11 +111,7 @@ export const CounsellorStudentsPage = () => {
                 <Empty
                     icon={<GraduationCap size={32} />}
                     title={search ? 'No matches' : 'No students yet'}
-                    description={
-                        search
-                            ? 'Try a different search.'
-                            : "When someone signs up via your shareable link, they'll appear here."
-                    }
+                    description={search ? 'Try a different search.' : "When someone signs up via your shareable link, they'll appear here."}
                 />
             ) : (
                 <Card padded={false}>
@@ -179,10 +175,7 @@ const StudentRow = ({
     const visibleCourses = enrolments.slice(0, 2)
     const moreCount = Math.max(0, enrolments.length - visibleCourses.length)
     // Average progress across active enrolments — quick health glance.
-    const avgProgress =
-        enrolments.length > 0
-            ? Math.round(enrolments.reduce((n, e) => n + (e.progressPct ?? 0), 0) / enrolments.length)
-            : null
+    const avgProgress = enrolments.length > 0 ? Math.round(enrolments.reduce((n, e) => n + (e.progressPct ?? 0), 0) / enrolments.length) : null
 
     return (
         <tr
@@ -315,9 +308,7 @@ const CredsModal = ({ state, onClose }: { state: { student: MyStudent; creds: Sh
                         />
                     </div>
                     {!state.creds.initialPassword && (
-                        <Badge tone="warn">
-                            The student already logged in — this password has been cleared. Trigger a password reset instead.
-                        </Badge>
+                        <Badge tone="warn">The student already logged in — this password has been cleared. Trigger a password reset instead.</Badge>
                     )}
                 </div>
             )}

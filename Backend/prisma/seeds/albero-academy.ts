@@ -131,11 +131,13 @@ const homeSections = (): unknown[] => [
                 },
                 {
                     title: 'Data Analytics Mastery',
-                    description: '20-week deep dive. Python, statistics, ML basics, cloud warehousing. Geared toward analyst → data scientist transitions.'
+                    description:
+                        '20-week deep dive. Python, statistics, ML basics, cloud warehousing. Geared toward analyst → data scientist transitions.'
                 },
                 {
                     title: 'AI/ML Engineer',
-                    description: '24-week intensive. Neural nets, transformers, MLOps, model deployment. For engineers ready to build production AI systems.'
+                    description:
+                        '24-week intensive. Neural nets, transformers, MLOps, model deployment. For engineers ready to build production AI systems.'
                 }
             ]
         }
@@ -218,8 +220,7 @@ const homeSections = (): unknown[] => [
         data: {
             eyebrow: 'Get in touch',
             title: 'Talk to a senior counsellor',
-            subtitle:
-                'Tell us where you are in your career and what you want next — we will recommend the right program with no sales script.',
+            subtitle: 'Tell us where you are in your career and what you want next — we will recommend the right program with no sales script.',
             submitLabel: 'Request a callback',
             successMessage: 'Got it — your counsellor will call within one working day.',
             showQualification: true,
@@ -513,8 +514,7 @@ const masterclassSections = (): unknown[] => [
         data: {
             eyebrow: 'Free 90-minute masterclass · Saturday 8 PM IST',
             title: 'Break into Data Analytics in 2026.',
-            subtitle:
-                'Live with senior practitioners from Microsoft, PhonePe and Razorpay. Limited to 200 seats — registration closes Friday.',
+            subtitle: 'Live with senior practitioners from Microsoft, PhonePe and Razorpay. Limited to 200 seats — registration closes Friday.',
             primaryCtaLabel: 'Reserve free seat',
             primaryCtaLink: '#register'
         }
@@ -554,8 +554,7 @@ const masterclassSections = (): unknown[] => [
             title: 'From a past masterclass attendee',
             items: [
                 {
-                    quote:
-                        'I attended thinking I would just take notes. Two months later I had a job offer. The roadmap was exactly what I needed.',
+                    quote: 'I attended thinking I would just take notes. Two months later I had a job offer. The roadmap was exactly what I needed.',
                     name: 'Anjali Mehta',
                     role: 'Data Analyst',
                     company: 'Swiggy',
@@ -599,8 +598,7 @@ const scholarshipSections = (): unknown[] => [
         data: {
             eyebrow: 'Cohort 14 · scholarships closing soon',
             title: 'Up to 30% off — need-based scholarships for Cohort 14.',
-            subtitle:
-                'We hold back 20% of every cohort for need-based scholarships. Apply once and you are considered for every program.',
+            subtitle: 'We hold back 20% of every cohort for need-based scholarships. Apply once and you are considered for every program.',
             primaryCtaLabel: 'Apply for scholarship',
             primaryCtaLink: '#apply',
             imageUrl: IMG.heroLearners,
@@ -748,8 +746,14 @@ const buildLandingJson = () => {
                 learnPillars: [
                     { title: 'SQL deep dive', description: 'Window functions, CTEs, query optimisation. Production-grade SQL on real datasets.' },
                     { title: 'Power BI + Tableau', description: 'Build dashboards stakeholders trust. Calculated fields, RLS, performance tuning.' },
-                    { title: 'A/B + Experimentation', description: 'Hypothesis design, sample sizing, multiple comparisons. The math behind every product decision.' },
-                    { title: 'Stakeholder craft', description: 'Storyboarding insights, defending recommendations, and influencing without authority.' }
+                    {
+                        title: 'A/B + Experimentation',
+                        description: 'Hypothesis design, sample sizing, multiple comparisons. The math behind every product decision.'
+                    },
+                    {
+                        title: 'Stakeholder craft',
+                        description: 'Storyboarding insights, defending recommendations, and influencing without authority.'
+                    }
                 ],
                 syllabus: [
                     { title: 'Weeks 1-3 · Foundations', description: 'Excel power-ups, SQL fundamentals, descriptive statistics.' },
@@ -784,8 +788,14 @@ const buildLandingJson = () => {
                 feeINR: '₹74,999',
                 image: IMG.courseDA,
                 learnPillars: [
-                    { title: 'Python for data', description: 'Pandas, NumPy, scikit-learn. Idiomatic Python from day one — not "Python with R syntax".' },
-                    { title: 'Statistics that ships', description: 'Bayesian thinking, regression, time-series, and causal inference. The bits that actually show up in real work.' },
+                    {
+                        title: 'Python for data',
+                        description: 'Pandas, NumPy, scikit-learn. Idiomatic Python from day one — not "Python with R syntax".'
+                    },
+                    {
+                        title: 'Statistics that ships',
+                        description: 'Bayesian thinking, regression, time-series, and causal inference. The bits that actually show up in real work.'
+                    },
                     { title: 'Cloud warehousing', description: 'Snowflake / BigQuery / dbt. Modelling production data pipelines that scale.' },
                     { title: 'ML fundamentals', description: 'Trees, ensembles, regularisation. When (and when not) to reach for ML.' }
                 ],
@@ -823,13 +833,19 @@ const buildLandingJson = () => {
                 feeINR: '₹99,999',
                 image: IMG.courseAI,
                 learnPillars: [
-                    { title: 'Deep learning', description: 'PyTorch from scratch, attention, transformers, and the mental model that makes them click.' },
+                    {
+                        title: 'Deep learning',
+                        description: 'PyTorch from scratch, attention, transformers, and the mental model that makes them click.'
+                    },
                     { title: 'LLMs in production', description: 'RAG pipelines, evals, fine-tuning, prompt engineering, and cost optimisation.' },
                     { title: 'MLOps', description: 'Feature stores, experiment tracking, model registries, and CI/CD for ML.' },
                     { title: 'Deployment', description: 'Serving at scale — vLLM, Triton, autoscaling, and observability.' }
                 ],
                 syllabus: [
-                    { title: 'Weeks 1-5 · Deep learning foundations', description: 'PyTorch, backprop, optimisation, regularisation, training loops.' },
+                    {
+                        title: 'Weeks 1-5 · Deep learning foundations',
+                        description: 'PyTorch, backprop, optimisation, regularisation, training loops.'
+                    },
                     { title: 'Weeks 6-11 · Modern architectures', description: 'CNNs, RNNs, transformers, attention mechanisms.' },
                     { title: 'Weeks 12-17 · LLMs + RAG', description: 'Building retrieval-augmented generation, evals, fine-tuning workflows.' },
                     { title: 'Weeks 18-22 · MLOps + deployment', description: 'Feature stores, model registries, vLLM, autoscaling, monitoring.' },
@@ -912,8 +928,7 @@ const buildLandingJson = () => {
             sections: scholarshipSections(),
             seo: {
                 title: 'Cohort 14 scholarship · Albero Academy',
-                description:
-                    'Apply for a need-based scholarship — up to 30% off any Albero program. 7-day decision turnaround.',
+                description: 'Apply for a need-based scholarship — up to 30% off any Albero program. 7-day decision turnaround.',
                 ogImageUrl: IMG.heroLearners
             }
         },
@@ -1275,8 +1290,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
         {
             slug: 'data-analytics-mastery',
             title: 'Data Analytics Mastery',
-            description:
-                '20-week deep dive: Python, statistics, ML basics, cloud warehousing. Geared toward analyst → data scientist transitions.',
+            description: '20-week deep dive: Python, statistics, ML basics, cloud warehousing. Geared toward analyst → data scientist transitions.',
             price: 7499900,
             thumbnail: IMG.courseDA,
             tags: ['data-science', 'python', 'machine-learning', 'snowflake']
@@ -1284,8 +1298,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
         {
             slug: 'ai-ml-engineer',
             title: 'AI/ML Engineer',
-            description:
-                '24-week intensive: Neural nets, transformers, MLOps, model deployment. For engineers building production AI systems.',
+            description: '24-week intensive: Neural nets, transformers, MLOps, model deployment. For engineers building production AI systems.',
             price: 9999900,
             thumbnail: IMG.courseAI,
             tags: ['ai', 'ml', 'pytorch', 'llm', 'mlops']
@@ -1339,7 +1352,13 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
         options?: string[]
     }
 
-    const collections: { slug: string; name: string; description: string; fields: FieldDef[]; items: { slug: string; data: Record<string, unknown>; published: boolean }[] }[] = [
+    const collections: {
+        slug: string
+        name: string
+        description: string
+        fields: FieldDef[]
+        items: { slug: string; data: Record<string, unknown>; published: boolean }[]
+    }[] = [
         {
             slug: 'blog',
             name: 'Blog posts',
@@ -1355,12 +1374,11 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                 {
                     slug: 'sql-window-functions-cheat-sheet',
                     data: {
-                        title: 'SQL window functions: a working analyst\'s cheat sheet',
+                        title: "SQL window functions: a working analyst's cheat sheet",
                         summary:
                             'The 7 window-function patterns that show up in 90% of real interview questions — with the SQL queries you can copy-paste into your own work.',
                         coverImage: IMG.blogChart,
-                        body:
-                            '<p>Window functions are the single biggest leverage you can buy as an analyst...</p>',
+                        body: '<p>Window functions are the single biggest leverage you can buy as an analyst...</p>',
                         author: 'Vikram Iyer'
                     },
                     published: true
@@ -1369,8 +1387,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'cohort-12-recap',
                     data: {
                         title: 'Cohort 12 recap: 47 students, 41 placements, 6 stories',
-                        summary:
-                            'A breakdown of where Cohort 12 graduates landed, what worked, and the three things we are changing for Cohort 13.',
+                        summary: 'A breakdown of where Cohort 12 graduates landed, what worked, and the three things we are changing for Cohort 13.',
                         coverImage: IMG.blogTeam,
                         body: '<p>Cohort 12 wrapped at the end of Q1 2025...</p>',
                         author: 'Aditi Kapoor'
@@ -1405,8 +1422,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'is-this-program-for-beginners',
                     data: {
                         question: 'Is the program suitable for absolute beginners?',
-                        answer:
-                            'Business Analytics Pro is designed for fresh graduates with no prior coding experience — we begin from SQL/Excel foundations. Data Analytics Mastery and AI/ML Engineer assume programming familiarity.',
+                        answer: 'Business Analytics Pro is designed for fresh graduates with no prior coding experience — we begin from SQL/Excel foundations. Data Analytics Mastery and AI/ML Engineer assume programming familiarity.',
                         category: 'Programs'
                     },
                     published: true
@@ -1415,8 +1431,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'how-does-emi-work',
                     data: {
                         question: 'How does the no-cost EMI work?',
-                        answer:
-                            'We have partnered with major Indian banks for no-cost EMIs up to 12 months. The total fee remains unchanged — interest is absorbed by Albero. Apply at counselling time.',
+                        answer: 'We have partnered with major Indian banks for no-cost EMIs up to 12 months. The total fee remains unchanged — interest is absorbed by Albero. Apply at counselling time.',
                         category: 'Fees & EMI'
                     },
                     published: true
@@ -1425,8 +1440,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'placement-guarantee-fine-print',
                     data: {
                         question: 'What does the placement guarantee actually cover?',
-                        answer:
-                            'If you complete the program (>80% attendance, all capstone milestones), and do not get placed within 6 months of graduation despite engaging with our placement team, we refund 100% of your fee. No fine print.',
+                        answer: 'If you complete the program (>80% attendance, all capstone milestones), and do not get placed within 6 months of graduation despite engaging with our placement team, we refund 100% of your fee. No fine print.',
                         category: 'Placement'
                     },
                     published: true
@@ -1435,8 +1449,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'class-timings',
                     data: {
                         question: 'What are the class timings?',
-                        answer:
-                            'Classes run live, twice a week, 8-10 PM IST. All sessions are recorded and available within 24 hours, so missing a class never sets you back.',
+                        answer: 'Classes run live, twice a week, 8-10 PM IST. All sessions are recorded and available within 24 hours, so missing a class never sets you back.',
                         category: 'Logistics'
                     },
                     published: true
@@ -1445,8 +1458,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'scholarships',
                     data: {
                         question: 'Are scholarships available?',
-                        answer:
-                            'We offer need-based scholarships up to 30% off, plus an Early-Bird scholarship for the first 10 enrolments per cohort. Apply during counselling.',
+                        answer: 'We offer need-based scholarships up to 30% off, plus an Early-Bird scholarship for the first 10 enrolments per cohort. Apply during counselling.',
                         category: 'Fees & EMI'
                     },
                     published: true
@@ -1469,8 +1481,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'priya-sharma',
                     data: {
                         name: 'Priya Sharma',
-                        quote:
-                            'I went from no SQL to landing a Data Analyst role at a unicorn within 5 months. The mentor-led format is what made it stick.',
+                        quote: 'I went from no SQL to landing a Data Analyst role at a unicorn within 5 months. The mentor-led format is what made it stick.',
                         role: 'Data Analyst',
                         company: 'Razorpay',
                         avatar: IMG.avatar1
@@ -1481,8 +1492,7 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'rahul-verma',
                     data: {
                         name: 'Rahul Verma',
-                        quote:
-                            'Albero forced me to apply concepts on real industry-graded projects. I had a portfolio recruiters actually wanted to see.',
+                        quote: 'Albero forced me to apply concepts on real industry-graded projects. I had a portfolio recruiters actually wanted to see.',
                         role: 'Business Analyst',
                         company: 'Flipkart',
                         avatar: IMG.avatar2

@@ -447,8 +447,7 @@ export const getManagerDashboard = async (tenantId: string, role: Role, actorId:
             enrolmentsRemaining: Math.max(0, teamTotals.targetEnrolments - teamTotals.actualEnrolments)
         },
         topPerformer: top ? { id: top.id, name: top.name, revenue: top.actual.revenue, pct: top.completionPct } : null,
-        bottomPerformer:
-            bottom ? { id: bottom.id, name: bottom.name, revenue: bottom.actual.revenue, pct: bottom.completionPct } : null,
+        bottomPerformer: bottom ? { id: bottom.id, name: bottom.name, revenue: bottom.actual.revenue, pct: bottom.completionPct } : null,
         members,
         monthly,
         incentiveSlabs: DEFAULT_INCENTIVE_SLABS

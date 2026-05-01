@@ -164,6 +164,9 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
     )
 }
 
+// Co-located with the provider on purpose — the rule below is about
+// fast-refresh ergonomics, not correctness.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useConfirm = (): ConfirmFn => {
     const ctx = useContext(ConfirmContext)
     if (!ctx) throw new Error('useConfirm must be called inside <ConfirmProvider>')

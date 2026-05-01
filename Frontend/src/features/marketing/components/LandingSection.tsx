@@ -157,10 +157,25 @@ const AnimatedWrapper = ({
         '--anim-delay': `${delay ?? 0}ms`
     } as CSSProperties & Record<string, string>
 
+    // Map the camelCase animation tokens (frozen API contract; persisted in
+    // tenant landing JSON) to the kebab-case CSS class names used by the
+    // stylesheet. Keep the two in sync — the stylelint kebab-case rule blocks
+    // mixed casing so the CSS side cannot drift back to camelCase.
+    const animationClass: Record<NonNullable<SectionStyle['animation']>, string> = {
+        none: '',
+        fadeIn: 'anim-fade-in',
+        fadeUp: 'anim-fade-up',
+        fadeDown: 'anim-fade-down',
+        slideLeft: 'anim-slide-left',
+        slideRight: 'anim-slide-right',
+        zoomIn: 'anim-zoom-in'
+    }
+    const animClass = animationClass[animation]
+
     return (
         <div
             ref={ref}
-            className={`anim-${animation} ${visible ? 'anim-in' : 'anim-pending'}`}
+            className={`${animClass} ${visible ? 'anim-in' : 'anim-pending'}`}
             style={cssVars}>
             {children}
         </div>
@@ -315,15 +330,7 @@ export const LandingSectionRenderer = ({ section, slugBase, tenantName, styleCla
 
 // ---- Hero variants ----------------------------------------------------------
 
-const HeroBlock = ({
-    section,
-    slugBase,
-    tenantName
-}: {
-    section: Extract<Section, { type: 'hero' }>
-    slugBase: string
-    tenantName: string
-}) => {
+const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section, { type: 'hero' }>; slugBase: string; tenantName: string }) => {
     const { eyebrow, title, subtitle, primaryCtaLabel, primaryCtaLink, imageUrl, imageAlt } = section.data
     const ctaHref = resolveLink(slugBase, primaryCtaLink)
 
@@ -331,7 +338,9 @@ const HeroBlock = ({
         return (
             <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-12 text-center">
                 {eyebrow && <Badge tone="brand">{eyebrow}</Badge>}
-                <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight leading-tight max-w-3xl mx-auto">{title || `Learn with ${tenantName}`}</h1>
+                <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight leading-tight max-w-3xl mx-auto">
+                    {title || `Learn with ${tenantName}`}
+                </h1>
                 {subtitle && <p className="mt-4 text-fg-soft max-w-xl mx-auto">{subtitle}</p>}
                 {primaryCtaLabel && (
                     <div className="mt-6">
@@ -522,13 +531,7 @@ const CtaBlock = ({ section, slugBase }: { section: Extract<Section, { type: 'ct
 // in either a card grid or a vertical list. Field mapping (title/summary/
 // image) is configurable per section so the same renderer works for blog
 // posts, press releases, events, etc.
-const CollectionListBlock = ({
-    section,
-    slugBase
-}: {
-    section: Extract<Section, { type: 'collectionList' }>
-    slugBase: string
-}) => {
+const CollectionListBlock = ({ section, slugBase }: { section: Extract<Section, { type: 'collectionList' }>; slugBase: string }) => {
     // Optional context — null in the SA editor preview. Fall back to the
     // slug parsed out of slugBase so the editor preview can still fetch.
     const ctx = useContext(TenantBrandingCtx)
@@ -694,9 +697,7 @@ const AccordionRow = ({ question, answer }: { question: string; answer: string }
                     />
                 </span>
             </button>
-            {open && answer && (
-                <div className="px-5 pb-5 -mt-1 text-sm text-fg-soft leading-relaxed">{answer}</div>
-            )}
+            {open && answer && <div className="px-5 pb-5 -mt-1 text-sm text-fg-soft leading-relaxed">{answer}</div>}
         </div>
     )
 }
@@ -787,7 +788,9 @@ const CalloutBlock = ({ section }: { section: Extract<Section, { type: 'callout'
             <div
                 className={
                     'flex items-start gap-3 rounded-md border p-4 ' +
-                    (isSuccess ? 'bg-[var(--color-success-soft)] border-[var(--color-success)]/30' : 'bg-[var(--color-brand-50)] border-[var(--color-brand-100)]')
+                    (isSuccess
+                        ? 'bg-[var(--color-success-soft)] border-[var(--color-success)]/30'
+                        : 'bg-[var(--color-brand-50)] border-[var(--color-brand-100)]')
                 }>
                 <div
                     className={
@@ -823,9 +826,7 @@ const TestimonialsBlock = ({ section }: { section: Extract<Section, { type: 'tes
                                 size={28}
                                 className="mx-auto text-[var(--color-brand-500)] opacity-60"
                             />
-                            <blockquote className="mt-3 text-lg sm:text-xl leading-relaxed text-fg italic">
-                                &ldquo;{t.quote}&rdquo;
-                            </blockquote>
+                            <blockquote className="mt-3 text-lg sm:text-xl leading-relaxed text-fg italic">&ldquo;{t.quote}&rdquo;</blockquote>
                             <figcaption className="mt-4 inline-flex items-center gap-3">
                                 {t.avatarUrl && (
                                     <img
@@ -905,7 +906,8 @@ const StatsBlock = ({ section }: { section: Extract<Section, { type: 'stats' }> 
                     style={{ background: 'linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-500) 100%)' }}>
                     {title && <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-center">{title}</h2>}
                     {subtitle && <p className="mt-3 text-white/85 text-center max-w-2xl mx-auto">{subtitle}</p>}
-                    <div className={`mt-8 grid gap-6 ${items.length === 2 ? 'sm:grid-cols-2' : items.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
+                    <div
+                        className={`mt-8 grid gap-6 ${items.length === 2 ? 'sm:grid-cols-2' : items.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
                         {items.map((s, i) => (
                             <div
                                 key={i}
@@ -1211,7 +1213,11 @@ const LogosBlock = ({ section }: { section: Extract<Section, { type: 'logos' }> 
                         ))}
                     </div>
                 </div>
-                <style dangerouslySetInnerHTML={{ __html: '@keyframes logo-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }' }} />
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: '@keyframes logo-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }'
+                    }}
+                />
             </section>
         )
     }

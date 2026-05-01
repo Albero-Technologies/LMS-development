@@ -83,11 +83,7 @@ export const ReportsPage = () => {
             <PageHeader
                 eyebrow="Analytics"
                 title="Reports"
-                description={
-                    data?.scope === 'platform'
-                        ? 'Platform-wide rollup across every tenant.'
-                        : 'Live KPIs for your tenant.'
-                }
+                description={data?.scope === 'platform' ? 'Platform-wide rollup across every tenant.' : 'Live KPIs for your tenant.'}
                 actions={
                     <>
                         {isSuperAdmin && (
@@ -178,7 +174,10 @@ export const ReportsPage = () => {
                     {trend.length === 0 ? (
                         <div className="absolute inset-0 grid place-items-center text-sm text-fg-muted">
                             <div className="text-center">
-                                <FileText size={28} className="mx-auto mb-2 opacity-50" />
+                                <FileText
+                                    size={28}
+                                    className="mx-auto mb-2 opacity-50"
+                                />
                                 No revenue yet — chart fills in once invoices are paid.
                             </div>
                         </div>
@@ -194,8 +193,16 @@ export const ReportsPage = () => {
                                     x2="0"
                                     y1="0"
                                     y2="1">
-                                    <stop offset="0%" stopColor="var(--color-brand-500)" stopOpacity="0.32" />
-                                    <stop offset="100%" stopColor="var(--color-brand-500)" stopOpacity="0" />
+                                    <stop
+                                        offset="0%"
+                                        stopColor="var(--color-brand-500)"
+                                        stopOpacity="0.32"
+                                    />
+                                    <stop
+                                        offset="100%"
+                                        stopColor="var(--color-brand-500)"
+                                        stopOpacity="0"
+                                    />
                                 </linearGradient>
                             </defs>
                             <path

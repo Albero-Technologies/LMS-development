@@ -328,9 +328,18 @@ const FeesPanel = ({ invoices }: { invoices: UserInvoice[] }) => {
     return (
         <Card padded={false}>
             <div className="grid grid-cols-3 gap-px bg-[var(--color-border)]">
-                <KpiTile label="Total billed" value={fmtPaiseINR(total)} />
-                <KpiTile label="Paid" value={fmtPaiseINR(paid)} />
-                <KpiTile label="Outstanding" value={fmtPaiseINR(pending)} />
+                <KpiTile
+                    label="Total billed"
+                    value={fmtPaiseINR(total)}
+                />
+                <KpiTile
+                    label="Paid"
+                    value={fmtPaiseINR(paid)}
+                />
+                <KpiTile
+                    label="Outstanding"
+                    value={fmtPaiseINR(pending)}
+                />
             </div>
             {invoices.length === 0 ? (
                 <div className="p-6 text-sm text-fg-muted text-center">No invoices yet.</div>
@@ -353,7 +362,16 @@ const FeesPanel = ({ invoices }: { invoices: UserInvoice[] }) => {
                                     <td className="py-2.5 px-4">{i.enrollment?.course?.title ?? '—'}</td>
                                     <td className="py-2.5 px-4 font-mono">{fmtPaiseINR(i.totalAmount)}</td>
                                     <td className="py-2.5 px-4">
-                                        <Badge tone={i.status === 'PAID' ? 'ok' : i.status === 'DUE' ? 'warn' : i.status === 'FAILED' ? 'danger' : 'default'}>
+                                        <Badge
+                                            tone={
+                                                i.status === 'PAID'
+                                                    ? 'ok'
+                                                    : i.status === 'DUE'
+                                                      ? 'warn'
+                                                      : i.status === 'FAILED'
+                                                        ? 'danger'
+                                                        : 'default'
+                                            }>
                                             {i.status}
                                         </Badge>
                                     </td>
@@ -370,7 +388,11 @@ const FeesPanel = ({ invoices }: { invoices: UserInvoice[] }) => {
 
 const EnrolmentsPanel = ({ detail }: { detail: UserDetail }) => {
     if (detail.enrollments.length === 0) {
-        return <Card><div className="text-sm text-fg-muted text-center py-6">No enrolments yet.</div></Card>
+        return (
+            <Card>
+                <div className="text-sm text-fg-muted text-center py-6">No enrolments yet.</div>
+            </Card>
+        )
     }
     return (
         <Card padded={false}>

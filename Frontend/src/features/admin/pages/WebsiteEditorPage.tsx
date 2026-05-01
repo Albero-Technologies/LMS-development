@@ -21,15 +21,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-    DndContext,
-    closestCenter,
-    PointerSensor,
-    KeyboardSensor,
-    useSensor,
-    useSensors,
-    type DragEndEvent
-} from '@dnd-kit/core'
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
@@ -176,10 +168,7 @@ export const WebsiteEditorPage = () => {
     // Raw landing JSON — `readLandingContent` strips it down to renderer
     // fields with defaults applied; the editor needs the source-of-truth
     // pages/site/navbar/footer blobs as actually persisted.
-    const rawLanding = useMemo<LandingContent>(
-        () => (tenant?.settings?.landing as LandingContent | undefined) ?? {},
-        [tenant?.settings]
-    )
+    const rawLanding = useMemo<LandingContent>(() => (tenant?.settings?.landing as LandingContent | undefined) ?? {}, [tenant?.settings])
 
     // Multi-page state. If the tenant has historical `sections` but no
     // `pages`, lift the sections into a default 'Home' page so the editor
@@ -200,14 +189,8 @@ export const WebsiteEditorPage = () => {
 
     const initialSite = useMemo<SiteIdentity>(() => rawLanding.site ?? {}, [rawLanding.site])
     const initialNavbar = useMemo<NavbarConfig>(() => rawLanding.navbar ?? defaultNavbar(), [rawLanding.navbar])
-    const initialFooter = useMemo<FooterConfig>(
-        () => rawLanding.footer ?? defaultFooter(tenant?.name ?? ''),
-        [rawLanding.footer, tenant?.name]
-    )
-    const initialStyleClasses = useMemo<StyleClass[]>(
-        () => rawLanding.styleClasses ?? defaultStyleClasses(),
-        [rawLanding.styleClasses]
-    )
+    const initialFooter = useMemo<FooterConfig>(() => rawLanding.footer ?? defaultFooter(tenant?.name ?? ''), [rawLanding.footer, tenant?.name])
+    const initialStyleClasses = useMemo<StyleClass[]>(() => rawLanding.styleClasses ?? defaultStyleClasses(), [rawLanding.styleClasses])
 
     const [pages, setPages] = useState<LandingPage[]>(initialPages)
     const [site, setSite] = useState<SiteIdentity>(initialSite)
@@ -243,18 +226,7 @@ export const WebsiteEditorPage = () => {
             JSON.stringify(navbar) !== JSON.stringify(initialNavbar) ||
             JSON.stringify(footer) !== JSON.stringify(initialFooter) ||
             JSON.stringify(styleClasses) !== JSON.stringify(initialStyleClasses),
-        [
-            pages,
-            initialPages,
-            site,
-            initialSite,
-            navbar,
-            initialNavbar,
-            footer,
-            initialFooter,
-            styleClasses,
-            initialStyleClasses
-        ]
+        [pages, initialPages, site, initialSite, navbar, initialNavbar, footer, initialFooter, styleClasses, initialStyleClasses]
     )
 
     const saveMutation = useMutation({
@@ -264,7 +236,7 @@ export const WebsiteEditorPage = () => {
             const settings: TenantSettings = {
                 ...(tenant.settings ?? {}),
                 landing: {
-                    ...(tenant.settings?.landing as object | undefined ?? {}),
+                    ...((tenant.settings?.landing as object | undefined) ?? {}),
                     pages,
                     // Keep `sections` in sync with the home page so existing
                     // single-page renderers don't break for tenants that haven't
@@ -287,8 +259,7 @@ export const WebsiteEditorPage = () => {
     })
 
     // ---- Mutators (immutable updates against the pages tree) ----------------
-    const mutateActivePage = (fn: (p: LandingPage) => LandingPage) =>
-        setPages((xs) => xs.map((p) => (p.id === activePageId ? fn(p) : p)))
+    const mutateActivePage = (fn: (p: LandingPage) => LandingPage) => setPages((xs) => xs.map((p) => (p.id === activePageId ? fn(p) : p)))
 
     const setSections = (next: LandingSection[]) => mutateActivePage((p) => ({ ...p, sections: next }))
 
@@ -299,9 +270,7 @@ export const WebsiteEditorPage = () => {
         setSections(sections.map((s) => (s.id === id ? ({ ...s, variant } as LandingSection) : s)))
 
     const updateSectionStyle = (id: string, patch: Partial<SectionStyle>) =>
-        setSections(
-            sections.map((s) => (s.id === id ? ({ ...s, style: { ...(s.style ?? {}), ...patch } } as LandingSection) : s))
-        )
+        setSections(sections.map((s) => (s.id === id ? ({ ...s, style: { ...(s.style ?? {}), ...patch } } as LandingSection) : s)))
 
     const removeSection = (id: string) => {
         setSections(sections.filter((s) => s.id !== id))
@@ -330,9 +299,7 @@ export const WebsiteEditorPage = () => {
     // existing createBlankPage helper. Either way the new page is appended to
     // the page list and made active.
     const addPage = (name: string, slug: string, template?: PageTemplate | null) => {
-        const page = template && template.id !== 'blank'
-            ? instantiatePageTemplate(template, { name, slug })
-            : createBlankPage(name, slug, false)
+        const page = template && template.id !== 'blank' ? instantiatePageTemplate(template, { name, slug }) : createBlankPage(name, slug, false)
         setPages([...pages, page])
         setActivePageId(page.id)
         setSelectedSectionId(page.sections[0]?.id ?? null)
@@ -362,8 +329,7 @@ export const WebsiteEditorPage = () => {
         }
         const ok = await confirm({
             title: `Delete the "${target.name}" page?`,
-            description:
-                'You can undo by hitting Cancel before clicking Save changes — the deletion is staged locally until you save.',
+            description: 'You can undo by hitting Cancel before clicking Save changes — the deletion is staged locally until you save.',
             confirmLabel: 'Delete',
             tone: 'danger'
         })
@@ -383,17 +349,19 @@ export const WebsiteEditorPage = () => {
             slug: `${src.slug}-copy`,
             name: `${src.name} (copy)`,
             isHome: false,
-            sections: src.sections.map((s) => ({ ...s, id: newSectionId() } as LandingSection))
+            sections: src.sections.map((s) => ({ ...s, id: newSectionId() }) as LandingSection)
         }
         const next = [...pages]
         next.splice(idx + 1, 0, copy)
         setPages(next)
     }
-    const updatePageMeta = (id: string, patch: Partial<LandingPage>) =>
-        setPages(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)))
+    const updatePageMeta = (id: string, patch: Partial<LandingPage>) => setPages(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)))
 
     // ---- DnD ----------------------------------------------------------------
-    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    )
     const onDragEnd = (e: DragEndEvent) => {
         const { active, over } = e
         if (!over || active.id === over.id) return
@@ -451,9 +419,7 @@ export const WebsiteEditorPage = () => {
                 className="mb-4"
                 padded={false}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3">
-                    <div className="text-xs font-semibold text-fg-soft uppercase tracking-wide shrink-0 sm:w-32">
-                        Editing tenant
-                    </div>
+                    <div className="text-xs font-semibold text-fg-soft uppercase tracking-wide shrink-0 sm:w-32">Editing tenant</div>
                     <div className="flex-1 min-w-0">
                         <Select
                             aria-label="Choose tenant"
@@ -565,7 +531,10 @@ export const WebsiteEditorPage = () => {
                             className="min-w-0 overflow-hidden">
                             <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2 text-xs text-fg-muted">
                                 <PencilLine size={14} />
-                                <span className="font-mono truncate">/t/{tenant.slug}{activePage?.slug !== '/' ? activePage?.slug : ''}</span>
+                                <span className="font-mono truncate">
+                                    /t/{tenant.slug}
+                                    {activePage?.slug !== '/' ? activePage?.slug : ''}
+                                </span>
                                 <div className="ml-auto inline-flex border border-[var(--color-border)] rounded-md overflow-hidden shrink-0">
                                     <DeviceToggle
                                         value={device}
@@ -1090,7 +1059,15 @@ const NewPageModal = ({
     )
 }
 
-const PageSeoModal = ({ page, onClose, onSave }: { page: LandingPage | null; onClose: () => void; onSave: (patch: Partial<LandingPage>) => void }) => {
+const PageSeoModal = ({
+    page,
+    onClose,
+    onSave
+}: {
+    page: LandingPage | null
+    onClose: () => void
+    onSave: (patch: Partial<LandingPage>) => void
+}) => {
     const [name, setName] = useState('')
     const [slug, setSlug] = useState('')
     const [title, setTitle] = useState('')
@@ -1895,13 +1872,7 @@ const CtaFields = ({ data, onChange }: { data: Extract<LandingSection, { type: '
     </div>
 )
 
-const CalloutFields = ({
-    data,
-    onChange
-}: {
-    data: Extract<LandingSection, { type: 'callout' }>['data']
-    onChange: (p: object) => void
-}) => (
+const CalloutFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'callout' }>['data']; onChange: (p: object) => void }) => (
     <div className="space-y-3">
         <Input
             label="Title"
@@ -1917,13 +1888,7 @@ const CalloutFields = ({
     </div>
 )
 
-const ImageFields = ({
-    data,
-    onChange
-}: {
-    data: Extract<LandingSection, { type: 'image' }>['data']
-    onChange: (p: object) => void
-}) => {
+const ImageFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'image' }>['data']; onChange: (p: object) => void }) => {
     const [pickerOpen, setPickerOpen] = useState(false)
     return (
         <div className="space-y-3">
@@ -1987,13 +1952,7 @@ const ImageFields = ({
     )
 }
 
-const EmbedFields = ({
-    data,
-    onChange
-}: {
-    data: Extract<LandingSection, { type: 'embed' }>['data']
-    onChange: (p: object) => void
-}) => (
+const EmbedFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'embed' }>['data']; onChange: (p: object) => void }) => (
     <div className="space-y-3">
         <Input
             label="Title (a11y label)"
@@ -2018,9 +1977,13 @@ const EmbedFields = ({
             onChange={(e) => onChange({ height: Number(e.target.value) || 480 })}
         />
         <div className="rounded-md border bg-surface-2 p-3 text-[11px] text-fg-muted inline-flex items-start gap-2">
-            <Type size={12} className="mt-0.5 shrink-0" />
+            <Type
+                size={12}
+                className="mt-0.5 shrink-0"
+            />
             <span>
-                Sandbox flags: <code>allow-scripts allow-same-origin allow-forms allow-presentation</code>. Top-navigation + popups are blocked, so a malicious embed can't redirect this page.
+                Sandbox flags: <code>allow-scripts allow-same-origin allow-forms allow-presentation</code>. Top-navigation + popups are blocked, so a
+                malicious embed can't redirect this page.
             </span>
         </div>
     </div>
@@ -2219,9 +2182,7 @@ const SiteSettingsModal = ({
             title="Site settings"
             description="Favicon, page title, and global navbar + footer."
             size="lg"
-            footer={
-                <Button onClick={onClose}>Done</Button>
-            }>
+            footer={<Button onClick={onClose}>Done</Button>}>
             <div className="flex border-b border-[var(--color-border)] mb-4 -mx-5 px-5">
                 {tabs.map((t) => (
                     <button
@@ -2339,8 +2300,8 @@ const SeoFields = ({ tenantSlug }: { tenantSlug: string }) => {
                 url={robotsUrl}
             />
             <div className="text-xs text-fg-muted">
-                Tip: set a <span className="font-mono">canonicalUrl</span> in the SEO Builder if you've pointed a custom
-                domain at your site — the sitemap will switch to absolute URLs on that domain.
+                Tip: set a <span className="font-mono">canonicalUrl</span> in the SEO Builder if you've pointed a custom domain at your site — the
+                sitemap will switch to absolute URLs on that domain.
             </div>
         </div>
     )
@@ -2366,9 +2327,7 @@ const StyleClassesFields = ({ classes, onChange }: { classes: StyleClass[]; onCh
     return (
         <div className="grid grid-cols-[200px_1fr] gap-4 min-h-[400px]">
             <div className="border-r border-[var(--color-border)] pr-3 space-y-1">
-                {classes.length === 0 && (
-                    <div className="text-xs text-fg-muted text-center py-4">No classes yet.</div>
-                )}
+                {classes.length === 0 && <div className="text-xs text-fg-muted text-center py-4">No classes yet.</div>}
                 {classes.map((c) => (
                     <button
                         key={c.id}
@@ -2400,130 +2359,121 @@ const StyleClassesFields = ({ classes, onChange }: { classes: StyleClass[]; onCh
                         onDelete={() => remove(editing.id)}
                     />
                 ) : (
-                    <div className="text-sm text-fg-muted text-center py-12">
-                        Pick a class on the left to edit, or add a new one.
-                    </div>
+                    <div className="text-sm text-fg-muted text-center py-12">Pick a class on the left to edit, or add a new one.</div>
                 )}
             </div>
         </div>
     )
 }
 
-const StyleClassEditor = ({
-    cls,
-    onChange,
-    onDelete
-}: {
-    cls: StyleClass
-    onChange: (patch: Partial<StyleClass>) => void
-    onDelete: () => void
-}) => {
+const StyleClassEditor = ({ cls, onChange, onDelete }: { cls: StyleClass; onChange: (patch: Partial<StyleClass>) => void; onDelete: () => void }) => {
     const confirm = useConfirm()
     return (
-    <div className="space-y-4">
-        <div className="flex items-end gap-2">
-            <Input
-                label="Class name"
-                value={cls.name}
-                onChange={(e) => onChange({ name: e.target.value })}
-                className="flex-1"
+        <div className="space-y-4">
+            <div className="flex items-end gap-2">
+                <Input
+                    label="Class name"
+                    value={cls.name}
+                    onChange={(e) => onChange({ name: e.target.value })}
+                    className="flex-1"
+                />
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<Trash2 size={14} />}
+                    onClick={async () => {
+                        const ok = await confirm({
+                            title: `Delete the "${cls.name}" class?`,
+                            description:
+                                'Sections that reference this class will fall back to their default styles. Per-section overrides stay intact.',
+                            confirmLabel: 'Delete',
+                            tone: 'danger'
+                        })
+                        if (ok) onDelete()
+                    }}>
+                    Delete
+                </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-xs font-medium text-fg-soft mb-1.5">Background</label>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="color"
+                            value={cls.background ?? '#ffffff'}
+                            onChange={(e) => onChange({ background: e.target.value })}
+                            className="w-10 h-10 rounded-md border cursor-pointer bg-transparent p-1"
+                            aria-label="Background"
+                        />
+                        <Input
+                            value={cls.background ?? ''}
+                            onChange={(e) => onChange({ background: e.target.value || undefined })}
+                            placeholder="#ffffff"
+                            className="font-mono"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-fg-soft mb-1.5">Text colour</label>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="color"
+                            value={cls.textColor ?? '#0c1626'}
+                            onChange={(e) => onChange({ textColor: e.target.value })}
+                            className="w-10 h-10 rounded-md border cursor-pointer bg-transparent p-1"
+                            aria-label="Text colour"
+                        />
+                        <Input
+                            value={cls.textColor ?? ''}
+                            onChange={(e) => onChange({ textColor: e.target.value || undefined })}
+                            placeholder="#0c1626"
+                            className="font-mono"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+                <Select
+                    label="Padding"
+                    value={cls.paddingY ?? ''}
+                    onChange={(e) => onChange({ paddingY: (e.target.value || undefined) as StyleClass['paddingY'] })}>
+                    <option value="">Default</option>
+                    <option value="sm">Small</option>
+                    <option value="md">Medium</option>
+                    <option value="lg">Large</option>
+                    <option value="xl">Extra large</option>
+                </Select>
+                <Select
+                    label="Alignment"
+                    value={cls.align ?? ''}
+                    onChange={(e) => onChange({ align: (e.target.value || undefined) as StyleClass['align'] })}>
+                    <option value="">Default</option>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </Select>
+                <Select
+                    label="Max width"
+                    value={cls.maxWidth ?? ''}
+                    onChange={(e) => onChange({ maxWidth: (e.target.value || undefined) as StyleClass['maxWidth'] })}>
+                    <option value="">Default</option>
+                    <option value="narrow">Narrow</option>
+                    <option value="normal">Normal</option>
+                    <option value="wide">Wide</option>
+                    <option value="full">Full bleed</option>
+                </Select>
+            </div>
+            <TypographyEditor
+                label="Headings"
+                value={cls.headingType}
+                onChange={(t) => onChange({ headingType: t })}
             />
-            <Button
-                size="sm"
-                variant="ghost"
-                leftIcon={<Trash2 size={14} />}
-                onClick={async () => {
-                    const ok = await confirm({
-                        title: `Delete the "${cls.name}" class?`,
-                        description: 'Sections that reference this class will fall back to their default styles. Per-section overrides stay intact.',
-                        confirmLabel: 'Delete',
-                        tone: 'danger'
-                    })
-                    if (ok) onDelete()
-                }}>
-                Delete
-            </Button>
+            <TypographyEditor
+                label="Body text"
+                value={cls.bodyType}
+                onChange={(t) => onChange({ bodyType: t })}
+            />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-            <div>
-                <label className="block text-xs font-medium text-fg-soft mb-1.5">Background</label>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="color"
-                        value={cls.background ?? '#ffffff'}
-                        onChange={(e) => onChange({ background: e.target.value })}
-                        className="w-10 h-10 rounded-md border cursor-pointer bg-transparent p-1"
-                        aria-label="Background"
-                    />
-                    <Input
-                        value={cls.background ?? ''}
-                        onChange={(e) => onChange({ background: e.target.value || undefined })}
-                        placeholder="#ffffff"
-                        className="font-mono"
-                    />
-                </div>
-            </div>
-            <div>
-                <label className="block text-xs font-medium text-fg-soft mb-1.5">Text colour</label>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="color"
-                        value={cls.textColor ?? '#0c1626'}
-                        onChange={(e) => onChange({ textColor: e.target.value })}
-                        className="w-10 h-10 rounded-md border cursor-pointer bg-transparent p-1"
-                        aria-label="Text colour"
-                    />
-                    <Input
-                        value={cls.textColor ?? ''}
-                        onChange={(e) => onChange({ textColor: e.target.value || undefined })}
-                        placeholder="#0c1626"
-                        className="font-mono"
-                    />
-                </div>
-            </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-            <Select
-                label="Padding"
-                value={cls.paddingY ?? ''}
-                onChange={(e) => onChange({ paddingY: (e.target.value || undefined) as StyleClass['paddingY'] })}>
-                <option value="">Default</option>
-                <option value="sm">Small</option>
-                <option value="md">Medium</option>
-                <option value="lg">Large</option>
-                <option value="xl">Extra large</option>
-            </Select>
-            <Select
-                label="Alignment"
-                value={cls.align ?? ''}
-                onChange={(e) => onChange({ align: (e.target.value || undefined) as StyleClass['align'] })}>
-                <option value="">Default</option>
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-            </Select>
-            <Select
-                label="Max width"
-                value={cls.maxWidth ?? ''}
-                onChange={(e) => onChange({ maxWidth: (e.target.value || undefined) as StyleClass['maxWidth'] })}>
-                <option value="">Default</option>
-                <option value="narrow">Narrow</option>
-                <option value="normal">Normal</option>
-                <option value="wide">Wide</option>
-                <option value="full">Full bleed</option>
-            </Select>
-        </div>
-        <TypographyEditor
-            label="Headings"
-            value={cls.headingType}
-            onChange={(t) => onChange({ headingType: t })}
-        />
-        <TypographyEditor
-            label="Body text"
-            value={cls.bodyType}
-            onChange={(t) => onChange({ bodyType: t })}
-        />
-    </div>
     )
 }
 
@@ -2613,15 +2563,7 @@ const IdentityFields = ({ site, onChange }: { site: SiteIdentity; onChange: (s: 
     )
 }
 
-const NavbarFields = ({
-    navbar,
-    pages,
-    onChange
-}: {
-    navbar: NavbarConfig
-    pages: LandingPage[]
-    onChange: (n: NavbarConfig) => void
-}) => {
+const NavbarFields = ({ navbar, pages, onChange }: { navbar: NavbarConfig; pages: LandingPage[]; onChange: (n: NavbarConfig) => void }) => {
     const set = (patch: Partial<NavbarConfig>) => onChange({ ...navbar, ...patch })
     return (
         <div className="space-y-4">
@@ -2704,18 +2646,9 @@ const NavbarFields = ({
     )
 }
 
-const FooterFields = ({
-    footer,
-    pages,
-    onChange
-}: {
-    footer: FooterConfig
-    pages: LandingPage[]
-    onChange: (f: FooterConfig) => void
-}) => {
+const FooterFields = ({ footer, pages, onChange }: { footer: FooterConfig; pages: LandingPage[]; onChange: (f: FooterConfig) => void }) => {
     const set = (patch: Partial<FooterConfig>) => onChange({ ...footer, ...patch })
-    const setSocial = (patch: Partial<NonNullable<FooterConfig['social']>>) =>
-        onChange({ ...footer, social: { ...(footer.social ?? {}), ...patch } })
+    const setSocial = (patch: Partial<NonNullable<FooterConfig['social']>>) => onChange({ ...footer, social: { ...(footer.social ?? {}), ...patch } })
     return (
         <div className="space-y-4">
             <Select
@@ -3052,7 +2985,10 @@ const LinkTargetPicker = ({
                 </Select>
             ) : (
                 <div className="relative">
-                    <Link2 size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none" />
+                    <Link2
+                        size={12}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none"
+                    />
                     <Input
                         value={url ?? ''}
                         onChange={(e) => onChange({ url: e.target.value })}
@@ -3074,8 +3010,7 @@ const FooterColumnsEditor = ({
     pages: LandingPage[]
     onChange: (next: FooterColumn[]) => void
 }) => {
-    const update = (i: number, patch: Partial<FooterColumn>) =>
-        onChange(columns.map((c, idx) => (idx === i ? { ...c, ...patch } : c)))
+    const update = (i: number, patch: Partial<FooterColumn>) => onChange(columns.map((c, idx) => (idx === i ? { ...c, ...patch } : c)))
     const remove = (i: number) => onChange(columns.filter((_, idx) => idx !== i))
     const move = (i: number, dir: -1 | 1) => {
         const j = i + dir
@@ -3084,11 +3019,7 @@ const FooterColumnsEditor = ({
         ;[next[i], next[j]] = [next[j], next[i]]
         onChange(next)
     }
-    const add = () =>
-        onChange([
-            ...columns,
-            { id: newLinkId(), title: `Column ${columns.length + 1}`, links: [] }
-        ])
+    const add = () => onChange([...columns, { id: newLinkId(), title: `Column ${columns.length + 1}`, links: [] }])
 
     return (
         <div className="space-y-3">
@@ -3163,8 +3094,7 @@ const TestimonialsFields = ({
     onChange: (p: object) => void
 }) => {
     const items = data.items ?? []
-    const update = (i: number, patch: Partial<TestimonialItem>) =>
-        onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
+    const update = (i: number, patch: Partial<TestimonialItem>) => onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
     const add = () =>
         onChange({
             items: [...items, { name: '', quote: '' } as TestimonialItem]
@@ -3242,16 +3172,9 @@ const TestimonialsFields = ({
 
 // ---- Stats editor -----------------------------------------------------------
 
-const StatsFields = ({
-    data,
-    onChange
-}: {
-    data: Extract<LandingSection, { type: 'stats' }>['data']
-    onChange: (p: object) => void
-}) => {
+const StatsFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'stats' }>['data']; onChange: (p: object) => void }) => {
     const items = data.items ?? []
-    const update = (i: number, patch: Partial<StatItem>) =>
-        onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
+    const update = (i: number, patch: Partial<StatItem>) => onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
     const add = () => onChange({ items: [...items, { value: '', label: '' } as StatItem] })
     const remove = (i: number) => onChange({ items: items.filter((_, idx) => idx !== i) })
     return (
@@ -3315,13 +3238,7 @@ const StatsFields = ({
 
 // ---- Lead form editor -------------------------------------------------------
 
-const LeadFormFields = ({
-    data,
-    onChange
-}: {
-    data: Extract<LandingSection, { type: 'leadForm' }>['data']
-    onChange: (p: object) => void
-}) => (
+const LeadFormFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'leadForm' }>['data']; onChange: (p: object) => void }) => (
     <div className="space-y-3">
         <Input
             label="Eyebrow"
@@ -3381,16 +3298,9 @@ const LeadFormFields = ({
 
 // ---- Logos editor -----------------------------------------------------------
 
-const LogosFields = ({
-    data,
-    onChange
-}: {
-    data: Extract<LandingSection, { type: 'logos' }>['data']
-    onChange: (p: object) => void
-}) => {
+const LogosFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'logos' }>['data']; onChange: (p: object) => void }) => {
     const items = data.items ?? []
-    const update = (i: number, patch: Partial<LogoItem>) =>
-        onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
+    const update = (i: number, patch: Partial<LogoItem>) => onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
     const add = () => onChange({ items: [...items, { src: '' } as LogoItem] })
     const remove = (i: number) => onChange({ items: items.filter((_, idx) => idx !== i) })
     return (
@@ -3490,10 +3400,7 @@ const LogosFields = ({
                                             aria-label={it.alt ?? ''}
                                             className="inline-flex items-center h-8 [&>svg]:h-full [&>svg]:w-auto"
                                             dangerouslySetInnerHTML={{
-                                                __html: it.svg.replace(
-                                                    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-                                                    ''
-                                                )
+                                                __html: it.svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
                                             }}
                                         />
                                     ) : (

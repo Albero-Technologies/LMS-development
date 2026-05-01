@@ -31,28 +31,38 @@ export const getDashboard = async (tenantId: string, role: Role, userId: string)
 // SUPER_ADMIN — platform-wide rollup excluding the platform tenant itself.
 const superAdminDashboard = async () => {
     const exclPlatform = { tenant: { slug: { not: 'platform' as const } } }
-    const [tenantsActive, tenantsTrial, tenantsSuspended, totalUsers, totalStudents, activeEnrollments, coursesPublished, paidThisMonthAgg, saasPaidThisMonthAgg, saasOutstandingAgg] =
-        await Promise.all([
-            db.client.tenant.count({ where: { status: 'ACTIVE', slug: { not: 'platform' } } }),
-            db.client.tenant.count({ where: { status: 'TRIAL', slug: { not: 'platform' } } }),
-            db.client.tenant.count({ where: { status: 'SUSPENDED', slug: { not: 'platform' } } }),
-            db.client.user.count({ where: { ...exclPlatform, deletedAt: null } }),
-            db.client.user.count({ where: { ...exclPlatform, role: Role.STUDENT, deletedAt: null } }),
-            db.client.enrollment.count({ where: { ...exclPlatform, status: EnrollmentStatus.ACTIVE } }),
-            db.client.course.count({ where: { ...exclPlatform, publishState: 'PUBLISHED' } }),
-            db.client.invoice.aggregate({
-                _sum: { totalAmount: true },
-                where: { ...exclPlatform, status: InvoiceStatus.PAID, paidAt: { gte: firstDayOfMonth() } }
-            }),
-            db.client.tenantPayment.aggregate({
-                _sum: { amount: true },
-                where: { status: 'PAID', paidAt: { gte: firstDayOfMonth() } }
-            }),
-            db.client.tenantPayment.aggregate({
-                _sum: { amount: true },
-                where: { status: 'PENDING' }
-            })
-        ])
+    const [
+        tenantsActive,
+        tenantsTrial,
+        tenantsSuspended,
+        totalUsers,
+        totalStudents,
+        activeEnrollments,
+        coursesPublished,
+        paidThisMonthAgg,
+        saasPaidThisMonthAgg,
+        saasOutstandingAgg
+    ] = await Promise.all([
+        db.client.tenant.count({ where: { status: 'ACTIVE', slug: { not: 'platform' } } }),
+        db.client.tenant.count({ where: { status: 'TRIAL', slug: { not: 'platform' } } }),
+        db.client.tenant.count({ where: { status: 'SUSPENDED', slug: { not: 'platform' } } }),
+        db.client.user.count({ where: { ...exclPlatform, deletedAt: null } }),
+        db.client.user.count({ where: { ...exclPlatform, role: Role.STUDENT, deletedAt: null } }),
+        db.client.enrollment.count({ where: { ...exclPlatform, status: EnrollmentStatus.ACTIVE } }),
+        db.client.course.count({ where: { ...exclPlatform, publishState: 'PUBLISHED' } }),
+        db.client.invoice.aggregate({
+            _sum: { totalAmount: true },
+            where: { ...exclPlatform, status: InvoiceStatus.PAID, paidAt: { gte: firstDayOfMonth() } }
+        }),
+        db.client.tenantPayment.aggregate({
+            _sum: { amount: true },
+            where: { status: 'PAID', paidAt: { gte: firstDayOfMonth() } }
+        }),
+        db.client.tenantPayment.aggregate({
+            _sum: { amount: true },
+            where: { status: 'PENDING' }
+        })
+    ])
 
     return {
         stats: {
@@ -115,7 +125,11 @@ const adminDashboard = async (tenantId: string) => {
     }
 }
 
-const buildAdminNextActions = (args: { overdueInvoices: number; signupsThisMonth: number; totalStudents: number }): { label: string; link: string }[] => {
+const buildAdminNextActions = (args: {
+    overdueInvoices: number
+    signupsThisMonth: number
+    totalStudents: number
+}): { label: string; link: string }[] => {
     const out: { label: string; link: string }[] = []
     if (args.overdueInvoices > 0) {
         out.push({ label: `Follow up on ${args.overdueInvoices} overdue invoice(s)`, link: '/payments' })

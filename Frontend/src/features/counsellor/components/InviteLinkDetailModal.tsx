@@ -95,9 +95,7 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
-                                <code className="rounded bg-surface-2 px-2 py-1 text-xs font-mono text-fg-soft truncate flex-1 min-w-0">
-                                    {url}
-                                </code>
+                                <code className="rounded bg-surface-2 px-2 py-1 text-xs font-mono text-fg-soft truncate flex-1 min-w-0">{url}</code>
                                 <Button
                                     size="sm"
                                     variant="ghost"
@@ -121,7 +119,9 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
                                     <User size={12} /> Counsellor
                                 </h4>
                                 <div className="text-sm font-semibold text-fg">
-                                    {link.counsellor ? `${link.counsellor.firstName} ${link.counsellor.lastName}`.trim() || link.counsellor.email : '—'}
+                                    {link.counsellor
+                                        ? `${link.counsellor.firstName} ${link.counsellor.lastName}`.trim() || link.counsellor.email
+                                        : '—'}
                                 </div>
                                 {link.counsellor?.email && <div className="text-xs text-fg-muted">{link.counsellor.email}</div>}
                             </Card>
@@ -137,9 +137,7 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
 
                         {/* Signups list */}
                         <div>
-                            <h4 className="text-sm font-semibold text-fg mb-2">
-                                Signups ({link.signups?.length ?? 0})
-                            </h4>
+                            <h4 className="text-sm font-semibold text-fg mb-2">Signups ({link.signups?.length ?? 0})</h4>
                             {!link.signups || link.signups.length === 0 ? (
                                 <Empty
                                     icon={<User size={28} />}
@@ -213,13 +211,7 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
     )
 }
 
-const CredsModal = ({
-    state,
-    onClose
-}: {
-    state: { name: string; email: string; password: string | null } | null
-    onClose: () => void
-}) => {
+const CredsModal = ({ state, onClose }: { state: { name: string; email: string; password: string | null } | null; onClose: () => void }) => {
     const copy = (text: string | null | undefined) => {
         if (!text) return
         void navigator.clipboard.writeText(text).then(

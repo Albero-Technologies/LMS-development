@@ -96,9 +96,7 @@ export const TenantBillingPage = () => {
                         <AlertTriangle size={14} /> Outstanding
                     </div>
                     <div className="mt-2 text-2xl font-semibold text-fg">{fmtINR(pendingTotal, 'INR')}</div>
-                    {oldestPending && (
-                        <div className="mt-1 text-xs text-fg-muted">Oldest invoice from {fmtDate(oldestPending.createdAt)}</div>
-                    )}
+                    {oldestPending && <div className="mt-1 text-xs text-fg-muted">Oldest invoice from {fmtDate(oldestPending.createdAt)}</div>}
                 </Card>
                 <Card className="!p-4">
                     <div className="flex items-center gap-2 text-xs text-fg-muted">

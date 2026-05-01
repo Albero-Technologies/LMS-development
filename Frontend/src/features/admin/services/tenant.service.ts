@@ -1268,11 +1268,23 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
             data: {
                 title: 'Our students work at',
                 items: [
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flipkart_logo.svg/512px-Flipkart_logo.svg.png', alt: 'Flipkart' },
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flipkart_logo.svg/512px-Flipkart_logo.svg.png',
+                        alt: 'Flipkart'
+                    },
                     { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Amazon_logo.svg/512px-Amazon_logo.svg.png', alt: 'Amazon' },
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_logo_%282012%29.svg/512px-Microsoft_logo_%282012%29.svg.png', alt: 'Microsoft' },
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png', alt: 'Google' },
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Razorpay_logo.svg/512px-Razorpay_logo.svg.png', alt: 'Razorpay' },
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_logo_%282012%29.svg/512px-Microsoft_logo_%282012%29.svg.png',
+                        alt: 'Microsoft'
+                    },
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png',
+                        alt: 'Google'
+                    },
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Razorpay_logo.svg/512px-Razorpay_logo.svg.png',
+                        alt: 'Razorpay'
+                    },
                     { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Swiggy_logo.svg/512px-Swiggy_logo.svg.png', alt: 'Swiggy' }
                 ]
             }
@@ -1287,10 +1299,19 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
             data: {
                 title: 'Trusted by industry',
                 items: [
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flipkart_logo.svg/512px-Flipkart_logo.svg.png', alt: 'Flipkart' },
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flipkart_logo.svg/512px-Flipkart_logo.svg.png',
+                        alt: 'Flipkart'
+                    },
                     { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Amazon_logo.svg/512px-Amazon_logo.svg.png', alt: 'Amazon' },
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_logo_%282012%29.svg/512px-Microsoft_logo_%282012%29.svg.png', alt: 'Microsoft' },
-                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png', alt: 'Google' }
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_logo_%282012%29.svg/512px-Microsoft_logo_%282012%29.svg.png',
+                        alt: 'Microsoft'
+                    },
+                    {
+                        src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png',
+                        alt: 'Google'
+                    }
                 ]
             }
         }
@@ -1303,7 +1324,7 @@ export const newSectionId = (): string =>
 export const newPageId = (): string =>
     typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pg_${Math.random().toString(36).slice(2, 10)}`
 
-export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() } as LandingSection)
+export const instantiateTemplate = (t: LandingTemplate): LandingSection => ({ ...t.section, id: newSectionId() }) as LandingSection
 
 // ---- Page templates -------------------------------------------------------
 //
@@ -1458,7 +1479,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     {
         id: 'faq',
         label: 'FAQ (uses CMS collection)',
-        description: 'Hero + a Collection-list block pointing to your "FAQs" CMS collection. Create the FAQs collection first if you have not already.',
+        description:
+            'Hero + a Collection-list block pointing to your "FAQs" CMS collection. Create the FAQs collection first if you have not already.',
         defaultName: 'FAQ',
         defaultSlug: '/faq',
         sections: [
@@ -1487,7 +1509,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     {
         id: 'blog-index',
         label: 'Blog index (uses CMS collection)',
-        description: 'Hero + a Collection-list grid for your "Blog posts" CMS collection. Pair with a detail-template page so individual posts route to /blog/<slug>.',
+        description:
+            'Hero + a Collection-list grid for your "Blog posts" CMS collection. Pair with a detail-template page so individual posts route to /blog/<slug>.',
         defaultName: 'Blog',
         defaultSlug: '/blog',
         sections: [
@@ -1517,7 +1540,8 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     {
         id: 'lead-capture-long',
         label: 'Lead capture · Long form',
-        description: 'Conversion-tuned landing page for paid traffic: hero with image, stats banner, value pillars, testimonials, and an inline lead form. Pair with a UTM link.',
+        description:
+            'Conversion-tuned landing page for paid traffic: hero with image, stats banner, value pillars, testimonials, and an inline lead form. Pair with a UTM link.',
         defaultName: 'Get started',
         defaultSlug: '/get-started',
         sections: [
@@ -1691,8 +1715,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
                     title: 'From a past masterclass attendee',
                     items: [
                         {
-                            quote:
-                                'I attended the masterclass thinking I would just take notes. Two months later I had a job offer. The roadmap was exactly what I needed.',
+                            quote: 'I attended the masterclass thinking I would just take notes. Two months later I had a job offer. The roadmap was exactly what I needed.',
                             name: 'Anjali Mehta',
                             role: 'Data Analyst'
                         }
@@ -1823,7 +1846,8 @@ export const readLandingContent = (tenant: { settings: TenantSettings | null } |
         sections: l?.sections && l.sections.length > 0 ? l.sections : undefined,
         heroTag: l?.heroTag ?? 'Now enrolling',
         heroTitle: l?.heroTitle ?? '',
-        heroSubtitle: l?.heroSubtitle ?? 'Mentor-led cohorts, hands-on projects, and 1:1 counselling — designed to take you from curious to confident.',
+        heroSubtitle:
+            l?.heroSubtitle ?? 'Mentor-led cohorts, hands-on projects, and 1:1 counselling — designed to take you from curious to confident.',
         primaryCtaLabel: l?.primaryCtaLabel ?? 'Talk to a counsellor',
         pillars: l?.pillars && l.pillars.length > 0 ? l.pillars : DEFAULT_PILLARS,
         ctaTitle: l?.ctaTitle ?? 'Ready to start?',
@@ -1836,7 +1860,7 @@ export const readLandingContent = (tenant: { settings: TenantSettings | null } |
 const DEFAULT_PILLARS: LandingPillar[] = [
     { title: 'Live cohorts', description: 'Small batches, real mentors, weekly office hours.' },
     { title: '1:1 counselling', description: 'Talk to an admissions counsellor before you commit.' },
-    { title: 'Industry projects', description: "Ship real work — not toy assignments — to your portfolio." }
+    { title: 'Industry projects', description: 'Ship real work — not toy assignments — to your portfolio.' }
 ]
 
 // Default block layout for tenants who haven't customised yet — produces the

@@ -37,9 +37,7 @@ export const gradeSubmissionSchema = z.object({
     score: z.number().int().min(0).max(1000),
     feedback: z.string().max(10_000).optional(),
     // RETURNED lets the student edit + re-submit; GRADED is final.
-    status: z
-        .enum([AssignmentSubmissionStatus.GRADED, AssignmentSubmissionStatus.RETURNED])
-        .default(AssignmentSubmissionStatus.GRADED)
+    status: z.enum([AssignmentSubmissionStatus.GRADED, AssignmentSubmissionStatus.RETURNED]).default(AssignmentSubmissionStatus.GRADED)
 })
 
 export type TCreateAssignmentInput = z.infer<typeof createAssignmentSchema>

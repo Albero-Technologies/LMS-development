@@ -234,7 +234,7 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
         }
     }
 
-    const isLoading = (q.trim().length >= 2) && (courseQuery.isLoading || (canSearchUsers && usersQuery.isLoading))
+    const isLoading = q.trim().length >= 2 && (courseQuery.isLoading || (canSearchUsers && usersQuery.isLoading))
 
     return (
         <div
@@ -313,9 +313,7 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
                                             onClick={() => it.onSelect()}
                                             className={cn(
                                                 'w-full px-3 py-2.5 rounded-xl flex items-center gap-3 text-left transition-all relative',
-                                                active
-                                                    ? 'bg-gradient-to-r from-[var(--color-brand-50)] to-transparent'
-                                                    : 'hover:bg-surface-hover'
+                                                active ? 'bg-gradient-to-r from-[var(--color-brand-50)] to-transparent' : 'hover:bg-surface-hover'
                                             )}>
                                             {active && (
                                                 <span
@@ -326,18 +324,12 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
                                             <span
                                                 className={cn(
                                                     'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all',
-                                                    active
-                                                        ? 'bg-[var(--color-brand-500)] text-white shadow-sm'
-                                                        : 'bg-surface-2 text-fg-soft'
+                                                    active ? 'bg-[var(--color-brand-500)] text-white shadow-sm' : 'bg-surface-2 text-fg-soft'
                                                 )}>
                                                 <Icon size={15} />
                                             </span>
                                             <div className="min-w-0 flex-1">
-                                                <div
-                                                    className={cn(
-                                                        'text-sm truncate',
-                                                        active ? 'text-fg font-semibold' : 'text-fg font-medium'
-                                                    )}>
+                                                <div className={cn('text-sm truncate', active ? 'text-fg font-semibold' : 'text-fg font-medium')}>
                                                     {it.label}
                                                 </div>
                                                 {it.hint && <div className="text-[11px] text-fg-muted truncate mt-0.5">{it.hint}</div>}
@@ -387,7 +379,9 @@ export const CommandPalette = ({ open, onClose }: { open: boolean; onClose: () =
 
 // Hook: register the global Cmd+K / Ctrl+K shortcut. Pulled out of the
 // palette itself so the listener attaches once at the layout level even
-// when the palette is unmounted.
+// when the palette is unmounted. Co-located with the palette component on
+// purpose — the rule below is fast-refresh ergonomics, not correctness.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCommandPaletteShortcut = (toggle: () => void): void => {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -440,4 +434,3 @@ export const CommandPaletteTrigger = ({ onClick }: { onClick: () => void }) => (
         </span>
     </button>
 )
-

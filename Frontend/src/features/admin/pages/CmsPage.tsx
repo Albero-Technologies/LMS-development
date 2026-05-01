@@ -147,7 +147,8 @@ export const CmsPage = () => {
                             onDeleteCollection={async () => {
                                 const ok = await confirm({
                                     title: `Delete "${selected.name}"?`,
-                                    description: 'Every item inside this collection is also removed. Pages that reference this collection will show an empty list. This cannot be undone.',
+                                    description:
+                                        'Every item inside this collection is also removed. Pages that reference this collection will show an empty list. This cannot be undone.',
                                     confirmLabel: 'Delete',
                                     tone: 'danger'
                                 })
@@ -289,7 +290,11 @@ const CollectionPane = ({
                     <Empty
                         icon={<FileText size={32} />}
                         title={fields.length === 0 ? 'Define a field first' : 'No items yet'}
-                        description={fields.length === 0 ? 'Open Schema to add fields, then come back to create items.' : 'Add the first item — schedule it as draft or publish immediately.'}
+                        description={
+                            fields.length === 0
+                                ? 'Open Schema to add fields, then come back to create items.'
+                                : 'Add the first item — schedule it as draft or publish immediately.'
+                        }
                     />
                 ) : (
                     <div className="overflow-x-auto">
@@ -311,9 +316,7 @@ const CollectionPane = ({
                                         <td className="py-3 px-5 font-mono text-xs">{it.slug}</td>
                                         <td className="py-3 px-5 text-fg truncate max-w-md">{previewText(it, fields)}</td>
                                         <td className="py-3 px-5">
-                                            <Badge tone={it.published ? 'ok' : 'default'}>
-                                                {it.published ? 'Published' : 'Draft'}
-                                            </Badge>
+                                            <Badge tone={it.published ? 'ok' : 'default'}>{it.published ? 'Published' : 'Draft'}</Badge>
                                         </td>
                                         <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(it.updatedAt)}</td>
                                         <td className="py-3 px-5 text-right space-x-1">
@@ -338,7 +341,8 @@ const CollectionPane = ({
                                                 onClick={async () => {
                                                     const ok = await confirm({
                                                         title: 'Delete this item?',
-                                                        description: 'It is removed from the collection. Public pages that listed it will skip it on the next refresh.',
+                                                        description:
+                                                            'It is removed from the collection. Public pages that listed it will skip it on the next refresh.',
                                                         confirmLabel: 'Delete',
                                                         tone: 'danger'
                                                     })
@@ -372,7 +376,13 @@ const previewText = (item: CollectionItem, fields: FieldDef[]): string => {
 // ---- New collection modal --------------------------------------------------
 
 const slugify = (s: string): string =>
-    s.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'collection'
+    s
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/-{2,}/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60) || 'collection'
 
 const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (c: Collection) => void }) => {
     const queryClient = useQueryClient()
@@ -621,8 +631,7 @@ const SchemaEditorModal = ({ collection, open, onClose }: { collection: Collecti
     })
 
     const update = (i: number, patch: Partial<FieldDef>) => setFields((xs) => xs.map((f, idx) => (idx === i ? { ...f, ...patch } : f)))
-    const add = () =>
-        setFields((xs) => [...xs, { key: `field_${xs.length + 1}`, label: `Field ${xs.length + 1}`, type: 'text' }])
+    const add = () => setFields((xs) => [...xs, { key: `field_${xs.length + 1}`, label: `Field ${xs.length + 1}`, type: 'text' }])
     const remove = (i: number) => setFields((xs) => xs.filter((_, idx) => idx !== i))
 
     return (
@@ -728,15 +737,7 @@ const SchemaEditorModal = ({ collection, open, onClose }: { collection: Collecti
 
 // ---- Item editor modal -----------------------------------------------------
 
-const ItemEditorModal = ({
-    collection,
-    item,
-    onClose
-}: {
-    collection: Collection
-    item: CollectionItem | null
-    onClose: () => void
-}) => {
+const ItemEditorModal = ({ collection, item, onClose }: { collection: Collection; item: CollectionItem | null; onClose: () => void }) => {
     const queryClient = useQueryClient()
     const fields = collection.fields ?? []
     const [slug, setSlug] = useState(item?.slug ?? '')
@@ -816,7 +817,9 @@ const ItemEditorModal = ({
                     />
                 ))}
                 <div className="flex items-center justify-between text-xs text-fg-muted pt-2">
-                    <span>Status: <Badge tone={published ? 'ok' : 'default'}>{published ? 'Published' : 'Draft'}</Badge></span>
+                    <span>
+                        Status: <Badge tone={published ? 'ok' : 'default'}>{published ? 'Published' : 'Draft'}</Badge>
+                    </span>
                     {item && <span>Updated {fmtDate(item.updatedAt)}</span>}
                 </div>
             </div>

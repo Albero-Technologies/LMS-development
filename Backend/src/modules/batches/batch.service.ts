@@ -54,11 +54,7 @@ export const updateBatch = async (role: Role, authTenantId: string, id: string, 
     return db.client.batch.update({ where: { id }, data })
 }
 
-export const listBatches = async (
-    role: Role,
-    authTenantId: string,
-    opts: { courseId?: string; tenantId?: string }
-) => {
+export const listBatches = async (role: Role, authTenantId: string, opts: { courseId?: string; tenantId?: string }) => {
     const tenantId = resolveTargetTenant(role, authTenantId, opts.tenantId)
     return db.client.batch.findMany({
         where: { tenantId, deletedAt: null, ...(opts.courseId ? { courseId: opts.courseId } : {}) },
@@ -97,12 +93,7 @@ export const deleteBatch = async (role: Role, authTenantId: string, id: string) 
 }
 
 // Assign an existing enrollment (by userId) to this batch. Assumes the student is already enrolled.
-export const assignStudents = async (
-    role: Role,
-    authTenantId: string,
-    batchId: string,
-    input: TAssignStudentsInput
-) => {
+export const assignStudents = async (role: Role, authTenantId: string, batchId: string, input: TAssignStudentsInput) => {
     const where = role === Role.SUPER_ADMIN ? { id: batchId } : { id: batchId, tenantId: authTenantId }
     const batch = await db.client.batch.findFirst({ where })
     if (!batch) throw AppError.notFound(responseMessage.NOT_FOUND('Batch'))
@@ -121,12 +112,7 @@ export const assignStudents = async (
 }
 
 // Transfer a student (preserves progress — we only rewrite batchId).
-export const transferStudent = async (
-    role: Role,
-    authTenantId: string,
-    fromBatchId: string,
-    input: TTransferStudentInput
-) => {
+export const transferStudent = async (role: Role, authTenantId: string, fromBatchId: string, input: TTransferStudentInput) => {
     const tenantWhere = role === Role.SUPER_ADMIN ? {} : { tenantId: authTenantId }
     const [from, to] = await Promise.all([
         db.client.batch.findFirst({ where: { id: fromBatchId, ...tenantWhere } }),

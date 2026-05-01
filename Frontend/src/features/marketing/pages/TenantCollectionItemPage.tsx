@@ -10,11 +10,7 @@ import { useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
-import {
-    defaultFooter,
-    defaultNavbar,
-    type LandingSection
-} from '@features/admin/services/tenant.service'
+import { defaultFooter, defaultNavbar, type LandingSection } from '@features/admin/services/tenant.service'
 import { getPublicCollection, type CollectionItem } from '@features/admin/services/cms.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
 import { TenantNavbar } from '@features/marketing/components/TenantNavbar'
@@ -48,7 +44,7 @@ const substituteDeep = (value: unknown, item: CollectionItem): unknown => {
 }
 
 const renderItem = (sections: LandingSection[], item: CollectionItem): LandingSection[] =>
-    sections.map((s) => ({ ...s, data: substituteDeep(s.data, item) } as LandingSection))
+    sections.map((s) => ({ ...s, data: substituteDeep(s.data, item) }) as LandingSection)
 
 export const TenantCollectionItemPage = () => {
     const { tenant } = useTenantBranding()

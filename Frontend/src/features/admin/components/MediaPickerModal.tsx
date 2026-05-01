@@ -83,7 +83,9 @@ export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
                     onClick={() => setTab('library')}
                     className={cn(
                         'px-3 py-2 text-sm font-medium border-b-2 transition-colors inline-flex items-center gap-2',
-                        tab === 'library' ? 'border-[var(--color-brand-500)] text-[var(--color-brand-600)]' : 'border-transparent text-fg-muted hover:text-fg'
+                        tab === 'library'
+                            ? 'border-[var(--color-brand-500)] text-[var(--color-brand-600)]'
+                            : 'border-transparent text-fg-muted hover:text-fg'
                     )}>
                     <Library size={14} /> Library ({libraryQuery.data?.length ?? 0})
                 </button>
@@ -92,7 +94,9 @@ export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
                     onClick={() => setTab('upload')}
                     className={cn(
                         'px-3 py-2 text-sm font-medium border-b-2 transition-colors inline-flex items-center gap-2',
-                        tab === 'upload' ? 'border-[var(--color-brand-500)] text-[var(--color-brand-600)]' : 'border-transparent text-fg-muted hover:text-fg'
+                        tab === 'upload'
+                            ? 'border-[var(--color-brand-500)] text-[var(--color-brand-600)]'
+                            : 'border-transparent text-fg-muted hover:text-fg'
                     )}>
                     <FileUp size={14} /> Upload
                 </button>
@@ -132,7 +136,8 @@ export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
                                     onDelete={async () => {
                                         const ok = await confirm({
                                             title: 'Remove this asset?',
-                                            description: 'It is removed from the library. Pages still using this URL keep working until you replace the image.',
+                                            description:
+                                                'It is removed from the library. Pages still using this URL keep working until you replace the image.',
                                             confirmLabel: 'Remove',
                                             tone: 'danger'
                                         })
@@ -172,9 +177,7 @@ export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
                         />
                         <p className="text-sm font-medium text-fg">Drop an image here, or click to choose</p>
                         <p className="text-xs text-fg-muted mt-1">PNG, JPG, WebP, GIF, SVG · up to 10 MB</p>
-                        {uploadMutation.isPending && (
-                            <p className="text-xs text-[var(--color-brand-500)] mt-3">Uploading…</p>
-                        )}
+                        {uploadMutation.isPending && <p className="text-xs text-[var(--color-brand-500)] mt-3">Uploading…</p>}
                     </label>
                     <input
                         ref={fileInputRef}
@@ -190,17 +193,7 @@ export const MediaPickerModal = ({ open, onClose, onPick }: Props) => {
     )
 }
 
-const AssetCard = ({
-    asset,
-    onPick,
-    onDelete,
-    isDeleting
-}: {
-    asset: MediaAsset
-    onPick: () => void
-    onDelete: () => void
-    isDeleting: boolean
-}) => (
+const AssetCard = ({ asset, onPick, onDelete, isDeleting }: { asset: MediaAsset; onPick: () => void; onDelete: () => void; isDeleting: boolean }) => (
     <div className="group relative aspect-square rounded-md border border-[var(--color-border)] overflow-hidden bg-surface-2">
         <button
             type="button"

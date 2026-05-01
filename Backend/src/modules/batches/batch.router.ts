@@ -1,13 +1,7 @@
 import { Router } from 'express'
 import * as ctrl from './batch.controller'
 import { validate } from '../../middleware/validate'
-import {
-    assignStudentsSchema,
-    createBatchSchema,
-    listBatchesQuerySchema,
-    transferStudentSchema,
-    updateBatchSchema
-} from './batch.schema'
+import { assignStudentsSchema, createBatchSchema, listBatchesQuerySchema, transferStudentSchema, updateBatchSchema } from './batch.schema'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth, requirePolicy } from '../../middleware/auth'
 

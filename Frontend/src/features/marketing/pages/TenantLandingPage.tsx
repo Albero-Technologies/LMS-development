@@ -3,13 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { MessageCircle, Compass } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
-import {
-    defaultFooter,
-    defaultLandingSections,
-    defaultNavbar,
-    type LandingPage,
-    type LandingSection
-} from '@features/admin/services/tenant.service'
+import { defaultFooter, defaultLandingSections, defaultNavbar, type LandingPage, type LandingSection } from '@features/admin/services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
 import { TenantNavbar } from '@features/marketing/components/TenantNavbar'
 import { TenantFooter } from '@features/marketing/components/TenantFooter'
@@ -34,10 +28,9 @@ export const TenantLandingPage = () => {
     const requestedPage = requestedSlug === '/' ? homePage : pages.find((p) => p.slug === requestedSlug)
     const isMissing = pageSlug !== undefined && !requestedPage
     const activePage = requestedPage ?? homePage
-    const sections: LandingSection[] = activePage?.sections
-        ?? (tenant.landing?.sections && tenant.landing.sections.length > 0
-            ? tenant.landing.sections
-            : defaultLandingSections(tenant.name))
+    const sections: LandingSection[] =
+        activePage?.sections ??
+        (tenant.landing?.sections && tenant.landing.sections.length > 0 ? tenant.landing.sections : defaultLandingSections(tenant.name))
 
     const navbar = tenant.landing?.navbar ?? defaultNavbar()
     const footer = tenant.landing?.footer ?? defaultFooter(tenant.name)
@@ -182,9 +175,7 @@ export const TenantLandingPage = () => {
                         </div>
                         {pages.length > 1 && (
                             <div className="mt-10 text-left">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted mb-3 text-center">
-                                    Or jump to
-                                </p>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted mb-3 text-center">Or jump to</p>
                                 <ul className="grid sm:grid-cols-2 gap-2">
                                     {pages.map((p) => (
                                         <li key={p.id}>

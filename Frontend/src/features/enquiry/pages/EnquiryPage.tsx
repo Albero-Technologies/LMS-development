@@ -10,7 +10,21 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
-import { Mail, Phone, User, MapPin, ArrowRight, CheckCircle2, Clock, MessageSquare, Sparkles, GraduationCap, Briefcase, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+    Mail,
+    Phone,
+    User,
+    MapPin,
+    ArrowRight,
+    CheckCircle2,
+    Clock,
+    MessageSquare,
+    Sparkles,
+    GraduationCap,
+    Briefcase,
+    ChevronDown,
+    ChevronUp
+} from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { Input, Textarea } from '@shared/components/ui/Input'
@@ -476,10 +490,7 @@ const CollapseSection = ({
         <button
             type="button"
             onClick={onToggle}
-            className={
-                'w-full flex items-center justify-between px-4 py-3 text-left ' +
-                (open ? 'border-b border-[var(--color-border)]' : '')
-            }>
+            className={'w-full flex items-center justify-between px-4 py-3 text-left ' + (open ? 'border-b border-[var(--color-border)]' : '')}>
             <div className="flex items-center gap-2.5">
                 <span className="h-7 w-7 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center">{icon}</span>
                 <div>

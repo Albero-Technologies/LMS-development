@@ -182,9 +182,7 @@ const SuperAdminCourseCard = ({ course }: { course: ApiCourse }) => {
             </div>
             {course.description && <p className="mt-2 text-sm text-fg-soft line-clamp-2">{course.description}</p>}
             <div className="mt-3 flex items-center justify-between text-sm text-fg-soft">
-                <span className="font-mono font-semibold">
-                    {priceRupees > 0 ? `₹${priceRupees.toLocaleString('en-IN')}` : 'Free'}
-                </span>
+                <span className="font-mono font-semibold">{priceRupees > 0 ? `₹${priceRupees.toLocaleString('en-IN')}` : 'Free'}</span>
                 <span className="text-xs text-fg-muted">{enrolled} enrolled</span>
             </div>
         </Card>

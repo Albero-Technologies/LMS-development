@@ -13,8 +13,13 @@ export const ProtectedRoute = ({ children, roles }: Props) => {
     const { user, hydrated } = useAuthStore()
     const location = useLocation()
 
-    if (!hydrated) return <BoxLoader fullscreen size="lg" />
-
+    if (!hydrated)
+        return (
+            <BoxLoader
+                fullscreen
+                size="lg"
+            />
+        )
 
     if (!user) {
         return (
