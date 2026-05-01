@@ -1,88 +1,147 @@
 name: CI Pipeline
 
+# Runs on every push or PR targeting main / uat. The PR run is the gating
+# check; the push run is what unlocks the build + (later) deploy step.
 on:
     push:
-        branches:
-            - main
-            - uat
+        branches: [main, uat]
     pull_request:
-        branches:
-            - main
-            - uat
+        branches: [main, uat]
+
+# Cancel any in-flight CI run for the same ref when a new commit lands. Saves
+# minutes and avoids racing builds publishing the same artifact.
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-    test:
-        if: |
-            (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/uat')) ||
-            (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'uat'))
+    # ---- Backend checks: lint + typecheck (via build) + tests ---------------
+    backend:
+        name: Backend (lint · build · test)
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./Backend
+        env:
+            # Prisma CLI requires DATABASE_URL to be present even for `generate`
+            # (it does not actually connect for the codegen step). Dummy works.
+            DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
+        steps:
+            - uses: actions/checkout@v4
 
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+                  cache-dependency-path: Backend/package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Generate Prisma client
+              run: npx prisma generate
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Format check
+              run: npm run format:check
+
+            - name: TypeScript build (typecheck + emit)
+              run: npm run build
+
+            - name: Tests
+              run: npm test
+
+    # ---- Frontend checks: lint + prettier + stylelint + typecheck + test ----
+    frontend:
+        name: Frontend (lint · typecheck · test)
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./Frontend
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+                  cache-dependency-path: Frontend/package-lock.json
+
+            - name: Install dependencies
+              # legacy-peer-deps kept to match the local + previous CI behaviour;
+              # remove once the underlying peer-conflict is resolved upstream.
+              run: npm ci --legacy-peer-deps
+
+            - name: ESLint
+              run: npm run lint:eslint
+
+            - name: Prettier
+              run: npm run format:check
+
+            - name: Stylelint
+              run: npm run lint:stylelint
+
+            - name: TypeScript
+              run: npm run typecheck
+
+            - name: Tests
+              run: npm test -- --run
+
+    # ---- Build (Frontend production bundle) ---------------------------------
+    # Only runs on push to main / uat, after both check jobs pass. PRs do not
+    # build — they only need to prove they are green. The environment is
+    # chosen from the actual branch (not the PR base), so a uat push never
+    # accidentally deploys to production.
+    build:
+        name: Build & upload (${{ github.ref_name }})
+        if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'uat')
+        needs: [backend, frontend]
         runs-on: ubuntu-latest
         environment: ${{ github.ref_name == 'main' && 'production' || 'uat' }}
-
+        defaults:
+            run:
+                working-directory: ./Frontend
         steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+            - uses: actions/checkout@v4
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '22'
+                  node-version: '20'
+                  cache: 'npm'
+                  cache-dependency-path: Frontend/package-lock.json
 
-            - name: Install Dependencies (Client)
-              run: npm install --legacy-peer-deps
-              working-directory: ./client
+            - name: Install dependencies
+              run: npm ci --legacy-peer-deps
 
-            - name: Run eslint
-              run: npm run lint:eslint
-              working-directory: ./client
-
-            - name: Run prettier
-              run: npm run format:check
-              working-directory: ./client
-
-            - name: Run stylelint
-              run: npm run lint:stylelint
-              working-directory: ./client
-
-            - name: Debug secrets presence
+            - name: Verify required secrets are present
+              # Fail fast with a clear message rather than producing a broken
+              # build silently when the environment is missing a secret.
               run: |
-                  echo "BACKEND_PROXY is set? -> ${BACKEND_PROXY:+yes}"
-                  echo "PORT is set? -> ${PORT:+yes}"
-                  echo "VITE_ENV = $VITE_ENV"
+                  missing=0
+                  if [ -z "${BACKEND_PROXY}" ]; then echo "::error::BACKEND_PROXY is not set"; missing=1; fi
+                  if [ -z "${VITE_ENV}" ]; then echo "::error::VITE_ENV is not set"; missing=1; fi
+                  exit $missing
               env:
-                  PORT: ${{ secrets.PORT }}
                   BACKEND_PROXY: ${{ secrets.BACKEND_PROXY }}
                   VITE_ENV: ${{ vars.VITE_ENV }}
-              working-directory: ./client
 
-    production:
-        needs: test
-        runs-on: ubuntu-latest
-        environment: production
-
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-
-            - name: Install Dependencies (Client)
-              run: npm install --legacy-peer-deps
-              working-directory: ./client
-
-            - name: Build the application
+            - name: Build production bundle
               run: npm run build
-              working-directory: ./client
               env:
                   PORT: ${{ secrets.PORT }}
                   BACKEND_PROXY: ${{ secrets.BACKEND_PROXY }}
                   VITE_ENV: ${{ vars.VITE_ENV }}
 
-            - name: Upload build artifacts
+            - name: Upload dist artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: dist
-                  path: client/dist
+                  name: frontend-dist-${{ github.ref_name }}-${{ github.sha }}
+                  path: Frontend/dist
+                  # Short retention — the artifact is immutable per commit, so
+                  # there is no value in keeping months of stale builds.
+                  retention-days: 7
