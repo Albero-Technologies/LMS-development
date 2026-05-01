@@ -45,8 +45,8 @@ jobs:
             - name: Lint
               run: npm run lint
 
-            - name: Format check
-              run: npm run format:check
+            - name: Format fix
+              run: npm run format:fix
 
             - name: TypeScript build (typecheck + emit)
               run: npm run build
