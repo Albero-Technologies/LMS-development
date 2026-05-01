@@ -54,6 +54,19 @@ export const UtmBuilderPage = () => {
     const [content, setContent] = useState('')
     const [copied, setCopied] = useState<string | null>(null)
 
+    // Tenant-scoped UTM links should land on the tenant's public site
+    // (`/t/<slug>/...`), not the platform-level path. We auto-prefix the
+    // tenant slug when the destination is a relative path that is not
+    // already tenant-scoped (does not start with `/t/`). Absolute URLs and
+    // paths that already include `/t/` pass through untouched.
+    const resolveDestination = (raw: string, tenantSlug: string | undefined): string => {
+        if (!raw) return ''
+        if (/^https?:\/\//.test(raw)) return raw
+        const path = raw.startsWith('/') ? raw : `/${raw}`
+        if (path.startsWith('/t/') || !tenantSlug) return path
+        return `/t/${tenantSlug}${path === '/' ? '' : path}`
+    }
+
     const preview = useMemo(() => {
         const params = new URLSearchParams()
         params.set('utm_source', source || 'src')
@@ -62,10 +75,11 @@ export const UtmBuilderPage = () => {
         if (term) params.set('utm_term', term)
         if (content) params.set('utm_content', content)
         const origin = typeof window !== 'undefined' ? window.location.origin : ''
-        const dest = destination.startsWith('http') ? destination : `${origin}${destination}`
+        const path = resolveDestination(destination, tenant?.slug)
+        const dest = path.startsWith('http') ? path : `${origin}${path}`
         const sep = dest.includes('?') ? '&' : '?'
         return `${dest}${sep}${params.toString()}`
-    }, [destination, source, medium, campaign, term, content])
+    }, [destination, source, medium, campaign, term, content, tenant?.slug])
 
     const persistMutation = useMutation({
         mutationFn: (next: UtmLink[]) => {
@@ -195,8 +209,12 @@ export const UtmBuilderPage = () => {
                             label="Destination path or URL"
                             value={destination}
                             onChange={(e) => setDestination(e.target.value)}
-                            placeholder="/enquiry or https://..."
-                            hint="Paths resolve against the current origin."
+                            placeholder="/enquiry, /business-analytics, or https://..."
+                            hint={
+                                tenant
+                                    ? `Relative paths auto-prefix /t/${tenant.slug}/. Use a full https:// URL to bypass.`
+                                    : 'Paths resolve against the current origin.'
+                            }
                         />
                         <div className="grid grid-cols-2 gap-3">
                             <Input

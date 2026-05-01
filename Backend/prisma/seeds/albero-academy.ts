@@ -476,7 +476,7 @@ const faqSections = (): unknown[] => [
     {
         id: sid('faq-list'),
         type: 'collectionList',
-        variant: 'list',
+        variant: 'accordion',
         data: {
             collectionSlug: 'faqs',
             title: 'Browse questions',
@@ -779,6 +779,93 @@ const buildLandingJson = () => {
     }
 }
 
+// ---- Per-tenant UTM links (settings.utmLinks) ------------------------------
+//
+// Pre-seed a starter set of marketing campaigns so the SA opens UTM Builder
+// to a populated list, not an empty state. Tenant slug is hard-coded into the
+// fullUrl so links work standalone (clipboard share). The runtime preview in
+// the UTM Builder always re-derives the URL from current origin + current
+// destination — these stored entries are just the persisted state.
+const buildUtmLinks = (origin: string, slug: string) => {
+    const u = (path: string, params: Record<string, string>): string => {
+        const qs = new URLSearchParams(params).toString()
+        return `${origin}/t/${slug}${path}?${qs}`
+    }
+    const now = new Date()
+    return [
+        {
+            id: 'utm-instagram-spring',
+            tenantId: '',
+            label: 'Instagram · spring 2026 reels',
+            destination: '/enquiry',
+            source: 'instagram',
+            medium: 'social',
+            campaign: 'spring-2026',
+            content: 'reel-cohort14',
+            fullUrl: u('/enquiry', {
+                utm_source: 'instagram',
+                utm_medium: 'social',
+                utm_campaign: 'spring-2026',
+                utm_content: 'reel-cohort14'
+            }),
+            createdAt: now.toISOString(),
+            clickCount: 0
+        },
+        {
+            id: 'utm-google-ba',
+            tenantId: '',
+            label: 'Google Ads · Business Analytics',
+            destination: '/business-analytics',
+            source: 'google',
+            medium: 'cpc',
+            campaign: 'ba-jun26',
+            term: 'business analytics course',
+            fullUrl: u('/business-analytics', {
+                utm_source: 'google',
+                utm_medium: 'cpc',
+                utm_campaign: 'ba-jun26',
+                utm_term: 'business analytics course'
+            }),
+            createdAt: now.toISOString(),
+            clickCount: 0
+        },
+        {
+            id: 'utm-linkedin-aiml',
+            tenantId: '',
+            label: 'LinkedIn · AI/ML sponsored',
+            destination: '/ai-ml',
+            source: 'linkedin',
+            medium: 'cpc',
+            campaign: 'aiml-q2',
+            content: 'sponsored-carousel',
+            fullUrl: u('/ai-ml', {
+                utm_source: 'linkedin',
+                utm_medium: 'cpc',
+                utm_campaign: 'aiml-q2',
+                utm_content: 'sponsored-carousel'
+            }),
+            createdAt: now.toISOString(),
+            clickCount: 0
+        },
+        {
+            id: 'utm-newsletter',
+            tenantId: '',
+            label: 'Newsletter · May broadcast',
+            destination: '/masterclass',
+            source: 'newsletter',
+            medium: 'email',
+            campaign: 'may-2026',
+            fullUrl: u('/masterclass', {
+                utm_source: 'newsletter',
+                utm_medium: 'email',
+                utm_campaign: 'may-2026'
+            }),
+            createdAt: now.toISOString(),
+            clickCount: 0
+        }
+    ]
+}
+
 // ---- Per-tenant SEO (settings.seo) ------------------------------------------
 
 const buildSeo = () => ({
@@ -814,10 +901,16 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
 
     const passwordHash = await bcrypt.hash('AlberoAcademy123', 10)
 
+    // Origin used to build absolute UTM links. Picks up FRONTEND_BASE_URL when
+    // available so links work in deployed environments; falls back to the local
+    // dev URL otherwise. SAs can edit/regenerate later from the UTM Builder.
+    const FRONTEND_ORIGIN = process.env.FRONTEND_BASE_URL ?? 'http://localhost:5173'
+
     // 1. Tenant
     const settings = {
         landing: buildLandingJson(),
         seo: buildSeo(),
+        utmLinks: buildUtmLinks(FRONTEND_ORIGIN, ALBERO_SLUG),
         contacts: {
             primaryEmail: 'hello@albero.academy',
             primaryPhone: '+91-99999-99999',

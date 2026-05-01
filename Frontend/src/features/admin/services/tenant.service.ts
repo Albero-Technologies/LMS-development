@@ -556,10 +556,14 @@ export type LeadFormSectionData = {
     showMessage?: boolean
 }
 
-// Partner / placement logo strip. Each item is just an image URL + alt.
+// Partner / placement logo strip. Each item supports either:
+//   - `src`: image URL (PNG/SVG)
+//   - `svg`: raw inline SVG markup (when given, takes precedence over src)
+// `alt` provides accessible text for both modes; `href` makes the logo a link.
 // variant=grid → centered grid; variant=scroll → horizontal marquee.
 export type LogoItem = {
-    src: string
+    src?: string
+    svg?: string
     alt?: string
     href?: string
 }
@@ -640,7 +644,7 @@ export type LandingSection =
     | {
           id: string
           type: 'collectionList'
-          variant: 'cards' | 'list'
+          variant: 'cards' | 'list' | 'accordion'
           data: CollectionListSectionData
           style?: SectionStyle
       }
@@ -1042,6 +1046,21 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
                 titleField: 'title',
                 summaryField: 'summary',
                 limit: 10
+            }
+        }
+    },
+    {
+        label: 'Collection list · Accordion (FAQ)',
+        description: 'Click-to-expand items. Title field is the question, summary field is the answer. Best for FAQs.',
+        section: {
+            type: 'collectionList',
+            variant: 'accordion',
+            data: {
+                collectionSlug: 'faqs',
+                title: 'Frequently asked questions',
+                titleField: 'question',
+                summaryField: 'answer',
+                limit: 50
             }
         }
     },
@@ -1491,6 +1510,207 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
                     summaryField: 'summary',
                     imageField: 'coverImage',
                     limit: 12
+                }
+            }
+        ]
+    },
+    {
+        id: 'lead-capture-long',
+        label: 'Lead capture · Long form',
+        description: 'Conversion-tuned landing page for paid traffic: hero with image, stats banner, value pillars, testimonials, and an inline lead form. Pair with a UTM link.',
+        defaultName: 'Get started',
+        defaultSlug: '/get-started',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'split',
+                data: {
+                    eyebrow: 'Free counselling call · 20 minutes',
+                    title: 'Talk to a senior counsellor before you commit.',
+                    subtitle:
+                        'No sales script. We will walk you through the curriculum, talk through your goals, and recommend the right program — even if it is not ours.',
+                    primaryCtaLabel: 'Reserve my call',
+                    primaryCtaLink: '#lead-form'
+                }
+            },
+            {
+                type: 'logos',
+                variant: 'scroll',
+                data: { title: 'Our alumni work at', items: [] }
+            },
+            {
+                type: 'stats',
+                variant: 'banner',
+                data: {
+                    title: 'Why students pick us',
+                    items: [
+                        { value: '94%', label: 'Placement rate' },
+                        { value: '₹8.4L', label: 'Avg package' },
+                        { value: '40+', label: 'Hiring partners' },
+                        { value: '6 mo', label: 'Money-back guarantee' }
+                    ]
+                }
+            },
+            {
+                type: 'features',
+                variant: 'three-up',
+                data: {
+                    title: 'What you get',
+                    pillars: [
+                        { title: 'Live mentor-led cohorts', description: 'Working professionals from product companies, not career educators.' },
+                        { title: 'Industry-graded projects', description: 'You ship real work that recruiters actually want to review.' },
+                        { title: '1:1 placement support', description: 'Resume reviews, mock interviews, warm partner-company referrals.' }
+                    ]
+                }
+            },
+            {
+                type: 'testimonials',
+                variant: 'cards',
+                data: { title: 'Stories from our cohort', items: [] }
+            },
+            {
+                type: 'leadForm',
+                variant: 'split',
+                data: {
+                    eyebrow: 'Reserve your spot',
+                    title: 'Get a free counselling call',
+                    subtitle: 'Drop your details and a senior counsellor will call within one working day.',
+                    submitLabel: 'Request a callback',
+                    successMessage: 'Got it — your counsellor will call within one working day.',
+                    showQualification: true,
+                    showCity: true,
+                    showMessage: false
+                }
+            },
+            {
+                type: 'callout',
+                variant: 'success',
+                data: {
+                    title: 'Limited cohort seats',
+                    body: 'Each cohort is capped at 25 students for high-touch mentorship. Once full, we open the waitlist for the next batch.'
+                }
+            },
+            {
+                type: 'cta',
+                variant: 'banner',
+                data: {
+                    title: 'Prefer to chat first?',
+                    subtitle: 'Reach us on WhatsApp — we usually reply within an hour during work hours.',
+                    buttonLabel: 'Open WhatsApp',
+                    buttonLink: 'enquiry'
+                }
+            }
+        ]
+    },
+    {
+        id: 'lead-capture-express',
+        label: 'Lead capture · Express',
+        description: 'Single-screen lead-capture: hero + inline form + trust callout. Designed for ad clicks where bounce is the enemy.',
+        defaultName: 'Apply now',
+        defaultSlug: '/apply',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'centered',
+                data: {
+                    eyebrow: 'Cohort 14 · enrolling now',
+                    title: 'Apply in 60 seconds.',
+                    subtitle: 'Tell us a bit about yourself. A senior counsellor will call within one working day.'
+                }
+            },
+            {
+                type: 'leadForm',
+                variant: 'inline',
+                data: {
+                    title: 'Reserve your seat',
+                    subtitle: 'Limited cohort spots — first-come, first-served.',
+                    submitLabel: 'Reserve my seat',
+                    successMessage: 'Thanks — we will be in touch shortly.',
+                    showQualification: true,
+                    showCity: false,
+                    showMessage: true
+                }
+            },
+            {
+                type: 'stats',
+                variant: 'grid',
+                data: {
+                    items: [
+                        { value: '94%', label: 'Placement rate' },
+                        { value: '₹8.4L', label: 'Avg package' },
+                        { value: '4.8/5', label: 'Cohort rating' },
+                        { value: '6 mo', label: 'Refund guarantee' }
+                    ]
+                }
+            },
+            {
+                type: 'callout',
+                variant: 'info',
+                data: {
+                    title: 'Not ready to apply?',
+                    body: 'Book a free 20-minute counselling call instead — no commitment required.'
+                }
+            }
+        ]
+    },
+    {
+        id: 'webinar-funnel',
+        label: 'Lead capture · Webinar funnel',
+        description: 'Webinar-style funnel: hero with date, what-you-will-learn, instructor testimonial, and registration form.',
+        defaultName: 'Free masterclass',
+        defaultSlug: '/masterclass',
+        sections: [
+            {
+                type: 'hero',
+                variant: 'gradient',
+                data: {
+                    eyebrow: 'Free 90-minute masterclass',
+                    title: 'Break into Data Analytics in 2026.',
+                    subtitle: 'Live with senior practitioners. Limited to 200 seats.',
+                    primaryCtaLabel: 'Register free',
+                    primaryCtaLink: '#lead-form'
+                }
+            },
+            {
+                type: 'features',
+                variant: 'four-up',
+                data: {
+                    title: 'What we will cover',
+                    pillars: [
+                        { title: 'The 2026 hiring landscape', description: 'What roles are actually open + what they pay.' },
+                        { title: 'Skills that matter', description: 'The non-negotiable stack vs the noise.' },
+                        { title: '90-day roadmap', description: 'Week-by-week plan to land your first interview.' },
+                        { title: 'Live Q&A', description: '30 minutes of questions answered live.' }
+                    ]
+                }
+            },
+            {
+                type: 'testimonials',
+                variant: 'quotes',
+                data: {
+                    title: 'From a past masterclass attendee',
+                    items: [
+                        {
+                            quote:
+                                'I attended the masterclass thinking I would just take notes. Two months later I had a job offer. The roadmap was exactly what I needed.',
+                            name: 'Anjali Mehta',
+                            role: 'Data Analyst'
+                        }
+                    ]
+                }
+            },
+            {
+                type: 'leadForm',
+                variant: 'split',
+                data: {
+                    eyebrow: 'Save your seat',
+                    title: 'Free registration',
+                    subtitle: 'Drop your email — we will send the calendar invite + Zoom link.',
+                    submitLabel: 'Register free',
+                    successMessage: 'Registered — check your inbox for the joining link.',
+                    showQualification: false,
+                    showCity: false,
+                    showMessage: false
                 }
             }
         ]

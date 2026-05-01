@@ -543,16 +543,16 @@ const MobileMenu = ({
                 aria-label={open ? 'Close menu' : 'Open menu'}
                 aria-expanded={open}
                 onClick={() => setOpen((v) => !v)}
-                className="md:hidden p-2 -mr-2 text-fg-muted hover:text-fg transition-colors">
+                className="md:hidden inline-flex items-center justify-center h-10 w-10 -mr-2 rounded-lg border border-[var(--color-border)] bg-surface text-fg hover:bg-surface-hover transition-colors shrink-0">
                 {open ? <X size={20} /> : <Menu size={20} />}
             </button>
 
             {open && variant === 'sheet' && (
                 <div
-                    className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-surface backdrop-blur border-t border-[var(--color-border)] overflow-y-auto"
+                    className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-surface border-t border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-top-2 duration-150"
                     role="dialog"
                     aria-modal="true">
-                    <div className="px-4 py-4 flex flex-col gap-1">{linksContent}</div>
+                    <div className="px-5 py-5 flex flex-col gap-1 max-w-md mx-auto w-full">{linksContent}</div>
                 </div>
             )}
 

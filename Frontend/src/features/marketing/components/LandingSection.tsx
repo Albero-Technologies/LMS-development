@@ -580,6 +580,23 @@ const CollectionListBlock = ({
         )
     }
 
+    if (section.variant === 'accordion') {
+        return (
+            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+                {section.data.title && <h2 className="text-2xl font-semibold tracking-tight mb-5 text-center">{section.data.title}</h2>}
+                <div className="rounded-2xl border border-[var(--color-border)] bg-surface divide-y divide-[var(--color-border)] overflow-hidden">
+                    {items.map((it) => (
+                        <AccordionRow
+                            key={it.id}
+                            question={stringify(it.data[titleField]) || 'Untitled'}
+                            answer={summaryField ? stringify(it.data[summaryField]) : ''}
+                        />
+                    ))}
+                </div>
+            </section>
+        )
+    }
+
     if (section.variant === 'list') {
         return (
             <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
@@ -650,6 +667,38 @@ const stringify = (v: unknown): string => {
     if (v === null || v === undefined) return ''
     if (typeof v === 'string') return v
     return String(v)
+}
+
+// One row in the FAQ accordion. Local open state — clicking the header
+// toggles the answer. Native <details>/<summary> would handle this without
+// JS, but the manual implementation lets us animate the chevron and style
+// the open state cleanly.
+const AccordionRow = ({ question, answer }: { question: string; answer: string }) => {
+    const [open, setOpen] = useState(false)
+    return (
+        <div className={open ? 'bg-surface-hover/40' : ''}>
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                className="w-full flex items-center justify-between gap-4 text-left px-5 py-4 hover:bg-surface-hover/50 transition-colors">
+                <span className="text-sm sm:text-base font-semibold text-fg">{question}</span>
+                <span
+                    className={
+                        'shrink-0 grid place-items-center h-7 w-7 rounded-full bg-[var(--color-brand-50)] text-[var(--color-brand-600)] transition-transform ' +
+                        (open ? 'rotate-180' : '')
+                    }>
+                    <ArrowRight
+                        size={14}
+                        className="rotate-90"
+                    />
+                </span>
+            </button>
+            {open && answer && (
+                <div className="px-5 pb-5 -mt-1 text-sm text-fg-soft leading-relaxed">{answer}</div>
+            )}
+        </div>
+    )
 }
 
 // ---- Image block ------------------------------------------------------------
@@ -1104,12 +1153,45 @@ const LeadFormBlock = ({
 
 // ---- Logos block ------------------------------------------------------------
 
+// Renders one logo as either inline SVG (when `logo.svg` is set) or an
+// <img> for a URL. The wrapper class is shared so both modes get the same
+// hover treatment (opacity + grayscale lift). Inline SVG is rendered via
+// `dangerouslySetInnerHTML` since SA-authored markup is trusted; we strip
+// `<script>` tags as a minimum-effort safety net.
+const sanitizeSvg = (raw: string): string => raw.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+
+const LogoMark = ({ logo, size }: { logo: { src?: string; svg?: string; alt?: string }; size: 'sm' | 'md' }) => {
+    const cls =
+        (size === 'sm' ? 'h-8 ' : 'h-10 max-w-[140px] mx-auto ') +
+        'w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 [&>svg]:h-full [&>svg]:w-auto'
+    if (logo.svg) {
+        return (
+            <span
+                role="img"
+                aria-label={logo.alt ?? ''}
+                className={cls + ' inline-flex items-center'}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(logo.svg) }}
+            />
+        )
+    }
+    if (!logo.src) return null
+    return (
+        <img
+            src={logo.src}
+            alt={logo.alt ?? ''}
+            loading="lazy"
+            className={cls}
+        />
+    )
+}
+
 const LogosBlock = ({ section }: { section: Extract<Section, { type: 'logos' }> }) => {
     const { title, subtitle, items = [] } = section.data
-    if (items.length === 0) return null
+    const renderable = items.filter((l) => l.svg || l.src)
+    if (renderable.length === 0) return null
 
     if (section.variant === 'scroll') {
-        const doubled = [...items, ...items]
+        const doubled = [...renderable, ...renderable]
         return (
             <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
                 {title && <h2 className="text-sm font-semibold tracking-wide uppercase text-fg-muted text-center">{title}</h2>}
@@ -1121,12 +1203,10 @@ const LogosBlock = ({ section }: { section: Extract<Section, { type: 'logos' }> 
                         className="flex gap-12 items-center"
                         style={{ animation: 'logo-marquee 30s linear infinite', width: 'max-content' }}>
                         {doubled.map((logo, i) => (
-                            <img
+                            <LogoMark
                                 key={i}
-                                src={logo.src}
-                                alt={logo.alt ?? ''}
-                                loading="lazy"
-                                className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                                logo={logo}
+                                size="sm"
                             />
                         ))}
                     </div>
@@ -1141,13 +1221,11 @@ const LogosBlock = ({ section }: { section: Extract<Section, { type: 'logos' }> 
             {title && <h2 className="text-sm font-semibold tracking-wide uppercase text-fg-muted text-center">{title}</h2>}
             {subtitle && <p className="mt-1 text-fg-soft text-center">{subtitle}</p>}
             <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6 items-center">
-                {items.map((logo, i) => {
-                    const img = (
-                        <img
-                            src={logo.src}
-                            alt={logo.alt ?? ''}
-                            loading="lazy"
-                            className="h-10 w-auto max-w-[140px] object-contain mx-auto opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                {renderable.map((logo, i) => {
+                    const mark = (
+                        <LogoMark
+                            logo={logo}
+                            size="md"
                         />
                     )
                     return logo.href ? (
@@ -1156,10 +1234,10 @@ const LogosBlock = ({ section }: { section: Extract<Section, { type: 'logos' }> 
                             href={logo.href}
                             target="_blank"
                             rel="noopener noreferrer">
-                            {img}
+                            {mark}
                         </a>
                     ) : (
-                        <div key={i}>{img}</div>
+                        <div key={i}>{mark}</div>
                     )
                 })}
             </div>

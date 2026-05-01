@@ -1456,7 +1456,7 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
     callout: ['info', 'success'],
     image: ['contained', 'full'],
     embed: ['iframe'],
-    collectionList: ['cards', 'list'],
+    collectionList: ['cards', 'list', 'accordion'],
     testimonials: ['cards', 'quotes'],
     stats: ['banner', 'grid'],
     leadForm: ['split', 'inline'],
@@ -3407,50 +3407,107 @@ const LogosFields = ({
                 onChange={(e) => onChange({ subtitle: e.target.value })}
             />
             <div className="space-y-2">
-                {items.map((it, i) => (
-                    <div
-                        key={i}
-                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
-                        <div className="flex items-start gap-2">
-                            <Input
-                                label={`Logo ${i + 1} URL`}
-                                value={it.src}
-                                onChange={(e) => update(i, { src: e.target.value })}
-                                placeholder="https://… .png or .svg"
-                            />
-                            <button
-                                type="button"
-                                aria-label="Remove logo"
-                                onClick={() => remove(i)}
-                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
-                                <X size={14} />
-                            </button>
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-2">
-                            <Input
-                                label="Alt text"
-                                value={it.alt ?? ''}
-                                onChange={(e) => update(i, { alt: e.target.value })}
-                                placeholder="Acme Corp"
-                            />
-                            <Input
-                                label="Link (optional)"
-                                value={it.href ?? ''}
-                                onChange={(e) => update(i, { href: e.target.value })}
-                                placeholder="https://…"
-                            />
-                        </div>
-                        {it.src && (
-                            <div className="rounded-md border bg-surface-2 p-2 text-center">
-                                <img
-                                    src={it.src}
-                                    alt={it.alt ?? ''}
-                                    className="h-8 w-auto mx-auto object-contain"
+                {items.map((it, i) => {
+                    // Mode reflects which source is currently set. SVG mode lets the
+                    // SA paste raw `<svg>…</svg>` markup — useful for vector logos
+                    // that do not have a public URL or that need exact colour control.
+                    const mode: 'url' | 'svg' = it.svg ? 'svg' : 'url'
+                    return (
+                        <div
+                            key={i}
+                            className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-fg">Logo {i + 1}</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="inline-flex rounded-md border border-[var(--color-border)] overflow-hidden text-xs">
+                                        {(['url', 'svg'] as const).map((m) => (
+                                            <button
+                                                key={m}
+                                                type="button"
+                                                onClick={() => {
+                                                    // Switching mode clears the other source so the renderer
+                                                    // does not see stale data; svg always wins when set.
+                                                    if (m === 'url') update(i, { svg: undefined })
+                                                    else update(i, { src: undefined })
+                                                }}
+                                                className={cn(
+                                                    'px-2.5 py-1 transition-colors',
+                                                    mode === m
+                                                        ? 'bg-[var(--color-brand-50)] text-[var(--color-brand-600)] font-medium'
+                                                        : 'text-fg-muted hover:text-fg'
+                                                )}>
+                                                {m === 'url' ? 'URL' : 'SVG'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        aria-label="Remove logo"
+                                        onClick={() => remove(i)}
+                                        className="text-fg-muted hover:text-[var(--color-danger)]">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {mode === 'url' ? (
+                                <Input
+                                    label="Image URL"
+                                    value={it.src ?? ''}
+                                    onChange={(e) => update(i, { src: e.target.value })}
+                                    placeholder="https://… .png or .svg"
+                                />
+                            ) : (
+                                <Textarea
+                                    label="Inline SVG markup"
+                                    rows={4}
+                                    value={it.svg ?? ''}
+                                    onChange={(e) => update(i, { svg: e.target.value })}
+                                    placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">…</svg>'
+                                    hint="Paste the full <svg>…</svg> markup. <script> tags are stripped at render time."
+                                />
+                            )}
+
+                            <div className="grid sm:grid-cols-2 gap-2">
+                                <Input
+                                    label="Alt text"
+                                    value={it.alt ?? ''}
+                                    onChange={(e) => update(i, { alt: e.target.value })}
+                                    placeholder="Acme Corp"
+                                />
+                                <Input
+                                    label="Link (optional)"
+                                    value={it.href ?? ''}
+                                    onChange={(e) => update(i, { href: e.target.value })}
+                                    placeholder="https://…"
                                 />
                             </div>
-                        )}
-                    </div>
-                ))}
+
+                            {(it.src || it.svg) && (
+                                <div className="rounded-md border bg-surface-2 p-3 text-center">
+                                    {it.svg ? (
+                                        <span
+                                            aria-label={it.alt ?? ''}
+                                            className="inline-flex items-center h-8 [&>svg]:h-full [&>svg]:w-auto"
+                                            dangerouslySetInnerHTML={{
+                                                __html: it.svg.replace(
+                                                    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+                                                    ''
+                                                )
+                                            }}
+                                        />
+                                    ) : (
+                                        <img
+                                            src={it.src}
+                                            alt={it.alt ?? ''}
+                                            className="h-8 w-auto mx-auto object-contain"
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )
+                })}
                 <Button
                     size="sm"
                     variant="ghost"

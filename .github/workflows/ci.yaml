@@ -1,0 +1,88 @@
+name: CI Pipeline
+
+on:
+    push:
+        branches:
+            - main
+            - uat
+    pull_request:
+        branches:
+            - main
+            - uat
+
+jobs:
+    test:
+        if: |
+            (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/uat')) ||
+            (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'uat'))
+
+        runs-on: ubuntu-latest
+        environment: ${{ github.ref_name == 'main' && 'production' || 'uat' }}
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+
+            - name: Install Dependencies (Client)
+              run: npm install --legacy-peer-deps
+              working-directory: ./client
+
+            - name: Run eslint
+              run: npm run lint:eslint
+              working-directory: ./client
+
+            - name: Run prettier
+              run: npm run format:check
+              working-directory: ./client
+
+            - name: Run stylelint
+              run: npm run lint:stylelint
+              working-directory: ./client
+
+            - name: Debug secrets presence
+              run: |
+                  echo "BACKEND_PROXY is set? -> ${BACKEND_PROXY:+yes}"
+                  echo "PORT is set? -> ${PORT:+yes}"
+                  echo "VITE_ENV = $VITE_ENV"
+              env:
+                  PORT: ${{ secrets.PORT }}
+                  BACKEND_PROXY: ${{ secrets.BACKEND_PROXY }}
+                  VITE_ENV: ${{ vars.VITE_ENV }}
+              working-directory: ./client
+
+    production:
+        needs: test
+        runs-on: ubuntu-latest
+        environment: production
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+
+            - name: Install Dependencies (Client)
+              run: npm install --legacy-peer-deps
+              working-directory: ./client
+
+            - name: Build the application
+              run: npm run build
+              working-directory: ./client
+              env:
+                  PORT: ${{ secrets.PORT }}
+                  BACKEND_PROXY: ${{ secrets.BACKEND_PROXY }}
+                  VITE_ENV: ${{ vars.VITE_ENV }}
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dist
+                  path: client/dist
