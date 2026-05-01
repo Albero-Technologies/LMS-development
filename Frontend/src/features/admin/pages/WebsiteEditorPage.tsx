@@ -127,6 +127,8 @@ const SECTION_LABEL: Record<LandingSection['type'], string> = {
     cta: 'CTA',
     callout: 'Callout',
     prose: 'Prose',
+    bento: 'Bento grid',
+    pricing: 'Pricing',
     image: 'Image',
     embed: 'Embed',
     collectionList: 'Collection',
@@ -1283,6 +1285,10 @@ const getSectionPreviewText = (s: LandingSection): string => {
             return s.data.title || 'Callout'
         case 'prose':
             return s.data.title || 'Prose'
+        case 'bento':
+            return s.data.title || `${s.data.tiles?.length ?? 0} bento tiles`
+        case 'pricing':
+            return s.data.title || `${s.data.tiers?.length ?? 0} pricing tiers`
         case 'testimonials':
             return s.data.title || `${s.data.items?.length ?? 0} testimonials`
         case 'stats':
@@ -1379,6 +1385,18 @@ const SectionEditor = ({
                             onChange={onUpdateData}
                         />
                     )}
+                    {section.type === 'bento' && (
+                        <BentoFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'pricing' && (
+                        <PricingFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
                     {section.type === 'image' && (
                         <ImageFields
                             data={section.data}
@@ -1441,6 +1459,8 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
     cta: ['banner', 'card'],
     callout: ['info', 'success'],
     prose: ['narrow', 'wide'],
+    bento: ['showcase', 'spotlight'],
+    pricing: ['cards', 'table'],
     image: ['contained', 'full'],
     embed: ['iframe'],
     collectionList: ['cards', 'list', 'accordion'],
@@ -1920,6 +1940,211 @@ const ProseFields = ({ data, onChange }: { data: Extract<LandingSection, { type:
         />
     </div>
 )
+
+const BentoFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'bento' }>['data']; onChange: (p: object) => void }) => {
+    const tiles = data.tiles ?? []
+    const updateTile = (idx: number, patch: Partial<NonNullable<typeof tiles>[number]>) =>
+        onChange({ tiles: tiles.map((t, i) => (i === idx ? { ...t, ...patch } : t)) })
+    const addTile = () => onChange({ tiles: [...tiles, { title: 'New tile', body: '', accent: 'brand', wide: false }] })
+    const removeTile = (idx: number) => onChange({ tiles: tiles.filter((_, i) => i !== idx) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Eyebrow (optional)"
+                value={data.eyebrow ?? ''}
+                onChange={(e) => onChange({ eyebrow: e.target.value })}
+            />
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Input
+                label="Subtitle (optional)"
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-fg">Tiles</span>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addTile}>
+                        + Add tile
+                    </Button>
+                </div>
+                {tiles.map((t, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] uppercase tracking-wider text-fg-muted">Tile {i + 1}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeTile(i)}
+                                className="text-xs text-[var(--color-danger)] hover:underline">
+                                Remove
+                            </button>
+                        </div>
+                        <Input
+                            label="Title"
+                            value={t.title}
+                            onChange={(e) => updateTile(i, { title: e.target.value })}
+                        />
+                        <Textarea
+                            label="Body"
+                            rows={2}
+                            value={t.body ?? ''}
+                            onChange={(e) => updateTile(i, { body: e.target.value })}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                            <Select
+                                label="Accent"
+                                value={t.accent ?? 'brand'}
+                                onChange={(e) => updateTile(i, { accent: e.target.value as typeof t.accent })}>
+                                <option value="brand">Brand</option>
+                                <option value="purple">Purple</option>
+                                <option value="teal">Teal</option>
+                                <option value="orange">Orange</option>
+                                <option value="pink">Pink</option>
+                            </Select>
+                            <label className="flex items-end gap-2 text-sm cursor-pointer pb-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!t.wide}
+                                    onChange={(e) => updateTile(i, { wide: e.target.checked })}
+                                    className="accent-[var(--color-brand-500)]"
+                                />
+                                Wide (2 columns)
+                            </label>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+const PricingFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'pricing' }>['data']; onChange: (p: object) => void }) => {
+    const tiers = data.tiers ?? []
+    const updateTier = (idx: number, patch: Partial<NonNullable<typeof tiers>[number]>) =>
+        onChange({ tiers: tiers.map((t, i) => (i === idx ? { ...t, ...patch } : t)) })
+    const addTier = () =>
+        onChange({
+            tiers: [...tiers, { name: 'New plan', price: '₹0', period: 'one-time', blurb: '', features: [], ctaLabel: 'Get started', ctaLink: 'enquiry' }]
+        })
+    const removeTier = (idx: number) => onChange({ tiers: tiers.filter((_, i) => i !== idx) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Eyebrow (optional)"
+                value={data.eyebrow ?? ''}
+                onChange={(e) => onChange({ eyebrow: e.target.value })}
+            />
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Input
+                label="Subtitle (optional)"
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-fg">Tiers</span>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addTier}>
+                        + Add tier
+                    </Button>
+                </div>
+                {tiers.map((t, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] uppercase tracking-wider text-fg-muted">Tier {i + 1}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeTier(i)}
+                                className="text-xs text-[var(--color-danger)] hover:underline">
+                                Remove
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                label="Name"
+                                value={t.name}
+                                onChange={(e) => updateTier(i, { name: e.target.value })}
+                            />
+                            <Input
+                                label="Badge"
+                                value={t.badge ?? ''}
+                                onChange={(e) => updateTier(i, { badge: e.target.value })}
+                                placeholder="Most popular"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                label="Price"
+                                value={t.price}
+                                onChange={(e) => updateTier(i, { price: e.target.value })}
+                                placeholder="₹49,999"
+                            />
+                            <Input
+                                label="Period"
+                                value={t.period ?? ''}
+                                onChange={(e) => updateTier(i, { period: e.target.value })}
+                                placeholder="program"
+                            />
+                        </div>
+                        <Input
+                            label="Blurb"
+                            value={t.blurb ?? ''}
+                            onChange={(e) => updateTier(i, { blurb: e.target.value })}
+                        />
+                        <Textarea
+                            label="Features (one per line)"
+                            rows={4}
+                            value={(t.features ?? []).join('\n')}
+                            onChange={(e) =>
+                                updateTier(i, {
+                                    features: e.target.value.split('\n').map((f) => f.trim()).filter(Boolean)
+                                })
+                            }
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                label="CTA label"
+                                value={t.ctaLabel ?? ''}
+                                onChange={(e) => updateTier(i, { ctaLabel: e.target.value })}
+                            />
+                            <Input
+                                label="CTA link"
+                                value={t.ctaLink ?? ''}
+                                onChange={(e) => updateTier(i, { ctaLink: e.target.value })}
+                                placeholder="enquiry"
+                            />
+                        </div>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={!!t.highlighted}
+                                onChange={(e) => updateTier(i, { highlighted: e.target.checked })}
+                                className="accent-[var(--color-brand-500)]"
+                            />
+                            Highlight this tier (recommended)
+                        </label>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
 
 const ImageFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'image' }>['data']; onChange: (p: object) => void }) => {
     const [pickerOpen, setPickerOpen] = useState(false)
@@ -2607,6 +2832,7 @@ const NavbarFields = ({ navbar, pages, onChange }: { navbar: NavbarConfig; pages
                 <option value="simple">Simple — logo left, links right</option>
                 <option value="centered">Centered — logo above links</option>
                 <option value="with-cta">With CTA — links + brand-coloured CTA button</option>
+                <option value="split-centered">Split centred — logo left, links centred, CTA right</option>
             </Select>
 
             <Select
@@ -2649,7 +2875,7 @@ const NavbarFields = ({ navbar, pages, onChange }: { navbar: NavbarConfig; pages
                 />
             )}
 
-            {navbar.variant === 'with-cta' && (
+            {(navbar.variant === 'with-cta' || navbar.variant === 'split-centered') && (
                 <div className="rounded-md border border-[var(--color-border)] p-3 space-y-3">
                     <div className="text-xs font-semibold text-fg">Call-to-action button</div>
                     <Input

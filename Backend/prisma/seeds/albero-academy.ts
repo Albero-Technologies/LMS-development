@@ -9,6 +9,7 @@ import { AuthProvider, CoursePublishState, LessonType, PrismaClient, Role, UserS
 import bcrypt from 'bcrypt'
 import { randomUUID } from 'crypto'
 import { POLICY_PAGES } from './albero-policies'
+import { RESOURCE_PAGES } from './albero-resources'
 
 type Prisma = PrismaClient
 
@@ -120,25 +121,128 @@ const homeSections = (): unknown[] => [
         }
     },
     {
+        id: sid('home-bento'),
+        type: 'bento',
+        variant: 'showcase',
+        data: {
+            eyebrow: 'WHY ALBERO',
+            title: 'Built for outcomes — not for brochures.',
+            subtitle:
+                'Every part of the program is designed to ship you into a real role. Mentors who actually hire, projects that look like real work, and placement support that ends with a signed offer.',
+            tiles: [
+                {
+                    title: 'Mentors who actually hire',
+                    body: "Senior practitioners from Razorpay, Flipkart, Microsoft, and Swiggy. They review your work the way they review their team's.",
+                    accent: 'brand',
+                    wide: true,
+                    eyebrow: 'TEACHING'
+                },
+                {
+                    title: '5+ portfolio projects',
+                    body: 'Industry-graded with feedback from your mentor — not a TA.',
+                    accent: 'purple',
+                    eyebrow: 'PROJECTS'
+                },
+                {
+                    title: '40+ hiring partners',
+                    body: 'Warm referrals beat cold applications. Top performers get them automatically.',
+                    accent: 'teal',
+                    eyebrow: 'PLACEMENT'
+                },
+                {
+                    title: '6-month placement guarantee',
+                    body: "If you don't get placed within 6 months of graduating, we refund 100% of your fee. No fine print.",
+                    accent: 'orange',
+                    wide: true,
+                    eyebrow: 'GUARANTEE'
+                }
+            ]
+        }
+    },
+    {
         id: sid('home-courses'),
         type: 'features',
         variant: 'three-up',
         data: {
-            title: 'Three flagship programs · one outcome',
+            title: 'Three flagship programs. One outcome.',
             pillars: [
                 {
                     title: 'Business Analytics Pro',
-                    description: '14-week live cohort. SQL, Excel, Power BI, Tableau, A/B testing. Built for fresh grads + early-career switchers.'
+                    description:
+                        '14-week live cohort.\nSQL · Excel · Power BI · Tableau · A/B testing.\n\nBuilt for fresh grads and early-career switchers entering analyst roles.'
                 },
                 {
                     title: 'Data Analytics Mastery',
                     description:
-                        '20-week deep dive. Python, statistics, ML basics, cloud warehousing. Geared toward analyst → data scientist transitions.'
+                        '20-week deep dive.\nPython · statistics · ML basics · cloud warehousing.\n\nFor analysts who want the data scientist seat.'
                 },
                 {
                     title: 'AI/ML Engineer',
                     description:
-                        '24-week intensive. Neural nets, transformers, MLOps, model deployment. For engineers ready to build production AI systems.'
+                        '24-week intensive.\nTransformers · RAG · LLM apps · MLOps.\n\nFor engineers ready to ship production AI systems.'
+                }
+            ]
+        }
+    },
+    {
+        id: sid('home-pricing'),
+        type: 'pricing',
+        variant: 'cards',
+        data: {
+            eyebrow: 'PROGRAMS & FEES',
+            title: 'Pick the program that fits your goal',
+            subtitle:
+                'No-cost EMI on every plan. Need-based scholarships up to 30% off. Every fee includes placement support and the 6-month money-back guarantee.',
+            tiers: [
+                {
+                    name: 'Business Analytics Pro',
+                    price: '₹49,999',
+                    period: '14-week program',
+                    blurb: 'For analyst-track careers',
+                    features: [
+                        'SQL · Excel · Power BI · Tableau',
+                        'A/B testing + stakeholder communication',
+                        'Mentor-led live cohort',
+                        '5+ portfolio projects',
+                        '6-month placement guarantee',
+                        'No-cost EMI from ₹3,500/month'
+                    ],
+                    ctaLabel: 'Talk to a counsellor',
+                    ctaLink: 'enquiry'
+                },
+                {
+                    name: 'Data Analytics Mastery',
+                    price: '₹74,999',
+                    period: '20-week program',
+                    blurb: 'Most chosen — analyst → data scientist',
+                    features: [
+                        'Python + statistics + ML fundamentals',
+                        'Cloud warehousing (Snowflake / BigQuery / dbt)',
+                        'Causal inference + experimentation',
+                        '8+ portfolio projects',
+                        'Resume review + 3 mock interviews',
+                        '6-month placement guarantee'
+                    ],
+                    ctaLabel: 'Reserve my seat',
+                    ctaLink: 'enquiry',
+                    badge: 'Most popular',
+                    highlighted: true
+                },
+                {
+                    name: 'AI/ML Engineer',
+                    price: '₹99,999',
+                    period: '24-week program',
+                    blurb: 'For engineers shipping AI',
+                    features: [
+                        'Transformers + RAG + LLM apps',
+                        'PyTorch · MLOps · production deployment',
+                        '6+ portfolio projects',
+                        'Senior-IC mentor 1:1 sessions',
+                        'Resume + system design prep',
+                        '6-month placement guarantee'
+                    ],
+                    ctaLabel: 'Talk to a counsellor',
+                    ctaLink: 'enquiry'
                 }
             ]
         }
@@ -438,31 +542,10 @@ const contactSections = (): unknown[] => [
     }
 ]
 
-const blogSections = (): unknown[] => [
-    {
-        id: sid('blog-hero'),
-        type: 'hero',
-        variant: 'centered',
-        data: {
-            eyebrow: 'Writing',
-            title: 'Notes from the cohort',
-            subtitle: 'Lessons, project breakdowns, and student stories — the long-form stuff our team wishes they had read first.'
-        }
-    },
-    {
-        id: sid('blog-list'),
-        type: 'collectionList',
-        variant: 'cards',
-        data: {
-            collectionSlug: 'blog',
-            title: 'Latest posts',
-            titleField: 'title',
-            summaryField: 'summary',
-            imageField: 'coverImage',
-            limit: 12
-        }
-    }
-]
+// blogSections() removed — RESOURCE_PAGES["pg-blog"] now owns slug "/blog"
+// with the richer Meritshot-style hero + stats + post list. The old CMS-backed
+// collectionList variant is recoverable from git history if dynamic blog
+// posts come back later.
 
 const faqSections = (): unknown[] => [
     {
@@ -887,16 +970,11 @@ const buildLandingJson = () => {
                 description: 'Talk to an Albero counsellor about programs, fees, EMI, and scholarships.'
             }
         },
-        {
-            id: pageId('blog'),
-            slug: '/blog',
-            name: 'Blog',
-            sections: blogSections(),
-            seo: {
-                title: 'Albero Blog · Career stories + analytics craft',
-                description: 'Long-form writing from the Albero team — cohort breakdowns, project deep-dives, and career switch stories.'
-            }
-        },
+        // Blog page is provided by the resource module (RESOURCE_PAGES) at the
+        // bottom of this list — it owns slug "/blog" with the richer Meritshot-
+        // style hero + stats + post list. The previous CMS-backed blog page
+        // (blogSections + collectionList) is intentionally retired so we don't
+        // ship two pages mounted at the same slug.
         {
             id: pageId('faq'),
             slug: '/faq',
@@ -954,6 +1032,18 @@ const buildLandingJson = () => {
                 title: p.title,
                 description: p.seoDescription
             }
+        })),
+        // Resource pages — surfaced through the Resources mega-menu in the
+        // navbar. Content lives in albero-resources.ts.
+        ...RESOURCE_PAGES.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            sections: p.sections,
+            seo: {
+                title: p.title,
+                description: p.seoDescription
+            }
         }))
     ]
 
@@ -972,7 +1062,7 @@ const buildLandingJson = () => {
             whatsappMessage: 'Hi! I would like to know more about Albero Academy programs.'
         },
         navbar: {
-            variant: 'with-cta',
+            variant: 'split-centered',
             mobileVariant: 'sheet',
             showLogo: true,
             showSignIn: true,
@@ -1010,8 +1100,57 @@ const buildLandingJson = () => {
                         }
                     ]
                 },
+                {
+                    id: linkId('nav-resources'),
+                    label: 'Resources',
+                    mega: true,
+                    columns: 2,
+                    children: [
+                        {
+                            id: linkId('nav-resources-blog'),
+                            label: 'Blog',
+                            pageId: 'pg-blog',
+                            icon: 'message',
+                            description: 'Deep-dive articles on tech, careers & interviews'
+                        },
+                        {
+                            id: linkId('nav-resources-tutorials'),
+                            label: 'Tutorials',
+                            pageId: 'pg-tutorials',
+                            icon: 'book',
+                            description: 'Step-by-step coding walkthroughs with code + video'
+                        },
+                        {
+                            id: linkId('nav-resources-soft'),
+                            label: 'Soft Skills Training',
+                            pageId: 'pg-soft-skills',
+                            icon: 'users',
+                            description: 'Communication, leadership & interview polish'
+                        },
+                        {
+                            id: linkId('nav-resources-cases'),
+                            label: 'Case Studies',
+                            pageId: 'pg-case-studies',
+                            icon: 'briefcase',
+                            description: 'Real-world business problems, broken down end-to-end'
+                        },
+                        {
+                            id: linkId('nav-resources-interview'),
+                            label: 'Interview Guides',
+                            pageId: 'pg-interview-guides',
+                            icon: 'award',
+                            description: 'Company-specific prep for MAANG, IB & product roles'
+                        },
+                        {
+                            id: linkId('nav-resources-cheat'),
+                            label: 'CheatSheet',
+                            pageId: 'pg-cheat-sheets',
+                            icon: 'compass',
+                            description: 'Quick one-pagers for revising key concepts'
+                        }
+                    ]
+                },
                 { id: linkId('nav-about'), label: 'About', pageId: pageId('about') },
-                { id: linkId('nav-blog'), label: 'Blog', pageId: pageId('blog') },
                 { id: linkId('nav-faq'), label: 'FAQ', pageId: pageId('faq') }
             ]
         },
@@ -1040,7 +1179,7 @@ const buildLandingJson = () => {
                     title: 'Company',
                     links: [
                         { id: linkId('foot-about'), label: 'About', pageId: pageId('about') },
-                        { id: linkId('foot-blog'), label: 'Blog', pageId: pageId('blog') },
+                        { id: linkId('foot-blog'), label: 'Blog', pageId: 'pg-blog' },
                         { id: linkId('foot-faq'), label: 'FAQ', pageId: pageId('faq') }
                     ]
                 },
@@ -1567,5 +1706,18 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
     void id
     void ACCENT_GRADIENT
 
+    // Diagnostic — read back the persisted landing JSON so re-runs surface
+    // exactly what is now in the DB (page slugs + navbar variant). If this
+    // log says "10 pages" you are looking at an old build; the latest seed
+    // produces 21 pages (11 home/courses/etc + 5 policies + 5 resources +
+    // cheat-sheet) and a "split-centered" navbar.
+    const persisted = await prisma.tenant.findUnique({
+        where: { slug: tenant.slug },
+        select: { settings: true }
+    })
+    const land = (persisted?.settings as { landing?: { pages?: { slug: string }[]; navbar?: { variant: string } } } | null)?.landing
+    const pageSlugs = land?.pages?.map((p) => p.slug) ?? []
     console.log(`Albero Academy seed complete (slug: ${tenant.slug})`)
+    console.log(`  Pages persisted (${pageSlugs.length}): ${pageSlugs.join(', ')}`)
+    console.log(`  Navbar variant: ${land?.navbar?.variant ?? '(none)'}`)
 }

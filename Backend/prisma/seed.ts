@@ -1,3 +1,16 @@
+// Load .env BEFORE the PrismaClient is instantiated — otherwise the Prisma
+// schema's `env("DATABASE_URL")` resolves to undefined and the seed crashes.
+// Prisma's own CLI auto-loads .env, but `ts-node prisma/seed.ts` (what
+// `npm run prisma:seed` invokes) bypasses it.
+//
+// `default_node_env: 'development'` makes dotenv-flow fall back to
+// .env.development when NODE_ENV is unset — this repo ships .env.development
+// and .env.production but no plain .env, and the seed script doesn't set
+// NODE_ENV the way the dev/start scripts do. Without this, dotenv-flow loads
+// nothing and DATABASE_URL stays undefined.
+import dotenvFlow from 'dotenv-flow'
+dotenvFlow.config({ default_node_env: 'development' })
+
 import { AuthProvider, CoursePublishState, CounsellorInviteStatus, LessonType, PrismaClient, Role, UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import { seedAlberoAcademy } from './seeds/albero-academy'
@@ -204,7 +217,10 @@ async function main() {
     // SEO + analytics. Idempotent.
     await seedAlberoAcademy(prisma)
 
-    console.log('Seed complete:', tenant.slug)
+    // Both tenants seeded — the demo Acme one above, plus Albero Academy via
+    // seedAlberoAcademy(). Logging both so the message isn't misread as
+    // "only Acme was seeded".
+    console.log(`Seed complete · tenants: ${tenant.slug} + albero-academy`)
 }
 
 main()

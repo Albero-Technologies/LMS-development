@@ -699,6 +699,63 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
         )
     }
 
+    if (config.variant === 'split-centered') {
+        // Three-column desktop layout — brand left, links horizontally
+        // centered, theme/sign-in/cta on the right. This is the "modern SaaS"
+        // navbar that most marketing sites use; brand stays anchored left
+        // while the link row reads as the page's primary navigation.
+        return (
+            <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-surface/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
+                <div className="md:hidden h-14 px-4 flex items-center justify-between">
+                    {showLogo ? (
+                        <Brand
+                            tenant={tenant}
+                            slugBase={slugBase}
+                        />
+                    ) : (
+                        <span />
+                    )}
+                    <MobileMenu
+                        config={config}
+                        pages={pages}
+                        slugBase={slugBase}
+                    />
+                </div>
+                <div className="hidden md:grid max-w-7xl mx-auto px-6 h-16 grid-cols-[auto_1fr_auto] items-center gap-6">
+                    <div className="flex items-center">
+                        {showLogo ? (
+                            <Brand
+                                tenant={tenant}
+                                slugBase={slugBase}
+                            />
+                        ) : (
+                            <span />
+                        )}
+                    </div>
+                    <nav className="flex items-center gap-6 justify-center">
+                        {config.links.map((l) => (
+                            <NavLinkItem
+                                key={l.id}
+                                link={l}
+                                pages={pages}
+                                slugBase={slugBase}
+                            />
+                        ))}
+                    </nav>
+                    <div className="flex items-center gap-3 justify-end">
+                        <ThemeToggle />
+                        {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} />}
+                        <CtaButton
+                            config={config}
+                            pages={pages}
+                            slugBase={slugBase}
+                        />
+                    </div>
+                </div>
+            </header>
+        )
+    }
+
     // simple + with-cta share the row layout
     return (
         <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-surface/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">

@@ -492,6 +492,50 @@ export type ProseSectionData = {
     body?: string
 }
 
+// Bento-grid section — premium asymmetric layout where each tile can be
+// `wide` (2 columns) or normal (1 column). Each tile has a title, body,
+// optional accent (color tag), and optional image/icon. Five tiles arranged
+// as 2-1-2 (variant=showcase) or 1-2-2 (variant=spotlight). Modeled on
+// modern SaaS marketing pages (Linear, Vercel, Supabase).
+export type BentoTile = {
+    title: string
+    body?: string
+    accent?: 'brand' | 'purple' | 'teal' | 'orange' | 'pink'
+    wide?: boolean
+    imageUrl?: string
+    eyebrow?: string
+}
+
+export type BentoSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    tiles?: BentoTile[]
+}
+
+// Pricing section — three or four tiers with feature lists. Each tier has a
+// name, price, period, blurb, feature bullets, optional badge ("Most popular")
+// and a CTA. Variant `cards` is the standard SaaS layout; `table` is a
+// comparison table.
+export type PricingTier = {
+    name: string
+    price: string
+    period?: string
+    blurb?: string
+    features?: string[]
+    ctaLabel?: string
+    ctaLink?: string
+    badge?: string
+    highlighted?: boolean
+}
+
+export type PricingSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    tiers?: PricingTier[]
+}
+
 export type ImageSectionData = {
     src?: string
     alt?: string
@@ -651,6 +695,8 @@ export type LandingSection =
     | { id: string; type: 'cta'; variant: 'banner' | 'card'; data: CtaSectionData; style?: SectionStyle }
     | { id: string; type: 'callout'; variant: 'info' | 'success'; data: CalloutSectionData; style?: SectionStyle }
     | { id: string; type: 'prose'; variant: 'narrow' | 'wide'; data: ProseSectionData; style?: SectionStyle }
+    | { id: string; type: 'bento'; variant: 'showcase' | 'spotlight'; data: BentoSectionData; style?: SectionStyle }
+    | { id: string; type: 'pricing'; variant: 'cards' | 'table'; data: PricingSectionData; style?: SectionStyle }
     | { id: string; type: 'image'; variant: 'full' | 'contained'; data: ImageSectionData; style?: SectionStyle }
     | { id: string; type: 'embed'; variant: 'iframe'; data: EmbedSectionData; style?: SectionStyle }
     | {
@@ -772,7 +818,11 @@ export type NavLink = {
 export type MobileNavVariant = 'sheet' | 'drawer-right' | 'fullscreen'
 
 export type NavbarConfig = {
-    variant: 'simple' | 'centered' | 'with-cta'
+    // simple        → brand left · links right
+    // with-cta      → brand left · links right · CTA button at the far right
+    // centered      → stacked: brand on top, links + CTA below (single centered row)
+    // split-centered → brand left · links centered · CTA right (three-column layout)
+    variant: 'simple' | 'centered' | 'with-cta' | 'split-centered'
     mobileVariant?: MobileNavVariant
     showLogo?: boolean
     showSignIn?: boolean
@@ -1015,6 +1065,91 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
             data: {
                 title: 'About this page',
                 body: 'Write the body here.\n\nNewlines are preserved.'
+            }
+        }
+    },
+    {
+        label: 'Bento · Showcase',
+        description: 'Asymmetric grid of feature tiles with mixed widths and accent colors.',
+        section: {
+            type: 'bento',
+            variant: 'showcase',
+            data: {
+                eyebrow: 'WHY ALBERO',
+                title: 'Built for outcomes, not just outcomes-talk',
+                subtitle: 'Every part of the program is designed to ship you into a real role — not to look good in a brochure.',
+                tiles: [
+                    {
+                        title: 'Live mentor-led cohorts',
+                        body: 'Mentors are senior practitioners from product companies — not career educators reading slides.',
+                        accent: 'brand',
+                        wide: true,
+                        eyebrow: 'TEACHING'
+                    },
+                    {
+                        title: '5+ portfolio projects',
+                        body: 'Every project is industry-graded with feedback from your mentor, not a TA.',
+                        accent: 'purple',
+                        eyebrow: 'PROJECTS'
+                    },
+                    {
+                        title: '40+ hiring partners',
+                        body: 'Top performers get warm referrals — no cold applications.',
+                        accent: 'teal',
+                        eyebrow: 'PLACEMENT'
+                    },
+                    {
+                        title: '6-month money-back guarantee',
+                        body: "If you don't get placed within 6 months of graduating, we refund your full fee.",
+                        accent: 'orange',
+                        wide: true,
+                        eyebrow: 'GUARANTEE'
+                    }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Pricing · Cards',
+        description: 'Three-tier pricing grid with a highlighted recommended plan.',
+        section: {
+            type: 'pricing',
+            variant: 'cards',
+            data: {
+                eyebrow: 'PROGRAMS',
+                title: 'Pick the program that fits your goal',
+                subtitle: 'No-cost EMI on every plan. Need-based scholarships up to 30% off.',
+                tiers: [
+                    {
+                        name: 'Business Analytics Pro',
+                        price: '₹49,999',
+                        period: '14-week program',
+                        blurb: 'For analyst-track careers',
+                        features: ['SQL, Excel, Power BI, Tableau', 'A/B testing + stakeholder communication', 'Mentor-led live cohort', '5+ portfolio projects', 'Placement support'],
+                        ctaLabel: 'Talk to a counsellor',
+                        ctaLink: 'enquiry'
+                    },
+                    {
+                        name: 'Data Analytics Mastery',
+                        price: '₹74,999',
+                        period: '20-week program',
+                        blurb: 'Most chosen by recent grads',
+                        features: ['Python + statistics + ML basics', 'Cloud warehousing (Snowflake / BigQuery)', 'Causal inference + experimentation', '8+ portfolio projects', 'Resume + 3 mock interviews', '6-month placement guarantee'],
+                        ctaLabel: 'Reserve my seat',
+                        ctaLink: 'enquiry',
+                        badge: 'Most popular',
+                        highlighted: true
+                    },
+                    {
+                        name: 'AI/ML Engineer',
+                        price: '₹99,999',
+                        period: '24-week program',
+                        blurb: 'For engineers shipping AI',
+                        features: ['Neural nets + transformers', 'RAG + LLM apps + MLOps', 'Production deployment patterns', '6+ portfolio projects', 'Senior-IC mentor 1:1', 'Placement support'],
+                        ctaLabel: 'Talk to a counsellor',
+                        ctaLink: 'enquiry'
+                    }
+                ]
             }
         }
     },

@@ -29,10 +29,10 @@
         "prisma:migrate:dev": "prisma migrate dev",
         "prisma:migrate:deploy": "prisma migrate deploy",
         "prisma:studio": "prisma studio",
-        "prisma:seed": "ts-node prisma/seed.ts"
+        "prisma:seed": "cross-env NODE_ENV=development ts-node prisma/seed.ts"
     },
     "prisma": {
-        "seed": "ts-node prisma/seed.ts"
+        "seed": "cross-env NODE_ENV=development ts-node prisma/seed.ts"
     },
     "keywords": [
         "lms",
