@@ -268,19 +268,41 @@ const NavDropdown = ({
                 />
             </button>
             {open && (
+                // Outer container starts flush with the trigger bottom and
+                // owns the visual gap as `pt-4` — that way mouse travel from
+                // trigger → menu stays inside the wrapper and the menu does
+                // not close mid-traverse.
                 <div
-                    role="menu"
                     className={
-                        'absolute top-full mt-2 z-40 rounded-2xl border border-[var(--color-border)] bg-bg shadow-xl ring-1 ring-black/[0.04] animate-in fade-in slide-in-from-top-1 duration-150 ' +
+                        'absolute top-full z-40 pt-4 ' +
                         (isMega
-                            ? `left-1/2 -translate-x-1/2 p-3 ${cols === 2 ? 'w-[640px]' : 'w-[380px]'}`
-                            : 'left-1/2 -translate-x-1/2 min-w-[240px] py-2')
+                            ? `left-1/2 -translate-x-1/2 ${cols === 2 ? 'w-[640px]' : 'w-[380px]'}`
+                            : 'left-1/2 -translate-x-1/2 min-w-[240px]')
                     }>
-                    {isMega ? (
-                        <div
-                            className={cols === 2 ? 'grid grid-cols-2 gap-1' : 'grid grid-cols-1 gap-1'}>
-                            {link.children!.map((c) => (
-                                <MegaItem
+                    <div
+                        role="menu"
+                        className={
+                            'rounded-2xl border border-[var(--color-border)] bg-surface shadow-xl ring-1 ring-black/[0.04] animate-in fade-in slide-in-from-top-1 duration-150 ' +
+                            (isMega ? 'p-3' : 'py-2')
+                        }>
+                        {isMega ? (
+                            <div className={cols === 2 ? 'grid grid-cols-2 gap-1' : 'grid grid-cols-1 gap-1'}>
+                                {link.children!.map((c) => (
+                                    <MegaItem
+                                        key={c.id}
+                                        link={c}
+                                        pages={pages}
+                                        slugBase={slugBase}
+                                        onNavigate={() => {
+                                            setOpen(false)
+                                            onNavigate?.()
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            link.children!.map((c) => (
+                                <DropdownItem
                                     key={c.id}
                                     link={c}
                                     pages={pages}
@@ -290,22 +312,9 @@ const NavDropdown = ({
                                         onNavigate?.()
                                     }}
                                 />
-                            ))}
-                        </div>
-                    ) : (
-                        link.children!.map((c) => (
-                            <DropdownItem
-                                key={c.id}
-                                link={c}
-                                pages={pages}
-                                slugBase={slugBase}
-                                onNavigate={() => {
-                                    setOpen(false)
-                                    onNavigate?.()
-                                }}
-                            />
-                        ))
-                    )}
+                            ))
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -540,7 +549,7 @@ const MobileMenu = ({
 
             {open && variant === 'sheet' && (
                 <div
-                    className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-bg/95 backdrop-blur border-t border-[var(--color-border)] overflow-y-auto"
+                    className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-surface backdrop-blur border-t border-[var(--color-border)] overflow-y-auto"
                     role="dialog"
                     aria-modal="true">
                     <div className="px-4 py-4 flex flex-col gap-1">{linksContent}</div>
@@ -556,7 +565,7 @@ const MobileMenu = ({
                         className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
                     />
                     <div
-                        className="md:hidden fixed top-0 right-0 bottom-0 w-[80vw] max-w-sm z-50 bg-bg border-l border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-right duration-200"
+                        className="md:hidden fixed top-0 right-0 bottom-0 w-[80vw] max-w-sm z-50 bg-surface border-l border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-right duration-200"
                         role="dialog"
                         aria-modal="true">
                         <div className="flex items-center justify-between px-4 h-14 border-b border-[var(--color-border)]">
@@ -576,7 +585,7 @@ const MobileMenu = ({
 
             {open && variant === 'fullscreen' && (
                 <div
-                    className="md:hidden fixed inset-0 z-40 bg-bg overflow-y-auto"
+                    className="md:hidden fixed inset-0 z-40 bg-surface overflow-y-auto"
                     role="dialog"
                     aria-modal="true">
                     <div className="flex items-center justify-end px-4 h-14">
@@ -629,7 +638,7 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
 
     if (config.variant === 'centered') {
         return (
-            <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
+            <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-surface/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
                 {/* Mobile row — brand + hamburger; sheet is rendered inside MobileMenu. */}
                 <div className="md:hidden h-14 px-4 flex items-center justify-between">
                     {showLogo ? <Brand tenant={tenant} slugBase={slugBase} /> : <span />}
@@ -671,7 +680,7 @@ export const TenantNavbar = ({ config, pages, tenant, slugBase }: Props) => {
 
     // simple + with-cta share the row layout
     return (
-        <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-bg/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
+        <header className="border-b border-[var(--color-border)] sticky top-0 z-30 bg-surface/95 backdrop-blur-md backdrop-saturate-150 shadow-sm">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
                 {showLogo ? (
                     <Brand
