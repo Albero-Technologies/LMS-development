@@ -1,6 +1,7 @@
 import { AuthProvider, CoursePublishState, CounsellorInviteStatus, LessonType, PrismaClient, Role, UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
+import { seedAlberoAcademy } from './seeds/albero-academy'
 
 const prisma = new PrismaClient()
 
@@ -211,6 +212,11 @@ async function main() {
         // Quiet the lints — `crypto` is reserved if we extend seed later.
         void crypto
     }
+
+    // Provision the Albero Academy tenant — its own admin/trainer/counsellor,
+    // 3 published flagship courses, multi-page landing site, CMS collections,
+    // SEO + analytics. Idempotent.
+    await seedAlberoAcademy(prisma)
 
     console.log('Seed complete:', tenant.slug)
 }

@@ -505,6 +505,67 @@ export type CollectionListSectionData = {
     limit?: number
 }
 
+// Testimonials — structured social proof. The data is intentionally a fixed
+// shape (vs CMS) so the editor can give a tight inline form: avatar, name,
+// role, quote, optional company logo.
+export type TestimonialItem = {
+    quote: string
+    name: string
+    role?: string
+    company?: string
+    avatarUrl?: string
+}
+
+export type TestimonialsSectionData = {
+    title?: string
+    subtitle?: string
+    items?: TestimonialItem[]
+}
+
+// Stats / placement-guarantee numbers. Each item is one big number with a
+// caption underneath. Useful for "92% placement rate", "₹8.2L avg package",
+// "40+ hiring partners".
+export type StatItem = {
+    value: string
+    label: string
+    sublabel?: string
+}
+
+export type StatsSectionData = {
+    title?: string
+    subtitle?: string
+    items?: StatItem[]
+}
+
+// Inline lead-capture form. POSTs to /api/v1/enquiries with the configured
+// course/source pre-filled. variant=split renders eyebrow/title/subtitle on
+// the left + form on the right; variant=inline renders one centered card.
+export type LeadFormSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    submitLabel?: string
+    successMessage?: string
+    coursePrefill?: string // pre-fills `course` field on POST
+    showQualification?: boolean
+    showCity?: boolean
+    showMessage?: boolean
+}
+
+// Partner / placement logo strip. Each item is just an image URL + alt.
+// variant=grid → centered grid; variant=scroll → horizontal marquee.
+export type LogoItem = {
+    src: string
+    alt?: string
+    href?: string
+}
+
+export type LogosSectionData = {
+    title?: string
+    subtitle?: string
+    items?: LogoItem[]
+}
+
 // Per-section style overrides — applied via inline CSS at render time.
 // Layout knobs (background / text-color / alignment / max-width / padding) +
 // typography knobs (font family, size, weight, line-height, letter-spacing).
@@ -579,6 +640,10 @@ export type LandingSection =
           data: CollectionListSectionData
           style?: SectionStyle
       }
+    | { id: string; type: 'testimonials'; variant: 'cards' | 'quotes'; data: TestimonialsSectionData; style?: SectionStyle }
+    | { id: string; type: 'stats'; variant: 'banner' | 'grid'; data: StatsSectionData; style?: SectionStyle }
+    | { id: string; type: 'leadForm'; variant: 'split' | 'inline'; data: LeadFormSectionData; style?: SectionStyle }
+    | { id: string; type: 'logos'; variant: 'grid' | 'scroll'; data: LogosSectionData; style?: SectionStyle }
 
 // Per-page metadata (slug, title, SEO). The home page is identified by
 // `isHome: true`; missing or zero pages falls back to legacy `sections`.
@@ -658,10 +723,21 @@ export type SiteIdentity = {
     ogImageUrl?: string
 }
 
+// Site-wide analytics + chat integrations. Injected once at page load by
+// TenantLandingPage. Empty values are skipped so no script tags are emitted
+// when nothing is configured.
+export type SiteAnalytics = {
+    googleAnalyticsId?: string // GA4 measurement id, e.g. "G-XXXXXX"
+    metaPixelId?: string // Meta/Facebook pixel id
+    whatsappNumber?: string // E.164, opens wa.me on click — surfaced as a floating bubble
+    whatsappMessage?: string // pre-filled message in the chat link
+}
+
 export type LandingContent = {
     sections?: LandingSection[]
     pages?: LandingPage[]
     site?: SiteIdentity
+    analytics?: SiteAnalytics
     navbar?: NavbarConfig
     footer?: FooterConfig
     styleClasses?: StyleClass[]
@@ -971,6 +1047,166 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
                 html: '<iframe src="https://calendly.com/your-handle/counselling-call?embed_domain=embed&embed_type=Inline" width="100%" height="700" frameborder="0"></iframe>',
                 height: 700,
                 title: 'Book a counselling call'
+            }
+        }
+    },
+    {
+        label: 'Testimonials · Cards',
+        description: 'Three- or four-up student testimonial cards with avatars and roles.',
+        section: {
+            type: 'testimonials',
+            variant: 'cards',
+            data: {
+                title: 'What our students say',
+                subtitle: 'Outcomes from past cohorts.',
+                items: [
+                    {
+                        quote: 'I went from no Python experience to landing a Data Analyst role at a unicorn within five months of joining.',
+                        name: 'Priya Sharma',
+                        role: 'Data Analyst',
+                        company: 'Razorpay',
+                        avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&crop=faces'
+                    },
+                    {
+                        quote: 'The mentor-led format and live projects forced me to apply concepts immediately. Best decision I made this year.',
+                        name: 'Rahul Verma',
+                        role: 'Business Analyst',
+                        company: 'Flipkart',
+                        avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=160&h=160&fit=crop&crop=faces'
+                    },
+                    {
+                        quote: 'Placement support was hands-on — mock interviews, resume reviews, and three referrals that all converted.',
+                        name: 'Anjali Mehta',
+                        role: 'AI Engineer',
+                        company: 'Swiggy',
+                        avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&h=160&fit=crop&crop=faces'
+                    }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Testimonials · Quotes',
+        description: 'Centred large-quote layout — better for fewer, more emphatic testimonials.',
+        section: {
+            type: 'testimonials',
+            variant: 'quotes',
+            data: {
+                title: 'Stories from our cohort',
+                items: [
+                    {
+                        quote: 'The structure plus the community is what made it click for me. I tried two MOOCs before this — neither stuck.',
+                        name: 'Ishaan Gupta',
+                        role: 'Senior Analyst',
+                        company: 'PhonePe'
+                    }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Stats · Placement banner',
+        description: 'Big-number row — placement rate, avg package, hiring partners. Frames the placement guarantee.',
+        section: {
+            type: 'stats',
+            variant: 'banner',
+            data: {
+                title: 'Placement guarantee — backed by numbers',
+                subtitle: 'We tie our success to yours. If you do not get placed within 6 months of graduating, we refund 100% of your fee.',
+                items: [
+                    { value: '94%', label: 'Placement rate', sublabel: 'Cohort 2025-Q1' },
+                    { value: '₹8.4L', label: 'Average package', sublabel: 'Across all programs' },
+                    { value: '40+', label: 'Hiring partners', sublabel: 'Active referral pipeline' },
+                    { value: '6 mo', label: 'Money-back guarantee', sublabel: 'Or full refund' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Stats · 4-up grid',
+        description: 'Quieter grid layout — good as a mid-page proof point.',
+        section: {
+            type: 'stats',
+            variant: 'grid',
+            data: {
+                title: 'Why students choose us',
+                items: [
+                    { value: '12k+', label: 'Alumni' },
+                    { value: '4.8/5', label: 'Avg cohort rating' },
+                    { value: '85%', label: 'Career switch rate' },
+                    { value: '24/7', label: 'Mentor support' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Lead form · Split',
+        description: 'Inline lead capture — copy on the left, form on the right. Posts directly to the enquiries pipeline.',
+        section: {
+            type: 'leadForm',
+            variant: 'split',
+            data: {
+                eyebrow: 'Talk to us',
+                title: 'Get a free counselling call',
+                subtitle: 'Tell us a bit about yourself and a senior counsellor will reach out within one working day.',
+                submitLabel: 'Request a callback',
+                successMessage: 'Got it — your counsellor will call within one working day.',
+                showQualification: true,
+                showCity: true,
+                showMessage: false
+            }
+        }
+    },
+    {
+        label: 'Lead form · Inline card',
+        description: 'Single centred card. Tighter, good for the bottom of a course page.',
+        section: {
+            type: 'leadForm',
+            variant: 'inline',
+            data: {
+                title: 'Reserve your seat',
+                subtitle: 'Limited cohort spots. Drop your details and we will call back.',
+                submitLabel: 'Reserve my seat',
+                successMessage: 'Thanks — we will be in touch shortly.',
+                showQualification: false,
+                showCity: false,
+                showMessage: true
+            }
+        }
+    },
+    {
+        label: 'Logos · Hiring partners',
+        description: 'Logo grid — partner companies, accreditations, press mentions.',
+        section: {
+            type: 'logos',
+            variant: 'grid',
+            data: {
+                title: 'Our students work at',
+                items: [
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flipkart_logo.svg/512px-Flipkart_logo.svg.png', alt: 'Flipkart' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Amazon_logo.svg/512px-Amazon_logo.svg.png', alt: 'Amazon' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_logo_%282012%29.svg/512px-Microsoft_logo_%282012%29.svg.png', alt: 'Microsoft' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png', alt: 'Google' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Razorpay_logo.svg/512px-Razorpay_logo.svg.png', alt: 'Razorpay' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Swiggy_logo.svg/512px-Swiggy_logo.svg.png', alt: 'Swiggy' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Logos · Marquee',
+        description: 'Horizontally scrolling logo strip. Auto-loops; pause on hover.',
+        section: {
+            type: 'logos',
+            variant: 'scroll',
+            data: {
+                title: 'Trusted by industry',
+                items: [
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flipkart_logo.svg/512px-Flipkart_logo.svg.png', alt: 'Flipkart' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Amazon_logo.svg/512px-Amazon_logo.svg.png', alt: 'Amazon' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_logo_%282012%29.svg/512px-Microsoft_logo_%282012%29.svg.png', alt: 'Microsoft' },
+                    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png', alt: 'Google' }
+                ]
             }
         }
     }
@@ -1376,6 +1612,13 @@ export type TenantEnvironment = {
         // the backend parses it on each push.
         serviceAccountJson?: string
     }
+}
+
+// Site-wide analytics + chat config — read from tenant.settings.landing.analytics.
+// Returns an empty object when nothing is configured so the renderer can no-op.
+export const readSiteAnalytics = (tenant: { settings: TenantSettings | null } | undefined): SiteAnalytics => {
+    const a = (tenant?.settings?.landing as LandingContent | undefined)?.analytics
+    return a ?? {}
 }
 
 export const readEnvironment = (tenant: { settings: TenantSettings | null } | undefined): TenantEnvironment => {

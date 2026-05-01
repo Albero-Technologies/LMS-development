@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { MessageCircle } from 'lucide-react'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
 import {
     defaultFooter,
@@ -30,6 +31,38 @@ export const TenantLandingPage = () => {
     const navbar = tenant.landing?.navbar ?? defaultNavbar()
     const footer = tenant.landing?.footer ?? defaultFooter(tenant.name)
     const site = tenant.landing?.site
+    const analytics = tenant.landing?.analytics
+
+    // GA4 + Meta Pixel injection. Idempotent — re-mounting the page does not
+    // double-fire the loaders because we identify scripts by data-tenant-analytic.
+    useEffect(() => {
+        const installed: HTMLElement[] = []
+        const gaId = analytics?.googleAnalyticsId
+        if (gaId) {
+            const loader = document.createElement('script')
+            loader.async = true
+            loader.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`
+            loader.setAttribute('data-tenant-analytic', 'ga4-loader')
+            document.head.appendChild(loader)
+            installed.push(loader)
+            const inline = document.createElement('script')
+            inline.setAttribute('data-tenant-analytic', 'ga4-init')
+            inline.text = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', ${JSON.stringify(gaId)});`
+            document.head.appendChild(inline)
+            installed.push(inline)
+        }
+        const pixelId = analytics?.metaPixelId
+        if (pixelId) {
+            const inline = document.createElement('script')
+            inline.setAttribute('data-tenant-analytic', 'meta-pixel')
+            inline.text = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', ${JSON.stringify(pixelId)});fbq('track', 'PageView');`
+            document.head.appendChild(inline)
+            installed.push(inline)
+        }
+        return () => {
+            installed.forEach((el) => el.parentNode?.removeChild(el))
+        }
+    }, [analytics?.googleAnalyticsId, analytics?.metaPixelId])
 
     // Site identity — push title + favicon into <head> on mount, restore on
     // unmount so navigating away from the tenant page doesn't leak the
@@ -130,6 +163,21 @@ export const TenantLandingPage = () => {
                 tenant={tenant}
                 slugBase={slugBase}
             />
+
+            {analytics?.whatsappNumber && (
+                <a
+                    href={`https://wa.me/${analytics.whatsappNumber.replace(/[^0-9]/g, '')}${analytics.whatsappMessage ? `?text=${encodeURIComponent(analytics.whatsappMessage)}` : ''}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Chat on WhatsApp"
+                    className="fixed bottom-5 right-5 z-50 inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg text-white transition-transform hover:scale-110"
+                    style={{ background: '#25D366' }}>
+                    <MessageCircle
+                        size={26}
+                        fill="currentColor"
+                    />
+                </a>
+            )}
         </div>
     )
 }

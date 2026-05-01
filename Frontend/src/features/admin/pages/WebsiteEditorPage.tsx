@@ -59,7 +59,11 @@ import {
     Settings,
     ChevronUp,
     ChevronDown,
-    Link2
+    Link2,
+    MessageSquare,
+    BarChart3,
+    ClipboardList,
+    Building2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
@@ -100,7 +104,10 @@ import {
     type SectionStyle,
     type SiteIdentity,
     type StyleClass,
-    type TenantSettings
+    type TenantSettings,
+    type TestimonialItem,
+    type StatItem,
+    type LogoItem
 } from '../services/tenant.service'
 import { LandingSectionRenderer } from '@features/marketing/components/LandingSection'
 import { MediaPickerModal } from '../components/MediaPickerModal'
@@ -113,7 +120,11 @@ const SECTION_ICON: Record<LandingSection['type'], typeof Sparkles> = {
     callout: InfoIcon,
     image: ImageIcon,
     embed: Code,
-    collectionList: Database
+    collectionList: Database,
+    testimonials: MessageSquare,
+    stats: BarChart3,
+    leadForm: ClipboardList,
+    logos: Building2
 }
 
 const SECTION_LABEL: Record<LandingSection['type'], string> = {
@@ -123,7 +134,11 @@ const SECTION_LABEL: Record<LandingSection['type'], string> = {
     callout: 'Callout',
     image: 'Image',
     embed: 'Embed',
-    collectionList: 'Collection'
+    collectionList: 'Collection',
+    testimonials: 'Testimonials',
+    stats: 'Stats',
+    leadForm: 'Lead form',
+    logos: 'Logos'
 }
 
 type DeviceView = 'desktop' | 'tablet' | 'mobile'
@@ -400,20 +415,6 @@ export const WebsiteEditorPage = () => {
                 description="Drag sections to reorder. Switch device views. Multi-page support with per-page SEO."
                 actions={
                     <>
-                        <div className="w-64">
-                            <Select
-                                aria-label="Choose tenant"
-                                value={tenantId}
-                                onChange={(e) => setTenantId(e.target.value)}>
-                                {tenants.map((t) => (
-                                    <option
-                                        key={t.id}
-                                        value={t.id}>
-                                        {t.name} (/{t.slug})
-                                    </option>
-                                ))}
-                            </Select>
-                        </div>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -442,6 +443,41 @@ export const WebsiteEditorPage = () => {
                 }
             />
 
+            {/* Tenant context selector — own row so the page-header actions
+                don't have to share horizontal space with a wide select. */}
+            <Card
+                className="mb-4"
+                padded={false}>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3">
+                    <div className="text-xs font-semibold text-fg-soft uppercase tracking-wide shrink-0 sm:w-32">
+                        Editing tenant
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <Select
+                            aria-label="Choose tenant"
+                            value={tenantId}
+                            onChange={(e) => setTenantId(e.target.value)}>
+                            {tenants.map((t) => (
+                                <option
+                                    key={t.id}
+                                    value={t.id}>
+                                    {t.name} (/{t.slug})
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+                    {tenant && (
+                        <a
+                            href={previewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-fg-muted font-mono hover:text-[var(--color-brand-600)] hover:underline shrink-0">
+                            /t/{tenant.slug}
+                        </a>
+                    )}
+                </div>
+            </Card>
+
             {detailQuery.isLoading || !tenant ? (
                 <Card>
                     <Skeleton className="h-5 w-1/3 mb-2" />
@@ -467,9 +503,12 @@ export const WebsiteEditorPage = () => {
                         onUpdateMeta={updatePageMeta}
                     />
 
-                    <div className="grid lg:grid-cols-[420px_1fr] gap-4 items-start">
+                    {/* min-w-0 on both grid items keeps the 1fr/420px tracks
+                        from being pushed wider by their content (the preview's
+                        max-w-6xl hero, or long section labels in the sidebar). */}
+                    <div className="grid lg:grid-cols-[420px_minmax(0,1fr)] gap-4 items-start">
                         {/* Left panel — section list + selected section editor */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 min-w-0">
                             <Card padded={false}>
                                 <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
                                     <h3 className="text-sm font-semibold text-fg">Sections</h3>
@@ -519,11 +558,13 @@ export const WebsiteEditorPage = () => {
                         </div>
 
                         {/* Right panel — preview + device toggle */}
-                        <Card padded={false}>
+                        <Card
+                            padded={false}
+                            className="min-w-0 overflow-hidden">
                             <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2 text-xs text-fg-muted">
                                 <PencilLine size={14} />
-                                <span className="font-mono">/t/{tenant.slug}{activePage?.slug !== '/' ? activePage?.slug : ''}</span>
-                                <div className="ml-auto inline-flex border border-[var(--color-border)] rounded-md overflow-hidden">
+                                <span className="font-mono truncate">/t/{tenant.slug}{activePage?.slug !== '/' ? activePage?.slug : ''}</span>
+                                <div className="ml-auto inline-flex border border-[var(--color-border)] rounded-md overflow-hidden shrink-0">
                                     <DeviceToggle
                                         value={device}
                                         onChange={setDevice}
@@ -533,7 +574,7 @@ export const WebsiteEditorPage = () => {
                             <div className="bg-surface-2 p-4 overflow-x-auto">
                                 <div
                                     className="mx-auto bg-bg border border-[var(--color-border)] rounded-md overflow-hidden transition-[max-width]"
-                                    style={{ maxWidth: DEVICE_WIDTH[device] }}>
+                                    style={{ maxWidth: DEVICE_WIDTH[device], width: '100%' }}>
                                     {sections.length === 0 ? (
                                         <div className="grid place-items-center h-96 text-fg-muted">
                                             <div className="text-center">
@@ -1211,7 +1252,7 @@ const SortableSectionItem = ({
                     <span className="text-sm font-medium text-fg block truncate">
                         {SECTION_LABEL[section.type]} · {section.variant}
                     </span>
-                    <span className="text-[11px] text-fg-muted truncate">{getSectionPreviewText(section)}</span>
+                    <span className="text-[11px] text-fg-muted block truncate">{getSectionPreviewText(section)}</span>
                 </span>
             </button>
             <div className="flex shrink-0">
@@ -1260,6 +1301,14 @@ const getSectionPreviewText = (s: LandingSection): string => {
             return s.data.title || (s.data.collectionSlug ? `/${s.data.collectionSlug}` : 'Collection')
         case 'callout':
             return s.data.title || 'Callout'
+        case 'testimonials':
+            return s.data.title || `${s.data.items?.length ?? 0} testimonials`
+        case 'stats':
+            return s.data.title || `${s.data.items?.length ?? 0} stats`
+        case 'leadForm':
+            return s.data.title || 'Lead form'
+        case 'logos':
+            return s.data.title || `${s.data.items?.length ?? 0} logos`
     }
 }
 
@@ -1360,6 +1409,30 @@ const SectionEditor = ({
                             onChange={onUpdateData}
                         />
                     )}
+                    {section.type === 'testimonials' && (
+                        <TestimonialsFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'stats' && (
+                        <StatsFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'leadForm' && (
+                        <LeadFormFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'logos' && (
+                        <LogosFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
                 </>
             )}
 
@@ -1381,7 +1454,11 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
     callout: ['info', 'success'],
     image: ['contained', 'full'],
     embed: ['iframe'],
-    collectionList: ['cards', 'list']
+    collectionList: ['cards', 'list'],
+    testimonials: ['cards', 'quotes'],
+    stats: ['banner', 'grid'],
+    leadForm: ['split', 'inline'],
+    logos: ['grid', 'scroll']
 }
 
 // ---- Design tab: per-section style overrides --------------------------------
@@ -2922,6 +2999,316 @@ const FooterColumnsEditor = ({
                 onClick={add}>
                 Add column
             </Button>
+        </div>
+    )
+}
+
+// ---- Testimonials editor ----------------------------------------------------
+
+const TestimonialsFields = ({
+    data,
+    onChange
+}: {
+    data: Extract<LandingSection, { type: 'testimonials' }>['data']
+    onChange: (p: object) => void
+}) => {
+    const items = data.items ?? []
+    const update = (i: number, patch: Partial<TestimonialItem>) =>
+        onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
+    const add = () =>
+        onChange({
+            items: [...items, { name: '', quote: '' } as TestimonialItem]
+        })
+    const remove = (i: number) => onChange({ items: items.filter((_, idx) => idx !== i) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Section title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Textarea
+                label="Subtitle"
+                rows={2}
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                {items.map((it, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                            <Input
+                                label={`Name ${i + 1}`}
+                                value={it.name}
+                                onChange={(e) => update(i, { name: e.target.value })}
+                            />
+                            <button
+                                type="button"
+                                aria-label="Remove testimonial"
+                                onClick={() => remove(i)}
+                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                                <X size={14} />
+                            </button>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-2">
+                            <Input
+                                label="Role"
+                                value={it.role ?? ''}
+                                onChange={(e) => update(i, { role: e.target.value })}
+                            />
+                            <Input
+                                label="Company"
+                                value={it.company ?? ''}
+                                onChange={(e) => update(i, { company: e.target.value })}
+                            />
+                        </div>
+                        <Input
+                            label="Avatar URL"
+                            value={it.avatarUrl ?? ''}
+                            onChange={(e) => update(i, { avatarUrl: e.target.value })}
+                            placeholder="https://…"
+                        />
+                        <Textarea
+                            label="Quote"
+                            rows={3}
+                            value={it.quote}
+                            onChange={(e) => update(i, { quote: e.target.value })}
+                        />
+                    </div>
+                ))}
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<Plus size={12} />}
+                    onClick={add}>
+                    Add testimonial
+                </Button>
+            </div>
+        </div>
+    )
+}
+
+// ---- Stats editor -----------------------------------------------------------
+
+const StatsFields = ({
+    data,
+    onChange
+}: {
+    data: Extract<LandingSection, { type: 'stats' }>['data']
+    onChange: (p: object) => void
+}) => {
+    const items = data.items ?? []
+    const update = (i: number, patch: Partial<StatItem>) =>
+        onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
+    const add = () => onChange({ items: [...items, { value: '', label: '' } as StatItem] })
+    const remove = (i: number) => onChange({ items: items.filter((_, idx) => idx !== i) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Section title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Textarea
+                label="Subtitle"
+                rows={2}
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                {items.map((it, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                            <Input
+                                label={`Stat ${i + 1} value`}
+                                value={it.value}
+                                onChange={(e) => update(i, { value: e.target.value })}
+                                placeholder="94%"
+                            />
+                            <button
+                                type="button"
+                                aria-label="Remove stat"
+                                onClick={() => remove(i)}
+                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                                <X size={14} />
+                            </button>
+                        </div>
+                        <Input
+                            label="Label"
+                            value={it.label}
+                            onChange={(e) => update(i, { label: e.target.value })}
+                            placeholder="Placement rate"
+                        />
+                        <Input
+                            label="Sublabel (optional)"
+                            value={it.sublabel ?? ''}
+                            onChange={(e) => update(i, { sublabel: e.target.value })}
+                            placeholder="Cohort 2025-Q1"
+                        />
+                    </div>
+                ))}
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<Plus size={12} />}
+                    onClick={add}>
+                    Add stat
+                </Button>
+            </div>
+        </div>
+    )
+}
+
+// ---- Lead form editor -------------------------------------------------------
+
+const LeadFormFields = ({
+    data,
+    onChange
+}: {
+    data: Extract<LandingSection, { type: 'leadForm' }>['data']
+    onChange: (p: object) => void
+}) => (
+    <div className="space-y-3">
+        <Input
+            label="Eyebrow"
+            value={data.eyebrow ?? ''}
+            onChange={(e) => onChange({ eyebrow: e.target.value })}
+        />
+        <Input
+            label="Title"
+            value={data.title ?? ''}
+            onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <Textarea
+            label="Subtitle"
+            rows={2}
+            value={data.subtitle ?? ''}
+            onChange={(e) => onChange({ subtitle: e.target.value })}
+        />
+        <Input
+            label="Submit button label"
+            value={data.submitLabel ?? ''}
+            onChange={(e) => onChange({ submitLabel: e.target.value })}
+            placeholder="Request a callback"
+        />
+        <Input
+            label="Success message"
+            value={data.successMessage ?? ''}
+            onChange={(e) => onChange({ successMessage: e.target.value })}
+            placeholder="We will be in touch within one working day."
+        />
+        <Input
+            label="Course pre-fill (optional)"
+            value={data.coursePrefill ?? ''}
+            onChange={(e) => onChange({ coursePrefill: e.target.value })}
+            placeholder="Business Analytics Pro"
+            hint="Auto-fills the 'Interested in' field. Useful when the form is on a course page."
+        />
+        <div className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+            <div className="text-xs font-semibold text-fg mb-1">Optional fields</div>
+            {(['showQualification', 'showCity', 'showMessage'] as const).map((k) => (
+                <label
+                    key={k}
+                    className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={!!data[k]}
+                        onChange={(e) => onChange({ [k]: e.target.checked })}
+                        className="accent-[var(--color-brand-500)]"
+                    />
+                    {k === 'showQualification' && 'Show qualification'}
+                    {k === 'showCity' && 'Show city'}
+                    {k === 'showMessage' && 'Show message'}
+                </label>
+            ))}
+        </div>
+    </div>
+)
+
+// ---- Logos editor -----------------------------------------------------------
+
+const LogosFields = ({
+    data,
+    onChange
+}: {
+    data: Extract<LandingSection, { type: 'logos' }>['data']
+    onChange: (p: object) => void
+}) => {
+    const items = data.items ?? []
+    const update = (i: number, patch: Partial<LogoItem>) =>
+        onChange({ items: items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) })
+    const add = () => onChange({ items: [...items, { src: '' } as LogoItem] })
+    const remove = (i: number) => onChange({ items: items.filter((_, idx) => idx !== i) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+                placeholder="Our students work at"
+            />
+            <Input
+                label="Subtitle"
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                {items.map((it, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                            <Input
+                                label={`Logo ${i + 1} URL`}
+                                value={it.src}
+                                onChange={(e) => update(i, { src: e.target.value })}
+                                placeholder="https://… .png or .svg"
+                            />
+                            <button
+                                type="button"
+                                aria-label="Remove logo"
+                                onClick={() => remove(i)}
+                                className="mt-7 text-fg-muted hover:text-[var(--color-danger)]">
+                                <X size={14} />
+                            </button>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-2">
+                            <Input
+                                label="Alt text"
+                                value={it.alt ?? ''}
+                                onChange={(e) => update(i, { alt: e.target.value })}
+                                placeholder="Acme Corp"
+                            />
+                            <Input
+                                label="Link (optional)"
+                                value={it.href ?? ''}
+                                onChange={(e) => update(i, { href: e.target.value })}
+                                placeholder="https://…"
+                            />
+                        </div>
+                        {it.src && (
+                            <div className="rounded-md border bg-surface-2 p-2 text-center">
+                                <img
+                                    src={it.src}
+                                    alt={it.alt ?? ''}
+                                    className="h-8 w-auto mx-auto object-contain"
+                                />
+                            </div>
+                        )}
+                    </div>
+                ))}
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<Plus size={12} />}
+                    onClick={add}>
+                    Add logo
+                </Button>
+            </div>
         </div>
     )
 }

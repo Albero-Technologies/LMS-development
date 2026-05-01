@@ -131,7 +131,7 @@ export default tseslint.config(
 
     // ---- Prisma seed + operational scripts — allow console ---------------
     {
-        files: ['prisma/seed.ts', 'script/**/*.{ts,js}'],
+        files: ['prisma/seed.ts', 'prisma/seeds/**/*.ts', 'script/**/*.{ts,js}'],
         languageOptions: {
             parserOptions: { project: './tsconfig.eslint.json', tsconfigRootDir: import.meta.dirname }
         },

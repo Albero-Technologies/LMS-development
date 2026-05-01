@@ -1,14 +1,25 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useContext, useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpen, Sparkles, MessageCircle, CheckCircle2, Info, ImageIcon, Database } from 'lucide-react'
+import { ArrowRight, BookOpen, Sparkles, MessageCircle, CheckCircle2, Info, ImageIcon, Database, Quote } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
+import { Input, Textarea } from '@shared/components/ui/Input'
 import type { LandingContent, LandingSection as Section, SectionStyle, Typography } from '@features/admin/services/tenant.service'
 import { resolveSectionStyle } from '@features/admin/services/tenant.service'
 import { getPublicCollection } from '@features/admin/services/cms.service'
-import { useTenantBranding } from '@shared/contexts/useTenantBranding'
+import { TenantBrandingCtx } from '@shared/contexts/TenantBrandingContext'
+import { api } from '@shared/libs/api'
+
+// Pull the tenant slug from `slugBase` (e.g. "/t/albero-academy" → "albero-academy").
+// Fallback for when blocks render outside <TenantBrandingProvider> — the SA's
+// website-editor preview pane is the canonical case. Returns empty string if
+// the prefix doesn't match the expected /t/<slug> shape.
+const slugFromBase = (slugBase: string): string => {
+    const m = /^\/t\/([^/]+)/.exec(slugBase)
+    return m ? m[1] : ''
+}
 
 // Map abstract style tokens onto Tailwind utility class names. Editors expose
 // the tokens (sm/md/lg, narrow/wide, …) so non-technical users get sensible
@@ -269,7 +280,26 @@ export const LandingSectionRenderer = ({ section, slugBase, tenantName, styleCla
             case 'embed':
                 return <EmbedBlock section={section} />
             case 'collectionList':
-                return <CollectionListBlock section={section} />
+                return (
+                    <CollectionListBlock
+                        section={section}
+                        slugBase={slugBase}
+                    />
+                )
+            case 'testimonials':
+                return <TestimonialsBlock section={section} />
+            case 'stats':
+                return <StatsBlock section={section} />
+            case 'leadForm':
+                return (
+                    <LeadFormBlock
+                        section={section}
+                        slugBase={slugBase}
+                        tenantName={tenantName}
+                    />
+                )
+            case 'logos':
+                return <LogosBlock section={section} />
             default:
                 return null
         }
@@ -483,13 +513,22 @@ const CtaBlock = ({ section, slugBase }: { section: Extract<Section, { type: 'ct
 // in either a card grid or a vertical list. Field mapping (title/summary/
 // image) is configurable per section so the same renderer works for blog
 // posts, press releases, events, etc.
-const CollectionListBlock = ({ section }: { section: Extract<Section, { type: 'collectionList' }> }) => {
-    const { tenant } = useTenantBranding()
+const CollectionListBlock = ({
+    section,
+    slugBase
+}: {
+    section: Extract<Section, { type: 'collectionList' }>
+    slugBase: string
+}) => {
+    // Optional context — null in the SA editor preview. Fall back to the
+    // slug parsed out of slugBase so the editor preview can still fetch.
+    const ctx = useContext(TenantBrandingCtx)
+    const tenantSlug = ctx?.tenant.slug ?? slugFromBase(slugBase)
     const slug = section.data.collectionSlug
     const query = useQuery({
-        queryKey: ['public', 'collection', tenant.slug, slug],
-        queryFn: () => getPublicCollection(tenant.slug, slug!),
-        enabled: !!slug,
+        queryKey: ['public', 'collection', tenantSlug, slug],
+        queryFn: () => getPublicCollection(tenantSlug, slug!),
+        enabled: !!slug && tenantSlug.length > 0,
         staleTime: 60_000,
         retry: false
     })
@@ -703,6 +742,417 @@ const CalloutBlock = ({ section }: { section: Extract<Section, { type: 'callout'
                     {title && <div className="text-sm font-semibold text-fg">{title}</div>}
                     {body && <p className="text-xs text-fg-soft mt-0.5">{body}</p>}
                 </div>
+            </div>
+        </section>
+    )
+}
+
+// ---- Testimonials block -----------------------------------------------------
+
+const TestimonialsBlock = ({ section }: { section: Extract<Section, { type: 'testimonials' }> }) => {
+    const { title, subtitle, items = [] } = section.data
+    if (items.length === 0) return null
+
+    if (section.variant === 'quotes') {
+        return (
+            <section className="max-w-4xl mx-auto px-4 sm:px-6 py-16 text-center">
+                {title && <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">{title}</h2>}
+                {subtitle && <p className="mt-2 text-fg-soft max-w-xl mx-auto">{subtitle}</p>}
+                <div className="mt-8 space-y-8">
+                    {items.map((t, i) => (
+                        <figure key={i}>
+                            <Quote
+                                size={28}
+                                className="mx-auto text-[var(--color-brand-500)] opacity-60"
+                            />
+                            <blockquote className="mt-3 text-lg sm:text-xl leading-relaxed text-fg italic">
+                                &ldquo;{t.quote}&rdquo;
+                            </blockquote>
+                            <figcaption className="mt-4 inline-flex items-center gap-3">
+                                {t.avatarUrl && (
+                                    <img
+                                        src={t.avatarUrl}
+                                        alt=""
+                                        loading="lazy"
+                                        className="h-10 w-10 rounded-full object-cover"
+                                    />
+                                )}
+                                <span className="text-sm text-fg-soft">
+                                    <span className="font-semibold text-fg">{t.name}</span>
+                                    {t.role && <span> · {t.role}</span>}
+                                    {t.company && <span> @ {t.company}</span>}
+                                </span>
+                            </figcaption>
+                        </figure>
+                    ))}
+                </div>
+            </section>
+        )
+    }
+
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+            {title && <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-center">{title}</h2>}
+            {subtitle && <p className="mt-2 text-fg-soft text-center max-w-xl mx-auto">{subtitle}</p>}
+            <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {items.map((t, i) => (
+                    <Card
+                        key={i}
+                        className="!p-5 flex flex-col">
+                        <Quote
+                            size={20}
+                            className="text-[var(--color-brand-500)] opacity-70"
+                        />
+                        <p className="mt-3 text-sm text-fg leading-relaxed flex-1">{t.quote}</p>
+                        <div className="mt-5 inline-flex items-center gap-3">
+                            {t.avatarUrl ? (
+                                <img
+                                    src={t.avatarUrl}
+                                    alt=""
+                                    loading="lazy"
+                                    className="h-10 w-10 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="h-10 w-10 rounded-full bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center text-sm font-semibold">
+                                    {t.name.slice(0, 1).toUpperCase()}
+                                </div>
+                            )}
+                            <div>
+                                <div className="text-sm font-semibold text-fg">{t.name}</div>
+                                <div className="text-xs text-fg-muted">
+                                    {t.role}
+                                    {t.role && t.company && ' · '}
+                                    {t.company}
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+        </section>
+    )
+}
+
+// ---- Stats block ------------------------------------------------------------
+
+const StatsBlock = ({ section }: { section: Extract<Section, { type: 'stats' }> }) => {
+    const { title, subtitle, items = [] } = section.data
+    if (items.length === 0) return null
+
+    if (section.variant === 'banner') {
+        return (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+                <div
+                    className="rounded-xl p-8 sm:p-12 text-white"
+                    style={{ background: 'linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-500) 100%)' }}>
+                    {title && <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-center">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-white/85 text-center max-w-2xl mx-auto">{subtitle}</p>}
+                    <div className={`mt-8 grid gap-6 ${items.length === 2 ? 'sm:grid-cols-2' : items.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
+                        {items.map((s, i) => (
+                            <div
+                                key={i}
+                                className="text-center">
+                                <div className="text-3xl sm:text-4xl font-bold tracking-tight">{s.value}</div>
+                                <div className="mt-1 text-sm font-medium">{s.label}</div>
+                                {s.sublabel && <div className="mt-1 text-xs text-white/75">{s.sublabel}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        )
+    }
+
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+            {title && <h2 className="text-2xl font-semibold tracking-tight text-center">{title}</h2>}
+            {subtitle && <p className="mt-2 text-fg-soft text-center max-w-xl mx-auto">{subtitle}</p>}
+            <div className={`mt-8 grid gap-4 ${items.length <= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
+                {items.map((s, i) => (
+                    <Card
+                        key={i}
+                        className="!p-5 text-center">
+                        <div className="text-3xl font-bold tracking-tight text-[var(--color-brand-600)]">{s.value}</div>
+                        <div className="mt-1 text-sm font-semibold text-fg">{s.label}</div>
+                        {s.sublabel && <div className="mt-1 text-xs text-fg-muted">{s.sublabel}</div>}
+                    </Card>
+                ))}
+            </div>
+        </section>
+    )
+}
+
+// ---- Lead form block --------------------------------------------------------
+//
+// Inline lead-capture form. Posts to /api/v1/enquiries via the configured api
+// instance — the same endpoint the public `/enquiry` page uses. Tenant slug
+// is auto-resolved from the host header on the backend, so no client-side
+// tenantSlug is required when the form is rendered on a /t/<slug>/... route.
+
+const LeadFormBlock = ({
+    section,
+    slugBase,
+    tenantName
+}: {
+    section: Extract<Section, { type: 'leadForm' }>
+    slugBase: string
+    tenantName: string
+}) => {
+    // Optional context — null in the SA editor preview pane (no provider).
+    const ctx = useContext(TenantBrandingCtx)
+    const tenantSlug = ctx?.tenant.slug ?? slugFromBase(slugBase)
+    const {
+        eyebrow,
+        title,
+        subtitle,
+        submitLabel = 'Send',
+        successMessage = 'Thanks — we will be in touch shortly.',
+        coursePrefill,
+        showQualification,
+        showCity,
+        showMessage
+    } = section.data
+
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [phone, setPhone] = useState('')
+    const [course, setCourse] = useState(coursePrefill ?? '')
+    const [city, setCity] = useState('')
+    const [qualification, setQualification] = useState('')
+    const [message, setMessage] = useState('')
+    const [submitting, setSubmitting] = useState(false)
+    const [submitted, setSubmitted] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const submit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (!name.trim() || !email.includes('@') || phone.length < 7) {
+            setError('Please fill in name, a valid email, and phone.')
+            return
+        }
+        setError(null)
+        setSubmitting(true)
+        try {
+            await api.post('/enquiries', {
+                tenantSlug,
+                name: name.trim(),
+                email: email.trim().toLowerCase(),
+                phone: phone.trim(),
+                course: course.trim() || coursePrefill || 'General enquiry',
+                city: city.trim() || undefined,
+                qualification: qualification.trim() || undefined,
+                message: message.trim() || undefined,
+                source: 'website-inline-form'
+            })
+            setSubmitted(true)
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Could not send — please try again.'
+            setError(msg)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const FormBody = (
+        <form
+            onSubmit={submit}
+            className="space-y-3">
+            {submitted ? (
+                <div className="rounded-md border border-[var(--color-success)]/30 bg-[var(--color-success-soft)] p-4 text-center">
+                    <CheckCircle2
+                        size={28}
+                        className="mx-auto text-[var(--color-success)] mb-2"
+                    />
+                    <p className="text-sm font-semibold text-fg">{successMessage}</p>
+                </div>
+            ) : (
+                <>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <Input
+                            label="Full name"
+                            required
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Priya Sharma"
+                        />
+                        <Input
+                            label="Phone"
+                            required
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+91 98XXX XXXXX"
+                        />
+                    </div>
+                    <Input
+                        label="Email"
+                        required
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                    />
+                    <Input
+                        label="Interested in"
+                        value={course}
+                        onChange={(e) => setCourse(e.target.value)}
+                        placeholder={coursePrefill || `What program from ${tenantName} are you considering?`}
+                    />
+                    {showCity && (
+                        <Input
+                            label="City"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Bengaluru"
+                        />
+                    )}
+                    {showQualification && (
+                        <Input
+                            label="Qualification"
+                            value={qualification}
+                            onChange={(e) => setQualification(e.target.value)}
+                            placeholder="B.Tech, M.Sc, MBA…"
+                        />
+                    )}
+                    {showMessage && (
+                        <Textarea
+                            label="Message"
+                            rows={3}
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="Anything specific you'd like us to address on the call?"
+                        />
+                    )}
+                    {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
+                    <Button
+                        type="submit"
+                        size="lg"
+                        loading={submitting}
+                        className="w-full">
+                        {submitLabel}
+                    </Button>
+                    <p className="text-[11px] text-fg-muted text-center">
+                        By submitting, you agree to be contacted by {tenantName} about programs and scholarships.
+                    </p>
+                </>
+            )}
+        </form>
+    )
+
+    if (section.variant === 'split') {
+        return (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+                <div className="grid lg:grid-cols-2 gap-10 items-center">
+                    <div>
+                        {eyebrow && <Badge tone="brand">{eyebrow}</Badge>}
+                        {title && <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">{title}</h2>}
+                        {subtitle && <p className="mt-3 text-fg-soft max-w-md">{subtitle}</p>}
+                        <ul className="mt-6 space-y-2 text-sm text-fg-soft">
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2
+                                    size={16}
+                                    className="text-[var(--color-success)] mt-0.5 shrink-0"
+                                />
+                                Free 20-minute counselling call
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2
+                                    size={16}
+                                    className="text-[var(--color-success)] mt-0.5 shrink-0"
+                                />
+                                Personalised program recommendation
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2
+                                    size={16}
+                                    className="text-[var(--color-success)] mt-0.5 shrink-0"
+                                />
+                                Scholarship eligibility check
+                            </li>
+                        </ul>
+                    </div>
+                    <Card className="!p-6">{FormBody}</Card>
+                </div>
+            </section>
+        )
+    }
+
+    return (
+        <section className="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+            <Card className="!p-6 sm:!p-8">
+                {eyebrow && (
+                    <div className="text-center">
+                        <Badge tone="brand">{eyebrow}</Badge>
+                    </div>
+                )}
+                {title && <h2 className="mt-3 text-2xl font-semibold tracking-tight text-center">{title}</h2>}
+                {subtitle && <p className="mt-2 text-fg-soft text-center">{subtitle}</p>}
+                <div className="mt-6">{FormBody}</div>
+            </Card>
+        </section>
+    )
+}
+
+// ---- Logos block ------------------------------------------------------------
+
+const LogosBlock = ({ section }: { section: Extract<Section, { type: 'logos' }> }) => {
+    const { title, subtitle, items = [] } = section.data
+    if (items.length === 0) return null
+
+    if (section.variant === 'scroll') {
+        const doubled = [...items, ...items]
+        return (
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+                {title && <h2 className="text-sm font-semibold tracking-wide uppercase text-fg-muted text-center">{title}</h2>}
+                {subtitle && <p className="mt-1 text-fg-soft text-center">{subtitle}</p>}
+                <div
+                    className="mt-6 overflow-hidden"
+                    style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
+                    <div
+                        className="flex gap-12 items-center"
+                        style={{ animation: 'logo-marquee 30s linear infinite', width: 'max-content' }}>
+                        {doubled.map((logo, i) => (
+                            <img
+                                key={i}
+                                src={logo.src}
+                                alt={logo.alt ?? ''}
+                                loading="lazy"
+                                className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                            />
+                        ))}
+                    </div>
+                </div>
+                <style dangerouslySetInnerHTML={{ __html: '@keyframes logo-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }' }} />
+            </section>
+        )
+    }
+
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+            {title && <h2 className="text-sm font-semibold tracking-wide uppercase text-fg-muted text-center">{title}</h2>}
+            {subtitle && <p className="mt-1 text-fg-soft text-center">{subtitle}</p>}
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6 items-center">
+                {items.map((logo, i) => {
+                    const img = (
+                        <img
+                            src={logo.src}
+                            alt={logo.alt ?? ''}
+                            loading="lazy"
+                            className="h-10 w-auto max-w-[140px] object-contain mx-auto opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                        />
+                    )
+                    return logo.href ? (
+                        <a
+                            key={i}
+                            href={logo.href}
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {img}
+                        </a>
+                    ) : (
+                        <div key={i}>{img}</div>
+                    )
+                })}
             </div>
         </section>
     )
