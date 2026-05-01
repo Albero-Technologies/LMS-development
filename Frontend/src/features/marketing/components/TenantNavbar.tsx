@@ -6,6 +6,7 @@
 // Mobile (< md) collapses every variant to a hamburger sheet that drops down
 // from the header. Desktop layout is unchanged.
 import { useEffect, useRef, useState, type ComponentType } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import {
     Award,
@@ -99,13 +100,17 @@ const NavLinkItem = ({
     pages,
     slugBase,
     onNavigate,
-    fullWidth
+    fullWidth,
+    centered
 }: {
     link: NavLink
     pages: LandingPage[]
     slugBase: string
     onNavigate?: () => void
     fullWidth?: boolean
+    // Used by the fullscreen mobile variant — centers the trigger label and
+    // dropdown items so everything matches the centered surrounding layout.
+    centered?: boolean
 }) => {
     // When the link has children, render a dropdown trigger instead of a
     // navigable link. The trigger itself doesn't navigate; clicking opens the
@@ -118,6 +123,7 @@ const NavLinkItem = ({
                 slugBase={slugBase}
                 onNavigate={onNavigate}
                 fullWidth={fullWidth}
+                centered={centered}
             />
         )
     }
@@ -157,20 +163,26 @@ const NavDropdown = ({
     pages,
     slugBase,
     onNavigate,
-    fullWidth
+    fullWidth,
+    centered
 }: {
     link: NavLink
     pages: LandingPage[]
     slugBase: string
     onNavigate?: () => void
     fullWidth?: boolean
+    centered?: boolean
 }) => {
     const [open, setOpen] = useState(false)
     const wrapRef = useRef<HTMLDivElement | null>(null)
 
-    // Close on outside click + Escape. Skipped when the menu isn't open.
+    // Close on outside click + Escape. Desktop only — the mobile fullWidth
+    // render does not attach `wrapRef`, so a `wrapRef.current?.contains(...)`
+    // check would always be falsy and close the menu on every mousedown
+    // (including the toggle button itself), making the dropdown impossible
+    // to collapse on touch.
     useEffect(() => {
-        if (!open) return
+        if (!open || fullWidth) return
         const onDown = (e: MouseEvent) => {
             if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
         }
@@ -183,17 +195,22 @@ const NavDropdown = ({
             document.removeEventListener('mousedown', onDown)
             document.removeEventListener('keydown', onKey)
         }
-    }, [open])
+    }, [open, fullWidth])
 
     if (fullWidth) {
         // Mobile / sheet — render the children inline as a nested list under
         // a tap-to-expand header. Avoids hover state on touch devices.
+        // `centered` is set by the fullscreen mobile variant so trigger label
+        // and child rows match the surrounding centered layout.
         return (
             <div className="border-b border-[var(--color-border)]">
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
-                    className="w-full flex items-center justify-between text-base text-fg hover:text-[var(--color-brand-600)] transition-colors py-2"
+                    className={
+                        'w-full flex items-center text-base text-fg hover:text-[var(--color-brand-600)] transition-colors py-2 ' +
+                        (centered ? 'justify-center gap-2' : 'justify-between')
+                    }
                     aria-expanded={open}>
                     <span>{link.label}</span>
                     <ChevronDown
@@ -202,13 +219,23 @@ const NavDropdown = ({
                     />
                 </button>
                 {open && (
-                    <ul className="pl-2 pb-3 space-y-1">
+                    <ul className={centered ? 'pb-3 space-y-1' : 'pl-2 pb-3 space-y-1'}>
                         {link.children!.map((c) => {
                             const Icon = c.icon ? NAV_ICON[c.icon] : null
                             const href = resolveHref(c, pages, slugBase)
                             const isExternal = /^https?:\/\//.test(href)
                             const target = c.newTab || isExternal ? '_blank' : undefined
-                            const inner = (
+                            const inner = centered ? (
+                                <span className="flex flex-col items-center gap-1 px-2 py-2 rounded-md hover:bg-surface-hover transition-colors">
+                                    {Icon && (
+                                        <span className="h-9 w-9 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center shrink-0">
+                                            <Icon size={16} />
+                                        </span>
+                                    )}
+                                    <span className="text-sm font-semibold text-fg">{c.label}</span>
+                                    {c.description && <span className="text-xs text-fg-muted">{c.description}</span>}
+                                </span>
+                            ) : (
                                 <span className="flex items-start gap-3 px-2 py-2 rounded-md hover:bg-surface-hover transition-colors">
                                     {Icon && (
                                         <span className="h-9 w-9 rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-600)] grid place-items-center shrink-0">
@@ -427,7 +454,7 @@ const SignInButton = ({ label, fullWidth }: { label: string; fullWidth?: boolean
         <Button
             size="sm"
             variant="ghost"
-            className={fullWidth ? 'w-full justify-start' : ''}>
+            className={fullWidth ? 'w-full justify-center' : ''}>
             {label}
         </Button>
     </Link>
@@ -516,12 +543,8 @@ const MobileMenu = ({
                     fullWidth
                 />
             ))}
-            <div className="flex items-center justify-between pt-3 mt-2">
-                <span className="text-xs text-fg-muted">Theme</span>
-                <ThemeToggle />
-            </div>
             {(showSignIn || config.variant === 'with-cta') && (
-                <div className="flex flex-col gap-2 mt-3">
+                <div className="flex flex-col gap-2 mt-5">
                     {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
                     {config.variant === 'with-cta' && (
                         <CtaButton
@@ -536,36 +559,25 @@ const MobileMenu = ({
         </>
     )
 
-    return (
-        <>
-            <button
-                type="button"
-                aria-label={open ? 'Close menu' : 'Open menu'}
-                aria-expanded={open}
-                onClick={() => setOpen((v) => !v)}
-                className="md:hidden inline-flex items-center justify-center h-10 w-10 -mr-2 rounded-lg border border-[var(--color-border)] bg-surface text-fg hover:bg-surface-hover transition-colors shrink-0">
-                {open ? <X size={20} /> : <Menu size={20} />}
-            </button>
-
-            {open && variant === 'sheet' && (
-                <div
-                    className="md:hidden fixed inset-x-0 top-14 bottom-0 z-40 bg-surface border-t border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-top-2 duration-150"
-                    role="dialog"
-                    aria-modal="true">
-                    <div className="px-5 py-5 flex flex-col gap-1 max-w-md mx-auto w-full">{linksContent}</div>
-                </div>
-            )}
-
-            {open && variant === 'drawer-right' && (
+    // The mobile menu must escape the parent <header>'s containing block.
+    // The header sets `backdrop-filter: blur(...)`, which (per CSS spec) makes
+    // the header a containing block for `position: fixed` descendants — so a
+    // fixed drawer rendered inline inside the header would be clipped to the
+    // 56px header bounds. createPortal hoists the drawer to <body> so the
+    // fixed positioning resolves against the viewport as expected.
+    const drawerContent = (() => {
+        if (!open) return null
+        if (variant === 'drawer-right') {
+            return (
                 <>
                     <button
                         type="button"
                         aria-label="Close menu"
                         onClick={() => setOpen(false)}
-                        className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+                        className="md:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
                     />
                     <div
-                        className="md:hidden fixed top-0 right-0 bottom-0 w-[80vw] max-w-sm z-50 bg-surface border-l border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-right duration-200"
+                        className="md:hidden fixed top-0 right-0 bottom-0 w-[80vw] max-w-sm z-[70] bg-surface border-l border-[var(--color-border)] overflow-y-auto shadow-xl animate-in slide-in-from-right duration-200"
                         role="dialog"
                         aria-modal="true">
                         <div className="flex items-center justify-between px-4 h-14 border-b border-[var(--color-border)]">
@@ -581,11 +593,12 @@ const MobileMenu = ({
                         <div className="px-4 py-4 flex flex-col gap-1">{linksContent}</div>
                     </div>
                 </>
-            )}
-
-            {open && variant === 'fullscreen' && (
+            )
+        }
+        if (variant === 'fullscreen') {
+            return (
                 <div
-                    className="md:hidden fixed inset-0 z-40 bg-surface overflow-y-auto"
+                    className="md:hidden fixed inset-0 z-[60] bg-surface overflow-y-auto"
                     role="dialog"
                     aria-modal="true">
                     <div className="flex items-center justify-end px-4 h-14">
@@ -606,12 +619,9 @@ const MobileMenu = ({
                                 slugBase={slugBase}
                                 onNavigate={() => setOpen(false)}
                                 fullWidth
+                                centered
                             />
                         ))}
-                        <div className="flex items-center justify-center gap-3 pt-4">
-                            <span className="text-xs text-fg-muted">Theme</span>
-                            <ThemeToggle />
-                        </div>
                         {(showSignIn || config.variant === 'with-cta') && (
                             <div className="flex flex-col gap-2 mt-4">
                                 {showSignIn && <SignInButton label={config.signInLabel ?? 'Sign in'} fullWidth />}
@@ -627,7 +637,43 @@ const MobileMenu = ({
                         )}
                     </div>
                 </div>
-            )}
+            )
+        }
+        // sheet (default) — wrap the menu in a backdrop overlay so that the
+        // empty area below the link list is tappable-to-close. The menu itself
+        // sits as an auto-height card under the navbar; tapping anywhere in
+        // the dimmed area outside the card dismisses the menu.
+        return (
+            <div
+                className="md:hidden fixed inset-x-0 top-14 bottom-0 z-[60] bg-black/30 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-100"
+                role="dialog"
+                aria-modal="true"
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) setOpen(false)
+                }}>
+                <div
+                    className="bg-surface border-b border-[var(--color-border)] shadow-xl animate-in slide-in-from-top-2 duration-150"
+                    onClick={(e) => e.stopPropagation()}>
+                    <div className="px-5 py-5 flex flex-col gap-1 max-w-md mx-auto w-full">{linksContent}</div>
+                </div>
+            </div>
+        )
+    })()
+
+    return (
+        <>
+            <div className="md:hidden flex items-center gap-2 -mr-2">
+                <ThemeToggle />
+                <button
+                    type="button"
+                    aria-label={open ? 'Close menu' : 'Open menu'}
+                    aria-expanded={open}
+                    onClick={() => setOpen((v) => !v)}
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-lg border border-[var(--color-border)] bg-surface text-fg hover:bg-surface-hover transition-colors shrink-0">
+                    {open ? <X size={20} /> : <Menu size={20} />}
+                </button>
+            </div>
+            {drawerContent && typeof document !== 'undefined' && createPortal(drawerContent, document.body)}
         </>
     )
 }

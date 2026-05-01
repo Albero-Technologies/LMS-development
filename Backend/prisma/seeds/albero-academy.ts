@@ -498,6 +498,220 @@ const faqSections = (): unknown[] => [
     }
 ]
 
+// ---- Campaign landing pages -------------------------------------------------
+//
+// One page per major UTM campaign. Each is conversion-tuned for the traffic
+// source it is meant to receive: webinar funnel for the newsletter blast,
+// scholarship hero for the broad reach campaigns, etc. Always end with a
+// strong inline lead form so the click does not bounce.
+
+const masterclassSections = (): unknown[] => [
+    {
+        id: sid('mc-hero'),
+        type: 'hero',
+        variant: 'gradient',
+        data: {
+            eyebrow: 'Free 90-minute masterclass · Saturday 8 PM IST',
+            title: 'Break into Data Analytics in 2026.',
+            subtitle:
+                'Live with senior practitioners from Microsoft, PhonePe and Razorpay. Limited to 200 seats — registration closes Friday.',
+            primaryCtaLabel: 'Reserve free seat',
+            primaryCtaLink: '#register'
+        }
+    },
+    {
+        id: sid('mc-stats'),
+        type: 'stats',
+        variant: 'grid',
+        data: {
+            items: [
+                { value: '90 min', label: 'Live + Q&A' },
+                { value: '200', label: 'Seats only' },
+                { value: 'Free', label: 'No card required' },
+                { value: '5★', label: 'Past attendee rating' }
+            ]
+        }
+    },
+    {
+        id: sid('mc-features'),
+        type: 'features',
+        variant: 'four-up',
+        data: {
+            title: 'What we will cover',
+            pillars: [
+                { title: 'The 2026 hiring landscape', description: 'What roles are actually open and what they pay across India.' },
+                { title: 'Skills that matter', description: 'The non-negotiable analytics stack vs the noise.' },
+                { title: '90-day roadmap', description: 'Week-by-week plan to land your first interview.' },
+                { title: 'Live Q&A', description: '30 minutes of your questions answered live, no script.' }
+            ]
+        }
+    },
+    {
+        id: sid('mc-testimonial'),
+        type: 'testimonials',
+        variant: 'quotes',
+        data: {
+            title: 'From a past masterclass attendee',
+            items: [
+                {
+                    quote:
+                        'I attended thinking I would just take notes. Two months later I had a job offer. The roadmap was exactly what I needed.',
+                    name: 'Anjali Mehta',
+                    role: 'Data Analyst',
+                    company: 'Swiggy',
+                    avatarUrl: IMG.avatar3
+                }
+            ]
+        }
+    },
+    {
+        id: sid('mc-leadform'),
+        type: 'leadForm',
+        variant: 'split',
+        data: {
+            eyebrow: 'Save your seat',
+            title: 'Free registration',
+            subtitle: 'Drop your email — we will send the calendar invite + Zoom link.',
+            submitLabel: 'Register free',
+            successMessage: 'Registered — check your inbox for the joining link.',
+            coursePrefill: 'Free Data Analytics masterclass',
+            showQualification: false,
+            showCity: false,
+            showMessage: false
+        }
+    },
+    {
+        id: sid('mc-callout'),
+        type: 'callout',
+        variant: 'info',
+        data: {
+            title: 'Cannot attend live?',
+            body: 'Register anyway — registered attendees get the recording + bonus 90-day roadmap PDF emailed within 24 hours.'
+        }
+    }
+]
+
+const scholarshipSections = (): unknown[] => [
+    {
+        id: sid('sch-hero'),
+        type: 'hero',
+        variant: 'split',
+        data: {
+            eyebrow: 'Cohort 14 · scholarships closing soon',
+            title: 'Up to 30% off — need-based scholarships for Cohort 14.',
+            subtitle:
+                'We hold back 20% of every cohort for need-based scholarships. Apply once and you are considered for every program.',
+            primaryCtaLabel: 'Apply for scholarship',
+            primaryCtaLink: '#apply',
+            imageUrl: IMG.heroLearners,
+            imageAlt: 'Students celebrating scholarship awards'
+        }
+    },
+    {
+        id: sid('sch-stats'),
+        type: 'stats',
+        variant: 'banner',
+        data: {
+            title: 'Scholarship at a glance',
+            items: [
+                { value: '30%', label: 'Max award', sublabel: 'On any program fee' },
+                { value: '20%', label: 'Of every cohort', sublabel: 'Reserved for scholars' },
+                { value: '15 min', label: 'Application time', sublabel: 'No essays' },
+                { value: '7 days', label: 'Decision turnaround' }
+            ]
+        }
+    },
+    {
+        id: sid('sch-features'),
+        type: 'features',
+        variant: 'three-up',
+        data: {
+            title: 'How it works',
+            pillars: [
+                { title: '1. Apply', description: 'Fill the short form below — takes ~15 minutes.' },
+                { title: '2. Counselling call', description: 'Our team validates your situation and recommends the right program.' },
+                { title: '3. Decision in 7 days', description: 'You get a written award letter you can use to plan finances.' }
+            ]
+        }
+    },
+    {
+        id: sid('sch-leadform'),
+        type: 'leadForm',
+        variant: 'split',
+        data: {
+            eyebrow: 'Step 1 of 1',
+            title: 'Apply for a scholarship',
+            subtitle: 'Tell us a bit about yourself — we treat applications confidentially.',
+            submitLabel: 'Submit application',
+            successMessage: 'Got it — our scholarships team will reach out within one working day.',
+            coursePrefill: 'Scholarship enquiry',
+            showQualification: true,
+            showCity: true,
+            showMessage: true
+        }
+    },
+    {
+        id: sid('sch-cta'),
+        type: 'cta',
+        variant: 'card',
+        data: {
+            title: 'Have questions about eligibility?',
+            subtitle: 'WhatsApp our scholarships counsellor — we usually reply within an hour during work hours.',
+            buttonLabel: 'Open WhatsApp',
+            buttonLink: 'enquiry'
+        }
+    }
+]
+
+const applySections = (): unknown[] => [
+    {
+        id: sid('apply-hero'),
+        type: 'hero',
+        variant: 'centered',
+        data: {
+            eyebrow: 'Cohort 14 · enrolling now',
+            title: 'Apply in 60 seconds.',
+            subtitle: 'Tell us a bit about yourself. A senior counsellor will call within one working day.'
+        }
+    },
+    {
+        id: sid('apply-leadform'),
+        type: 'leadForm',
+        variant: 'inline',
+        data: {
+            title: 'Reserve your seat',
+            subtitle: 'Limited cohort spots — first-come, first-served.',
+            submitLabel: 'Reserve my seat',
+            successMessage: 'Thanks — we will be in touch shortly.',
+            showQualification: true,
+            showCity: false,
+            showMessage: true
+        }
+    },
+    {
+        id: sid('apply-stats'),
+        type: 'stats',
+        variant: 'grid',
+        data: {
+            items: [
+                { value: '94%', label: 'Placement rate' },
+                { value: '₹8.4L', label: 'Avg package' },
+                { value: '4.8/5', label: 'Cohort rating' },
+                { value: '6 mo', label: 'Refund guarantee' }
+            ]
+        }
+    },
+    {
+        id: sid('apply-callout'),
+        type: 'callout',
+        variant: 'info',
+        data: {
+            title: 'Not ready to apply?',
+            body: 'Book a free 20-minute counselling call instead — no commitment required.'
+        }
+    }
+]
+
 // ---- The full landing.json ---------------------------------------------------
 
 const buildLandingJson = () => {
@@ -674,6 +888,43 @@ const buildLandingJson = () => {
             seo: {
                 title: 'FAQ · Albero Academy',
                 description: 'Common questions about programs, fees, EMI, scholarships, and the Albero placement guarantee.'
+            }
+        },
+        // Campaign landing pages — destinations for the seeded UTM links.
+        // Kept out of the navbar so they only show up to ad/email/social
+        // traffic that follows the tagged URL.
+        {
+            id: pageId('masterclass'),
+            slug: '/masterclass',
+            name: 'Free Masterclass',
+            sections: masterclassSections(),
+            seo: {
+                title: 'Free Data Analytics Masterclass · Albero Academy',
+                description:
+                    'Free 90-minute live masterclass — break into Data Analytics in 2026. Limited to 200 seats. Hosted by senior practitioners from Microsoft, PhonePe and Razorpay.',
+                ogImageUrl: IMG.heroAbstract
+            }
+        },
+        {
+            id: pageId('scholarship'),
+            slug: '/scholarship',
+            name: 'Scholarship',
+            sections: scholarshipSections(),
+            seo: {
+                title: 'Cohort 14 scholarship · Albero Academy',
+                description:
+                    'Apply for a need-based scholarship — up to 30% off any Albero program. 7-day decision turnaround.',
+                ogImageUrl: IMG.heroLearners
+            }
+        },
+        {
+            id: pageId('apply'),
+            slug: '/apply',
+            name: 'Apply now',
+            sections: applySections(),
+            seo: {
+                title: 'Apply to Albero Academy · Cohort 14',
+                description: 'Reserve your seat in Cohort 14. 60-second application — a counsellor calls within one working day.'
             }
         }
     ]
@@ -859,6 +1110,40 @@ const buildUtmLinks = (origin: string, slug: string) => {
                 utm_source: 'newsletter',
                 utm_medium: 'email',
                 utm_campaign: 'may-2026'
+            }),
+            createdAt: now.toISOString(),
+            clickCount: 0
+        },
+        {
+            id: 'utm-fb-scholarship',
+            tenantId: '',
+            label: 'Facebook · scholarship reach',
+            destination: '/scholarship',
+            source: 'facebook',
+            medium: 'paid-social',
+            campaign: 'scholarship-q2',
+            content: 'carousel-3up',
+            fullUrl: u('/scholarship', {
+                utm_source: 'facebook',
+                utm_medium: 'paid-social',
+                utm_campaign: 'scholarship-q2',
+                utm_content: 'carousel-3up'
+            }),
+            createdAt: now.toISOString(),
+            clickCount: 0
+        },
+        {
+            id: 'utm-whatsapp-apply',
+            tenantId: '',
+            label: 'WhatsApp · counsellor share',
+            destination: '/apply',
+            source: 'whatsapp',
+            medium: 'referral',
+            campaign: 'counsellor-cohort14',
+            fullUrl: u('/apply', {
+                utm_source: 'whatsapp',
+                utm_medium: 'referral',
+                utm_campaign: 'counsellor-cohort14'
             }),
             createdAt: now.toISOString(),
             clickCount: 0
