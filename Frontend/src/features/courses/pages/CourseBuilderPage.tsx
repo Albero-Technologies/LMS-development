@@ -1,6 +1,15 @@
-import { useState } from 'react'
+// Backend-wired curriculum builder. Replaces the previous Zustand-only
+// implementation that broke whenever a course was created via the real
+// /courses POST (the local store never knew about that ID, so editing was
+// impossible).
+//
+// Now: GET /courses/:id hydrates the page; POST/PATCH/DELETE on sections and
+// lessons mutate the server, then we invalidate the course query so the
+// sidebar/preview re-render with fresh data.
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Youtube, Trash2, Eye, GripVertical, Clock } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft, Plus, Youtube, Trash2, Eye, GripVertical, Clock, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -9,26 +18,152 @@ import { Input } from '@shared/components/ui/Input'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
 import { Modal } from '@shared/components/ui/Modal'
+import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
-import { useCourseStore, type TSection } from '../stores/courseStore'
+import { useConfirm } from '@shared/components/ui/ConfirmDialog'
+import { toApiError } from '@shared/libs/api'
 import { YouTubePlayer } from '../components/YouTubePlayer'
 import { parseYouTubeId, youtubeThumbUrl } from '../helpers/youtube'
-import { useConfirm } from '@shared/components/ui/ConfirmDialog'
+import {
+    createLesson,
+    createSection,
+    deleteLesson,
+    deleteSection,
+    getCourse,
+    updateCourse,
+    updateSection,
+    type TSection
+} from '../services/course.service'
 
 export const CourseBuilderPage = () => {
     const { id = '' } = useParams()
-    const course = useCourseStore((s) => s.courses.find((c) => c.id === id))
-
-    const addSection = useCourseStore((s) => s.addSection)
-    const renameSection = useCourseStore((s) => s.renameSection)
-    const removeSection = useCourseStore((s) => s.removeSection)
-    const removeLesson = useCourseStore((s) => s.removeLesson)
-    const publish = useCourseStore((s) => s.publishCourse)
-
+    const queryClient = useQueryClient()
     const confirm = useConfirm()
+
+    const courseQuery = useQuery({
+        queryKey: ['courses', id],
+        queryFn: () => getCourse(id),
+        enabled: id.length > 0,
+        staleTime: 30_000,
+        retry: false
+    })
+    const course = courseQuery.data
+    const sections: TSection[] = course?.sections ?? []
+
+    // Track which section is "active" (the one whose lessons fill the middle
+    // pane) and which lesson is being previewed. Both default to the first
+    // section / first lesson once data arrives.
     const [activeSectionId, setActiveSectionId] = useState<string | null>(null)
     const [previewLessonId, setPreviewLessonId] = useState<string | null>(null)
     const [lessonModalOpen, setLessonModalOpen] = useState(false)
+
+    useEffect(() => {
+        if (sections.length === 0) {
+            setActiveSectionId(null)
+            return
+        }
+        // Keep current selection if it still exists, otherwise jump to first.
+        if (!sections.some((s) => s.id === activeSectionId)) setActiveSectionId(sections[0].id)
+    }, [sections, activeSectionId])
+
+    const activeSection = sections.find((s) => s.id === activeSectionId) ?? null
+    const previewLesson = activeSection?.lessons.find((l) => l.id === previewLessonId) ?? activeSection?.lessons[0] ?? null
+
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: ['courses', id] })
+
+    // ---- Mutations -----------------------------------------------------
+
+    const addSectionMutation = useMutation({
+        mutationFn: (title: string) => createSection(id, { title, order: sections.length }),
+        onSuccess: (sec) => {
+            invalidate()
+            setActiveSectionId(sec.id)
+        },
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not add section')
+    })
+
+    const renameSectionMutation = useMutation({
+        mutationFn: ({ sectionId, title }: { sectionId: string; title: string }) => updateSection(id, sectionId, { title }),
+        onSuccess: () => invalidate(),
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not rename')
+    })
+
+    const deleteSectionMutation = useMutation({
+        mutationFn: (sectionId: string) => deleteSection(id, sectionId),
+        onSuccess: () => invalidate(),
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not delete section')
+    })
+
+    const deleteLessonMutation = useMutation({
+        mutationFn: (lessonId: string) => deleteLesson(id, lessonId),
+        onSuccess: () => invalidate(),
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not delete lesson')
+    })
+
+    const publishMutation = useMutation({
+        mutationFn: (publish: boolean) => updateCourse(id, { publishState: publish ? 'PUBLISHED' : 'DRAFT' }),
+        onSuccess: (next) => {
+            invalidate()
+            toast.success(next.publishState === 'PUBLISHED' ? 'Course published — visible to students' : 'Course unpublished')
+        },
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not update publish state')
+    })
+
+    // ---- Handlers ------------------------------------------------------
+
+    const handleAddSection = () => {
+        const title = window.prompt('Section title', `Module ${sections.length + 1}`)?.trim()
+        if (!title) return
+        addSectionMutation.mutate(title)
+    }
+
+    const handleRenameSection = (sec: TSection) => {
+        const title = window.prompt('Rename section', sec.title)?.trim()
+        if (!title || title === sec.title) return
+        renameSectionMutation.mutate({ sectionId: sec.id, title })
+    }
+
+    const handleRemoveSection = async (sec: TSection) => {
+        const ok = await confirm({
+            title: `Delete section "${sec.title}"?`,
+            description: 'Every lesson inside this section is also removed. Student progress on those lessons is preserved on the enrolment record.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
+        deleteSectionMutation.mutate(sec.id, {
+            onSuccess: () => {
+                if (activeSectionId === sec.id) setActiveSectionId(null)
+            }
+        })
+    }
+
+    const handleRemoveLesson = async (lessonId: string, title: string) => {
+        const ok = await confirm({
+            title: `Delete lesson "${title}"?`,
+            description: 'Students lose access to this lesson immediately. Past progress on it stays in the analytics.',
+            confirmLabel: 'Delete',
+            tone: 'danger'
+        })
+        if (!ok) return
+        deleteLessonMutation.mutate(lessonId)
+    }
+
+    // ---- Render --------------------------------------------------------
+
+    if (courseQuery.isLoading) {
+        return (
+            <>
+                <Skeleton className="h-6 w-32 mb-4" />
+                <Skeleton className="h-16 w-full mb-6" />
+                <div className="grid lg:grid-cols-[280px_1fr_340px] gap-4">
+                    <Skeleton className="h-96" />
+                    <Skeleton className="h-96" />
+                    <Skeleton className="h-96" />
+                </div>
+            </>
+        )
+    }
 
     if (!course) {
         return (
@@ -40,50 +175,13 @@ export const CourseBuilderPage = () => {
                 </Link>
                 <Empty
                     title="Course not found"
-                    description="It may have been deleted."
+                    description="It may have been deleted, or you don't have access."
                 />
             </>
         )
     }
 
-    // Stay in sync with store changes.
-    const activeSection: TSection | null = (activeSectionId && course.sections.find((s) => s.id === activeSectionId)) || course.sections[0] || null
-    const previewLesson = activeSection?.lessons.find((l) => l.id === previewLessonId) ?? activeSection?.lessons[0]
-
-    const handleAddSection = () => {
-        const title = window.prompt('Section title', `Module ${course.sections.length + 1}`)?.trim()
-        if (!title) return
-        addSection(course.id, title)
-    }
-
-    const handleRenameSection = (sec: TSection) => {
-        const title = window.prompt('Rename section', sec.title)?.trim()
-        if (!title || title === sec.title) return
-        renameSection(course.id, sec.id, title)
-    }
-
-    const handleRemoveSection = async (sec: TSection) => {
-        const ok = await confirm({
-            title: `Delete section "${sec.title}"?`,
-            description: 'Every lesson inside this section is also removed. Student progress on those lessons is preserved on the enrolment record.',
-            confirmLabel: 'Delete',
-            tone: 'danger'
-        })
-        if (!ok) return
-        removeSection(course.id, sec.id)
-        if (activeSectionId === sec.id) setActiveSectionId(null)
-    }
-
-    const handleRemoveLesson = async (sectionId: string, lessonId: string, title: string) => {
-        const ok = await confirm({
-            title: `Delete lesson "${title}"?`,
-            description: 'Students lose access to this lesson immediately. Past progress on it stays in the analytics.',
-            confirmLabel: 'Delete',
-            tone: 'danger'
-        })
-        if (!ok) return
-        removeLesson(course.id, sectionId, lessonId)
-    }
+    const isPublished = course.publishState === 'PUBLISHED'
 
     return (
         <>
@@ -95,7 +193,7 @@ export const CourseBuilderPage = () => {
             <PageHeader
                 eyebrow="Course Builder"
                 title={course.title}
-                description="Add sections and YouTube lessons. Drag to reorder (coming soon). Students see changes instantly."
+                description="Add sections and YouTube lessons. Students see changes instantly."
                 actions={
                     <>
                         <Link to={`/app/courses/${course.id}`}>
@@ -108,18 +206,15 @@ export const CourseBuilderPage = () => {
                         </Link>
                         <Button
                             size="sm"
-                            variant={course.isPublished ? 'subtle' : 'primary'}
-                            onClick={() => {
-                                publish(course.id, !course.isPublished)
-                                toast.success(course.isPublished ? 'Course unpublished' : 'Course published — visible to students')
-                            }}>
-                            {course.isPublished ? 'Unpublish' : 'Publish'}
+                            variant={isPublished ? 'subtle' : 'primary'}
+                            loading={publishMutation.isPending}
+                            onClick={() => publishMutation.mutate(!isPublished)}>
+                            {isPublished ? 'Unpublish' : 'Publish'}
                         </Button>
                     </>
                 }
             />
 
-            {/* 3-panel builder — sections | lessons | preview */}
             <div className="grid lg:grid-cols-[280px_1fr_340px] gap-4">
                 {/* Sections panel */}
                 <Card padded={false}>
@@ -129,11 +224,12 @@ export const CourseBuilderPage = () => {
                             size="icon-sm"
                             variant="ghost"
                             aria-label="Add section"
+                            loading={addSectionMutation.isPending}
                             onClick={handleAddSection}>
                             <Plus size={14} />
                         </Button>
                     </div>
-                    {course.sections.length === 0 ? (
+                    {sections.length === 0 ? (
                         <div className="p-4 text-center">
                             <div className="text-sm text-fg-muted">No sections yet.</div>
                             <Button
@@ -146,7 +242,7 @@ export const CourseBuilderPage = () => {
                         </div>
                     ) : (
                         <ul className="p-2 space-y-1 max-h-[560px] overflow-y-auto">
-                            {course.sections.map((sec) => (
+                            {sections.map((sec) => (
                                 <li
                                     key={sec.id}
                                     className={cn(
@@ -172,7 +268,7 @@ export const CourseBuilderPage = () => {
                                             handleRenameSection(sec)
                                         }}
                                         aria-label="Rename section">
-                                        ✎
+                                        <Pencil size={12} />
                                     </button>
                                     <button
                                         type="button"
@@ -251,7 +347,7 @@ export const CourseBuilderPage = () => {
                                     )}
                                     onClick={() => setPreviewLessonId(l.id)}>
                                     <span className="font-mono text-xs text-fg-muted w-6 text-center">{i + 1}</span>
-                                    {l.kind === 'youtube' && l.youtubeId ? (
+                                    {l.type === 'YOUTUBE' && l.youtubeId ? (
                                         <img
                                             src={youtubeThumbUrl(l.youtubeId)}
                                             alt=""
@@ -269,11 +365,11 @@ export const CourseBuilderPage = () => {
                                         <div className="text-sm font-medium text-fg truncate">{l.title}</div>
                                         <div className="text-xs text-fg-muted flex items-center gap-2 mt-0.5">
                                             <Badge tone="brand">
-                                                <Youtube size={10} /> YouTube
+                                                <Youtube size={10} /> {l.type}
                                             </Badge>
-                                            {l.durationMin ? (
+                                            {l.durationSec ? (
                                                 <span className="inline-flex items-center gap-1 font-mono">
-                                                    <Clock size={10} /> {l.durationMin}m
+                                                    <Clock size={10} /> {Math.round(l.durationSec / 60)}m
                                                 </span>
                                             ) : null}
                                         </div>
@@ -283,7 +379,7 @@ export const CourseBuilderPage = () => {
                                         className="p-1.5 rounded text-fg-muted hover:text-[var(--color-danger)] opacity-0 group-hover:opacity-100"
                                         onClick={(e) => {
                                             e.stopPropagation()
-                                            handleRemoveLesson(activeSection.id, l.id, l.title)
+                                            handleRemoveLesson(l.id, l.title)
                                         }}
                                         aria-label="Delete lesson">
                                         <Trash2 size={14} />
@@ -297,7 +393,7 @@ export const CourseBuilderPage = () => {
                 {/* Preview panel */}
                 <Card>
                     <h3 className="text-sm font-semibold text-fg mb-3">Preview</h3>
-                    {previewLesson?.kind === 'youtube' && previewLesson.youtubeId ? (
+                    {previewLesson?.type === 'YOUTUBE' && previewLesson.youtubeId ? (
                         <>
                             <YouTubePlayer
                                 videoId={previewLesson.youtubeId}
@@ -321,7 +417,7 @@ export const CourseBuilderPage = () => {
                     open={lessonModalOpen}
                     onClose={() => setLessonModalOpen(false)}
                     courseId={course.id}
-                    sectionId={activeSection.id}
+                    section={activeSection}
                 />
             )}
         </>
@@ -337,20 +433,20 @@ const AddYouTubeLessonModal = ({
     open,
     onClose,
     courseId,
-    sectionId
+    section
 }: {
     open: boolean
     onClose: () => void
     courseId: string
-    sectionId: string
+    section: TSection
 }) => {
-    const add = useCourseStore((s) => s.addYouTubeLesson)
+    const queryClient = useQueryClient()
     const [title, setTitle] = useState('')
     const [url, setUrl] = useState('')
     const [duration, setDuration] = useState('')
     const [error, setError] = useState<string | null>(null)
 
-    const videoId = parseYouTubeId(url)
+    const videoId = useMemo(() => parseYouTubeId(url), [url])
 
     const reset = () => {
         setTitle('')
@@ -359,21 +455,34 @@ const AddYouTubeLessonModal = ({
         setError(null)
     }
 
+    const mutation = useMutation({
+        mutationFn: () => {
+            if (!videoId) throw new Error("That doesn't look like a YouTube URL or video ID.")
+            const durationSec = duration ? Math.max(0, Math.round(Number(duration) * 60)) : 0
+            return createLesson(courseId, {
+                sectionId: section.id,
+                title: title.trim(),
+                type: 'YOUTUBE',
+                youtubeId: videoId,
+                durationSec,
+                order: section.lessons.length
+            })
+        },
+        onSuccess: () => {
+            toast.success('Lesson added')
+            void queryClient.invalidateQueries({ queryKey: ['courses', courseId] })
+            reset()
+            onClose()
+        },
+        onError: (e: unknown) => setError(toApiError(e).message || 'Could not add lesson')
+    })
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
-        const result = add(courseId, sectionId, {
-            title: title.trim(),
-            urlOrId: url,
-            durationMin: duration ? Number(duration) : undefined
-        })
-        if (!result.ok) {
-            setError(result.error)
-            return
-        }
-        toast.success('Lesson added')
-        reset()
-        onClose()
+        if (!videoId) return setError("That doesn't look like a YouTube URL or video ID.")
+        if (title.trim().length < 2) return setError('Lesson title is required')
+        mutation.mutate()
     }
 
     return (
@@ -398,6 +507,7 @@ const AddYouTubeLessonModal = ({
                     <Button
                         form="add-yt-form"
                         type="submit"
+                        loading={mutation.isPending}
                         disabled={!videoId || title.trim().length < 2}>
                         Add lesson
                     </Button>

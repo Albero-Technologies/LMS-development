@@ -52,6 +52,15 @@ export const addSection = async (req: Request, res: Response): Promise<void> => 
     httpResponse(req, res, 201, responseMessage.CREATED, section)
 }
 
+export const updateSection = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const section = await service.updateSection(req.auth.tenantId, req.params.id, req.params.sectionId, req.body, {
+        id: req.auth.userId,
+        role: req.auth.role
+    })
+    httpResponse(req, res, 200, responseMessage.SUCCESS, section)
+}
+
 export const deleteSection = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     await service.deleteSection(req.auth.tenantId, req.params.id, req.params.sectionId, {

@@ -9,7 +9,8 @@ import {
     type TListCoursesQuery,
     type TProgressUpdateInput,
     type TUpdateCourseInput,
-    type TUpdateLessonInput
+    type TUpdateLessonInput,
+    type TUpdateSectionInput
 } from './course.schema'
 
 export const listCourses = async (tenantId: string, role: Role, userId: string, query: TListCoursesQuery) => {
@@ -137,6 +138,22 @@ export const addSection = async (tenantId: string, courseId: string, input: TCre
     await assertCourseOwnership(tenantId, courseId, actor)
     return db.client.courseSection.create({
         data: { courseId, title: input.title, order: input.order }
+    })
+}
+
+export const updateSection = async (
+    tenantId: string,
+    courseId: string,
+    sectionId: string,
+    input: TUpdateSectionInput,
+    actor: { id: string; role: Role }
+) => {
+    await assertCourseOwnership(tenantId, courseId, actor)
+    const section = await db.client.courseSection.findFirst({ where: { id: sectionId, courseId } })
+    if (!section) throw AppError.notFound(responseMessage.NOT_FOUND('Section'))
+    return db.client.courseSection.update({
+        where: { id: sectionId },
+        data: { title: input.title, order: input.order }
     })
 }
 

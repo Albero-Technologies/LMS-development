@@ -8,7 +8,8 @@ import {
     listCoursesQuerySchema,
     progressUpdateSchema,
     updateCourseSchema,
-    updateLessonSchema
+    updateLessonSchema,
+    updateSectionSchema
 } from './course.schema'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth, requirePolicy } from '../../middleware/auth'
@@ -25,6 +26,7 @@ router.patch('/:id', requirePolicy('course', 'write'), validate(updateCourseSche
 router.delete('/:id', requirePolicy('course', 'write'), asyncHandler(ctrl.remove))
 
 router.post('/:id/sections', requirePolicy('course', 'write'), validate(createSectionSchema), asyncHandler(ctrl.addSection))
+router.patch('/:id/sections/:sectionId', requirePolicy('course', 'write'), validate(updateSectionSchema), asyncHandler(ctrl.updateSection))
 router.delete('/:id/sections/:sectionId', requirePolicy('course', 'write'), asyncHandler(ctrl.deleteSection))
 
 router.post('/:id/lessons', requirePolicy('lesson', 'write'), validate(createLessonSchema), asyncHandler(ctrl.addLesson))

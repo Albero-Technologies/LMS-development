@@ -38,6 +38,8 @@ export const createSectionSchema = z.object({
     order: z.number().int().min(0).max(1000).default(0)
 })
 
+export const updateSectionSchema = createSectionSchema.partial()
+
 export const createLessonSchema = z.object({
     sectionId: z.string().uuid(),
     title: z.string().min(1).max(200),
@@ -60,6 +62,7 @@ export type TCreateCourseInput = z.infer<typeof createCourseSchema>
 export type TUpdateCourseInput = z.infer<typeof updateCourseSchema>
 export type TListCoursesQuery = z.infer<typeof listCoursesQuerySchema>
 export type TCreateSectionInput = z.infer<typeof createSectionSchema>
+export type TUpdateSectionInput = z.infer<typeof updateSectionSchema>
 export type TCreateLessonInput = z.infer<typeof createLessonSchema>
 export type TUpdateLessonInput = z.infer<typeof updateLessonSchema>
 export type TProgressUpdateInput = z.infer<typeof progressUpdateSchema>

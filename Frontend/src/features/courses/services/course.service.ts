@@ -73,6 +73,50 @@ export const deleteCourse = async (id: string): Promise<void> => {
     await api.delete(`/courses/${id}`)
 }
 
+// ---- Sections / lessons (curriculum builder) -----------------------------
+
+export type CreateSectionPayload = { title: string; order?: number }
+export type UpdateSectionPayload = { title?: string; order?: number }
+export type CreateLessonPayload = {
+    sectionId: string
+    title: string
+    type?: LessonType
+    youtubeId?: string
+    externalUrl?: string
+    description?: string
+    durationSec?: number
+    order?: number
+}
+export type UpdateLessonPayload = Omit<Partial<CreateLessonPayload>, 'sectionId'>
+
+export const createSection = async (courseId: string, body: CreateSectionPayload): Promise<TSection> => {
+    const { data } = await api.post<Envelope<TSection>>(`/courses/${courseId}/sections`, body)
+    return data.data
+}
+
+export const updateSection = async (courseId: string, sectionId: string, body: UpdateSectionPayload): Promise<TSection> => {
+    const { data } = await api.patch<Envelope<TSection>>(`/courses/${courseId}/sections/${sectionId}`, body)
+    return data.data
+}
+
+export const deleteSection = async (courseId: string, sectionId: string): Promise<void> => {
+    await api.delete(`/courses/${courseId}/sections/${sectionId}`)
+}
+
+export const createLesson = async (courseId: string, body: CreateLessonPayload): Promise<TLesson> => {
+    const { data } = await api.post<Envelope<TLesson>>(`/courses/${courseId}/lessons`, body)
+    return data.data
+}
+
+export const updateLesson = async (courseId: string, lessonId: string, body: UpdateLessonPayload): Promise<TLesson> => {
+    const { data } = await api.patch<Envelope<TLesson>>(`/courses/${courseId}/lessons/${lessonId}`, body)
+    return data.data
+}
+
+export const deleteLesson = async (courseId: string, lessonId: string): Promise<void> => {
+    await api.delete(`/courses/${courseId}/lessons/${lessonId}`)
+}
+
 // Per-lesson progress mark — "I watched/read this lesson". Backend persists
 // the mark + recomputes course-level progressPct on the enrolment so the
 // student's "% complete" stays in sync. Idempotent: re-marking is a no-op
