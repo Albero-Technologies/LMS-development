@@ -7,7 +7,7 @@
 //
 // All data comes from `/counsellor/reports/manager-dashboard` in one
 // round-trip. No mocks here.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -18,42 +18,113 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Modal } from '@shared/components/ui/Modal'
+import { Select } from '@shared/components/ui/Select'
 import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Input } from '@shared/components/ui/Input'
 import { Empty } from '@shared/components/ui/Empty'
 import { fmtPaiseINR } from '@shared/libs/pdf'
 import { cn } from '@shared/helpers/cn'
-import { getManagerDashboard, type ManagerDashboard, type ManagerMember } from '@features/counsellor/services/counsellor.service'
-import { updateUser } from '@features/users/services/user.service'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { toApiError } from '@shared/libs/api'
+import {
+    getManagerDashboard,
+    setCounsellorTarget,
+    type ManagerDashboard,
+    type ManagerMember,
+    type ManagerProfile
+} from '@features/counsellor/services/counsellor.service'
+
+// SetTargetModal accepts either a counsellor row or the manager themselves —
+// both share the same shape (id, name, monthly target).
+type TargetSubject = {
+    id: string
+    name: string
+    target: { signups: number; enrolments: number; revenue: number }
+}
+import { listUsers, updateUser } from '@features/users/services/user.service'
 
 export const ManagerDashboardPage = () => {
     const navigate = useNavigate()
+    const role = useAuthStore((s) => s.user?.role)
+    const isAdmin = role === ROLES.ADMIN || role === ROLES.SUPER_ADMIN
+    const userId = useAuthStore((s) => s.user?.id)
+
+    // Admins / SAs choose which manager's team to view + manage. Managers
+    // always see their own team — no picker.
+    const managersQuery = useQuery({
+        queryKey: ['users', 'managers'],
+        queryFn: () => listUsers({ role: 'COUNSELLING_MANAGER', pageSize: 100 }),
+        enabled: isAdmin,
+        staleTime: 60_000
+    })
+    const managers = managersQuery.data?.items ?? []
+    const [selectedManagerId, setSelectedManagerId] = useState<string>('')
+    useEffect(() => {
+        if (isAdmin && !selectedManagerId && managers.length > 0) setSelectedManagerId(managers[0].id)
+    }, [isAdmin, selectedManagerId, managers])
+
+    // Admin must pick a manager before the dashboard is meaningful — for
+    // managers, server defaults to their own id.
+    const effectiveManagerId = isAdmin ? selectedManagerId : userId
     const dashQuery = useQuery({
-        queryKey: ['manager-dashboard'],
-        queryFn: () => getManagerDashboard(),
+        queryKey: ['manager-dashboard', effectiveManagerId],
+        queryFn: () => getManagerDashboard(isAdmin ? selectedManagerId : undefined),
+        enabled: !isAdmin || !!selectedManagerId,
         staleTime: 60_000
     })
     const [editing, setEditing] = useState<ManagerMember | null>(null)
+    const [targetSubject, setTargetSubject] = useState<TargetSubject | null>(null)
 
     const data = dashQuery.data ?? null
 
     return (
         <>
             <PageHeader
-                eyebrow="Counselling team"
-                title="Manager console"
-                description="Live team revenue + targets + incentive tier per counsellor."
+                eyebrow={isAdmin ? 'Counselling teams' : 'Counselling team'}
+                title={isAdmin ? 'Counsellor targets' : 'Manager console'}
+                description={
+                    isAdmin
+                        ? 'Pick a manager to review their team and set targets per counsellor.'
+                        : 'Live team revenue + targets + incentive tier per counsellor.'
+                }
                 actions={
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => navigate('/app/users')}>
-                        Manage team
-                    </Button>
+                    <>
+                        {isAdmin && managers.length > 0 && (
+                            <div className="w-64">
+                                <Select
+                                    aria-label="Choose manager"
+                                    value={selectedManagerId}
+                                    onChange={(e) => setSelectedManagerId(e.target.value)}>
+                                    {managers.map((m) => (
+                                        <option
+                                            key={m.id}
+                                            value={m.id}>
+                                            {`${m.firstName} ${m.lastName}`.trim() || m.email}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                        {!isAdmin && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => navigate('/app/users')}>
+                                Manage team
+                            </Button>
+                        )}
+                    </>
                 }
             />
 
-            {dashQuery.isLoading || !data ? (
+            {isAdmin && managers.length === 0 && !managersQuery.isLoading ? (
+                <Empty
+                    icon={<Trophy size={32} />}
+                    title="No counselling managers yet"
+                    description="Invite a manager from the Users page first — counsellors and targets roll up under managers."
+                />
+            ) : dashQuery.isLoading || !data ? (
                 <div className="space-y-4">
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[0, 1, 2, 3].map((i) => (
@@ -68,16 +139,27 @@ export const ManagerDashboardPage = () => {
             ) : data.teamSize === 0 ? (
                 <Empty
                     icon={<Trophy size={32} />}
-                    title="No counsellors on your team yet"
-                    description="Once an admin assigns counsellors to you, their performance will roll up here."
+                    title={isAdmin ? 'This manager has no counsellors yet' : 'No counsellors on your team yet'}
+                    description={
+                        isAdmin
+                            ? 'Assign counsellors to this manager from the Users page — once they have direct reports, targets and rollups appear here.'
+                            : 'Once an admin assigns counsellors to you, their performance will roll up here.'
+                    }
                 />
             ) : (
                 <>
+                    {isAdmin && data.manager && (
+                        <ManagerTargetCard
+                            manager={data.manager}
+                            onSetTarget={() => data.manager && setTargetSubject(data.manager)}
+                        />
+                    )}
                     <KpiRow data={data} />
                     <PerformerRow data={data} />
                     <TeamTable
                         data={data}
                         onEdit={setEditing}
+                        onSetTarget={(m) => setTargetSubject(m)}
                     />
                     <MonthlyTrackerRow data={data} />
                     <IncentiveSlabsCard slabs={data.incentiveSlabs} />
@@ -87,6 +169,11 @@ export const ManagerDashboardPage = () => {
             <EditMemberModal
                 member={editing}
                 onClose={() => setEditing(null)}
+            />
+
+            <SetTargetModal
+                subject={targetSubject}
+                onClose={() => setTargetSubject(null)}
             />
         </>
     )
@@ -127,6 +214,52 @@ const KpiRow = ({ data }: { data: ManagerDashboard }) => (
     </div>
 )
 
+// Admin-only card that surfaces the manager's own personal target (separate
+// from the team rollup). Counsellor targets sum into the team total; the
+// manager's target is their individual quota — the admin sets it from here.
+const ManagerTargetCard = ({ manager, onSetTarget }: { manager: ManagerProfile; onSetTarget: () => void }) => {
+    const hasTarget = manager.target.revenue > 0 || manager.target.signups > 0 || manager.target.enrolments > 0
+    return (
+        <Card className="!p-4 mb-4 border-l-4 border-[var(--color-brand-500)]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <div className="text-xs uppercase tracking-wider text-[var(--color-brand-700)] inline-flex items-center gap-1">
+                        <Target size={12} /> Manager target · this month
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                        <span className="text-base font-semibold text-fg">{manager.name}</span>
+                        <span className="text-xs text-fg-muted">{manager.email}</span>
+                    </div>
+                    {hasTarget ? (
+                        <div className="mt-2 flex items-center gap-4 text-xs text-fg-soft flex-wrap">
+                            <span>
+                                <span className="text-fg-muted">Revenue · </span>
+                                <span className="font-mono text-fg">{fmtPaiseINR(manager.target.revenue)}</span>
+                            </span>
+                            <span>
+                                <span className="text-fg-muted">Enrolments · </span>
+                                <span className="font-mono text-fg">{manager.target.enrolments}</span>
+                            </span>
+                            <span>
+                                <span className="text-fg-muted">Signups · </span>
+                                <span className="font-mono text-fg">{manager.target.signups}</span>
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="mt-2 text-xs text-fg-muted">No personal target set for this month yet.</div>
+                    )}
+                </div>
+                <Button
+                    size="sm"
+                    leftIcon={<Target size={12} />}
+                    onClick={onSetTarget}>
+                    {hasTarget ? 'Update target' : 'Set target'}
+                </Button>
+            </div>
+        </Card>
+    )
+}
+
 const PerformerRow = ({ data }: { data: ManagerDashboard }) => {
     if (!data.topPerformer && !data.bottomPerformer) return null
     return (
@@ -165,7 +298,15 @@ const PerformerRow = ({ data }: { data: ManagerDashboard }) => {
     )
 }
 
-const TeamTable = ({ data, onEdit }: { data: ManagerDashboard; onEdit: (m: ManagerMember) => void }) => (
+const TeamTable = ({
+    data,
+    onEdit,
+    onSetTarget
+}: {
+    data: ManagerDashboard
+    onEdit: (m: ManagerMember) => void
+    onSetTarget: (m: ManagerMember) => void
+}) => (
     <Card
         padded={false}
         className="mb-4">
@@ -249,13 +390,22 @@ const TeamTable = ({ data, onEdit }: { data: ManagerDashboard; onEdit: (m: Manag
                                 <div className="text-[11px] text-fg-muted mt-0.5 font-mono">{fmtPaiseINR(m.incentive.payout)}</div>
                             </td>
                             <td className="py-3 px-5 text-right">
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    leftIcon={<UserPen size={12} />}
-                                    onClick={() => onEdit(m)}>
-                                    Edit
-                                </Button>
+                                <div className="inline-flex items-center gap-1">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        leftIcon={<Target size={12} />}
+                                        onClick={() => onSetTarget(m)}>
+                                        Set target
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        leftIcon={<UserPen size={12} />}
+                                        onClick={() => onEdit(m)}>
+                                        Edit
+                                    </Button>
+                                </div>
                             </td>
                         </tr>
                     ))}
@@ -435,6 +585,103 @@ const EditMemberModal = ({ member, onClose }: { member: ManagerMember | null; on
                     />
                     <div className="text-[11px] text-fg-muted inline-flex items-center gap-1">
                         <ChevronRight size={11} /> Counsellors can only be suspended, not deleted. Suspending revokes their access immediately.
+                    </div>
+                </div>
+            )}
+        </Modal>
+    )
+}
+
+// Per-user monthly-target editor. Used both for counsellors (set by manager
+// or admin) and for the manager's own personal target (admin/SA only — the
+// backend rejects manager self-set). Same modal works for both because the
+// `CounsellorTarget` table is keyed on a User id, not a role.
+const SetTargetModal = ({ subject, onClose }: { subject: TargetSubject | null; onClose: () => void }) => {
+    const queryClient = useQueryClient()
+    const [signups, setSignups] = useState('0')
+    const [enrolments, setEnrolments] = useState('0')
+    const [revenueRupees, setRevenueRupees] = useState('0')
+
+    // Seed from the row when the modal opens. Revenue from the backend is in
+    // paise; we let admins type rupees and convert on submit.
+    useEffect(() => {
+        if (!subject) return
+        setSignups(String(subject.target.signups || 0))
+        setEnrolments(String(subject.target.enrolments || 0))
+        setRevenueRupees(String(Math.round((subject.target.revenue || 0) / 100)))
+    }, [subject])
+
+    const mutation = useMutation({
+        mutationFn: () => {
+            if (!subject) throw new Error('No subject selected')
+            const now = new Date()
+            const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+            return setCounsellorTarget({
+                counsellorId: subject.id,
+                periodStart,
+                targetSignups: Math.max(0, Math.trunc(Number(signups) || 0)),
+                targetEnrolments: Math.max(0, Math.trunc(Number(enrolments) || 0)),
+                targetRevenue: Math.max(0, Math.round((Number(revenueRupees) || 0) * 100))
+            })
+        },
+        onSuccess: () => {
+            toast.success('Target updated')
+            void queryClient.invalidateQueries({ queryKey: ['manager-dashboard'] })
+            onClose()
+        },
+        onError: (err: unknown) => toast.error(toApiError(err).message || 'Could not save target')
+    })
+
+    return (
+        <Modal
+            open={!!subject}
+            onClose={onClose}
+            title="Set monthly target"
+            description={subject ? `${subject.name} · current month` : ''}
+            footer={
+                subject && (
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button
+                            loading={mutation.isPending}
+                            onClick={() => mutation.mutate()}>
+                            Save target
+                        </Button>
+                    </>
+                )
+            }>
+            {subject && (
+                <div className="space-y-3">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <Input
+                            label="Signups"
+                            type="number"
+                            min={0}
+                            value={signups}
+                            onChange={(e) => setSignups(e.target.value)}
+                        />
+                        <Input
+                            label="Enrolments"
+                            type="number"
+                            min={0}
+                            value={enrolments}
+                            onChange={(e) => setEnrolments(e.target.value)}
+                        />
+                    </div>
+                    <Input
+                        label="Revenue target (₹)"
+                        type="number"
+                        min={0}
+                        value={revenueRupees}
+                        onChange={(e) => setRevenueRupees(e.target.value)}
+                        hint="Stored in paise. Achieved revenue is the sum of paid invoices linked to this user in the period."
+                    />
+                    <div className="text-[11px] text-fg-muted inline-flex items-center gap-1">
+                        <ChevronRight size={11} /> Targets are scoped to the current calendar month. Counsellor targets roll up into team totals; the manager's own target is a personal quota.
                     </div>
                 </div>
             )}

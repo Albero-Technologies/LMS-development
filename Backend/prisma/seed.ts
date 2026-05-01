@@ -1,6 +1,5 @@
 import { AuthProvider, CoursePublishState, CounsellorInviteStatus, LessonType, PrismaClient, Role, UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
-import crypto from 'crypto'
 import { seedAlberoAcademy } from './seeds/albero-academy'
 
 const prisma = new PrismaClient()
@@ -38,16 +37,6 @@ async function main() {
     // domain. Lives in the platform tenant. Tenant creation is the SA's job —
     // the user-facing flow is `POST /tenants`, gated to SUPER_ADMIN only.
     const SUPER_ADMIN_EMAIL = 'superadmin@albero.platform'
-
-    // Drop the legacy CLIENT-role user (renamed to admin2 during the CLIENT→
-    // ADMIN migration). It was a stand-in for B2B accounts; now redundant
-    // with the proper ADMIN seed.
-    await prisma.user.deleteMany({
-        where: {
-            tenantId: tenant.id,
-            email: { in: ['client@acme.dev', 'client@albero.academy', 'admin2@acme-institute.dev'] }
-        }
-    })
 
     // The canonical seed set — one user per role for Acme Institute, plus
     // the platform-level SUPER_ADMIN. Re-running this is idempotent via
@@ -191,7 +180,7 @@ async function main() {
 
     // Sample active onboarding link for the counsellor — surfaces the new flow in dev.
     const counsellor = await prisma.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@albero.academy' } }
+        where: { tenantId_email: { tenantId: tenant.id, email: 'counsellor@acme-institute.dev' } }
     })
     if (counsellor) {
         const seededToken = 'seed-onboarding-token-acme'
@@ -208,9 +197,6 @@ async function main() {
                 expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             }
         })
-
-        // Quiet the lints — `crypto` is reserved if we extend seed later.
-        void crypto
     }
 
     // Provision the Albero Academy tenant — its own admin/trainer/counsellor,

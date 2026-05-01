@@ -27,7 +27,8 @@ import {
     Globe,
     Link2,
     Telescope,
-    Database
+    Database,
+    Target
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
@@ -75,6 +76,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/users', label: 'Users', icon: Users },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
+        { to: '/app/counsellor/targets', label: 'Counsellor Targets', icon: Target },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/admin/cms', label: 'Content', icon: Database },
@@ -116,6 +118,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/counsellor/students', label: 'Students', icon: GraduationCap },
+        { to: '/app/counsellor/targets', label: 'Targets', icon: Target },
         { to: '/app/reports', label: 'Team Reports', icon: LineChart },
         { to: '/app/users', label: 'Team', icon: Users }
     ],

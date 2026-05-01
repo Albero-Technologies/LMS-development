@@ -305,6 +305,20 @@ export const getManagerDashboard = async (tenantId: string, role: Role, actorId:
 
     const counsellorIds = counsellors.map((c) => c.id)
 
+    // Manager's own profile + this-month target. We fetch the manager up-front
+    // so the response can carry "manager.target" alongside the team rollup —
+    // admins use this to set a personal target on the manager (the table is
+    // keyed on a User id, so the same row type stores both kinds).
+    const managerRow = await db.client.user.findFirst({
+        where: { id: managerId, tenantId, role: Role.COUNSELLING_MANAGER, deletedAt: null },
+        select: { id: true, firstName: true, lastName: true, email: true, employeeCode: true, status: true, avatarUrl: true }
+    })
+    const managerOwnTarget = managerRow
+        ? await db.client.counsellorTarget.findUnique({
+              where: { tenantId_counsellorId_periodStart: { tenantId, counsellorId: managerRow.id, periodStart: monthStart } }
+          })
+        : null
+
     const [targets, signups, enrolments, invoices] = await Promise.all([
         db.client.counsellorTarget.findMany({
             where: { tenantId, counsellorId: { in: counsellorIds }, periodStart: monthStart }
@@ -439,6 +453,21 @@ export const getManagerDashboard = async (tenantId: string, role: Role, actorId:
     return {
         period: { start: monthStart.toISOString(), end: monthEnd.toISOString() },
         managerId,
+        manager: managerRow
+            ? {
+                  id: managerRow.id,
+                  name: `${managerRow.firstName} ${managerRow.lastName}`.trim() || managerRow.email,
+                  email: managerRow.email,
+                  employeeCode: managerRow.employeeCode,
+                  status: managerRow.status,
+                  avatarUrl: managerRow.avatarUrl,
+                  target: {
+                      signups: managerOwnTarget?.targetSignups ?? 0,
+                      enrolments: managerOwnTarget?.targetEnrolments ?? 0,
+                      revenue: managerOwnTarget?.targetRevenue ?? 0
+                  }
+              }
+            : null,
         teamSize: members.length,
         teamTotals: {
             ...teamTotals,

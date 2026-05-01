@@ -30,6 +30,13 @@ export const revoke = async (req: Request, res: Response): Promise<void> => {
     httpResponse(req, res, 200, responseMessage.SUCCESS, link)
 }
 
+export const remove = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    await service.deleteInviteLink(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.id)
+    await writeAudit({ action: 'counsellor.invite_link.delete', entityType: 'CounsellorInviteLink', entityId: req.params.id }, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS)
+}
+
 export const shareCreds = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     const creds = await service.shareCredentials(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.signupId)

@@ -50,7 +50,7 @@ export const createInviteLink = async (tenantId: string, counsellorId: string, i
 }
 
 export const listInviteLinks = async (tenantId: string, role: Role, actorId: string) => {
-    const where: Prisma.CounsellorInviteLinkWhereInput = { tenantId }
+    const where: Prisma.CounsellorInviteLinkWhereInput = { tenantId, deletedAt: null }
     if (role === Role.COUNSELLOR) where.counsellorId = actorId
     return db.client.counsellorInviteLink.findMany({
         where,
@@ -71,7 +71,7 @@ const assertCounsellorOwnsLink = (link: { counsellorId: string; tenantId: string
 
 export const getInviteLink = async (tenantId: string, role: Role, actorId: string, id: string) => {
     const link = await db.client.counsellorInviteLink.findFirst({
-        where: { id, tenantId },
+        where: { id, tenantId, deletedAt: null },
         include: {
             counsellor: { select: { id: true, firstName: true, lastName: true, email: true } },
             tenant: { select: { id: true, name: true, slug: true } },
@@ -98,11 +98,23 @@ export const getInviteLink = async (tenantId: string, role: Role, actorId: strin
 }
 
 export const revokeInviteLink = async (tenantId: string, role: Role, actorId: string, id: string) => {
-    const link = await db.client.counsellorInviteLink.findFirst({ where: { id, tenantId } })
+    const link = await db.client.counsellorInviteLink.findFirst({ where: { id, tenantId, deletedAt: null } })
     assertCounsellorOwnsLink(link, role, actorId)
     return db.client.counsellorInviteLink.update({
         where: { id },
         data: { status: CounsellorInviteStatus.REVOKED }
+    })
+}
+
+// Soft-delete — keeps the row alive so existing StudentSignup FKs stay valid,
+// but hides the link from list/detail. Status is forced to REVOKED so the
+// public token-resolve endpoint can't accidentally honour it.
+export const deleteInviteLink = async (tenantId: string, role: Role, actorId: string, id: string) => {
+    const link = await db.client.counsellorInviteLink.findFirst({ where: { id, tenantId, deletedAt: null } })
+    assertCounsellorOwnsLink(link, role, actorId)
+    await db.client.counsellorInviteLink.update({
+        where: { id },
+        data: { status: CounsellorInviteStatus.REVOKED, deletedAt: new Date() }
     })
 }
 
@@ -116,7 +128,7 @@ export const resolveInviteLink = async (token: string) => {
             course: { select: { id: true, title: true, slug: true, thumbnailUrl: true } }
         }
     })
-    if (!link) throw AppError.notFound(responseMessage.NOT_FOUND('Invite link'), 'INVITE_LINK_NOT_FOUND')
+    if (!link || link.deletedAt) throw AppError.notFound(responseMessage.NOT_FOUND('Invite link'), 'INVITE_LINK_NOT_FOUND')
     if (link.status !== CounsellorInviteStatus.ACTIVE) {
         throw AppError.badRequest('Invite link no longer active', 'INVITE_LINK_INACTIVE')
     }
@@ -136,7 +148,7 @@ export const resolveInviteLink = async (token: string) => {
 
 export const submitOnboarding = async (token: string, input: TSubmitOnboardingInput) => {
     const link = await db.client.counsellorInviteLink.findUnique({ where: { token } })
-    if (!link) throw AppError.notFound(responseMessage.NOT_FOUND('Invite link'), 'INVITE_LINK_NOT_FOUND')
+    if (!link || link.deletedAt) throw AppError.notFound(responseMessage.NOT_FOUND('Invite link'), 'INVITE_LINK_NOT_FOUND')
     if (link.status !== CounsellorInviteStatus.ACTIVE) {
         throw AppError.badRequest('Invite link no longer active', 'INVITE_LINK_INACTIVE')
     }
@@ -401,12 +413,23 @@ export const listMyStudents = async (tenantId: string, role: Role, actorId: stri
 // ----- Targets -----
 
 export const setCounsellorTarget = async (tenantId: string, role: Role, actorId: string, input: TSetTargetInput) => {
-    const counsellor = await db.client.user.findFirst({
-        where: { id: input.counsellorId, tenantId, role: Role.COUNSELLOR }
+    // The CounsellorTarget table is keyed on a User id but managers can also
+    // carry a personal target (set by admin/SA only — managers don't manage
+    // other managers, so the manager-ownership path doesn't apply to them).
+    const target = await db.client.user.findFirst({
+        where: { id: input.counsellorId, tenantId, role: { in: [Role.COUNSELLOR, Role.COUNSELLING_MANAGER] } }
     })
-    if (!counsellor) throw AppError.notFound(responseMessage.NOT_FOUND('Counsellor'), 'COUNSELLOR_NOT_FOUND')
-    // Managers may only set targets for counsellors directly under them.
-    await assertManagerOwnsCounsellor(tenantId, role, actorId, input.counsellorId)
+    if (!target) throw AppError.notFound(responseMessage.NOT_FOUND('Counsellor'), 'COUNSELLOR_NOT_FOUND')
+
+    if (target.role === Role.COUNSELLING_MANAGER) {
+        // Manager targets are admin-only — no team owns a manager.
+        if (role !== Role.SUPER_ADMIN && role !== Role.ADMIN) {
+            throw AppError.forbidden(responseMessage.FORBIDDEN, 'MANAGER_TARGET_FORBIDDEN')
+        }
+    } else {
+        // Counsellor target: admin/SA pass through, managers must own them.
+        await assertManagerOwnsCounsellor(tenantId, role, actorId, input.counsellorId)
+    }
 
     const periodStart = startOfMonth(input.periodStart)
     const periodEnd = endOfMonth(periodStart)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Copy, Trash2, Link2, Check } from 'lucide-react'
+import { Plus, Copy, Trash2, Link2, Check, Ban } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -14,11 +14,13 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import {
     buildInviteUrl,
     createInviteLink,
+    deleteInviteLink,
     listInviteLinks,
     revokeInviteLink,
     type CounsellorInviteLink,
     type CounsellorInviteStatus
 } from '../services/counsellor.service'
+import { toApiError } from '@shared/libs/api'
 import { InviteLinkDetailModal } from '../components/InviteLinkDetailModal'
 
 const STATUS_TONE: Record<CounsellorInviteStatus, 'ok' | 'warn' | 'default' | 'danger'> = {
@@ -61,7 +63,17 @@ export const CounsellorLinksPage = () => {
         onSuccess: () => {
             toast.success('Link revoked')
             void queryClient.invalidateQueries({ queryKey: ['counsellor-invites'] })
-        }
+        },
+        onError: (err: unknown) => toast.error(toApiError(err).message || 'Could not revoke')
+    })
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteInviteLink,
+        onSuccess: () => {
+            toast.success('Link deleted')
+            void queryClient.invalidateQueries({ queryKey: ['counsellor-invites'] })
+        },
+        onError: (err: unknown) => toast.error(toApiError(err).message || 'Could not delete')
     })
 
     const links = linksQuery.data ?? []
@@ -109,7 +121,9 @@ export const CounsellorLinksPage = () => {
                             link={link}
                             onOpenDetail={() => setOpenLinkId(link.id)}
                             onRevoke={() => revokeMutation.mutate(link.id)}
+                            onDelete={() => deleteMutation.mutate(link.id)}
                             isRevoking={revokeMutation.isPending && revokeMutation.variables === link.id}
+                            isDeleting={deleteMutation.isPending && deleteMutation.variables === link.id}
                         />
                     ))}
                 </div>
@@ -134,13 +148,17 @@ export const CounsellorLinksPage = () => {
 const LinkRow = ({
     link,
     onRevoke,
+    onDelete,
     onOpenDetail,
-    isRevoking
+    isRevoking,
+    isDeleting
 }: {
     link: CounsellorInviteLink
     onRevoke: () => void
+    onDelete: () => void
     onOpenDetail: () => void
     isRevoking: boolean
+    isDeleting: boolean
 }) => {
     const url = buildInviteUrl(link.token)
     const [copied, setCopied] = useState(false)
@@ -158,6 +176,7 @@ const LinkRow = ({
     const remainingUses = link.maxUses - link.usesCount
     const expired = new Date(link.expiresAt).getTime() < Date.now()
     const canRevoke = link.status === 'ACTIVE' && !expired
+    const signupCount = link._count?.signups ?? 0
 
     return (
         <Card
@@ -192,30 +211,52 @@ const LinkRow = ({
                         <span>Created {formatDate(link.createdAt)}</span>
                         {link._count && (
                             <span>
-                                · {link._count.signups} signup{link._count.signups === 1 ? '' : 's'}
+                                · {signupCount} signup{signupCount === 1 ? '' : 's'}
                             </span>
                         )}
                     </div>
                 </div>
-                {canRevoke && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                    {canRevoke && (
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            leftIcon={<Ban size={12} />}
+                            loading={isRevoking}
+                            onClick={async () => {
+                                const ok = await confirm({
+                                    title: 'Revoke this link?',
+                                    description: 'Anyone holding the URL can no longer use it. The link stays in the list and existing signups are preserved.',
+                                    confirmLabel: 'Revoke',
+                                    tone: 'warning'
+                                })
+                                if (ok) onRevoke()
+                            }}
+                            className="!text-[var(--color-warning)]">
+                            Revoke
+                        </Button>
+                    )}
                     <Button
                         size="sm"
                         variant="ghost"
                         leftIcon={<Trash2 size={12} />}
-                        loading={isRevoking}
+                        loading={isDeleting}
                         onClick={async () => {
                             const ok = await confirm({
-                                title: 'Revoke this link?',
-                                description: 'Anyone holding the URL can no longer use it. New signups must come through a different link.',
-                                confirmLabel: 'Revoke',
+                                title: 'Delete this link?',
+                                description:
+                                    signupCount > 0
+                                        ? `${signupCount} signup${signupCount === 1 ? '' : 's'} came through this link. Their records stay intact, but the link is removed from your list and the URL stops working.`
+                                        : 'The link is removed from your list and the URL stops working. This cannot be undone.',
+                                confirmLabel: 'Delete',
                                 tone: 'danger'
                             })
-                            if (ok) onRevoke()
+                            if (ok) onDelete()
                         }}
                         className="!text-[var(--color-danger)]">
-                        Revoke
+                        Delete
                     </Button>
-                )}
+                </div>
             </div>
         </Card>
     )

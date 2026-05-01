@@ -39,8 +39,14 @@ export const createInviteLink = async (payload: CreateInviteLinkPayload): Promis
 }
 
 export const revokeInviteLink = async (id: string): Promise<CounsellorInviteLink> => {
-    const { data } = await api.delete<Envelope<CounsellorInviteLink>>(`/counsellor/invites/${id}`)
+    const { data } = await api.post<Envelope<CounsellorInviteLink>>(`/counsellor/invites/${id}/revoke`)
     return data.data
+}
+
+// Hard-removes the link from the counsellor's list. Existing signups created
+// from it stay intact, but the link can no longer be revived.
+export const deleteInviteLink = async (id: string): Promise<void> => {
+    await api.delete(`/counsellor/invites/${id}`)
 }
 
 // Detailed view used by the link-info modal — backend returns the link plus
@@ -141,6 +147,20 @@ export const getMyTarget = async (): Promise<CounsellorTargetSummary> => {
     return data.data
 }
 
+// Manager / admin uses this to set a counsellor's target for a given month.
+// `periodStart` is normalised server-side to the first of the month.
+export type SetCounsellorTargetPayload = {
+    counsellorId: string
+    periodStart: string // ISO date
+    targetSignups: number
+    targetEnrolments: number
+    targetRevenue: number // paise
+}
+
+export const setCounsellorTarget = async (payload: SetCounsellorTargetPayload): Promise<void> => {
+    await api.post('/counsellor/targets', payload)
+}
+
 export const getMyTargetHistory = async (months = 5): Promise<CounsellorMonthBucket[]> => {
     const { data } = await api.get<Envelope<CounsellorMonthBucket[]>>('/counsellor/targets/history', { params: { months } })
     return data.data
@@ -164,9 +184,20 @@ export interface ManagerMember {
     incentive: { tier: string; ratePct: number; payout: number }
 }
 
+export interface ManagerProfile {
+    id: string
+    name: string
+    email: string
+    employeeCode: string | null
+    status: string
+    avatarUrl: string | null
+    target: { signups: number; enrolments: number; revenue: number }
+}
+
 export interface ManagerDashboard {
     period: { start: string; end: string }
     managerId: string
+    manager: ManagerProfile | null
     teamSize: number
     teamTotals: {
         targetRevenue: number

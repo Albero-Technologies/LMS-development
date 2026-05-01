@@ -21,6 +21,7 @@ import { StudentDashboard } from '@features/dashboards/pages/StudentDashboard'
 import { TrainerDashboard } from '@features/dashboards/pages/TrainerDashboard'
 import { AdminDashboard } from '@features/dashboards/pages/AdminDashboard'
 import { CounsellorDashboard } from '@features/dashboards/pages/CounsellorDashboard'
+import { ManagerDashboardPage } from '@features/dashboards/pages/ManagerDashboard'
 import { SupportDashboard } from '@features/dashboards/pages/SupportDashboard'
 
 // Domain pages
@@ -238,6 +239,16 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <CounsellorLinksPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                // Targets console — managers see their own team; admins/SAs use
+                // the in-page picker to set targets for any manager's team.
+                path: 'counsellor/targets',
+                element: (
+                    <ProtectedRoute roles={[ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <ManagerDashboardPage />
                     </ProtectedRoute>
                 )
             },
