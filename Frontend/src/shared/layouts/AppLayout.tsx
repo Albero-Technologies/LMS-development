@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentType } from 'react'
+import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
     LayoutDashboard,
@@ -36,9 +36,12 @@ import { NotificationBell } from '@features/notifications/components/Notificatio
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteShortcut } from '@shared/components/CommandPalette'
 import { ConfirmProvider, useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { useRealtimeSync } from '@shared/hooks/useRealtimeSync'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '@shared/helpers/cn'
-import { useAuthStore } from '@shared/stores/authStore'
+import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { ROLES, ROLE_LABEL, type TRole } from '@shared/constants/roles'
+import { meRequest } from '@features/auth/services/auth.service'
+import { getMyTenant } from '@features/admin/services/tenant.service'
 
 // -----------------------------------------------------------------------------
 // Nav config — mirrors lms.pen's per-role sidebars. Each role only sees its own
@@ -152,6 +155,7 @@ export const AppLayout = () => (
 
 const AppLayoutBody = () => {
     const user = useAuthStore((s) => s.user)
+    const setUser = useAuthStore((s) => s.setUser)
     const clear = useAuthStore((s) => s.clear)
     const navigate = useNavigate()
     const confirm = useConfirm()
@@ -162,6 +166,54 @@ const AppLayoutBody = () => {
     const nav = useMemo<NavItem[]>(() => (user ? (NAV_BY_ROLE[user.role] ?? []) : []), [user])
     const roleAccent = user ? ROLE_ACCENT[user.role] : undefined
     const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
+
+    // Hydrate the auth store from /auth/me on mount so profile screens always
+    // show the latest first/last/phone from the database (the persisted token
+    // may pre-date a profile edit from another device or session).
+    const userId = user?.id
+    useEffect(() => {
+        if (!userId) return
+        let cancelled = false
+        meRequest()
+            .then((fresh) => {
+                if (!cancelled) setUser(fresh)
+            })
+            .catch(() => {
+                /* 401s are handled by the api interceptor; everything else is best-effort */
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [userId, setUser])
+
+    // SUPER_ADMIN lives in the platform tenant — they don't get a customer
+    // brand color, so skip the fetch entirely. Other roles paint the tenant's
+    // brand color across the auth surface (sidebar accent, primary buttons,
+    // links) by overriding the --color-brand-* CSS variables.
+    const brandingQuery = useQuery({
+        queryKey: ['tenant', 'me', 'branding'],
+        queryFn: getMyTenant,
+        enabled: !!userId && !isSuperAdmin,
+        staleTime: 5 * 60_000
+    })
+    const brandColor = brandingQuery.data?.brandingColor
+    useEffect(() => {
+        if (!brandColor) return
+        const root = document.documentElement
+        const original = {
+            500: root.style.getPropertyValue('--color-brand-500'),
+            600: root.style.getPropertyValue('--color-brand-600'),
+            700: root.style.getPropertyValue('--color-brand-700')
+        }
+        root.style.setProperty('--color-brand-500', brandColor)
+        root.style.setProperty('--color-brand-600', brandColor)
+        root.style.setProperty('--color-brand-700', brandColor)
+        return () => {
+            root.style.setProperty('--color-brand-500', original[500])
+            root.style.setProperty('--color-brand-600', original[600])
+            root.style.setProperty('--color-brand-700', original[700])
+        }
+    }, [brandColor])
 
     // Open the socket connection while authenticated and route push events to
     // TanStack Query invalidations.
@@ -311,10 +363,10 @@ const AppLayoutBody = () => {
                         {user && !collapsed && (
                             <div className="mt-2 p-2.5 rounded-md flex items-center gap-2.5 bg-[var(--color-sidebar-hover)]">
                                 <div className="w-8 h-8 rounded-full bg-[var(--color-brand-500)] flex items-center justify-center text-white text-xs font-semibold shrink-0">
-                                    {(user.name || user.email)[0]?.toUpperCase()}
+                                    {fullName(user)[0]?.toUpperCase()}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-xs text-white truncate">{user.name || user.email}</div>
+                                    <div className="text-xs text-white truncate">{fullName(user)}</div>
                                     <div className="text-[10px] text-[var(--color-sidebar-fg)] truncate">{ROLE_LABEL[user.role]}</div>
                                 </div>
                                 <button
@@ -368,10 +420,10 @@ const AppLayoutBody = () => {
                                         className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-md hover:bg-surface-hover"
                                         title="Sign out">
                                         <div className="w-7 h-7 rounded-full bg-[var(--color-brand-500)] flex items-center justify-center text-white text-xs font-semibold">
-                                            {(user.name || user.email)[0]?.toUpperCase()}
+                                            {fullName(user)[0]?.toUpperCase()}
                                         </div>
                                         <span className="text-sm text-fg hidden sm:inline">
-                                            {user.name?.split(' ')[0] ?? user.email.split('@')[0]}
+                                            {user.firstName || user.email.split('@')[0]}
                                         </span>
                                     </button>
                                 )}

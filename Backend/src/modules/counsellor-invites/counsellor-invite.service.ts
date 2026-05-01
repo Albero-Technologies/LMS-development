@@ -287,7 +287,7 @@ export const shareCredentials = async (tenantId: string, role: Role, actorId: st
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_SIGNUP_OWNER')
     }
     if (!signup.initialPassword) {
-        throw AppError.badRequest('Initial credentials are no longer available — student has signed in. Reset password instead.', 'CREDS_CONSUMED')
+        throw AppError.badRequest('Initial credentials are no longer available — student has signed in. Regenerate to issue a fresh password.', 'CREDS_CONSUMED')
     }
 
     await db.client.studentSignup.update({
@@ -298,6 +298,44 @@ export const shareCredentials = async (tenantId: string, role: Role, actorId: st
     return {
         email: signup.email,
         password: signup.initialPassword,
+        loginUrl: '/login'
+    }
+}
+
+// Generates a brand-new password, swaps the user's hash, bumps tokenVersion
+// (kicks any active session), and stores the plaintext on the signup so the
+// counsellor can read it once. Used when the student lost the original or
+// signed in already.
+export const regenerateCredentials = async (tenantId: string, role: Role, actorId: string, signupId: string) => {
+    const signup = await db.client.studentSignup.findFirst({
+        where: { id: signupId, tenantId },
+        include: { user: { select: { id: true } } }
+    })
+    if (!signup) throw AppError.notFound(responseMessage.NOT_FOUND('Signup'), 'SIGNUP_NOT_FOUND')
+    if (role === Role.COUNSELLOR && signup.counsellorId !== actorId) {
+        throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_SIGNUP_OWNER')
+    }
+    if (!signup.userId || !signup.user) {
+        throw AppError.badRequest('Signup has no linked user', 'NO_USER')
+    }
+
+    const plainPassword = generatePassword()
+    const passwordHash = await hashPassword(plainPassword)
+
+    await db.client.$transaction([
+        db.client.user.update({
+            where: { id: signup.userId },
+            data: { passwordHash, tokenVersion: { increment: 1 } }
+        }),
+        db.client.studentSignup.update({
+            where: { id: signupId },
+            data: { initialPassword: plainPassword, status: StudentSignupStatus.CREDS_SHARED }
+        })
+    ])
+
+    return {
+        email: signup.email,
+        password: plainPassword,
         loginUrl: '/login'
     }
 }

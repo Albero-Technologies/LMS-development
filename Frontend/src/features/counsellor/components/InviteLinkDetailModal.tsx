@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Building2, User, BookOpen, Copy, Check, Send, KeyRound, Calendar, Hash, Eye } from 'lucide-react'
+import { Building2, User, BookOpen, Copy, Check, Send, KeyRound, Calendar, Hash, Eye, RefreshCw } from 'lucide-react'
 import { Modal } from '@shared/components/ui/Modal'
 import { Card } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
@@ -13,7 +13,8 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
 import { fmtDate } from '@shared/libs/pdf'
 import { buildInviteUrl, getInviteLink, type InviteLinkDetail } from '../services/counsellor.service'
-import { shareStudentCreds, type SharedCreds } from '../services/counsellor.service'
+import { regenerateStudentCreds, shareStudentCreds, type SharedCreds } from '../services/counsellor.service'
+import { toApiError } from '@shared/libs/api'
 import { UserDetailModal } from '@features/users/components/UserDetailModal'
 
 interface Props {
@@ -32,7 +33,7 @@ const STATUS_TONE: Record<InviteLinkDetail['status'], 'ok' | 'warn' | 'danger' |
 export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
     const queryClient = useQueryClient()
     const [copied, setCopied] = useState(false)
-    const [creds, setCreds] = useState<{ name: string; email: string; password: string | null } | null>(null)
+    const [creds, setCreds] = useState<{ signupId: string; name: string; email: string; password: string | null } | null>(null)
     const [openUserId, setOpenUserId] = useState<string | null>(null)
 
     const detailQuery = useQuery({
@@ -62,10 +63,31 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
         onSuccess: (res: SharedCreds, signupId) => {
             const sig = link?.signups?.find((s) => s.id === signupId)
             const fullName = sig ? `${sig.firstName} ${sig.lastName}`.trim() || sig.email : ''
-            setCreds({ name: fullName, email: res.email, password: res.initialPassword })
+            setCreds({ signupId, name: fullName, email: res.email, password: res.password })
             void queryClient.invalidateQueries({ queryKey: ['invite-links', linkId, 'detail'] })
         },
-        onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not fetch credentials')
+        onError: (err: unknown) => {
+            const e = toApiError(err)
+            // CREDS_CONSUMED → student already signed in. Prompt the user to use the
+            // regenerate flow instead of leaving them stuck.
+            if (e.code === 'CREDS_CONSUMED') {
+                toast.error('Original password no longer available — use Regenerate to issue a new one.')
+                return
+            }
+            toast.error(e.message || 'Could not fetch credentials')
+        }
+    })
+
+    const regenerateMutation = useMutation({
+        mutationFn: (signupId: string) => regenerateStudentCreds(signupId),
+        onSuccess: (res: SharedCreds, signupId) => {
+            const sig = link?.signups?.find((s) => s.id === signupId)
+            const fullName = sig ? `${sig.firstName} ${sig.lastName}`.trim() || sig.email : ''
+            setCreds({ signupId, name: fullName, email: res.email, password: res.password })
+            toast.success('New password generated — old one no longer works.')
+            void queryClient.invalidateQueries({ queryKey: ['invite-links', linkId, 'detail'] })
+        },
+        onError: (err: unknown) => toast.error(toApiError(err).message || 'Could not regenerate credentials')
     })
 
     return (
@@ -184,6 +206,15 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
                                                             onClick={() => shareMutation.mutate(s.id)}>
                                                             Share creds
                                                         </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            leftIcon={<RefreshCw size={11} />}
+                                                            loading={regenerateMutation.isPending && regenerateMutation.variables === s.id}
+                                                            onClick={() => regenerateMutation.mutate(s.id)}
+                                                            title="Issue a fresh password — invalidates the old one">
+                                                            Regenerate
+                                                        </Button>
                                                     </div>
                                                 </li>
                                             )
@@ -198,6 +229,8 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
 
             <CredsModal
                 state={creds}
+                regenerating={regenerateMutation.isPending && regenerateMutation.variables === creds?.signupId}
+                onRegenerate={() => creds && regenerateMutation.mutate(creds.signupId)}
                 onClose={() => setCreds(null)}
             />
 
@@ -211,7 +244,17 @@ export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
     )
 }
 
-const CredsModal = ({ state, onClose }: { state: { name: string; email: string; password: string | null } | null; onClose: () => void }) => {
+const CredsModal = ({
+    state,
+    regenerating,
+    onRegenerate,
+    onClose
+}: {
+    state: { signupId: string; name: string; email: string; password: string | null } | null
+    regenerating: boolean
+    onRegenerate: () => void
+    onClose: () => void
+}) => {
     const copy = (text: string | null | undefined) => {
         if (!text) return
         void navigator.clipboard.writeText(text).then(
@@ -219,13 +262,29 @@ const CredsModal = ({ state, onClose }: { state: { name: string; email: string; 
             () => toast.error('Could not copy')
         )
     }
+    const copyBoth = () => {
+        if (!state) return
+        const block = `Email: ${state.email}\nPassword: ${state.password ?? ''}`
+        copy(block)
+    }
     return (
         <Modal
             open={!!state}
             onClose={onClose}
             title="Login credentials"
             description={state?.name}
-            footer={<Button onClick={onClose}>Done</Button>}>
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        leftIcon={<RefreshCw size={12} />}
+                        loading={regenerating}
+                        onClick={onRegenerate}>
+                        Regenerate
+                    </Button>
+                    <Button onClick={onClose}>Done</Button>
+                </>
+            }>
             {state && (
                 <div className="space-y-4">
                     <p className="text-sm text-fg-soft inline-flex items-center gap-2">
@@ -233,7 +292,7 @@ const CredsModal = ({ state, onClose }: { state: { name: string; email: string; 
                             size={14}
                             className="text-[var(--color-brand-500)]"
                         />
-                        Share these securely. The password is shown only when first generated.
+                        Share these securely. Use Regenerate if the student lost it or has already signed in.
                     </p>
                     <div className="rounded-md border p-3 space-y-2">
                         <div className="flex items-center justify-between gap-3">
@@ -257,15 +316,24 @@ const CredsModal = ({ state, onClose }: { state: { name: string; email: string; 
                                 <Button
                                     size="sm"
                                     variant="ghost"
+                                    disabled={!state.password}
                                     onClick={() => copy(state.password)}>
                                     Copy
                                 </Button>
                             </div>
                         </div>
                     </div>
-                    {!state.password && (
+                    {state.password ? (
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            leftIcon={<Copy size={12} />}
+                            onClick={copyBoth}>
+                            Copy both
+                        </Button>
+                    ) : (
                         <Badge tone="warn">
-                            The student already logged in — this password is no longer retrievable. Trigger a password reset instead.
+                            The student already signed in — this password is no longer retrievable. Click Regenerate to issue a new one.
                         </Badge>
                     )}
                 </div>

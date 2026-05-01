@@ -15,6 +15,7 @@ router.post('/invites', requirePolicy('counsellor_invite', 'write'), validate(cr
 router.get('/invites/:id', requirePolicy('counsellor_invite', 'read'), asyncHandler(ctrl.get))
 router.delete('/invites/:id', requirePolicy('counsellor_invite', 'write'), asyncHandler(ctrl.revoke))
 router.post('/invites/signups/:signupId/share', requirePolicy('counsellor_invite', 'write'), asyncHandler(ctrl.shareCreds))
+router.post('/invites/signups/:signupId/regenerate', requirePolicy('counsellor_invite', 'write'), asyncHandler(ctrl.regenerateCreds))
 
 // Counsellor desk
 router.get('/students', requirePolicy('counsellor_invite', 'read'), asyncHandler(ctrl.myStudents))

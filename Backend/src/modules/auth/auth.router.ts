@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import * as ctrl from './auth.controller'
 import { validate } from '../../middleware/validate'
-import { acceptInviteSchema, loginSchema, refreshSchema } from './auth.schema'
+import { acceptInviteSchema, changePasswordSchema, loginSchema, refreshSchema, updateProfileSchema } from './auth.schema'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth } from '../../middleware/auth'
 
@@ -22,6 +22,8 @@ router.post('/refresh', validate(refreshSchema), asyncHandler(ctrl.refresh))
 router.post('/logout', asyncHandler(ctrl.logout))
 router.post('/invites/accept', validate(acceptInviteSchema), asyncHandler(ctrl.acceptInvite))
 
-router.get('/me', requireAuth, ctrl.me)
+router.get('/me', requireAuth, asyncHandler(ctrl.me))
+router.patch('/me', requireAuth, validate(updateProfileSchema), asyncHandler(ctrl.updateMe))
+router.post('/me/password', requireAuth, validate(changePasswordSchema), asyncHandler(ctrl.changeMyPassword))
 
 export default router

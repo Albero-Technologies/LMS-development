@@ -34,7 +34,7 @@ export const LoginPage = () => {
         mutationFn: loginRequest,
         onSuccess: ({ accessToken, user }) => {
             setAuth(user, accessToken, { remember })
-            toast.success(`Welcome back, ${user.name || user.email.split('@')[0]}`)
+            toast.success(`Welcome back, ${user.firstName || user.email.split('@')[0]}`)
             const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname
             navigate(from ?? ROLE_HOME[user.role], { replace: true })
         },

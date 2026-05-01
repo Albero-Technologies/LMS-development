@@ -24,7 +24,17 @@ export const RegisterPage = () => {
     } = useForm<TRegister>({ resolver: zodResolver(registerSchema) })
 
     const mutation = useMutation({
-        mutationFn: registerRequest,
+        mutationFn: (data: TRegister) => {
+            const [first, ...rest] = data.name.trim().split(/\s+/)
+            return registerRequest({
+                tenantName: data.tenantName,
+                email: data.email,
+                password: data.password,
+                phone: data.phone,
+                firstName: first ?? data.name.trim(),
+                lastName: rest.join(' ')
+            })
+        },
         onSuccess: ({ accessToken, user }) => {
             setAuth(user, accessToken)
             toast.success('Tenant created — welcome to Albero Academy')

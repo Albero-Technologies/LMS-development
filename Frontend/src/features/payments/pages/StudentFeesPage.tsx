@@ -9,7 +9,7 @@ import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
-import { useAuthStore } from '@shared/stores/authStore'
+import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { createPaymentOrder, isOverdue, listMyInvoices, type Invoice } from '../services/payment.service'
 import { openRazorpayCheckout } from '../services/razorpay'
 
@@ -49,7 +49,7 @@ export const StudentFeesPage = () => {
                 currency: order.currency,
                 invoiceNumber,
                 courseTitle,
-                prefill: { name: user?.name, email: user?.email }
+                prefill: { name: fullName(user), email: user?.email }
             })
             return result
         },

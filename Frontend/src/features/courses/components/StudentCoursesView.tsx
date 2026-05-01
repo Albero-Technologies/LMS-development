@@ -11,7 +11,7 @@ import { Input } from '@shared/components/ui/Input'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Tabs } from '@shared/components/ui/Tabs'
-import { useAuthStore } from '@shared/stores/authStore'
+import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { formatCoursePrice, listCourses, type TCourse } from '../services/course.service'
 import {
     isPaid,
@@ -121,7 +121,7 @@ export const StudentCoursesView = () => {
                 currency: res.order.currency,
                 invoiceNumber: res.invoice.number,
                 courseTitle: courses.find((c) => c.id === courseId)?.title,
-                prefill: { name: user?.name, email: user?.email }
+                prefill: { name: fullName(user), email: user?.email }
             })
             await verifyEnrollmentPayment({
                 razorpayOrderId: handshake.razorpay_order_id,

@@ -2,6 +2,8 @@ import { type Request, type Response } from 'express'
 import httpResponse from '../../util/httpResponse'
 import responseMessage from '../../constant/responseMessage'
 import config from '../../config/config'
+import db from '../../service/db'
+import AppError from '../../util/AppError'
 import * as service from './auth.service'
 
 const refreshCookieName = 'refresh_token'
@@ -61,12 +63,40 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     httpResponse(req, res, 200, responseMessage.SUCCESS)
 }
 
-export const me = (req: Request, res: Response): void => {
-    httpResponse(req, res, 200, responseMessage.SUCCESS, { user: req.auth })
+export const me = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) throw AppError.unauthorized(responseMessage.UNAUTHORIZED)
+    const user = await db.client.user.findFirst({
+        where: { id: req.auth.userId, tenantId: req.auth.tenantId, deletedAt: null },
+        select: {
+            id: true,
+            tenantId: true,
+            email: true,
+            phone: true,
+            role: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            status: true
+        }
+    })
+    if (!user) throw AppError.unauthorized(responseMessage.UNAUTHORIZED, 'USER_NOT_FOUND')
+    httpResponse(req, res, 200, responseMessage.SUCCESS, { user: service.sanitize(user) })
 }
 
 export const acceptInvite = async (req: Request, res: Response): Promise<void> => {
     const result = await service.acceptInvite(req.body, req)
     setRefreshCookie(res, result.refreshToken)
     httpResponse(req, res, 200, responseMessage.SUCCESS, { user: result.user, accessToken: result.accessToken })
+}
+
+export const updateMe = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) throw AppError.unauthorized(responseMessage.UNAUTHORIZED)
+    const user = await service.updateProfile(req.auth.userId, req.auth.tenantId, req.body, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, { user })
+}
+
+export const changeMyPassword = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) throw AppError.unauthorized(responseMessage.UNAUTHORIZED)
+    await service.changePassword(req.auth.userId, req.body, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS)
 }

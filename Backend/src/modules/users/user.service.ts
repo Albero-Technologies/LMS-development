@@ -84,9 +84,14 @@ export const listUsers = async (tenantId: string, actorId: string, actorRole: Ro
     return { items, total, page: query.page, pageSize: query.pageSize }
 }
 
-export const getUser = async (tenantId: string, id: string) => {
+export const getUser = async (tenantId: string, id: string, actorRole: Role) => {
+    // SA can read users across customer tenants — their auth-context tenantId
+    // points at the platform tenant, so the row would never be found if we
+    // tenant-locked. Anyone else is locked to their own tenant.
+    const where: Prisma.UserWhereInput =
+        actorRole === Role.SUPER_ADMIN ? { id, deletedAt: null, tenant: { slug: { not: 'platform' } } } : { id, tenantId, deletedAt: null }
     const user = await db.client.user.findFirst({
-        where: { id, tenantId },
+        where,
         select: {
             id: true,
             email: true,
@@ -149,8 +154,10 @@ export const getUser = async (tenantId: string, id: string) => {
     return user
 }
 
-export const updateUser = async (tenantId: string, id: string, actorId: string, input: TUpdateUserInput) => {
-    const existing = await db.client.user.findFirst({ where: { id, tenantId } })
+export const updateUser = async (tenantId: string, id: string, actorId: string, actorRole: Role, input: TUpdateUserInput) => {
+    const where: Prisma.UserWhereInput =
+        actorRole === Role.SUPER_ADMIN ? { id, deletedAt: null, tenant: { slug: { not: 'platform' } } } : { id, tenantId, deletedAt: null }
+    const existing = await db.client.user.findFirst({ where })
     if (!existing) throw AppError.notFound(responseMessage.NOT_FOUND('User'), 'USER_NOT_FOUND')
 
     // A user cannot suspend or downgrade themselves — that's a fast way to
@@ -182,8 +189,10 @@ export const updateUser = async (tenantId: string, id: string, actorId: string, 
     }
 }
 
-export const softDeleteUser = async (tenantId: string, id: string) => {
-    const existing = await db.client.user.findFirst({ where: { id, tenantId } })
+export const softDeleteUser = async (tenantId: string, id: string, actorRole: Role) => {
+    const where: Prisma.UserWhereInput =
+        actorRole === Role.SUPER_ADMIN ? { id, deletedAt: null, tenant: { slug: { not: 'platform' } } } : { id, tenantId, deletedAt: null }
+    const existing = await db.client.user.findFirst({ where })
     if (!existing) throw AppError.notFound(responseMessage.NOT_FOUND('User'), 'USER_NOT_FOUND')
     await db.client.user.update({
         where: { id },

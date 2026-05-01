@@ -6,9 +6,20 @@ export type TAuthUser = {
     id: string
     tenantId: string
     email: string
-    name: string
+    phone: string | null
+    firstName: string
+    lastName: string
     role: TRole
     avatarUrl?: string | null
+    status?: string
+}
+
+// Display helper — most UI wants a single string. Falls back to email if both
+// names are empty (e.g. legacy seed rows).
+export const fullName = (u: Pick<TAuthUser, 'firstName' | 'lastName' | 'email'> | null | undefined): string => {
+    if (!u) return ''
+    const joined = `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim()
+    return joined || u.email
 }
 
 type AuthState = {

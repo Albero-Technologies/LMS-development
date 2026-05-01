@@ -5,7 +5,7 @@ import responseMessage from '../../constant/responseMessage'
 import { comparePassword, hashPassword } from '../../util/password'
 import { hashToken, randomToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../../util/tokens'
 import config from '../../config/config'
-import { type TAcceptInviteInput, type TLoginInput, type TRegisterInput } from './auth.schema'
+import { type TAcceptInviteInput, type TChangePasswordInput, type TLoginInput, type TRegisterInput, type TUpdateProfileInput } from './auth.schema'
 import { authLimiter } from '../../config/rateLimiter'
 import { writeAudit } from '../../util/audit'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
@@ -239,6 +239,47 @@ export const acceptInvite = async (input: TAcceptInviteInput, req: Request) => {
     return { user: sanitize(user), ...bundle }
 }
 
+export const changePassword = async (userId: string, input: TChangePasswordInput, req: Request) => {
+    const user = await db.client.user.findUnique({ where: { id: userId }, select: { passwordHash: true, tenantId: true } })
+    if (!user?.passwordHash) throw AppError.unauthorized(responseMessage.UNAUTHORIZED)
+
+    const ok = await comparePassword(input.currentPassword, user.passwordHash)
+    if (!ok) throw AppError.badRequest('Current password is incorrect', 'INVALID_PASSWORD')
+
+    // tokenVersion bump invalidates other sessions; the new access token will
+    // be issued by the next refresh round-trip.
+    await db.client.user.update({
+        where: { id: userId },
+        data: { passwordHash: await hashPassword(input.newPassword), tokenVersion: { increment: 1 } }
+    })
+    await writeAudit({ action: 'auth.password_change', entityType: 'User', entityId: userId, tenantId: user.tenantId, userId }, req)
+}
+
+export const updateProfile = async (userId: string, tenantId: string, input: TUpdateProfileInput, req: Request) => {
+    const data: Record<string, unknown> = {}
+    if (input.firstName !== undefined) data.firstName = input.firstName.trim()
+    if (input.lastName !== undefined) data.lastName = input.lastName.trim()
+    if (input.phone !== undefined) data.phone = input.phone === '' ? null : input.phone
+
+    const user = await db.client.user.update({
+        where: { id: userId },
+        data,
+        select: {
+            id: true,
+            tenantId: true,
+            email: true,
+            phone: true,
+            role: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            status: true
+        }
+    })
+    await writeAudit({ action: 'auth.profile_update', entityType: 'User', entityId: userId, tenantId, userId }, req)
+    return sanitize(user)
+}
+
 export const createInvite = async (tenantId: string, email: string, role: Role, invitedById: string) => {
     const rawToken = randomToken(24)
     const tokenHash = hashToken(rawToken)
@@ -260,6 +301,7 @@ interface TUserOut {
     id: string
     tenantId: string
     email: string
+    phone: string | null
     role: Role
     firstName: string
     lastName: string
@@ -271,6 +313,7 @@ export const sanitize = (u: {
     id: string
     tenantId: string
     email: string
+    phone: string | null
     role: Role
     firstName: string
     lastName: string
@@ -280,6 +323,7 @@ export const sanitize = (u: {
     id: u.id,
     tenantId: u.tenantId,
     email: u.email,
+    phone: u.phone,
     role: u.role,
     firstName: u.firstName,
     lastName: u.lastName,

@@ -16,7 +16,7 @@ import { fmtPaiseINR } from '@shared/libs/pdf'
 // "Continue learning" list is fetched from `/enrollments/mine`.
 export const StudentDashboard = () => {
     const user = useAuthStore((s) => s.user)
-    const firstName = user?.name?.split(' ')[0] ?? 'there'
+    const firstName = user?.firstName || 'there'
 
     const dashQuery = useQuery({ queryKey: ['dashboard', 'me'], queryFn: getMyDashboard, staleTime: 60_000 })
     const enrollmentsQuery = useQuery({ queryKey: ['enrollments', 'mine'], queryFn: listMyEnrollments, staleTime: 60_000 })

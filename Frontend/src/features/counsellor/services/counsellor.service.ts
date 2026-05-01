@@ -101,11 +101,19 @@ export const listMyStudents = async (): Promise<MyStudent[]> => {
 // initial password for credential sharing.
 export interface SharedCreds {
     email: string
-    initialPassword: string | null
+    password: string | null
+    loginUrl?: string
 }
 
 export const shareStudentCreds = async (signupId: string): Promise<SharedCreds> => {
     const { data } = await api.post<Envelope<SharedCreds>>(`/counsellor/invites/signups/${signupId}/share`)
+    return data.data
+}
+
+// Issue a fresh password — used when the original was lost or the student
+// already signed in (which clears the plaintext-readable copy).
+export const regenerateStudentCreds = async (signupId: string): Promise<SharedCreds> => {
+    const { data } = await api.post<Envelope<SharedCreds>>(`/counsellor/invites/signups/${signupId}/regenerate`)
     return data.data
 }
 

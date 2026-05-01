@@ -37,6 +37,13 @@ export const shareCreds = async (req: Request, res: Response): Promise<void> => 
     httpResponse(req, res, 200, responseMessage.SUCCESS, creds)
 }
 
+export const regenerateCreds = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const creds = await service.regenerateCredentials(req.auth.tenantId, req.auth.role, req.auth.userId, req.params.signupId)
+    await writeAudit({ action: 'counsellor.signup.regenerate_creds', entityType: 'StudentSignup', entityId: req.params.signupId }, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, creds)
+}
+
 export const myStudents = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     const rows = await service.listMyStudents(req.auth.tenantId, req.auth.role, req.auth.userId)

@@ -8,7 +8,7 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
-import { useAuthStore } from '@shared/stores/authStore'
+import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { openRazorpayCheckout } from '@features/payments/services/razorpay'
 import {
     getMyTenant,
@@ -57,7 +57,7 @@ export const TenantBillingPage = () => {
                 currency: order.currency,
                 invoiceNumber: payment.id.slice(0, 8).toUpperCase(),
                 courseTitle: payment.planLabel ?? 'SaaS subscription',
-                prefill: { name: user?.name, email: user?.email },
+                prefill: { name: fullName(user), email: user?.email },
                 themeColor: tenantQuery.data?.brandingColor ?? undefined
             })
             await verifyMyTenantPayment(payment.id, {
