@@ -8,6 +8,8 @@ import { Badge } from '@shared/components/ui/Badge'
 import { Input, Textarea } from '@shared/components/ui/Input'
 import type { LandingContent, LandingSection as Section, SectionStyle, Typography } from '@features/admin/services/tenant.service'
 import { resolveSectionStyle } from '@features/admin/services/tenant.service'
+import { MotionStagger, MotionItem, ParallaxLayer, RevealText } from './motion'
+import { DotGrid, BrandOrb, MeshBg, NoiseLayer } from './decoration'
 import { getPublicCollection } from '@features/admin/services/cms.service'
 import { TenantBrandingCtx } from '@shared/contexts/TenantBrandingContext'
 import { api } from '@shared/libs/api'
@@ -352,29 +354,23 @@ const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section
     const ctaHref = resolveLink(slugBase, primaryCtaLink)
 
     if (section.variant === 'centered') {
-        // Centered hero — soft mesh gradient backdrop, gradient-painted title,
-        // and a slim trust line below the CTA. The mesh sits behind the content
-        // so it doesn't fight with the section's parent style overrides.
+        // Centered hero — mesh background, brand orb, word-by-word reveal on
+        // the headline. The orb sits in the corner so it reads as ambient
+        // depth, not a competing focal point.
         return (
             <section className="relative overflow-hidden">
-                <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 opacity-60"
-                    style={{
-                        background:
-                            'radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--color-brand-500) 18%, transparent) 0%, transparent 70%), radial-gradient(40% 35% at 80% 30%, color-mix(in srgb, var(--color-brand-300) 22%, transparent) 0%, transparent 70%)'
-                    }}
-                />
-                <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16 text-center">
+                <MeshBg tone="light" />
+                <BrandOrb className="-right-[10%] -top-[20%]" />
+                <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-20 text-center">
                     {eyebrow && (
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-brand-500)]/30 bg-[var(--color-brand-50)] px-3 py-1 text-xs font-medium text-[var(--color-brand-700)]">
                             <Sparkles size={12} /> {eyebrow}
                         </span>
                     )}
-                    <h1 className="mt-6 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] max-w-4xl mx-auto bg-gradient-to-br from-fg via-fg to-[var(--color-brand-700)] bg-clip-text text-transparent">
-                        {title || `Learn with ${tenantName}`}
+                    <h1 className="font-display mt-6 text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.02] max-w-4xl mx-auto bg-gradient-to-br from-fg via-fg to-[var(--color-brand-700)] bg-clip-text text-transparent">
+                        <RevealText text={title || `Learn with ${tenantName}`} />
                     </h1>
-                    {subtitle && <p className="mt-6 text-lg text-fg-soft max-w-2xl mx-auto leading-relaxed">{subtitle}</p>}
+                    {subtitle && <p className="mt-6 text-lg sm:text-xl text-fg-soft max-w-2xl mx-auto leading-relaxed">{subtitle}</p>}
                     {primaryCtaLabel && (
                         <div className="mt-8">
                             <Link to={ctaHref}>
@@ -392,32 +388,27 @@ const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section
     }
 
     if (section.variant === 'gradient') {
-        // Brand-gradient banner — radial dot pattern overlay gives a subtle
-        // tactile texture without competing with the title.
+        // Brand-gradient banner — mesh + dot grid + noise overlay. Three
+        // texture layers compound into a single rich surface.
         return (
             <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-12">
-                <div
-                    className="relative overflow-hidden rounded-2xl p-10 sm:p-16 text-white text-center"
-                    style={{
-                        background:
-                            'radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--color-brand-300) 30%, var(--color-brand-700)) 0%, var(--color-brand-700) 50%, var(--color-brand-900) 100%)'
-                    }}>
-                    <div
-                        aria-hidden
-                        className="absolute inset-0 opacity-25"
-                        style={{
-                            backgroundImage:
-                                'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)',
-                            backgroundSize: '24px 24px'
-                        }}
+                <div className="relative overflow-hidden rounded-3xl p-10 sm:p-16 text-white text-center">
+                    <MeshBg tone="dark" />
+                    <DotGrid
+                        size={24}
+                        opacity={0.18}
+                        color="rgba(255,255,255,0.5)"
                     />
+                    <NoiseLayer opacity={0.06} />
                     <div className="relative">
                         {eyebrow && (
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-medium text-white border border-white/20">
                                 <Sparkles size={12} /> {eyebrow}
                             </span>
                         )}
-                        <h1 className="mt-5 text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05]">{title || `Learn with ${tenantName}`}</h1>
+                        <h1 className="font-display mt-5 text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.02]">
+                            <RevealText text={title || `Learn with ${tenantName}`} />
+                        </h1>
                         {subtitle && <p className="mt-5 text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">{subtitle}</p>}
                         {primaryCtaLabel && (
                             <div className="mt-8">
@@ -436,18 +427,14 @@ const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section
         )
     }
 
-    // split (default) — premium two-column layout with mesh gradient
-    // backdrop, ringed image card, and a richer CTA cluster.
+    // split (default) — premium two-column layout with mesh background, brand
+    // orb in the corner, parallax image card, and word-by-word reveal on the
+    // headline. The trust microcopy under the CTA reinforces the "no credit
+    // card" perception that performs well in education.
     return (
         <section className="relative overflow-hidden">
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 opacity-50"
-                style={{
-                    background:
-                        'radial-gradient(45% 40% at 10% 10%, color-mix(in srgb, var(--color-brand-500) 18%, transparent) 0%, transparent 70%), radial-gradient(35% 30% at 90% 80%, color-mix(in srgb, var(--color-brand-300) 22%, transparent) 0%, transparent 70%)'
-                }}
-            />
+            <MeshBg tone="light" />
+            <BrandOrb className="-right-[15%] -top-[15%]" />
             <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-16 grid lg:grid-cols-[1.05fr_1fr] gap-12 items-center">
                 <div>
                     {eyebrow && (
@@ -455,8 +442,8 @@ const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section
                             <Sparkles size={12} /> {eyebrow}
                         </span>
                     )}
-                    <h1 className="mt-6 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] bg-gradient-to-br from-fg via-fg to-[var(--color-brand-700)] bg-clip-text text-transparent">
-                        {title || `Learn with ${tenantName}`}
+                    <h1 className="font-display mt-6 text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] bg-gradient-to-br from-fg via-fg to-[var(--color-brand-700)] bg-clip-text text-transparent">
+                        <RevealText text={title || `Learn with ${tenantName}`} />
                     </h1>
                     {subtitle && <p className="mt-6 text-lg text-fg-soft max-w-xl leading-relaxed">{subtitle}</p>}
                     {primaryCtaLabel && (
@@ -472,8 +459,9 @@ const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section
                         </div>
                     )}
                 </div>
-                <div className="relative">
-                    {/* Decorative ring + glow behind the image card. */}
+                <ParallaxLayer
+                    strength={0.5}
+                    className="relative">
                     <div
                         aria-hidden
                         className="absolute -inset-4 rounded-3xl blur-2xl opacity-40"
@@ -498,7 +486,7 @@ const HeroBlock = ({ section, slugBase, tenantName }: { section: Extract<Section
                             </div>
                         )}
                     </div>
-                </div>
+                </ParallaxLayer>
             </div>
         </section>
     )
@@ -542,13 +530,13 @@ const FeaturesBlock = ({ section }: { section: Extract<Section, { type: 'feature
     const cols = section.variant === 'four-up' ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3'
     return (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-            {title && <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10 text-center max-w-3xl mx-auto">{title}</h2>}
-            <div className={`grid ${cols} gap-5`}>
+            {title && <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight mb-10 text-center max-w-3xl mx-auto">{title}</h2>}
+            <MotionStagger className={`grid ${cols} gap-5`}>
                 {pillars.map((p, i) => {
                     const tint = FEATURE_ICON_TINTS[i % FEATURE_ICON_TINTS.length]
                     const Icon = tint.Icon
                     return (
-                        <div
+                        <MotionItem
                             key={i}
                             className="group relative rounded-2xl border border-[var(--color-border)] bg-surface p-6 transition-all hover:border-[var(--color-brand-500)]/40 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.15)] hover:-translate-y-0.5">
                             <div className={`h-11 w-11 rounded-xl grid place-items-center mb-4 ${tint.bg}`}>
@@ -556,10 +544,10 @@ const FeaturesBlock = ({ section }: { section: Extract<Section, { type: 'feature
                             </div>
                             <div className="text-base font-semibold text-fg leading-snug">{p.title}</div>
                             <p className="mt-2 text-sm text-fg-soft leading-relaxed whitespace-pre-line">{p.description}</p>
-                        </div>
+                        </MotionItem>
                     )
                 })}
-            </div>
+            </MotionStagger>
         </section>
     )
 }
@@ -592,22 +580,16 @@ const CtaBlock = ({ section, slugBase }: { section: Extract<Section, { type: 'ct
     }
     return (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-            <div
-                className="relative overflow-hidden rounded-3xl p-12 sm:p-16 text-center text-white"
-                style={{
-                    background:
-                        'radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--color-brand-300) 25%, var(--color-brand-700)) 0%, var(--color-brand-700) 50%, var(--color-brand-900) 100%)'
-                }}>
-                <div
-                    aria-hidden
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)',
-                        backgroundSize: '24px 24px'
-                    }}
+            <div className="relative overflow-hidden rounded-3xl p-12 sm:p-16 text-center text-white">
+                <MeshBg tone="dark" />
+                <DotGrid
+                    size={24}
+                    opacity={0.18}
+                    color="rgba(255,255,255,0.6)"
                 />
+                <NoiseLayer opacity={0.05} />
                 <div className="relative">
-                    {title && <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">{title}</h2>}
+                    {title && <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.05]">{title}</h2>}
                     {subtitle && <p className="mt-4 text-base sm:text-lg text-white/90 max-w-xl mx-auto leading-relaxed">{subtitle}</p>}
                     {buttonLabel && (
                         <div className="mt-8">
@@ -967,22 +949,22 @@ const BentoBlock = ({ section }: { section: Extract<Section, { type: 'bento' }> 
                             {eyebrow}
                         </span>
                     )}
-                    {title && <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight">{title}</h2>}
-                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed">{subtitle}</p>}
+                    {title && <h2 className="font-display mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed text-base sm:text-lg">{subtitle}</p>}
                 </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[minmax(220px,auto)]">
+            <MotionStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[minmax(220px,auto)]">
                 {tiles.map((t, i) => {
                     const accent = (t.accent ?? 'brand') as keyof typeof BENTO_ACCENT_BG
                     return (
-                        <div
+                        <MotionItem
                             key={i}
-                            className={`relative overflow-hidden rounded-2xl border border-[var(--color-border)] p-6 transition-all hover:border-[var(--color-brand-500)]/40 hover:shadow-lg ${BENTO_ACCENT_BG[accent]} ${t.wide ? 'lg:col-span-2' : ''}`}>
+                            className={`relative overflow-hidden rounded-2xl border border-[var(--color-border)] p-6 transition-all hover:border-[var(--color-brand-500)]/40 hover:shadow-lg hover:-translate-y-0.5 ${BENTO_ACCENT_BG[accent]} ${t.wide ? 'lg:col-span-2' : ''}`}>
                             <div className="flex items-center gap-2">
                                 <span className={`inline-block h-2 w-2 rounded-full ${BENTO_ACCENT_DOT[accent]}`} />
                                 {t.eyebrow && <span className="text-[11px] uppercase tracking-wider font-semibold text-fg-soft">{t.eyebrow}</span>}
                             </div>
-                            <div className="mt-3 text-lg sm:text-xl font-bold text-fg leading-snug">{t.title}</div>
+                            <div className="font-display mt-3 text-xl sm:text-2xl font-extrabold text-fg leading-snug tracking-tight">{t.title}</div>
                             {t.body && <p className="mt-2 text-sm text-fg-soft leading-relaxed">{t.body}</p>}
                             {t.imageUrl && (
                                 <img
@@ -992,10 +974,10 @@ const BentoBlock = ({ section }: { section: Extract<Section, { type: 'bento' }> 
                                     className="mt-4 w-full rounded-lg object-cover aspect-video"
                                 />
                             )}
-                        </div>
+                        </MotionItem>
                     )
                 })}
-            </div>
+            </MotionStagger>
         </section>
     )
 }
@@ -1023,8 +1005,8 @@ const PricingBlock = ({ section, slugBase }: { section: Extract<Section, { type:
                             {eyebrow}
                         </span>
                     )}
-                    {title && <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight">{title}</h2>}
-                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed">{subtitle}</p>}
+                    {title && <h2 className="font-display mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed text-base sm:text-lg">{subtitle}</p>}
                 </div>
             )}
 
@@ -1084,11 +1066,11 @@ const PricingBlock = ({ section, slugBase }: { section: Extract<Section, { type:
                     </table>
                 </div>
             ) : (
-                <div className={`grid gap-5 sm:grid-cols-2 ${cols}`}>
+                <MotionStagger className={`grid gap-5 sm:grid-cols-2 ${cols}`}>
                     {tiers.map((t, i) => {
                         const isHighlight = t.highlighted
                         return (
-                            <div
+                            <MotionItem
                                 key={i}
                                 className={`relative rounded-2xl p-7 flex flex-col transition-all ${
                                     isHighlight
@@ -1103,7 +1085,7 @@ const PricingBlock = ({ section, slugBase }: { section: Extract<Section, { type:
                                 <div className="text-sm font-semibold text-fg-soft uppercase tracking-wider">{t.name}</div>
                                 {t.blurb && <p className="mt-1 text-xs text-fg-muted">{t.blurb}</p>}
                                 <div className="mt-5 flex items-baseline gap-1">
-                                    <span className="text-4xl font-bold tracking-tight text-fg">{t.price}</span>
+                                    <span className="font-display text-5xl font-extrabold tracking-tighter text-fg">{t.price}</span>
                                     {t.period && <span className="text-sm text-fg-muted">/ {t.period}</span>}
                                 </div>
                                 <ul className="mt-6 space-y-2.5 flex-1">
@@ -1131,10 +1113,10 @@ const PricingBlock = ({ section, slugBase }: { section: Extract<Section, { type:
                                         </Button>
                                     </Link>
                                 )}
-                            </div>
+                            </MotionItem>
                         )
                     })}
-                </div>
+                </MotionStagger>
             )}
         </section>
     )
@@ -1211,8 +1193,8 @@ const ProcessBlock = ({ section }: { section: Extract<Section, { type: 'process'
                             {eyebrow}
                         </span>
                     )}
-                    {title && <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight">{title}</h2>}
-                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed">{subtitle}</p>}
+                    {title && <h2 className="font-display mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed text-base sm:text-lg">{subtitle}</p>}
                 </div>
             )}
             {isHorizontal ? (
@@ -1287,8 +1269,8 @@ const FaqBlock = ({ section }: { section: Extract<Section, { type: 'faq' }> }) =
                             {eyebrow}
                         </span>
                     )}
-                    {title && <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight">{title}</h2>}
-                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed">{subtitle}</p>}
+                    {title && <h2 className="font-display mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed text-base sm:text-lg">{subtitle}</p>}
                 </div>
             )}
             <div className={isTwoColumn ? 'grid md:grid-cols-2 gap-3' : 'space-y-3 max-w-3xl mx-auto'}>
@@ -1353,11 +1335,14 @@ const TestimonialsBlock = ({ section }: { section: Extract<Section, { type: 'tes
 
     return (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-            {title && <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center max-w-3xl mx-auto">{title}</h2>}
-            {subtitle && <p className="mt-4 text-fg-soft text-center max-w-2xl mx-auto leading-relaxed">{subtitle}</p>}
-            <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {title && <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center max-w-3xl mx-auto">{title}</h2>}
+            {subtitle && <p className="mt-4 text-fg-soft text-center max-w-2xl mx-auto leading-relaxed text-base sm:text-lg">{subtitle}</p>}
+            <MotionStagger
+                as="div"
+                className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {items.map((t, i) => (
-                    <figure
+                    <MotionItem
+                        as="figure"
                         key={i}
                         className="group relative rounded-2xl border border-[var(--color-border)] bg-surface p-7 flex flex-col transition-all hover:border-[var(--color-brand-500)]/40 hover:shadow-[0_12px_30px_-10px_rgba(0,0,0,0.15)] hover:-translate-y-0.5">
                         <div className="text-5xl leading-none text-[var(--color-brand-500)]/30 font-serif select-none">&ldquo;</div>
@@ -1384,9 +1369,9 @@ const TestimonialsBlock = ({ section }: { section: Extract<Section, { type: 'tes
                                 </div>
                             </div>
                         </figcaption>
-                    </figure>
+                    </MotionItem>
                 ))}
-            </div>
+            </MotionStagger>
         </section>
     )
 }
@@ -1400,37 +1385,31 @@ const StatsBlock = ({ section }: { section: Extract<Section, { type: 'stats' }> 
     if (section.variant === 'banner') {
         return (
             <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-                <div
-                    className="relative overflow-hidden rounded-3xl p-10 sm:p-14 text-white"
-                    style={{
-                        background:
-                            'radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--color-brand-300) 25%, var(--color-brand-700)) 0%, var(--color-brand-700) 50%, var(--color-brand-900) 100%)'
-                    }}>
-                    <div
-                        aria-hidden
-                        className="absolute inset-0 opacity-15"
-                        style={{
-                            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)',
-                            backgroundSize: '24px 24px'
-                        }}
+                <div className="relative overflow-hidden rounded-3xl p-10 sm:p-14 text-white">
+                    <MeshBg tone="dark" />
+                    <DotGrid
+                        size={24}
+                        opacity={0.14}
+                        color="rgba(255,255,255,0.55)"
                     />
+                    <NoiseLayer opacity={0.04} />
                     <div className="relative">
-                        {title && <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center max-w-3xl mx-auto">{title}</h2>}
+                        {title && <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-center max-w-3xl mx-auto">{title}</h2>}
                         {subtitle && <p className="mt-4 text-white/90 text-center max-w-2xl mx-auto leading-relaxed">{subtitle}</p>}
-                        <div
+                        <MotionStagger
                             className={`mt-12 grid gap-8 ${items.length === 2 ? 'sm:grid-cols-2' : items.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
                             {items.map((s, i) => (
-                                <div
+                                <MotionItem
                                     key={i}
                                     className="text-center">
-                                    <div className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">
+                                    <div className="font-display text-5xl sm:text-6xl font-extrabold tracking-tighter bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">
                                         {s.value}
                                     </div>
                                     <div className="mt-2 text-sm font-semibold uppercase tracking-wider text-white/95">{s.label}</div>
                                     {s.sublabel && <div className="mt-1 text-xs text-white/70">{s.sublabel}</div>}
-                                </div>
+                                </MotionItem>
                             ))}
-                        </div>
+                        </MotionStagger>
                     </div>
                 </div>
             </section>
@@ -1439,21 +1418,21 @@ const StatsBlock = ({ section }: { section: Extract<Section, { type: 'stats' }> 
 
     return (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-            {title && <h2 className="text-3xl font-bold tracking-tight text-center max-w-3xl mx-auto">{title}</h2>}
+            {title && <h2 className="font-display text-3xl font-extrabold tracking-tight text-center max-w-3xl mx-auto">{title}</h2>}
             {subtitle && <p className="mt-3 text-fg-soft text-center max-w-2xl mx-auto leading-relaxed">{subtitle}</p>}
-            <div className={`mt-10 grid gap-5 ${items.length <= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
+            <MotionStagger className={`mt-10 grid gap-5 ${items.length <= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
                 {items.map((s, i) => (
-                    <div
+                    <MotionItem
                         key={i}
                         className="rounded-2xl border border-[var(--color-border)] bg-surface p-6 text-center transition-all hover:border-[var(--color-brand-500)]/40 hover:shadow-md">
-                        <div className="text-4xl font-bold tracking-tight bg-gradient-to-br from-[var(--color-brand-500)] to-[var(--color-brand-700)] bg-clip-text text-transparent">
+                        <div className="font-display text-5xl font-extrabold tracking-tighter bg-gradient-to-br from-[var(--color-brand-500)] to-[var(--color-brand-700)] bg-clip-text text-transparent">
                             {s.value}
                         </div>
                         <div className="mt-2 text-sm font-semibold text-fg uppercase tracking-wider">{s.label}</div>
                         {s.sublabel && <div className="mt-1 text-xs text-fg-muted">{s.sublabel}</div>}
-                    </div>
+                    </MotionItem>
                 ))}
-            </div>
+            </MotionStagger>
         </section>
     )
 }

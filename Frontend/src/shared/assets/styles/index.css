@@ -65,8 +65,15 @@
     --color-sidebar-sa-top: #1a0b2e;
     --color-sidebar-sa-bot: #0f0820;
 
-    /* Typography — STRICTLY sans. No cursive, no serif, anywhere. */
+    /* Typography — STRICTLY sans. No cursive, no serif, anywhere.
+     *   --font-sans    Inter — body copy, UI chrome, navigation
+     *   --font-display Inter Tight — large display headings (h1/h2 with
+     *                  the "display" weight token); tighter optical sizing
+     *                  reads as more premium at 4xl+.
+     *   --font-mono    Geist Mono — numerics, code, technical chrome
+     */
     --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', roboto, 'Helvetica Neue', arial, sans-serif;
+    --font-display: 'Inter Tight', 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'Geist Mono', ui-monospace, sfmono-regular, menlo, consolas, monospace;
 
     /* Spacing scale (4/8/16/24/32) already matches Tailwind's default. */
@@ -153,6 +160,16 @@ body {
     color: var(--color-fg);
 }
 
+/* Display headings — landing/marketing pages. Inter Tight at heavier weights
+ * gives the 4xl+ headlines a more premium feel without leaving the Inter
+ * family. The .display-font utility lets section renderers opt in
+ * explicitly; the global rule applies to landing-page-style h1/h2 sizes
+ * (anything text-3xl and up that doesn't override font-family). */
+.font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+}
+
 /* ---------------------------------------------------------------------------
  * Marquee — infinite horizontal scroll. Used by the `marquee` landing
  * section. The track contains two duplicate child rows; we translate the
@@ -189,6 +206,46 @@ body {
     }
 }
 
+/* ---------------------------------------------------------------------------
+ * Brand orb — animated gradient glow used by <BrandOrb /> as a decorative
+ * layer behind hero / CTA cards. Drifts + pulses on a long timer so it
+ * registers as ambient motion, not an attention-grabber. Pauses under
+ * prefers-reduced-motion.
+ * --------------------------------------------------------------------------- */
+@keyframes brand-orb-drift {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(2%, -3%, 0) scale(1.05);
+    }
+}
+
+.brand-orb {
+    position: absolute;
+    inset: -20% -20% auto auto;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    background: radial-gradient(
+        circle at 30% 30%,
+        color-mix(in srgb, var(--color-brand-500) 70%, transparent) 0%,
+        color-mix(in srgb, var(--color-brand-700) 30%, transparent) 50%,
+        transparent 70%
+    );
+    animation: brand-orb-drift 14s ease-in-out infinite;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-orb {
+        animation: none;
+    }
+}
+
 /* Scrollbar — thin, subtle, theme-aware. */
 ::-webkit-scrollbar {
     width: 10px;
@@ -218,6 +275,11 @@ body {
 @utility font-mono {
     font-family: var(--font-mono);
     font-feature-settings: 'ss01' on;
+}
+
+@utility font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
 }
 
 @utility text-fg {
