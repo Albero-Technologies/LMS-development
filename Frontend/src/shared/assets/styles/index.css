@@ -246,6 +246,45 @@ body {
     }
 }
 
+/* ---------------------------------------------------------------------------
+ * WhatsApp floating button pulse — soft expanding ring that loops 2s on,
+ * 2s off so it draws the eye without becoming distracting. Pauses under
+ * prefers-reduced-motion.
+ * --------------------------------------------------------------------------- */
+@keyframes wa-pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    70% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.wa-pulse {
+    position: fixed;
+}
+.wa-pulse::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: inherit;
+    animation: wa-pulse-ring 2s ease-out infinite;
+    z-index: -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wa-pulse::before {
+        animation: none;
+    }
+}
+
 /* Scrollbar — thin, subtle, theme-aware. */
 ::-webkit-scrollbar {
     width: 10px;

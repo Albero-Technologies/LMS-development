@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { MessageCircle, Compass } from 'lucide-react'
+import { Compass } from 'lucide-react'
 import { Button } from '@shared/components/ui/Button'
 import { useTenantBranding } from '@shared/contexts/useTenantBranding'
 import { defaultFooter, defaultLandingSections, defaultNavbar, type LandingPage, type LandingSection } from '@features/admin/services/tenant.service'
@@ -230,20 +230,8 @@ export const TenantLandingPage = () => {
                 slugBase={slugBase}
             />
 
-            {analytics?.whatsappNumber && (
-                <a
-                    href={`https://wa.me/${analytics.whatsappNumber.replace(/[^0-9]/g, '')}${analytics.whatsappMessage ? `?text=${encodeURIComponent(analytics.whatsappMessage)}` : ''}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Chat on WhatsApp"
-                    className="fixed bottom-5 right-5 z-50 inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg text-white transition-transform hover:scale-110"
-                    style={{ background: '#25D366' }}>
-                    <MessageCircle
-                        size={26}
-                        fill="currentColor"
-                    />
-                </a>
-            )}
+            {/* WhatsApp + Back-to-top buttons render in TenantBrandingProvider
+             *  so they appear on every page under /t/:slug, not just home. */}
         </div>
     )
 }

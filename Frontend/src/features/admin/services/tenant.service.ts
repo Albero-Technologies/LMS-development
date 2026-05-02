@@ -911,6 +911,35 @@ export type SiteAnalytics = {
     whatsappMessage?: string // pre-filled message in the chat link
 }
 
+// Per-tenant floating action buttons — back-to-top + WhatsApp chat. Each
+// has independent enable/variant/position controls so a tenant can run only
+// one if they prefer. Position is corner-anchored so the two never collide
+// (back-to-top always stacks ABOVE WhatsApp on the same side).
+export type FloatingPosition = 'bottom-right' | 'bottom-left'
+
+export type BackToTopConfig = {
+    enabled?: boolean // default: true
+    variant?: 'solid' | 'outline' | 'dark' | 'gradient'
+    position?: FloatingPosition // default: bottom-right
+    showAfter?: number // px scrolled before button appears, default 400
+    label?: string // accessible label, default "Back to top"
+}
+
+export type WhatsAppFloatConfig = {
+    enabled?: boolean // default: based on whether `phone` is set
+    phone?: string // E.164 (or national; leading + optional). Falls back to analytics.whatsappNumber
+    message?: string // pre-filled chat message. Falls back to analytics.whatsappMessage
+    variant?: 'classic' | 'brand' | 'minimal' // green / brand-tinted / outline
+    position?: FloatingPosition // default: bottom-right
+    pulse?: boolean // subtle pulse animation, default true
+    label?: string // accessible label, default "Chat on WhatsApp"
+}
+
+export type FloatingActionsConfig = {
+    backToTop?: BackToTopConfig
+    whatsapp?: WhatsAppFloatConfig
+}
+
 export type LandingContent = {
     sections?: LandingSection[]
     pages?: LandingPage[]
@@ -918,6 +947,7 @@ export type LandingContent = {
     analytics?: SiteAnalytics
     navbar?: NavbarConfig
     footer?: FooterConfig
+    floatingActions?: FloatingActionsConfig
     styleClasses?: StyleClass[]
     // Legacy single-block fields (kept so historical tenants render). New
     // tenants persist exclusively into `sections` (or `pages` once they

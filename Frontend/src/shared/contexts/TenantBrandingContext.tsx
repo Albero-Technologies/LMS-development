@@ -5,6 +5,8 @@ import { Building2 } from 'lucide-react'
 import { getPublicTenantBySlug, type PublicTenantBrand } from '@features/admin/services/tenant.service'
 import { BoxLoader } from '@shared/components/BoxLoader'
 import { Empty } from '@shared/components/ui/Empty'
+import { ScrollToTop } from '@shared/components/ScrollToTop'
+import { FloatingActions } from '@features/marketing/components/FloatingActions'
 import { applyBrandPalette, deriveBrandPalette } from '@shared/helpers/brandPalette'
 
 // Multi-tenant routing scaffold (§3). The slug-prefixed public surfaces
@@ -70,5 +72,21 @@ export const TenantBrandingProvider = ({ children }: Props) => {
         )
     }
 
-    return <TenantBrandingCtx.Provider value={{ tenant: query.data }}>{children}</TenantBrandingCtx.Provider>
+    // ScrollToTop runs on every pathname change (back to viewport top), and
+    // FloatingActions renders the back-to-top + WhatsApp buttons on every
+    // tenant page so we don't need to repeat them in TenantLandingPage,
+    // EnquiryPage, etc.
+    const tenantData = query.data
+    const landing = tenantData.landing as { floatingActions?: import('@features/admin/services/tenant.service').FloatingActionsConfig; analytics?: { whatsappNumber?: string; whatsappMessage?: string } } | null
+    return (
+        <TenantBrandingCtx.Provider value={{ tenant: tenantData }}>
+            <ScrollToTop />
+            {children}
+            <FloatingActions
+                config={landing?.floatingActions}
+                analyticsWhatsappNumber={landing?.analytics?.whatsappNumber}
+                analyticsWhatsappMessage={landing?.analytics?.whatsappMessage}
+            />
+        </TenantBrandingCtx.Provider>
+    )
 }

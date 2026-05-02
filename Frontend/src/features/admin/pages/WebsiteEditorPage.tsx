@@ -96,6 +96,7 @@ import {
     type SectionStyle,
     type SiteIdentity,
     type StyleClass,
+    type FloatingActionsConfig,
     type TenantSettings,
     type TestimonialItem,
     type StatItem,
@@ -197,12 +198,14 @@ export const WebsiteEditorPage = () => {
     const initialNavbar = useMemo<NavbarConfig>(() => rawLanding.navbar ?? defaultNavbar(), [rawLanding.navbar])
     const initialFooter = useMemo<FooterConfig>(() => rawLanding.footer ?? defaultFooter(tenant?.name ?? ''), [rawLanding.footer, tenant?.name])
     const initialStyleClasses = useMemo<StyleClass[]>(() => rawLanding.styleClasses ?? defaultStyleClasses(), [rawLanding.styleClasses])
+    const initialFloating = useMemo<FloatingActionsConfig>(() => rawLanding.floatingActions ?? {}, [rawLanding.floatingActions])
 
     const [pages, setPages] = useState<LandingPage[]>(initialPages)
     const [site, setSite] = useState<SiteIdentity>(initialSite)
     const [navbar, setNavbar] = useState<NavbarConfig>(initialNavbar)
     const [footer, setFooter] = useState<FooterConfig>(initialFooter)
     const [styleClasses, setStyleClasses] = useState<StyleClass[]>(initialStyleClasses)
+    const [floating, setFloating] = useState<FloatingActionsConfig>(initialFloating)
     const [activePageId, setActivePageId] = useState<string>('')
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
     const [pickerOpen, setPickerOpen] = useState(false)
@@ -216,10 +219,11 @@ export const WebsiteEditorPage = () => {
         setNavbar(initialNavbar)
         setFooter(initialFooter)
         setStyleClasses(initialStyleClasses)
+        setFloating(initialFloating)
         const home = initialPages.find((p) => p.isHome) ?? initialPages[0]
         setActivePageId(home?.id ?? '')
         setSelectedSectionId(home?.sections[0]?.id ?? null)
-    }, [initialPages, initialSite, initialNavbar, initialFooter, initialStyleClasses])
+    }, [initialPages, initialSite, initialNavbar, initialFooter, initialStyleClasses, initialFloating])
 
     const activePage = pages.find((p) => p.id === activePageId) ?? pages[0]
     const sections = activePage?.sections ?? []
@@ -231,8 +235,9 @@ export const WebsiteEditorPage = () => {
             JSON.stringify(site) !== JSON.stringify(initialSite) ||
             JSON.stringify(navbar) !== JSON.stringify(initialNavbar) ||
             JSON.stringify(footer) !== JSON.stringify(initialFooter) ||
-            JSON.stringify(styleClasses) !== JSON.stringify(initialStyleClasses),
-        [pages, initialPages, site, initialSite, navbar, initialNavbar, footer, initialFooter, styleClasses, initialStyleClasses]
+            JSON.stringify(styleClasses) !== JSON.stringify(initialStyleClasses) ||
+            JSON.stringify(floating) !== JSON.stringify(initialFloating),
+        [pages, initialPages, site, initialSite, navbar, initialNavbar, footer, initialFooter, styleClasses, initialStyleClasses, floating, initialFloating]
     )
 
     const saveMutation = useMutation({
@@ -251,6 +256,7 @@ export const WebsiteEditorPage = () => {
                     site,
                     navbar,
                     footer,
+                    floatingActions: floating,
                     styleClasses
                 }
             }
@@ -595,11 +601,13 @@ export const WebsiteEditorPage = () => {
                     navbar={navbar}
                     footer={footer}
                     styleClasses={styleClasses}
+                    floating={floating}
                     tenantSlug={tenant.slug}
                     onChangeSite={setSite}
                     onChangeNavbar={setNavbar}
                     onChangeFooter={setFooter}
                     onChangeStyleClasses={setStyleClasses}
+                    onChangeFloating={setFloating}
                 />
             )}
         </>
@@ -2605,11 +2613,13 @@ const SiteSettingsModal = ({
     navbar,
     footer,
     styleClasses,
+    floating,
     tenantSlug,
     onChangeSite,
     onChangeNavbar,
     onChangeFooter,
-    onChangeStyleClasses
+    onChangeStyleClasses,
+    onChangeFloating
 }: {
     open: boolean
     onClose: () => void
@@ -2618,17 +2628,20 @@ const SiteSettingsModal = ({
     navbar: NavbarConfig
     footer: FooterConfig
     styleClasses: StyleClass[]
+    floating: FloatingActionsConfig
     tenantSlug: string
     onChangeSite: (s: SiteIdentity) => void
     onChangeNavbar: (n: NavbarConfig) => void
     onChangeFooter: (f: FooterConfig) => void
     onChangeStyleClasses: (c: StyleClass[]) => void
+    onChangeFloating: (f: FloatingActionsConfig) => void
 }) => {
-    const [tab, setTab] = useState<'identity' | 'navbar' | 'footer' | 'classes' | 'seo'>('identity')
+    const [tab, setTab] = useState<'identity' | 'navbar' | 'footer' | 'floating' | 'classes' | 'seo'>('identity')
     const tabs: { id: typeof tab; label: string }[] = [
         { id: 'identity', label: 'Identity' },
         { id: 'navbar', label: 'Navbar' },
         { id: 'footer', label: 'Footer' },
+        { id: 'floating', label: 'Floating actions' },
         { id: 'classes', label: 'Style classes' },
         { id: 'seo', label: 'Search engines' }
     ]
@@ -2677,6 +2690,12 @@ const SiteSettingsModal = ({
                     onChange={onChangeFooter}
                 />
             )}
+            {tab === 'floating' && (
+                <FloatingActionsFields
+                    config={floating}
+                    onChange={onChangeFloating}
+                />
+            )}
             {tab === 'classes' && (
                 <StyleClassesFields
                     classes={styleClasses}
@@ -2685,6 +2704,137 @@ const SiteSettingsModal = ({
             )}
             {tab === 'seo' && <SeoFields tenantSlug={tenantSlug} />}
         </Modal>
+    )
+}
+
+// Floating-actions panel — Back-to-top + WhatsApp toggles, variants, and
+// position controls. Values land in landing.floatingActions which the public
+// TenantBrandingProvider reads to decide what to render.
+const FloatingActionsFields = ({ config, onChange }: { config: FloatingActionsConfig; onChange: (next: FloatingActionsConfig) => void }) => {
+    const back = config.backToTop ?? {}
+    const wa = config.whatsapp ?? {}
+    const setBack = (patch: Partial<NonNullable<typeof back>>) => onChange({ ...config, backToTop: { ...back, ...patch } })
+    const setWa = (patch: Partial<NonNullable<typeof wa>>) => onChange({ ...config, whatsapp: { ...wa, ...patch } })
+
+    return (
+        <div className="space-y-6">
+            {/* ---- Back to top ---- */}
+            <div className="rounded-lg border border-[var(--color-border)] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-semibold text-fg">Back to top button</h3>
+                        <p className="text-xs text-fg-muted mt-0.5">Floats in the bottom corner once visitors scroll past your hero.</p>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={back.enabled !== false}
+                            onChange={(e) => setBack({ enabled: e.target.checked })}
+                            className="accent-[var(--color-brand-500)]"
+                        />
+                        Enabled
+                    </label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <Select
+                        label="Variant"
+                        value={back.variant ?? 'gradient'}
+                        onChange={(e) => setBack({ variant: e.target.value as NonNullable<typeof back.variant> })}>
+                        <option value="solid">Solid brand</option>
+                        <option value="outline">Outline</option>
+                        <option value="dark">Dark</option>
+                        <option value="gradient">Brand gradient</option>
+                    </Select>
+                    <Select
+                        label="Position"
+                        value={back.position ?? 'bottom-right'}
+                        onChange={(e) => setBack({ position: e.target.value as NonNullable<typeof back.position> })}>
+                        <option value="bottom-right">Bottom right</option>
+                        <option value="bottom-left">Bottom left</option>
+                    </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <Input
+                        label="Show after (px scrolled)"
+                        type="number"
+                        min={0}
+                        value={back.showAfter ?? 400}
+                        onChange={(e) => setBack({ showAfter: Number(e.target.value) || 0 })}
+                    />
+                    <Input
+                        label="Aria-label"
+                        value={back.label ?? ''}
+                        onChange={(e) => setBack({ label: e.target.value })}
+                        placeholder="Back to top"
+                    />
+                </div>
+            </div>
+
+            {/* ---- WhatsApp ---- */}
+            <div className="rounded-lg border border-[var(--color-border)] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-semibold text-fg">WhatsApp chat button</h3>
+                        <p className="text-xs text-fg-muted mt-0.5">Opens wa.me with your number and a pre-filled message.</p>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={wa.enabled !== false}
+                            onChange={(e) => setWa({ enabled: e.target.checked })}
+                            className="accent-[var(--color-brand-500)]"
+                        />
+                        Enabled
+                    </label>
+                </div>
+                <Input
+                    label="Phone number"
+                    value={wa.phone ?? ''}
+                    onChange={(e) => setWa({ phone: e.target.value })}
+                    placeholder="+91 99999 99999"
+                    hint="E.164 or national format. Non-digits are stripped before opening WhatsApp."
+                />
+                <Textarea
+                    label="Pre-filled message"
+                    rows={2}
+                    value={wa.message ?? ''}
+                    onChange={(e) => setWa({ message: e.target.value })}
+                    placeholder="Hi! I would like to know more about Albero Academy programs."
+                />
+                <div className="grid grid-cols-2 gap-3">
+                    <Select
+                        label="Variant"
+                        value={wa.variant ?? 'classic'}
+                        onChange={(e) => setWa({ variant: e.target.value as NonNullable<typeof wa.variant> })}>
+                        <option value="classic">Classic green</option>
+                        <option value="brand">Brand gradient</option>
+                        <option value="minimal">Minimal outline</option>
+                    </Select>
+                    <Select
+                        label="Position"
+                        value={wa.position ?? 'bottom-right'}
+                        onChange={(e) => setWa({ position: e.target.value as NonNullable<typeof wa.position> })}>
+                        <option value="bottom-right">Bottom right</option>
+                        <option value="bottom-left">Bottom left</option>
+                    </Select>
+                </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={wa.pulse !== false}
+                        onChange={(e) => setWa({ pulse: e.target.checked })}
+                        className="accent-[var(--color-brand-500)]"
+                    />
+                    Pulse animation
+                </label>
+                <Input
+                    label="Aria-label"
+                    value={wa.label ?? ''}
+                    onChange={(e) => setWa({ label: e.target.value })}
+                    placeholder="Chat on WhatsApp"
+                />
+            </div>
+        </div>
     )
 }
 
