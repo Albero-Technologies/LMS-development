@@ -11,6 +11,10 @@ interface LandingSectionShape {
     id: string
     type: string
     variant: string
+    // Optional style overrides — frontend SectionStyle. We type loosely here
+    // because the seed file doesn't import the Frontend type; the renderer
+    // only reads what it understands.
+    style?: { styleClassId?: string; animation?: string; animationDuration?: number; animationDelay?: number }
     data: Record<string, unknown>
 }
 
@@ -147,15 +151,30 @@ const blogSections = (): LandingSectionShape[] => [
             ]
         }
     },
-    ...BLOG_POSTS.map((p, i): LandingSectionShape => ({
-        id: sid('blog', 10 + i),
-        type: 'callout',
-        variant: 'info',
+    {
+        id: sid('blog', 10),
+        type: 'blogCards',
+        variant: 'featured',
+        style: { animation: 'fadeUp' },
         data: {
-            title: `${p.category} · ${p.date} · ${p.readTime}\n${p.title}`,
-            body: p.description
+            eyebrow: 'LATEST',
+            title: 'Read the latest',
+            subtitle: 'New articles every week — written by industry mentors who hire from these roles.',
+            // Featured variant: first item is the hero, next 4 stack beside, rest go in a 3-up grid.
+            items: BLOG_POSTS.map((p, i) => {
+                const accents = ['brand', 'purple', 'teal', 'orange', 'pink'] as const
+                return {
+                    title: p.title,
+                    description: p.description,
+                    category: p.category,
+                    date: p.date,
+                    readTime: p.readTime,
+                    accent: accents[i % accents.length],
+                    href: 'blog' // links back to blog index for now — full blog detail pages are a separate route effort
+                }
+            })
         }
-    })),
+    },
     {
         id: sid('blog', 99),
         type: 'cta',
@@ -647,6 +666,35 @@ const caseStudySections = (): LandingSectionShape[] => [
 // scraped. Each topic is one `prose` section with a copy-friendly bullet
 // layout admins can edit later in the Website Editor.
 
+// Builds an intro prose + a code snippet for one cheat-sheet topic. Keeps
+// the page rhythm consistent: prose context first, then the actual code.
+const cheatTopic = (
+    key: string,
+    eyebrow: string,
+    title: string,
+    intro: string,
+    code: string,
+    language: 'sql' | 'python' | 'javascript' | 'typescript' | 'bash' | 'plain'
+): LandingSectionShape[] => [
+    {
+        id: sid(`cheat-${key}-intro`, 0),
+        type: 'prose',
+        variant: 'narrow',
+        data: { eyebrow, title, body: intro }
+    },
+    {
+        id: sid(`cheat-${key}-code`, 0),
+        type: 'code',
+        variant: 'single',
+        data: {
+            title: `${key}.cheatsheet`,
+            language,
+            code,
+            showLineNumbers: true
+        }
+    }
+]
+
 const cheatSheetSections = (): LandingSectionShape[] => [
     {
         id: sid('cheat', 0),
@@ -654,8 +702,9 @@ const cheatSheetSections = (): LandingSectionShape[] => [
         variant: 'gradient',
         data: {
             eyebrow: 'CheatSheets',
-            title: 'Quick One-Pagers for Revising Key Concepts',
-            subtitle: 'Print-ready references for SQL, Python, Power BI, Excel, Statistics, and Tableau — exactly what you need before an exam, an interview, or a stand-up.',
+            title: 'Quick one-pagers for revising key concepts',
+            subtitle:
+                'Battle-tested snippets for SQL, Python, Power BI, Excel, Statistics, and Tableau — exactly what you need before an exam, an interview, or a stand-up.',
             imageUrl: IMG_CHEAT,
             imageAlt: 'Albero Academy cheat sheets'
         }
@@ -672,73 +721,295 @@ const cheatSheetSections = (): LandingSectionShape[] => [
             ]
         }
     },
+
+    // SQL ------------------------------------------------------------------
+    ...cheatTopic(
+        'sql',
+        'SQL',
+        'SQL · the patterns you reach for daily',
+        'Aggregation, joins, window functions, CTEs, and the performance habits that keep your queries cheap. The snippet below packs the patterns you should know cold.',
+        `-- Filtering & aggregation
+SELECT col, COUNT(*) AS n
+FROM t
+WHERE active = TRUE
+GROUP BY col
+HAVING COUNT(*) > 1;
+
+-- Nullable join via COALESCE
+SELECT u.id, COALESCE(p.name, 'No profile') AS display_name
+FROM users u
+LEFT JOIN profiles p ON p.user_id = u.id;
+
+-- Anti-join: rows missing on the right
+SELECT u.*
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE o.id IS NULL;
+
+-- Window functions
+SELECT
+  user_id,
+  amount,
+  ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY paid_at DESC) AS rn,
+  LAG(amount, 1) OVER (ORDER BY paid_at) AS prev_amount,
+  SUM(amount) OVER (PARTITION BY user_id ORDER BY paid_at
+                    ROWS UNBOUNDED PRECEDING) AS running_total
+FROM payments;
+
+-- CTE for readable building blocks
+WITH active_users AS (
+  SELECT * FROM users WHERE last_login_at >= NOW() - INTERVAL '30 days'
+),
+recent_orders AS (
+  SELECT user_id, COUNT(*) AS orders_30d FROM orders
+  WHERE paid_at >= NOW() - INTERVAL '30 days'
+  GROUP BY user_id
+)
+SELECT u.id, u.email, COALESCE(o.orders_30d, 0) AS orders_30d
+FROM active_users u
+LEFT JOIN recent_orders o ON o.user_id = u.id;
+
+-- Performance habits
+-- 1. EXPLAIN before optimising. Measure, don't guess.
+-- 2. Index WHERE / JOIN / ORDER BY columns. Not SELECT.
+-- 3. Avoid SELECT * in production queries.
+-- 4. LIMIT before ORDER BY rarely helps — the engine still sorts the full set first.`,
+        'sql'
+    ),
+
+    // Python ---------------------------------------------------------------
+    ...cheatTopic(
+        'python',
+        'PYTHON',
+        'Python · idioms that survive code review',
+        'Comprehensions over loops, context managers for I/O, dataclasses for records, typing for safety. The patterns below are the ones senior reviewers expect to see.',
+        `# Comprehensions over loops
+doubled = [x * 2 for x in xs if x > 0]
+by_id = {row['id']: row for row in rows}
+gen = (x * 2 for x in xs)  # lazy, memory-efficient
+
+# Default args are evaluated ONCE — never use mutable defaults
+def append_safe(item, bucket=None):
+    if bucket is None:
+        bucket = []
+    bucket.append(item)
+    return bucket
+
+# Iteration helpers
+from collections import Counter
+counts = Counter(words)            # frequency map in one line
+for i, x in enumerate(xs):         # index + value, no manual counter
+    ...
+for a, b in zip(left, right):      # pairwise iteration
+    ...
+
+# Files + context managers
+from pathlib import Path
+with open(Path('data') / 'in.csv') as f:
+    body = f.read()                # auto-closes even on exception
+
+# Typed records
+from dataclasses import dataclass
+
+@dataclass
+class User:
+    id: str
+    email: str
+    is_admin: bool = False
+
+# Errors — narrow + chained
+try:
+    parsed = json.loads(body)
+except json.JSONDecodeError as e:
+    raise ValueError("malformed payload") from e
+
+# Memoise pure functions
+from functools import lru_cache
+
+@lru_cache(maxsize=1024)
+def expensive(x: int) -> int:
+    return slow_computation(x)`,
+        'python'
+    ),
+
+    // Power BI / DAX -------------------------------------------------------
+    ...cheatTopic(
+        'powerbi',
+        'POWER BI',
+        'Power BI · DAX every analyst should know',
+        'Filter context, time intelligence, and the model rules that keep visuals fast. Treat the snippet below as your first-port-of-call when a measure misbehaves.',
+        `// Base measures
+Sales     := SUM(Fact[Amount])
+Sales LY  := CALCULATE([Sales], SAMEPERIODLASTYEAR(DimDate[Date]))
+Sales YoY := DIVIDE([Sales] - [Sales LY], [Sales LY])
+
+// Filter context manipulation
+Sales (All Products) := CALCULATE([Sales], REMOVEFILTERS(DimProduct))
+Sales (Slicer-Only)   := CALCULATE([Sales], ALLSELECTED(DimProduct))
+
+// Time intelligence
+Sales YTD       := TOTALYTD([Sales], DimDate[Date])
+Sales L30D      := CALCULATE([Sales], DATESINPERIOD(DimDate[Date], MAX(DimDate[Date]), -30, DAY))
+
+// Variables — readable AND faster (single evaluation)
+Sales Growth :=
+VAR cur = [Sales]
+VAR prev = [Sales LY]
+RETURN DIVIDE(cur - prev, prev)
+
+// Modelling rules
+//  - Star schema > snowflake for performance.
+//  - Hide foreign-key columns. Force users onto dimension attributes.
+//  - Bidirectional cross-filtering: use sparingly.
+//  - High-cardinality columns: split datetime into date + time.
+//  - Calculated columns vs measures: prefer measures.
+
+// Diagnose slow visuals
+//  - DAX Studio: Server Timings panel.
+//  - VertiPaq Analyzer: column cardinalities + sizes.
+//  - Performance Analyzer in the desktop app.`,
+        'plain'
+    ),
+
+    // Excel ---------------------------------------------------------------
+    ...cheatTopic(
+        'excel',
+        'EXCEL',
+        'Excel · the formulas that pay rent',
+        'Lookups, logic, text, and aggregation — plus the keyboard shortcuts that save real time. If you write formulas at work, the snippet below is muscle-memory material.',
+        `// Lookups
+=XLOOKUP(lookup, lookup_arr, return_arr, [if_not_found])
+=INDEX(arr, MATCH(val, col, 0))
+
+// Logic
+=IF(cond, then, else)
+=IFS(c1, v1, c2, v2, ..., TRUE, default)
+=AND(c1, c2)    =OR(c1, c2)    =NOT(c)
+
+// Text
+=TEXTJOIN(", ", TRUE, range)
+=LEFT(s, n)     =RIGHT(s, n)     =MID(s, start, n)
+=TEXT(value, "yyyy-mm-dd")
+
+// Aggregation (multi-condition)
+=SUMIFS(sum_range, c1, v1, c2, v2)
+=COUNTIFS(c1, v1, c2, v2)
+=AVERAGEIFS(avg_range, c1, v1, c2, v2)
+
+// SUMPRODUCT — pair-wise multiply + sum (cheaper than array formulas)
+=SUMPRODUCT(arr1, arr2)
+
+// Pivot tables — no formula needed
+//  - Drag rows / columns / values to summarise instantly.
+//  - Slicers + Timelines: filter pivots interactively.
+//  - GETPIVOTDATA: pull a pivot cell into a formula safely.
+
+// Keyboard shortcuts
+//  Ctrl + ;          insert today's date
+//  Ctrl + Shift + L  toggle filters
+//  F2                edit cell
+//  F4                toggle absolute reference`,
+        'plain'
+    ),
+
+    // Statistics ----------------------------------------------------------
+    ...cheatTopic(
+        'stats',
+        'STATISTICS',
+        'Statistics · the parts you actually use',
+        'Descriptives, distributions, and inference — written in Python so you can run any block right away. Skim the comments first; they cover the gotchas reviewers will surface.',
+        `import numpy as np
+from scipy import stats
+
+# Descriptives — when each one fails
+mean   = np.mean(x)        # sensitive to outliers
+median = np.median(x)      # robust
+sd     = np.std(x, ddof=1) # sample std-dev (Bessel's correction)
+q1, q3 = np.percentile(x, [25, 75])
+iqr    = q3 - q1
+outlier_bounds = (q1 - 1.5 * iqr, q3 + 1.5 * iqr)
+
+# Distributions you'll see
+# - Normal: symmetric. ~68/95/99.7 within 1/2/3 SDs of the mean.
+# - Binomial: k successes in n trials.
+# - Poisson: rare events per fixed window.
+# - Long tails (income, latency, file sizes): log-normal / Pareto.
+#   Don't summarise long-tailed data with the mean.
+
+# Hypothesis testing — two-sample t-test
+control, treatment = ...  # arrays
+t_stat, p_value = stats.ttest_ind(control, treatment, equal_var=False)
+# p-value: probability of observing data at least this extreme IF
+# the null is true. NOT the probability the null is true.
+
+# Confidence interval for a mean
+ci = stats.t.interval(
+    confidence=0.95,
+    df=len(x) - 1,
+    loc=np.mean(x),
+    scale=stats.sem(x),
+)
+
+# A/B testing rules
+# 1. Pre-register your metric, effect size, and sample size.
+# 2. Don't peek — fixed-horizon or sequential analysis only.
+# 3. Multiple comparisons → Bonferroni or Benjamini-Hochberg.
+
+# Regression
+import statsmodels.api as sm
+X = sm.add_constant(features)
+model = sm.OLS(y, X).fit()
+print(model.summary())
+# Always split train / val / test (or use CV).`,
+        'python'
+    ),
+
+    // Tableau -------------------------------------------------------------
+    ...cheatTopic(
+        'tableau',
+        'TABLEAU',
+        'Tableau · the dashboard playbook',
+        'LOD calcs, table calcs, and the layout rules that make a dashboard usable on a phone. Print this one out next to your monitor — it answers half the questions you Slack a senior about.',
+        `// Data prep
+//  - Extract (.hyper) for performance. Live for freshness.
+//  - Pivot wide → long for time-series visualisation.
+//  - Joins: same-grain tables. Blends: cross-source.
+
+// LOD calculations — fix the grain explicitly
+{ FIXED [Customer] : SUM([Sales]) }     // lifetime sales per customer
+{ INCLUDE [Region] : AVG([Sales]) }     // viz grain + region
+{ EXCLUDE [Date]   : SUM([Sales]) }     // ignore date in current viz
+
+// Table calcs — operate on the rendered table
+WINDOW_SUM(SUM([Sales]))                 // running total along the partition
+RANK(SUM([Sales]))                       // dense rank within partition
+RUNNING_SUM(SUM([Sales]))
+
+// Calc rule of thumb: if a regular calc works, use it.
+//                     LOD only when the grain demands it.
+
+// Dashboard layout
+//  - Tiled > Floating for responsive layouts.
+//  - Vertical / Horizontal containers for predictable layout.
+//  - Filter actions > global filters when one viz drives others.
+//  - Set device-specific layouts (Default + Tablet + Phone).
+
+// Performance habits
+//  - Hide unused fields. Tableau still computes them.
+//  - Mark count > 5,000 → sluggish. Pre-aggregate.
+//  - Parameters + calculated fields → swap measures cheaply.
+//  - Keep the shape of your extract close to the questions you ask.`,
+        'plain'
+    ),
+
     {
-        id: sid('cheat', 2),
-        type: 'prose',
-        variant: 'narrow',
-        data: {
-            eyebrow: 'CHEATSHEET',
-            title: 'SQL · Top 20 patterns',
-            body: `Filtering & aggregation\n• SELECT col, COUNT(*) FROM t WHERE cond GROUP BY col HAVING COUNT(*) > 1;\n• COALESCE(col, fallback) — first non-null. Useful for nullable joins.\n• CASE WHEN cond THEN x ELSE y END — inline conditional.\n\nJoins\n• INNER JOIN — rows that match in both tables.\n• LEFT JOIN — all rows from left, NULL on the right when no match.\n• Anti-join: LEFT JOIN ... WHERE right.id IS NULL — rows missing on the right.\n\nWindow functions\n• ROW_NUMBER() OVER (PARTITION BY x ORDER BY y) — rank per partition.\n• LAG(col, 1) OVER (ORDER BY date) — previous row's value.\n• SUM(col) OVER (PARTITION BY x ORDER BY date ROWS UNBOUNDED PRECEDING) — running total.\n\nCTEs\n• WITH cte AS (SELECT ...) SELECT ... FROM cte; — readable building blocks.\n• Recursive CTE: WITH RECURSIVE t AS (base UNION ALL recursive) — for trees / hierarchies.\n\nPerformance\n• Always EXPLAIN before optimising — measure, don't guess.\n• Index columns used in WHERE / JOIN / ORDER BY — not in SELECT.\n• Avoid SELECT * in production queries.\n• LIMIT before ORDER BY rarely helps — the engine still sorts the full set first.`
-        }
-    },
-    {
-        id: sid('cheat', 3),
-        type: 'prose',
-        variant: 'narrow',
-        data: {
-            eyebrow: 'CHEATSHEET',
-            title: 'Python · idioms that survive code review',
-            body: `Comprehensions over loops\n• [x*2 for x in xs if x > 0] — list comprehension.\n• {k: v for k, v in items} — dict comprehension.\n• Generator: (x*2 for x in xs) — lazy, memory-efficient.\n\nFunctions\n• Default args are evaluated ONCE at def-time. Never use mutable defaults — use None and create inside.\n• *args / **kwargs — variadic positional / keyword args.\n• functools.lru_cache — memoise pure functions.\n\nIteration\n• enumerate(xs) — index + value, no manual counter.\n• zip(a, b) — pairwise iteration; itertools.zip_longest pads.\n• collections.Counter(xs) — frequency map in one line.\n\nFiles + context managers\n• with open(path) as f: ... — auto-close on exit, even on exception.\n• Use pathlib.Path over os.path — cleaner, cross-platform.\n\nData\n• dataclasses.dataclass — typed records without boilerplate.\n• typing.NamedTuple — immutable typed records.\n• Pydantic v2 BaseModel — validation at boundaries.\n\nErrors\n• Catch the narrowest exception you can. Bare except: hides bugs.\n• raise from to preserve the cause chain.`
-        }
-    },
-    {
-        id: sid('cheat', 4),
-        type: 'prose',
-        variant: 'narrow',
-        data: {
-            eyebrow: 'CHEATSHEET',
-            title: 'Power BI · DAX every analyst should know',
-            body: `Filter context\n• CALCULATE(expr, filter1, filter2) — change the filter context for an expression.\n• REMOVEFILTERS(table) — drop existing filters.\n• ALL(table) — return all rows ignoring filters.\n• ALLSELECTED() — keep slicer filters but drop visual filters.\n\nTime intelligence\n• TOTALYTD(expr, dates) — year-to-date.\n• SAMEPERIODLASTYEAR(dates) — YoY comparisons.\n• DATESINPERIOD(dates, anchor, n, interval) — rolling windows.\n\nMeasures\n• [Sales] := SUM(Fact[Amount]) — base measure.\n• [Sales YoY %] := DIVIDE([Sales] - [Sales LY], [Sales LY]) — safe division.\n• Variables (VAR / RETURN) — readable AND faster (single evaluation).\n\nModeling\n• Star schema beats snowflake for performance — denormalise dimensions when in doubt.\n• Hide foreign-key columns from report view — force users onto dimension attributes.\n• Use bidirectional cross-filtering sparingly — it complicates the model.\n\nPerformance\n• Reduce cardinality of high-cardinality columns (split datetime into date + time).\n• Avoid calculated columns when a measure can do it.\n• DAX Studio + VertiPaq Analyzer for diagnosing slow visuals.`
-        }
-    },
-    {
-        id: sid('cheat', 5),
-        type: 'prose',
-        variant: 'narrow',
-        data: {
-            eyebrow: 'CHEATSHEET',
-            title: 'Excel · the formulas that pay rent',
-            body: `Lookups\n• XLOOKUP(lookup, lookup_arr, return_arr, [if_not_found]) — modern replacement for VLOOKUP.\n• INDEX(arr, MATCH(val, col, 0)) — classic two-way lookup.\n• VLOOKUP — left-to-right only. Use XLOOKUP if available.\n\nLogic\n• IF(cond, then, else) — basic conditional.\n• IFS(c1, v1, c2, v2, ..., default) — replaces nested IFs.\n• AND() / OR() / NOT() — combine conditions.\n\nText\n• TEXTJOIN(sep, ignore_empty, range) — concatenate with separator.\n• LEFT / RIGHT / MID — substring extraction.\n• TEXT(value, format) — format numbers / dates as text.\n\nAggregation\n• SUMIFS(sum_range, c1, v1, c2, v2, ...) — multi-condition sum.\n• COUNTIFS / AVERAGEIFS — same pattern, different aggregation.\n• SUMPRODUCT(arr1, arr2) — multiply pair-wise then sum (math + array tricks).\n\nPivot tables\n• Drag rows / columns / values — no formula needed.\n• Slicers + Timelines — filter pivots interactively.\n• GETPIVOTDATA — pull a pivot cell into a formula safely.\n\nKeyboard\n• Ctrl + ; — today's date.\n• Ctrl + Shift + L — toggle filters.\n• F2 — edit cell. F4 — toggle absolute reference.`
-        }
-    },
-    {
-        id: sid('cheat', 6),
-        type: 'prose',
-        variant: 'narrow',
-        data: {
-            eyebrow: 'CHEATSHEET',
-            title: 'Statistics · the parts you actually use',
-            body: `Descriptives\n• Mean — sensitive to outliers. Median — robust. Mode — for categoricals.\n• Variance / Std-dev — spread. SD has the same units as the data.\n• IQR (Q3 - Q1) — robust spread. Outliers: < Q1 - 1.5·IQR or > Q3 + 1.5·IQR.\n\nDistributions\n• Normal — symmetric, CLT magnet. ~68/95/99.7 within 1/2/3 SDs.\n• Binomial — k successes in n trials.\n• Poisson — rare events per fixed window.\n• Long tails — log-normal, Pareto. Don't summarise with the mean.\n\nInference\n• p-value — probability of observing data at least this extreme IF the null is true. Not the probability the null is true.\n• Confidence interval — range that captures the parameter X% of the time across repeated samples.\n• Type I error (false positive) vs Type II error (false negative). α / β trade-off.\n\nA/B testing\n• Pre-register your metric, your effect size, and your sample size.\n• Don't peek — sequential analysis or pre-set look points only.\n• Multiple comparisons → Bonferroni or BH correction.\n\nRegression\n• Linear: y = β₀ + Σ βᵢ xᵢ + ε. Check residual plots, not just R².\n• Logistic: model log-odds. Coefficients are log-odds ratios.\n• Always split train/validation/test or use CV.`
-        }
-    },
-    {
-        id: sid('cheat', 7),
-        type: 'prose',
-        variant: 'narrow',
-        data: {
-            eyebrow: 'CHEATSHEET',
-            title: 'Tableau · the dashboard playbook',
-            body: `Data prep\n• Extract (.hyper) for performance. Live for fresh data.\n• Pivot wide tables → long format for time series.\n• Use joins for same-grain tables, blends across data sources.\n\nMarks\n• Drop dimensions to Color / Size / Label — encoding by attribute.\n• Dual axis (right-click axis) — overlay measures with shared / synced axes.\n• Reference lines (Analytics pane) — context without writing formulas.\n\nCalculations\n• LOD: { FIXED [dim]: SUM(x) } — fixed grain. INCLUDE / EXCLUDE adjust to viz grain.\n• Table calc: WINDOW_SUM, RUNNING_SUM, RANK — operate on the rendered table.\n• If you can do it with a regular calc, do it. LOD only when the grain demands it.\n\nDashboards\n• Tiled > Floating for responsiveness.\n• Use containers (vertical / horizontal) for predictable layout.\n• Filter actions over global filters when one viz drives others — clearer intent.\n\nPerformance\n• Hide unused fields — Tableau still computes them.\n• Reduce mark count. > 5,000 marks gets sluggish.\n• Use parameters with calculated fields for switching measures cheaply.`
-        }
-    },
-    {
-        id: sid('cheat', 8),
+        id: sid('cheat-cta', 0),
         type: 'cta',
         variant: 'card',
         data: {
             title: 'Want the deeper version?',
-            subtitle: 'These quick references pair with our full tutorials. Go from "I remember the syntax" to "I can ship this in production."',
+            subtitle:
+                'These quick references pair with our full tutorials. Go from "I remember the syntax" to "I can ship this in production."',
             buttonLabel: 'Browse tutorials',
             buttonLink: 'tutorials'
         }

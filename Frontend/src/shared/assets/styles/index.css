@@ -285,6 +285,58 @@ body {
     }
 }
 
+/* ---------------------------------------------------------------------------
+ * Back-to-top arrow bounce — used by the `bounce` variant. Loops 1.4s with
+ * a small ease-out lift so the eye registers it without it feeling busy.
+ * --------------------------------------------------------------------------- */
+@keyframes back-arrow-bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-3px);
+    }
+    60% {
+        transform: translateY(-1px);
+    }
+}
+
+.arrow-bounce {
+    animation: back-arrow-bounce 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arrow-bounce {
+        animation: none;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+ * WhatsApp `extended` variant — the "Chat with us" label collapses to width 0
+ * by default and animates open on hover/focus. Uses max-width because grid
+ * auto-rows can't transition cleanly across browsers.
+ * --------------------------------------------------------------------------- */
+.wa-extended-label {
+    max-width: 0;
+    opacity: 0;
+    transition:
+        max-width 0.3s ease,
+        opacity 0.2s ease;
+}
+
+.wa-floating:hover .wa-extended-label,
+.wa-floating:focus-visible .wa-extended-label {
+    max-width: 9rem;
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wa-extended-label {
+        transition: none;
+    }
+}
+
 /* Scrollbar — thin, subtle, theme-aware. */
 ::-webkit-scrollbar {
     width: 10px;

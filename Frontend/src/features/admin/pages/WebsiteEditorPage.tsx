@@ -113,6 +113,14 @@ const SECTION_ICON: Record<LandingSection['type'], typeof Sparkles> = {
     features: LayoutGrid,
     cta: Megaphone,
     callout: InfoIcon,
+    prose: InfoIcon,
+    bento: LayoutGrid,
+    pricing: BarChart3,
+    marquee: Megaphone,
+    process: ClipboardList,
+    faq: InfoIcon,
+    code: Code,
+    blogCards: MessageSquare,
     image: ImageIcon,
     embed: Code,
     collectionList: Database,
@@ -133,6 +141,8 @@ const SECTION_LABEL: Record<LandingSection['type'], string> = {
     marquee: 'Marquee',
     process: 'Process',
     faq: 'FAQ',
+    code: 'Code snippet',
+    blogCards: 'Blog cards',
     image: 'Image',
     embed: 'Embed',
     collectionList: 'Collection',
@@ -1306,6 +1316,10 @@ const getSectionPreviewText = (s: LandingSection): string => {
             return s.data.title || `${s.data.steps?.length ?? 0} steps`
         case 'faq':
             return s.data.title || `${s.data.items?.length ?? 0} FAQs`
+        case 'code':
+            return s.data.title || `${s.data.language ?? 'plain'} snippet`
+        case 'blogCards':
+            return s.data.title || `${s.data.items?.length ?? 0} blog cards`
         case 'testimonials':
             return s.data.title || `${s.data.items?.length ?? 0} testimonials`
         case 'stats':
@@ -1432,6 +1446,18 @@ const SectionEditor = ({
                             onChange={onUpdateData}
                         />
                     )}
+                    {section.type === 'code' && (
+                        <CodeFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'blogCards' && (
+                        <BlogCardsFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
                     {section.type === 'image' && (
                         <ImageFields
                             data={section.data}
@@ -1499,6 +1525,8 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
     marquee: ['chips', 'banner'],
     process: ['horizontal', 'vertical'],
     faq: ['accordion', 'two-column'],
+    code: ['single', 'tabs'],
+    blogCards: ['featured', 'grid'],
     image: ['contained', 'full'],
     embed: ['iframe'],
     collectionList: ['cards', 'list', 'accordion'],
@@ -2353,6 +2381,211 @@ const FaqFields = ({ data, onChange }: { data: Extract<LandingSection, { type: '
     )
 }
 
+const CodeFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'code' }>['data']; onChange: (p: object) => void }) => {
+    const tabs = data.tabs ?? []
+    const updateTab = (idx: number, patch: Partial<NonNullable<typeof tabs>[number]>) =>
+        onChange({ tabs: tabs.map((t, i) => (i === idx ? { ...t, ...patch } : t)) })
+    const addTab = () => onChange({ tabs: [...tabs, { label: 'New', code: '', language: data.language ?? 'plain' }] })
+    const removeTab = (idx: number) => onChange({ tabs: tabs.filter((_, i) => i !== idx) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Title (filename / caption)"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+                placeholder="users.sql"
+            />
+            <Select
+                label="Language"
+                value={data.language ?? 'plain'}
+                onChange={(e) => onChange({ language: e.target.value as NonNullable<typeof data.language> })}>
+                <option value="sql">SQL</option>
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+                <option value="typescript">TypeScript</option>
+                <option value="bash">Bash</option>
+                <option value="plain">Plain</option>
+            </Select>
+            <Textarea
+                label="Code"
+                rows={10}
+                value={data.code ?? ''}
+                onChange={(e) => onChange({ code: e.target.value })}
+                hint="Indentation and newlines are preserved exactly."
+            />
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={data.showLineNumbers !== false}
+                    onChange={(e) => onChange({ showLineNumbers: e.target.checked })}
+                    className="accent-[var(--color-brand-500)]"
+                />
+                Show line numbers
+            </label>
+            <div className="space-y-2 pt-2 border-t border-[var(--color-border)]">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-fg">Tabs (optional)</span>
+                        <p className="text-[11px] text-fg-muted">Switch the section variant to "tabs" to render these as a tabbed snippet.</p>
+                    </div>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addTab}>
+                        + Add tab
+                    </Button>
+                </div>
+                {tabs.map((t, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] uppercase tracking-wider text-fg-muted">Tab {i + 1}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeTab(i)}
+                                className="text-xs text-[var(--color-danger)] hover:underline">
+                                Remove
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                label="Label"
+                                value={t.label}
+                                onChange={(e) => updateTab(i, { label: e.target.value })}
+                                placeholder="JS"
+                            />
+                            <Select
+                                label="Language"
+                                value={t.language ?? 'plain'}
+                                onChange={(e) => updateTab(i, { language: e.target.value as NonNullable<typeof t.language> })}>
+                                <option value="sql">SQL</option>
+                                <option value="python">Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="typescript">TypeScript</option>
+                                <option value="bash">Bash</option>
+                                <option value="plain">Plain</option>
+                            </Select>
+                        </div>
+                        <Textarea
+                            label="Code"
+                            rows={6}
+                            value={t.code}
+                            onChange={(e) => updateTab(i, { code: e.target.value })}
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+const BlogCardsFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'blogCards' }>['data']; onChange: (p: object) => void }) => {
+    const items = data.items ?? []
+    const updateItem = (idx: number, patch: Partial<NonNullable<typeof items>[number]>) =>
+        onChange({ items: items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) })
+    const addItem = () => onChange({ items: [...items, { title: 'New post', description: '', accent: 'brand' }] })
+    const removeItem = (idx: number) => onChange({ items: items.filter((_, i) => i !== idx) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Eyebrow (optional)"
+                value={data.eyebrow ?? ''}
+                onChange={(e) => onChange({ eyebrow: e.target.value })}
+            />
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Input
+                label="Subtitle (optional)"
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2 pt-2 border-t border-[var(--color-border)]">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-fg">Cards</span>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addItem}>
+                        + Add card
+                    </Button>
+                </div>
+                {items.map((it, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] uppercase tracking-wider text-fg-muted">Card {i + 1}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeItem(i)}
+                                className="text-xs text-[var(--color-danger)] hover:underline">
+                                Remove
+                            </button>
+                        </div>
+                        <Input
+                            label="Title"
+                            value={it.title}
+                            onChange={(e) => updateItem(i, { title: e.target.value })}
+                        />
+                        <Textarea
+                            label="Description"
+                            rows={2}
+                            value={it.description ?? ''}
+                            onChange={(e) => updateItem(i, { description: e.target.value })}
+                        />
+                        <div className="grid grid-cols-3 gap-2">
+                            <Input
+                                label="Category"
+                                value={it.category ?? ''}
+                                onChange={(e) => updateItem(i, { category: e.target.value })}
+                            />
+                            <Input
+                                label="Date"
+                                value={it.date ?? ''}
+                                onChange={(e) => updateItem(i, { date: e.target.value })}
+                                placeholder="5 May 2025"
+                            />
+                            <Input
+                                label="Read time"
+                                value={it.readTime ?? ''}
+                                onChange={(e) => updateItem(i, { readTime: e.target.value })}
+                                placeholder="8 min"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                label="Link"
+                                value={it.href ?? ''}
+                                onChange={(e) => updateItem(i, { href: e.target.value })}
+                                placeholder="blog or https://"
+                            />
+                            <Select
+                                label="Accent"
+                                value={it.accent ?? 'brand'}
+                                onChange={(e) => updateItem(i, { accent: e.target.value as NonNullable<typeof it.accent> })}>
+                                <option value="brand">Brand</option>
+                                <option value="purple">Purple</option>
+                                <option value="teal">Teal</option>
+                                <option value="orange">Orange</option>
+                                <option value="pink">Pink</option>
+                            </Select>
+                        </div>
+                        <Input
+                            label="Image URL (optional)"
+                            value={it.imageUrl ?? ''}
+                            onChange={(e) => updateItem(i, { imageUrl: e.target.value })}
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 const ImageFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'image' }>['data']; onChange: (p: object) => void }) => {
     const [pickerOpen, setPickerOpen] = useState(false)
     return (
@@ -2744,6 +2977,8 @@ const FloatingActionsFields = ({ config, onChange }: { config: FloatingActionsCo
                         <option value="outline">Outline</option>
                         <option value="dark">Dark</option>
                         <option value="gradient">Brand gradient</option>
+                        <option value="bounce">Bouncing arrow</option>
+                        <option value="pill">Pill with "Top" label</option>
                     </Select>
                     <Select
                         label="Position"
@@ -2809,6 +3044,8 @@ const FloatingActionsFields = ({ config, onChange }: { config: FloatingActionsCo
                         <option value="classic">Classic green</option>
                         <option value="brand">Brand gradient</option>
                         <option value="minimal">Minimal outline</option>
+                        <option value="lift">Lift on hover</option>
+                        <option value="extended">Extended ("Chat with us")</option>
                     </Select>
                     <Select
                         label="Position"

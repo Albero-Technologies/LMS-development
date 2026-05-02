@@ -579,6 +579,50 @@ export type FaqSectionData = {
     items?: FaqItem[]
 }
 
+// Code snippet — used by cheat-sheet pages and any tutorial that wants a
+// real code block instead of a prose paragraph. Languages we tokenise:
+// sql · python · javascript · typescript · bash · plain. Supports either a
+// single block (`code`) or named tabs (`tabs`) for "JS / Python / SQL"
+// triple snippets. The renderer tokenises in-browser via a small regex
+// pass — no syntax-highlighter dependency.
+export type CodeLanguage = 'sql' | 'python' | 'javascript' | 'typescript' | 'bash' | 'plain'
+
+export type CodeTab = {
+    label: string
+    code: string
+    language?: CodeLanguage
+}
+
+export type CodeSectionData = {
+    title?: string
+    code?: string
+    language?: CodeLanguage
+    showLineNumbers?: boolean
+    tabs?: CodeTab[]
+}
+
+// Blog/article cards — used on home pages and resource hubs to surface a
+// list of posts in a card grid. Variant `featured` renders the first item
+// as a hero card with the rest stacked beside it; `grid` lays them all
+// equally in a 3-up grid.
+export type BlogCard = {
+    title: string
+    description?: string
+    category?: string
+    date?: string
+    readTime?: string
+    href?: string // optional link (relative or absolute)
+    imageUrl?: string
+    accent?: 'brand' | 'purple' | 'teal' | 'orange' | 'pink'
+}
+
+export type BlogCardsSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    items?: BlogCard[]
+}
+
 export type ImageSectionData = {
     src?: string
     alt?: string
@@ -743,6 +787,8 @@ export type LandingSection =
     | { id: string; type: 'marquee'; variant: 'chips' | 'banner'; data: MarqueeSectionData; style?: SectionStyle }
     | { id: string; type: 'process'; variant: 'horizontal' | 'vertical'; data: ProcessSectionData; style?: SectionStyle }
     | { id: string; type: 'faq'; variant: 'accordion' | 'two-column'; data: FaqSectionData; style?: SectionStyle }
+    | { id: string; type: 'code'; variant: 'single' | 'tabs'; data: CodeSectionData; style?: SectionStyle }
+    | { id: string; type: 'blogCards'; variant: 'featured' | 'grid'; data: BlogCardsSectionData; style?: SectionStyle }
     | { id: string; type: 'image'; variant: 'full' | 'contained'; data: ImageSectionData; style?: SectionStyle }
     | { id: string; type: 'embed'; variant: 'iframe'; data: EmbedSectionData; style?: SectionStyle }
     | {
@@ -919,7 +965,10 @@ export type FloatingPosition = 'bottom-right' | 'bottom-left'
 
 export type BackToTopConfig = {
     enabled?: boolean // default: true
-    variant?: 'solid' | 'outline' | 'dark' | 'gradient'
+    // solid / outline / dark / gradient — quiet circular variants.
+    // bounce — gradient circle with a continuously bouncing arrow.
+    // pill — wider pill with a "Top" label next to the arrow.
+    variant?: 'solid' | 'outline' | 'dark' | 'gradient' | 'bounce' | 'pill'
     position?: FloatingPosition // default: bottom-right
     showAfter?: number // px scrolled before button appears, default 400
     label?: string // accessible label, default "Back to top"
@@ -929,7 +978,10 @@ export type WhatsAppFloatConfig = {
     enabled?: boolean // default: based on whether `phone` is set
     phone?: string // E.164 (or national; leading + optional). Falls back to analytics.whatsappNumber
     message?: string // pre-filled chat message. Falls back to analytics.whatsappMessage
-    variant?: 'classic' | 'brand' | 'minimal' // green / brand-tinted / outline
+    // classic / brand / minimal — circular bubbles.
+    // lift — classic green that translates up + grows shadow on hover.
+    // extended — wider pill that reveals a "Chat with us" label on hover.
+    variant?: 'classic' | 'brand' | 'minimal' | 'lift' | 'extended'
     position?: FloatingPosition // default: bottom-right
     pulse?: boolean // subtle pulse animation, default true
     label?: string // accessible label, default "Chat on WhatsApp"
@@ -1242,6 +1294,68 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
                     { title: 'Wed · Hands-on lab', body: 'Code along, debug live, ship a small piece.' },
                     { title: 'Fri · Office hours', body: '1:1 reviews and unblocking.' },
                     { title: 'Weekend · Project work', body: 'Build the piece for your portfolio.' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Code · Single block',
+        description: 'Syntax-highlighted code snippet with copy button and line numbers.',
+        section: {
+            type: 'code',
+            variant: 'single',
+            data: {
+                title: 'example.sql',
+                language: 'sql',
+                code: '-- Top customers by revenue (last 90 days)\nSELECT\n  c.id,\n  c.name,\n  SUM(o.total_paise) / 100 AS revenue_inr\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE o.paid_at >= NOW() - INTERVAL \'90 days\'\nGROUP BY c.id, c.name\nORDER BY revenue_inr DESC\nLIMIT 10;',
+                showLineNumbers: true
+            }
+        }
+    },
+    {
+        label: 'Code · Tabs',
+        description: 'Tabbed snippet — switch between JS, Python, SQL flavours of the same example.',
+        section: {
+            type: 'code',
+            variant: 'tabs',
+            data: {
+                showLineNumbers: true,
+                tabs: [
+                    { label: 'JS', language: 'javascript', code: 'const sum = (a, b) => a + b\nconsole.log(sum(2, 3))' },
+                    { label: 'Python', language: 'python', code: 'def sum(a, b):\n    return a + b\n\nprint(sum(2, 3))' },
+                    { label: 'SQL', language: 'sql', code: 'SELECT 2 + 3 AS sum;' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Blog cards · Featured',
+        description: 'Hero-card layout — the first post is large, the rest stack beside it.',
+        section: {
+            type: 'blogCards',
+            variant: 'featured',
+            data: {
+                eyebrow: 'LATEST',
+                title: 'From the blog',
+                items: [
+                    { title: 'A field guide to data warehousing', description: 'Star vs snowflake, when to denormalise, and how to choose.', category: 'Data', date: 'May 5, 2025', readTime: '11 min', accent: 'brand', href: 'blog' },
+                    { title: 'Apache Kafka in 9 minutes', description: 'Topics, partitions, producers, consumers — the model behind real-time pipelines.', category: 'Engineering', date: 'May 1, 2025', readTime: '9 min', accent: 'purple', href: 'blog' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Blog cards · Grid',
+        description: 'Equal-weight 3-up grid of article cards.',
+        section: {
+            type: 'blogCards',
+            variant: 'grid',
+            data: {
+                title: 'All articles',
+                items: [
+                    { title: 'SQL for data analysis', description: 'SELECT, joins, window functions.', category: 'Data', date: 'Apr 14', readTime: '9 min', accent: 'brand', href: 'blog' },
+                    { title: 'Computer vision in 2025', description: 'Manufacturing, healthcare, autonomous vehicles.', category: 'AI', date: 'Apr 2', readTime: '8 min', accent: 'purple', href: 'blog' },
+                    { title: 'Mutual funds in India', description: 'Types, SIP vs lump sum, taxes.', category: 'Finance', date: 'Apr 20', readTime: '10 min', accent: 'teal', href: 'blog' }
                 ]
             }
         }

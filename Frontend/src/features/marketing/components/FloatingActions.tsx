@@ -52,12 +52,17 @@ export const FloatingActions = ({ config, analyticsWhatsappNumber, analyticsWhat
 
 // ---- BackToTop -------------------------------------------------------------
 
+// Each variant is a pair: shape (round vs pill) + visual treatment.
+// `bounce` and `pill` are larger / wider so they get their own size token.
 const BACK_VARIANT_CLS: Record<NonNullable<BackToTopConfig['variant']>, string> = {
     solid: 'bg-[var(--color-brand-500)] text-white shadow-[0_8px_24px_-6px_rgba(0,98,255,0.45)] hover:bg-[var(--color-brand-600)]',
     outline: 'bg-surface text-[var(--color-brand-600)] border border-[var(--color-brand-500)]/40 hover:bg-[var(--color-brand-50)]',
     dark: 'bg-[#0c1626] text-white shadow-lg hover:bg-[#1a2540]',
     gradient:
-        'text-white shadow-[0_8px_24px_-6px_rgba(0,98,255,0.55)] hover:opacity-90 [background:linear-gradient(135deg,var(--color-brand-500),var(--color-brand-700))]'
+        'text-white shadow-[0_8px_24px_-6px_rgba(0,98,255,0.55)] hover:opacity-90 [background:linear-gradient(135deg,var(--color-brand-500),var(--color-brand-700))]',
+    bounce:
+        'text-white shadow-[0_8px_24px_-6px_rgba(0,98,255,0.55)] hover:opacity-90 [background:linear-gradient(135deg,var(--color-brand-500),var(--color-brand-700))]',
+    pill: 'text-white shadow-[0_8px_24px_-6px_rgba(0,98,255,0.55)] hover:opacity-90 [background:linear-gradient(135deg,var(--color-brand-500),var(--color-brand-700))]'
 }
 
 const BackToTopButton = ({ config }: { config: BackToTopConfig }) => {
@@ -65,6 +70,8 @@ const BackToTopButton = ({ config }: { config: BackToTopConfig }) => {
     const position = config.position ?? 'bottom-right'
     const threshold = config.showAfter ?? 400
     const label = config.label ?? 'Back to top'
+    const isPill = variant === 'pill'
+    const isBouncy = variant === 'bounce'
 
     const [visible, setVisible] = useState(false)
     useEffect(() => {
@@ -96,8 +103,9 @@ const BackToTopButton = ({ config }: { config: BackToTopConfig }) => {
             onClick={click}
             aria-label={label}
             className={cn(
-                'fixed z-50 inline-flex items-center justify-center h-12 w-12 rounded-full transition-all duration-300',
+                'fixed z-50 inline-flex items-center justify-center transition-all duration-300',
                 BACK_VARIANT_CLS[variant],
+                isPill ? 'h-12 px-5 gap-2 rounded-full text-sm font-semibold' : 'h-12 w-12 rounded-full',
                 position === 'bottom-right' ? 'right-5' : 'left-5',
                 // Sits above WhatsApp by default — bottom-20 leaves ~5rem
                 // of room for the WhatsApp bubble underneath when both
@@ -105,7 +113,11 @@ const BackToTopButton = ({ config }: { config: BackToTopConfig }) => {
                 'bottom-20',
                 visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'
             )}>
-            <ArrowUp size={20} />
+            <ArrowUp
+                size={isPill ? 16 : 20}
+                className={isBouncy ? 'arrow-bounce' : ''}
+            />
+            {isPill && <span>Top</span>}
         </button>
     )
 }
@@ -115,7 +127,15 @@ const BackToTopButton = ({ config }: { config: BackToTopConfig }) => {
 const WHATSAPP_VARIANT_CLS: Record<NonNullable<WhatsAppFloatConfig['variant']>, string> = {
     classic: 'text-white hover:scale-110 [background:#25D366]',
     brand: 'text-white shadow-lg hover:opacity-95 [background:linear-gradient(135deg,#25D366,#128C7E)]',
-    minimal: 'bg-surface text-[#128C7E] border border-[#25D366]/50 hover:bg-[#25D366]/10'
+    minimal: 'bg-surface text-[#128C7E] border border-[#25D366]/50 hover:bg-[#25D366]/10',
+    // Lift — same green as classic, but on hover the bubble translates up
+    // and the shadow grows. Adds a tactile "press me" affordance without
+    // changing the shape.
+    lift: 'text-white [background:#25D366] hover:-translate-y-1 hover:shadow-[0_18px_40px_-10px_rgba(37,211,102,0.55)]',
+    // Extended — wider pill that reveals a label on hover. The label
+    // collapses to width 0 by default and animates open via grid-template
+    // tricks (see CSS) so the keyboard focus state expands it too.
+    extended: 'text-white [background:linear-gradient(135deg,#25D366,#128C7E)] shadow-lg hover:shadow-xl'
 }
 
 const WhatsAppButton = ({
@@ -139,6 +159,8 @@ const WhatsAppButton = ({
     const digits = phone.replace(/[^0-9]/g, '')
     const href = `https://wa.me/${digits}${message ? `?text=${encodeURIComponent(message)}` : ''}`
 
+    const isExtended = variant === 'extended'
+
     return (
         <a
             href={href}
@@ -146,8 +168,9 @@ const WhatsAppButton = ({
             rel="noopener noreferrer"
             aria-label={label}
             className={cn(
-                'fixed z-50 inline-flex items-center justify-center h-14 w-14 rounded-full transition-transform shadow-lg',
+                'wa-floating fixed z-50 inline-flex items-center justify-center transition-all duration-300 shadow-lg',
                 WHATSAPP_VARIANT_CLS[variant],
+                isExtended ? 'h-14 rounded-full px-4 gap-3' : 'h-14 w-14 rounded-full',
                 position === 'bottom-right' ? 'right-5' : 'left-5',
                 // If the back-to-top is on the same corner, sit at the
                 // bottom and let it stack above. Otherwise, anchor at 5.
@@ -157,7 +180,13 @@ const WhatsAppButton = ({
             <MessageCircle
                 size={26}
                 fill="currentColor"
+                className="shrink-0"
             />
+            {isExtended && (
+                <span className="wa-extended-label overflow-hidden whitespace-nowrap font-semibold text-sm">
+                    Chat with us
+                </span>
+            )}
         </a>
     )
 }

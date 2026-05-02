@@ -10,6 +10,8 @@ import type { LandingContent, LandingSection as Section, SectionStyle, Typograph
 import { resolveSectionStyle } from '@features/admin/services/tenant.service'
 import { MotionStagger, MotionItem, ParallaxLayer, RevealText } from './motion'
 import { DotGrid, BrandOrb, MeshBg, NoiseLayer } from './decoration'
+import { CodeBlock } from './CodeBlock'
+import { BlogCardsBlock } from './BlogCardsBlock'
 import { getPublicCollection } from '@features/admin/services/cms.service'
 import { TenantBrandingCtx } from '@shared/contexts/TenantBrandingContext'
 import { api } from '@shared/libs/api'
@@ -309,6 +311,15 @@ export const LandingSectionRenderer = ({ section, slugBase, tenantName, styleCla
                 return <ProcessBlock section={section} />
             case 'faq':
                 return <FaqBlock section={section} />
+            case 'code':
+                return <CodeBlock section={section} />
+            case 'blogCards':
+                return (
+                    <BlogCardsBlock
+                        section={section}
+                        slugBase={slugBase}
+                    />
+                )
             case 'image':
                 return <ImageBlock section={section} />
             case 'embed':

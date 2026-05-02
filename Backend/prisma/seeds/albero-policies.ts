@@ -6,11 +6,15 @@
 // Kept in its own file so albero-academy.ts stays focused on layout/branding;
 // edits to legal text don't churn the rest of the seed.
 
-interface ProseSection {
+// PolicySection is intentionally loose — the intro is a `hero` (gradient,
+// premium feel) while the numbered body sections are `prose` (tight reading
+// column). A single union type covers both.
+interface PolicySection {
     id: string
-    type: 'prose'
-    variant: 'narrow'
-    data: { eyebrow?: string; title?: string; body?: string }
+    type: 'hero' | 'prose'
+    variant: string
+    style?: { styleClassId?: string; animation?: string }
+    data: Record<string, unknown>
 }
 
 interface PolicyPage {
@@ -19,22 +23,36 @@ interface PolicyPage {
     name: string
     title: string
     seoDescription: string
-    sections: ProseSection[]
+    sections: PolicySection[]
 }
 
-const sec = (key: string, eyebrow: string | undefined, title: string, body: string): ProseSection => ({
+// Numbered body section — soft-tint background on every other section so the
+// long policy doesn't read as one flat wall of text.
+const sec = (key: string, eyebrow: string | undefined, title: string, body: string, alt = false): PolicySection => ({
     id: `sec-${key}`,
     type: 'prose',
     variant: 'narrow',
+    style: alt ? { styleClassId: 'sc-tint' } : undefined,
     data: { eyebrow, title, body }
 })
 
-const intro = (key: string, hero: string, dates: string, body: string): ProseSection =>
-    sec(key, 'POLICY', hero, `${dates}\n\n${body}`)
+// Intro section — promoted to a centered gradient hero so policy pages open
+// with the same visual weight as the rest of the marketing surface.
+const intro = (key: string, hero: string, dates: string, body: string): PolicySection => ({
+    id: `sec-${key}`,
+    type: 'hero',
+    variant: 'centered',
+    style: { animation: 'fadeUp' },
+    data: {
+        eyebrow: `POLICY · ${dates}`,
+        title: hero,
+        subtitle: body
+    }
+})
 
 // --- Terms of Use ----------------------------------------------------------
 
-const termsSections: ProseSection[] = [
+const termsSections: PolicySection[] = [
     intro(
         'terms-intro',
         'Terms of Use',
@@ -123,7 +141,7 @@ const termsSections: ProseSection[] = [
 
 // --- Privacy Policy --------------------------------------------------------
 
-const privacySections: ProseSection[] = [
+const privacySections: PolicySection[] = [
     intro(
         'privacy-intro',
         'Privacy Policy',
@@ -206,7 +224,7 @@ const privacySections: ProseSection[] = [
 
 // --- Refund & Cancellation Policy -----------------------------------------
 
-const refundSections: ProseSection[] = [
+const refundSections: PolicySection[] = [
     intro(
         'refund-intro',
         'Refund & Cancellation Policy',
@@ -289,7 +307,7 @@ const refundSections: ProseSection[] = [
 
 // --- Escalation & Grievance Resolution Policy ------------------------------
 
-const escalationSections: ProseSection[] = [
+const escalationSections: PolicySection[] = [
     intro(
         'escalation-intro',
         'Escalation & Grievance Resolution Policy',
@@ -366,7 +384,7 @@ const escalationSections: ProseSection[] = [
 
 // --- Examination & Certification Policy ------------------------------------
 
-const examSections: ProseSection[] = [
+const examSections: PolicySection[] = [
     intro(
         'exam-intro',
         'Examination & Certification Policy',
