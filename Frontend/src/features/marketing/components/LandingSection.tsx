@@ -301,6 +301,12 @@ export const LandingSectionRenderer = ({ section, slugBase, tenantName, styleCla
                         slugBase={slugBase}
                     />
                 )
+            case 'marquee':
+                return <MarqueeBlock section={section} />
+            case 'process':
+                return <ProcessBlock section={section} />
+            case 'faq':
+                return <FaqBlock section={section} />
             case 'image':
                 return <ImageBlock section={section} />
             case 'embed':
@@ -1130,6 +1136,176 @@ const PricingBlock = ({ section, slugBase }: { section: Extract<Section, { type:
                     })}
                 </div>
             )}
+        </section>
+    )
+}
+
+// ---- Marquee block ----------------------------------------------------------
+//
+// Infinite-scrolling row of chips. We render the items twice in the same
+// track so the loop is seamless; the keyframe in index.css translates
+// -50% over `speed`-driven duration. Mask gradients on the edges fade the
+// content in/out instead of cutting off mid-chip.
+
+const MarqueeBlock = ({ section }: { section: Extract<Section, { type: 'marquee' }> }) => {
+    const { eyebrow, title, items = [], speed = 'normal' } = section.data
+    if (items.length === 0) return null
+    const isBanner = section.variant === 'banner'
+
+    return (
+        <section className="py-16">
+            {(eyebrow || title) && (
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-8 text-center">
+                    {eyebrow && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-brand-500)]/30 bg-[var(--color-brand-50)] px-3 py-1 text-xs font-medium text-[var(--color-brand-700)]">
+                            {eyebrow}
+                        </span>
+                    )}
+                    {title && <h2 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight">{title}</h2>}
+                </div>
+            )}
+            <div
+                className="relative overflow-hidden"
+                style={{
+                    maskImage: 'linear-gradient(90deg, transparent, black 12%, black 88%, transparent)',
+                    WebkitMaskImage: 'linear-gradient(90deg, transparent, black 12%, black 88%, transparent)'
+                }}>
+                <div
+                    className="marquee-track flex w-max gap-4"
+                    data-speed={speed}>
+                    {[...items, ...items].map((it, i) => (
+                        <span
+                            key={`${it}-${i}`}
+                            className={
+                                isBanner
+                                    ? 'whitespace-nowrap rounded-full bg-gradient-to-r from-[var(--color-brand-500)] to-[var(--color-brand-700)] px-6 py-2 text-sm font-semibold text-white shadow'
+                                    : 'whitespace-nowrap rounded-full border border-[var(--color-border)] bg-surface px-5 py-2 text-sm font-medium text-fg-soft hover:text-fg hover:border-[var(--color-brand-500)]/40 transition-colors'
+                            }>
+                            {it}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        </section>
+    )
+}
+
+// ---- Process block ----------------------------------------------------------
+//
+// Numbered steps with connecting line — desktop renders as a 4-column grid
+// with a horizontal connector under the number badges; mobile collapses to a
+// vertical list with a left-side connector. Each step has an outsized number
+// glyph that doubles as the icon.
+
+const ProcessBlock = ({ section }: { section: Extract<Section, { type: 'process' }> }) => {
+    const { eyebrow, title, subtitle, steps = [] } = section.data
+    if (steps.length === 0) return null
+    const isHorizontal = section.variant === 'horizontal'
+
+    return (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+            {(eyebrow || title || subtitle) && (
+                <div className="mb-12 text-center max-w-3xl mx-auto">
+                    {eyebrow && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-brand-500)]/30 bg-[var(--color-brand-50)] px-3 py-1 text-xs font-medium text-[var(--color-brand-700)]">
+                            {eyebrow}
+                        </span>
+                    )}
+                    {title && <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed">{subtitle}</p>}
+                </div>
+            )}
+            {isHorizontal ? (
+                <div className="relative">
+                    {/* Horizontal connector — sits behind the number badges. */}
+                    <div
+                        aria-hidden
+                        className="hidden md:block absolute top-7 left-[8%] right-[8%] h-px bg-gradient-to-r from-transparent via-[var(--color-brand-500)]/30 to-transparent"
+                    />
+                    <div className="relative grid gap-8 md:grid-cols-4">
+                        {steps.slice(0, 4).map((s, i) => (
+                            <div
+                                key={i}
+                                className="text-center">
+                                <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-[var(--color-brand-500)] to-[var(--color-brand-700)] grid place-items-center text-white shadow-[0_8px_20px_-8px_rgba(0,98,255,0.5)] text-lg font-bold">
+                                    {String(i + 1).padStart(2, '0')}
+                                </div>
+                                {s.badge && <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">{s.badge}</div>}
+                                <div className="mt-2 text-base font-semibold text-fg leading-snug">{s.title}</div>
+                                {s.body && <p className="mt-2 text-sm text-fg-soft leading-relaxed">{s.body}</p>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <div className="relative max-w-2xl mx-auto">
+                    {/* Vertical connector. */}
+                    <div
+                        aria-hidden
+                        className="absolute left-7 top-7 bottom-7 w-px bg-gradient-to-b from-[var(--color-brand-500)]/40 to-[var(--color-brand-500)]/10"
+                    />
+                    <ol className="relative space-y-8">
+                        {steps.map((s, i) => (
+                            <li
+                                key={i}
+                                className="flex gap-5 items-start">
+                                <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-[var(--color-brand-500)] to-[var(--color-brand-700)] grid place-items-center text-white shadow-[0_8px_20px_-8px_rgba(0,98,255,0.5)] text-lg font-bold">
+                                    {String(i + 1).padStart(2, '0')}
+                                </div>
+                                <div className="pt-1">
+                                    {s.badge && <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">{s.badge}</div>}
+                                    <div className="mt-1 text-lg font-semibold text-fg leading-snug">{s.title}</div>
+                                    {s.body && <p className="mt-2 text-sm text-fg-soft leading-relaxed">{s.body}</p>}
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            )}
+        </section>
+    )
+}
+
+// ---- FAQ block --------------------------------------------------------------
+//
+// Native <details> accordion — keyboard accessible by default, no JS state
+// to coordinate, and `group-open:` keyframes the chevron without any extra
+// machinery. Variant `two-column` keeps the same data but lays it out in a
+// 2-column grid for shorter answers.
+
+const FaqBlock = ({ section }: { section: Extract<Section, { type: 'faq' }> }) => {
+    const { eyebrow, title, subtitle, items = [] } = section.data
+    if (items.length === 0) return null
+    const isTwoColumn = section.variant === 'two-column'
+
+    return (
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-20">
+            {(eyebrow || title || subtitle) && (
+                <div className="mb-10 text-center max-w-3xl mx-auto">
+                    {eyebrow && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-brand-500)]/30 bg-[var(--color-brand-50)] px-3 py-1 text-xs font-medium text-[var(--color-brand-700)]">
+                            {eyebrow}
+                        </span>
+                    )}
+                    {title && <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight">{title}</h2>}
+                    {subtitle && <p className="mt-3 text-fg-soft leading-relaxed">{subtitle}</p>}
+                </div>
+            )}
+            <div className={isTwoColumn ? 'grid md:grid-cols-2 gap-3' : 'space-y-3 max-w-3xl mx-auto'}>
+                {items.map((q, i) => (
+                    <details
+                        key={i}
+                        className="group rounded-xl border border-[var(--color-border)] bg-surface px-5 py-4 transition-colors open:border-[var(--color-brand-500)]/40 open:bg-[var(--color-brand-50)]/30">
+                        <summary className="flex cursor-pointer items-center justify-between gap-4 list-none text-base font-semibold text-fg [&::-webkit-details-marker]:hidden">
+                            <span>{q.question}</span>
+                            <span className="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-fg-soft transition-transform group-open:rotate-45 group-open:border-[var(--color-brand-500)]/40 group-open:text-[var(--color-brand-600)]">
+                                <span aria-hidden>+</span>
+                            </span>
+                        </summary>
+                        <p className="mt-3 text-sm text-fg-soft leading-relaxed whitespace-pre-line">{q.answer}</p>
+                    </details>
+                ))}
+            </div>
         </section>
     )
 }

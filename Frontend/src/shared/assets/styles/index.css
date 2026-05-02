@@ -153,6 +153,42 @@ body {
     color: var(--color-fg);
 }
 
+/* ---------------------------------------------------------------------------
+ * Marquee — infinite horizontal scroll. Used by the `marquee` landing
+ * section. The track contains two duplicate child rows; we translate the
+ * track by -50% so the second copy seamlessly takes over when the first
+ * scrolls off-screen. Pause on hover keeps the row legible when readers
+ * want to scan a logo. Honors prefers-reduced-motion.
+ * --------------------------------------------------------------------------- */
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.marquee-track {
+    animation: marquee-scroll 40s linear infinite;
+    will-change: transform;
+}
+.marquee-track[data-speed='slow'] {
+    animation-duration: 60s;
+}
+.marquee-track[data-speed='fast'] {
+    animation-duration: 20s;
+}
+.marquee-track:hover {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+        animation: none;
+    }
+}
+
 /* Scrollbar — thin, subtle, theme-aware. */
 ::-webkit-scrollbar {
     width: 10px;

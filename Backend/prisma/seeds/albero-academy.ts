@@ -53,6 +53,10 @@ const IMG = {
 // Reusable typography presets so all H1s + body copy share a tight, branded
 // feel. Tenants can edit/extend in the website editor's Site Settings dialog.
 
+// Reusable visual presets — applied via section.style.styleClassId. Admins
+// can mix-and-match these or override individual fields per section. Each
+// preset is named after its intent so the picker reads like a kit, not
+// a CSS class list.
 const STYLE_CLASSES = [
     {
         id: 'sc-h1',
@@ -63,6 +67,12 @@ const STYLE_CLASSES = [
         id: 'sc-h2',
         name: 'Heading 2',
         headingType: { fontFamily: 'display', fontSize: '3xl', fontWeight: 'semibold', lineHeight: 'snug' }
+    },
+    {
+        id: 'sc-display',
+        name: 'Heading · Display',
+        headingType: { fontFamily: 'display', fontSize: '5xl', fontWeight: 'extrabold', lineHeight: 'tight', letterSpacing: 'tighter' },
+        bodyType: { fontFamily: 'sans', fontSize: 'lg', fontWeight: 'normal', lineHeight: 'relaxed' }
     },
     {
         id: 'sc-body',
@@ -76,11 +86,44 @@ const STYLE_CLASSES = [
         paddingY: 'lg' as const
     },
     {
+        id: 'sc-tint-warm',
+        name: 'Section · Warm tint',
+        background: 'linear-gradient(180deg, #fffaf3 0%, #fff5e6 100%)',
+        paddingY: 'lg' as const
+    },
+    {
+        id: 'sc-mesh',
+        name: 'Section · Brand mesh',
+        background:
+            'radial-gradient(45% 40% at 10% 10%, color-mix(in srgb, var(--color-brand-500) 14%, transparent) 0%, transparent 70%), radial-gradient(35% 30% at 90% 90%, color-mix(in srgb, var(--color-brand-300) 18%, transparent) 0%, transparent 70%), #ffffff',
+        paddingY: 'xl' as const
+    },
+    {
         id: 'sc-dark',
         name: 'Section · Dark',
         background: '#0c1626',
         textColor: '#ffffff',
         paddingY: 'lg' as const
+    },
+    {
+        id: 'sc-dark-deep',
+        name: 'Section · Deep slate',
+        background: 'linear-gradient(180deg, #0a0e1a 0%, #0f1729 100%)',
+        textColor: '#f5f7ff',
+        paddingY: 'xl' as const
+    },
+    {
+        id: 'sc-spotlight',
+        name: 'Section · Spotlight',
+        background:
+            'radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--color-brand-500) 22%, transparent) 0%, transparent 70%), #ffffff',
+        paddingY: 'xl' as const
+    },
+    {
+        id: 'sc-narrow',
+        name: 'Section · Narrow column',
+        maxWidth: 'narrow' as const,
+        paddingY: 'md' as const
     }
 ]
 
@@ -91,6 +134,7 @@ const homeSections = (): unknown[] => [
         id: sid('home-hero'),
         type: 'hero',
         variant: 'split',
+        style: { animation: 'fadeUp', animationDuration: 800 },
         data: {
             eyebrow: 'Cohort 14 · enrolling for June',
             title: 'Career-grade certifications, taught the way industry actually works.',
@@ -103,9 +147,28 @@ const homeSections = (): unknown[] => [
         }
     },
     {
+        id: sid('home-marquee'),
+        type: 'marquee',
+        variant: 'chips',
+        data: {
+            items: [
+                'Live mentor-led cohorts',
+                '5+ portfolio projects',
+                '40+ hiring partners',
+                '6-month placement guarantee',
+                'No-cost EMI from ₹3,500/mo',
+                'Need-based scholarships',
+                '94% placement rate',
+                '₹8.4L average package'
+            ],
+            speed: 'normal'
+        }
+    },
+    {
         id: sid('home-logos'),
         type: 'logos',
         variant: 'scroll',
+        style: { animation: 'fadeIn' },
         data: {
             title: 'Our alumni work at',
             items: [
@@ -124,6 +187,7 @@ const homeSections = (): unknown[] => [
         id: sid('home-bento'),
         type: 'bento',
         variant: 'showcase',
+        style: { styleClassId: 'sc-tint', animation: 'fadeUp' },
         data: {
             eyebrow: 'WHY ALBERO',
             title: 'Built for outcomes — not for brochures.',
@@ -163,6 +227,7 @@ const homeSections = (): unknown[] => [
         id: sid('home-courses'),
         type: 'features',
         variant: 'three-up',
+        style: { animation: 'fadeUp' },
         data: {
             title: 'Three flagship programs. One outcome.',
             pillars: [
@@ -185,9 +250,43 @@ const homeSections = (): unknown[] => [
         }
     },
     {
+        id: sid('home-process'),
+        type: 'process',
+        variant: 'horizontal',
+        style: { styleClassId: 'sc-tint-warm', animation: 'fadeUp' },
+        data: {
+            eyebrow: 'HOW IT WORKS',
+            title: 'Four steps from enquiry to offer letter',
+            subtitle: 'A clear path — no guesswork, no gimmicks.',
+            steps: [
+                {
+                    title: 'Counsellor call',
+                    body: 'Tell us your goal. We tell you which program fits — and which one does not.',
+                    badge: 'WEEK 0'
+                },
+                {
+                    title: 'Live cohort',
+                    body: 'Mentor-led classes. Hands-on labs. Weekly office hours. Cohort Slack.',
+                    badge: 'WEEKS 1-12'
+                },
+                {
+                    title: 'Capstone + reviews',
+                    body: 'Industry-graded final project. Reviewed by a senior mentor at a hiring partner.',
+                    badge: 'WEEKS 13-14'
+                },
+                {
+                    title: 'Placement support',
+                    body: 'Resume reviews, mock interviews, warm referrals. We do not stop until you are placed.',
+                    badge: 'POST-GRAD'
+                }
+            ]
+        }
+    },
+    {
         id: sid('home-pricing'),
         type: 'pricing',
         variant: 'cards',
+        style: { styleClassId: 'sc-spotlight', animation: 'fadeUp' },
         data: {
             eyebrow: 'PROGRAMS & FEES',
             title: 'Pick the program that fits your goal',
@@ -251,6 +350,7 @@ const homeSections = (): unknown[] => [
         id: sid('home-stats'),
         type: 'stats',
         variant: 'banner',
+        style: { animation: 'fadeUp' },
         data: {
             title: 'Placement guarantee — backed by numbers',
             subtitle:
@@ -264,26 +364,13 @@ const homeSections = (): unknown[] => [
         }
     },
     {
-        id: sid('home-features'),
-        type: 'features',
-        variant: 'four-up',
-        data: {
-            title: 'Why students pick Albero',
-            pillars: [
-                { title: 'Live mentorship', description: 'Mentors are working professionals from product companies, not career educators.' },
-                { title: 'Hands-on labs', description: 'You ship 5+ portfolio projects per program — not toy assignments.' },
-                { title: '1:1 placement', description: 'Resume reviews, mock interviews, and warm referrals to 40+ partner companies.' },
-                { title: 'EMI + scholarships', description: 'No-cost EMI on every major bank. Need-based scholarships up to 30% off.' }
-            ]
-        }
-    },
-    {
         id: sid('home-testimonials'),
         type: 'testimonials',
         variant: 'cards',
+        style: { animation: 'fadeUp' },
         data: {
             title: 'Stories from our cohort',
-            subtitle: 'Real outcomes from past Albero graduates.',
+            subtitle: 'Real outcomes from past Albero graduates — not stock photos with stock quotes.',
             items: [
                 {
                     quote: 'I went from "I have never written a SQL query" to landing a Data Analyst role at a unicorn within five months. The mentor-led format made all the difference.',
@@ -310,6 +397,49 @@ const homeSections = (): unknown[] => [
         }
     },
     {
+        id: sid('home-faq'),
+        type: 'faq',
+        variant: 'accordion',
+        style: { styleClassId: 'sc-tint', animation: 'fadeUp' },
+        data: {
+            eyebrow: 'FAQ',
+            title: 'Common questions',
+            subtitle: "Honest answers to what you'd ask a counsellor in your first 10 minutes.",
+            items: [
+                {
+                    question: 'Do I need prior coding experience?',
+                    answer:
+                        'For Business Analytics — no. For Data Analytics Mastery and AI/ML Engineer — basic programming helps but is not required. Every cohort gets a free 2-week pre-cohort warm-up that covers Python and SQL fundamentals.'
+                },
+                {
+                    question: 'What if I miss a live class?',
+                    answer:
+                        'Every class is recorded and uploaded the same day. Your mentor also runs office hours twice a week so you can catch up live and get unblocked.'
+                },
+                {
+                    question: 'Is the placement guarantee real?',
+                    answer:
+                        'Yes. If you graduate, meet the program engagement criteria (attendance + assignments + capstone), and do not get placed within 6 months — we refund 100% of your fee. The criteria are spelled out in your enrolment letter, and the refund is processed within 30 days of the 6-month mark.'
+                },
+                {
+                    question: 'Do you have EMI and scholarships?',
+                    answer:
+                        'Yes. No-cost EMI starts at ₹3,500/month with every major bank (3, 6, or 12 month tenors). Need-based scholarships up to 30% are available — your counsellor can walk you through eligibility on the discovery call.'
+                },
+                {
+                    question: 'How is Albero different from other bootcamps?',
+                    answer:
+                        'Two things. First — our mentors are senior practitioners from product companies (Razorpay, Flipkart, Microsoft, Swiggy). They review your work the way they review their own team. Second — our placement guarantee. Most bootcamps promise placement support; we put our money on it.'
+                },
+                {
+                    question: 'What is the daily / weekly time commitment?',
+                    answer:
+                        '8-10 hours per week for Business Analytics. 12-14 hours per week for Data Analytics Mastery. 14-16 hours per week for AI/ML Engineer. Live classes are 2 evenings + Saturday morning. Everything else is hands-on lab time.'
+                }
+            ]
+        }
+    },
+    {
         id: sid('home-callout'),
         type: 'callout',
         variant: 'success',
@@ -322,10 +452,12 @@ const homeSections = (): unknown[] => [
         id: sid('home-leadform'),
         type: 'leadForm',
         variant: 'split',
+        style: { animation: 'fadeUp' },
         data: {
             eyebrow: 'Get in touch',
             title: 'Talk to a senior counsellor',
-            subtitle: 'Tell us where you are in your career and what you want next — we will recommend the right program with no sales script.',
+            subtitle:
+                'Tell us where you are in your career and what you want next — we will recommend the right program with no sales script.',
             submitLabel: 'Request a callback',
             successMessage: 'Got it — your counsellor will call within one working day.',
             showQualification: true,

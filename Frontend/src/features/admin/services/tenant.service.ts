@@ -536,6 +536,49 @@ export type PricingSectionData = {
     tiers?: PricingTier[]
 }
 
+// Marquee section — infinite-scrolling row used for big-name logos, value
+// props, or category chips. Heizen / Vercel use these as visual breathers
+// between content blocks; the animation is CSS-driven so it survives even on
+// reduced-motion (where it pauses gracefully via the global rule).
+export type MarqueeSectionData = {
+    eyebrow?: string
+    title?: string
+    items?: string[] // each item renders as a chip/pill
+    speed?: 'slow' | 'normal' | 'fast'
+}
+
+// Process section — numbered steps connected by a line (vertical on mobile,
+// horizontal on desktop). Each step has a number, title, and body. Used for
+// "how the program works" / onboarding flow / 4-step roadmap layouts.
+export type ProcessStep = {
+    title: string
+    body?: string
+    badge?: string
+}
+
+export type ProcessSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    steps?: ProcessStep[]
+}
+
+// FAQ accordion — replaces the collectionList for tenants that want their FAQ
+// inline on a page rather than CMS-driven. Each item has a question + answer.
+// Variant `accordion` is the standard expand/collapse; `two-column` lays them
+// in a 2-up grid for shorter answers.
+export type FaqItem = {
+    question: string
+    answer: string
+}
+
+export type FaqSectionData = {
+    eyebrow?: string
+    title?: string
+    subtitle?: string
+    items?: FaqItem[]
+}
+
 export type ImageSectionData = {
     src?: string
     alt?: string
@@ -697,6 +740,9 @@ export type LandingSection =
     | { id: string; type: 'prose'; variant: 'narrow' | 'wide'; data: ProseSectionData; style?: SectionStyle }
     | { id: string; type: 'bento'; variant: 'showcase' | 'spotlight'; data: BentoSectionData; style?: SectionStyle }
     | { id: string; type: 'pricing'; variant: 'cards' | 'table'; data: PricingSectionData; style?: SectionStyle }
+    | { id: string; type: 'marquee'; variant: 'chips' | 'banner'; data: MarqueeSectionData; style?: SectionStyle }
+    | { id: string; type: 'process'; variant: 'horizontal' | 'vertical'; data: ProcessSectionData; style?: SectionStyle }
+    | { id: string; type: 'faq'; variant: 'accordion' | 'two-column'; data: FaqSectionData; style?: SectionStyle }
     | { id: string; type: 'image'; variant: 'full' | 'contained'; data: ImageSectionData; style?: SectionStyle }
     | { id: string; type: 'embed'; variant: 'iframe'; data: EmbedSectionData; style?: SectionStyle }
     | {
@@ -1105,6 +1151,84 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
                         wide: true,
                         eyebrow: 'GUARANTEE'
                     }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Marquee · Chips',
+        description: 'Infinite-scrolling row of value-prop chips. Pauses on hover.',
+        section: {
+            type: 'marquee',
+            variant: 'chips',
+            data: {
+                items: ['Live mentor-led cohorts', '5+ portfolio projects', '40+ hiring partners', '6-month placement guarantee', 'No-cost EMI', 'Need-based scholarships'],
+                speed: 'normal'
+            }
+        }
+    },
+    {
+        label: 'Marquee · Banner',
+        description: 'Bold gradient banner — best for marketing campaigns or category badges.',
+        section: {
+            type: 'marquee',
+            variant: 'banner',
+            data: {
+                items: ['Cohort 14 enrolling', 'Save 30% with merit scholarship', 'No-cost EMI from ₹3,500/mo', 'Talk to a counsellor today'],
+                speed: 'normal'
+            }
+        }
+    },
+    {
+        label: 'Process · Horizontal',
+        description: 'Numbered steps in a row with connecting line under the badges.',
+        section: {
+            type: 'process',
+            variant: 'horizontal',
+            data: {
+                eyebrow: 'HOW IT WORKS',
+                title: 'Four steps from enquiry to offer letter',
+                subtitle: 'A clear path — no guesswork, no gimmicks.',
+                steps: [
+                    { title: 'Counsellor call', body: 'Tell us your goal. We tell you which program fits.', badge: 'WEEK 0' },
+                    { title: 'Live cohort', body: 'Mentor-led classes + hands-on labs.', badge: 'WEEKS 1-12' },
+                    { title: 'Capstone + reviews', body: 'Industry-graded final project.', badge: 'WEEK 13' },
+                    { title: 'Placement support', body: 'Resume review, mocks, warm referrals.', badge: 'POST-GRAD' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'Process · Vertical',
+        description: 'Vertical step list — better for detailed content on each step.',
+        section: {
+            type: 'process',
+            variant: 'vertical',
+            data: {
+                eyebrow: 'STUDENT JOURNEY',
+                title: 'How a typical week looks',
+                steps: [
+                    { title: 'Mon · Live class', body: 'Concept walkthrough with your mentor.' },
+                    { title: 'Wed · Hands-on lab', body: 'Code along, debug live, ship a small piece.' },
+                    { title: 'Fri · Office hours', body: '1:1 reviews and unblocking.' },
+                    { title: 'Weekend · Project work', body: 'Build the piece for your portfolio.' }
+                ]
+            }
+        }
+    },
+    {
+        label: 'FAQ · Accordion',
+        description: 'Single-column expand/collapse — perfect for the bottom of a long page.',
+        section: {
+            type: 'faq',
+            variant: 'accordion',
+            data: {
+                eyebrow: 'FAQ',
+                title: 'Common questions',
+                items: [
+                    { question: 'Do I need prior coding experience?', answer: 'For Business Analytics — no. For Data Analytics Mastery and AI/ML Engineer — basic programming helps but is not required. We have a free pre-cohort warm-up.' },
+                    { question: 'What if I miss a live class?', answer: 'Every class is recorded. Your mentor also runs office hours twice a week so you can catch up live.' },
+                    { question: 'Is the placement guarantee real?', answer: 'Yes. If you do not get placed within 6 months of graduating and meet the program engagement criteria, we refund 100% of your fee. No fine print.' }
                 ]
             }
         }

@@ -129,6 +129,9 @@ const SECTION_LABEL: Record<LandingSection['type'], string> = {
     prose: 'Prose',
     bento: 'Bento grid',
     pricing: 'Pricing',
+    marquee: 'Marquee',
+    process: 'Process',
+    faq: 'FAQ',
     image: 'Image',
     embed: 'Embed',
     collectionList: 'Collection',
@@ -1289,6 +1292,12 @@ const getSectionPreviewText = (s: LandingSection): string => {
             return s.data.title || `${s.data.tiles?.length ?? 0} bento tiles`
         case 'pricing':
             return s.data.title || `${s.data.tiers?.length ?? 0} pricing tiers`
+        case 'marquee':
+            return s.data.title || `${s.data.items?.length ?? 0} marquee chips`
+        case 'process':
+            return s.data.title || `${s.data.steps?.length ?? 0} steps`
+        case 'faq':
+            return s.data.title || `${s.data.items?.length ?? 0} FAQs`
         case 'testimonials':
             return s.data.title || `${s.data.items?.length ?? 0} testimonials`
         case 'stats':
@@ -1397,6 +1406,24 @@ const SectionEditor = ({
                             onChange={onUpdateData}
                         />
                     )}
+                    {section.type === 'marquee' && (
+                        <MarqueeFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'process' && (
+                        <ProcessFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
+                    {section.type === 'faq' && (
+                        <FaqFields
+                            data={section.data}
+                            onChange={onUpdateData}
+                        />
+                    )}
                     {section.type === 'image' && (
                         <ImageFields
                             data={section.data}
@@ -1461,6 +1488,9 @@ const VARIANTS_BY_TYPE: Record<LandingSection['type'], string[]> = {
     prose: ['narrow', 'wide'],
     bento: ['showcase', 'spotlight'],
     pricing: ['cards', 'table'],
+    marquee: ['chips', 'banner'],
+    process: ['horizontal', 'vertical'],
+    faq: ['accordion', 'two-column'],
     image: ['contained', 'full'],
     embed: ['iframe'],
     collectionList: ['cards', 'list', 'accordion'],
@@ -2139,6 +2169,175 @@ const PricingFields = ({ data, onChange }: { data: Extract<LandingSection, { typ
                             />
                             Highlight this tier (recommended)
                         </label>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+const MarqueeFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'marquee' }>['data']; onChange: (p: object) => void }) => (
+    <div className="space-y-3">
+        <Input
+            label="Eyebrow (optional)"
+            value={data.eyebrow ?? ''}
+            onChange={(e) => onChange({ eyebrow: e.target.value })}
+        />
+        <Input
+            label="Title (optional)"
+            value={data.title ?? ''}
+            onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <Textarea
+            label="Items (one per line)"
+            rows={6}
+            value={(data.items ?? []).join('\n')}
+            onChange={(e) =>
+                onChange({
+                    items: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean)
+                })
+            }
+            hint="Each line becomes a chip in the scrolling row."
+        />
+        <Select
+            label="Speed"
+            value={data.speed ?? 'normal'}
+            onChange={(e) => onChange({ speed: e.target.value as 'slow' | 'normal' | 'fast' })}>
+            <option value="slow">Slow</option>
+            <option value="normal">Normal</option>
+            <option value="fast">Fast</option>
+        </Select>
+    </div>
+)
+
+const ProcessFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'process' }>['data']; onChange: (p: object) => void }) => {
+    const steps = data.steps ?? []
+    const updateStep = (idx: number, patch: Partial<NonNullable<typeof steps>[number]>) =>
+        onChange({ steps: steps.map((s, i) => (i === idx ? { ...s, ...patch } : s)) })
+    const addStep = () => onChange({ steps: [...steps, { title: 'New step', body: '' }] })
+    const removeStep = (idx: number) => onChange({ steps: steps.filter((_, i) => i !== idx) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Eyebrow (optional)"
+                value={data.eyebrow ?? ''}
+                onChange={(e) => onChange({ eyebrow: e.target.value })}
+            />
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Input
+                label="Subtitle (optional)"
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-fg">Steps</span>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addStep}>
+                        + Add step
+                    </Button>
+                </div>
+                {steps.map((s, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] uppercase tracking-wider text-fg-muted">Step {i + 1}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeStep(i)}
+                                className="text-xs text-[var(--color-danger)] hover:underline">
+                                Remove
+                            </button>
+                        </div>
+                        <Input
+                            label="Title"
+                            value={s.title}
+                            onChange={(e) => updateStep(i, { title: e.target.value })}
+                        />
+                        <Textarea
+                            label="Body"
+                            rows={2}
+                            value={s.body ?? ''}
+                            onChange={(e) => updateStep(i, { body: e.target.value })}
+                        />
+                        <Input
+                            label="Badge (optional)"
+                            value={s.badge ?? ''}
+                            onChange={(e) => updateStep(i, { badge: e.target.value })}
+                            placeholder="WEEK 1-4"
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+const FaqFields = ({ data, onChange }: { data: Extract<LandingSection, { type: 'faq' }>['data']; onChange: (p: object) => void }) => {
+    const items = data.items ?? []
+    const updateItem = (idx: number, patch: Partial<NonNullable<typeof items>[number]>) =>
+        onChange({ items: items.map((q, i) => (i === idx ? { ...q, ...patch } : q)) })
+    const addItem = () => onChange({ items: [...items, { question: 'New question?', answer: '' }] })
+    const removeItem = (idx: number) => onChange({ items: items.filter((_, i) => i !== idx) })
+    return (
+        <div className="space-y-3">
+            <Input
+                label="Eyebrow (optional)"
+                value={data.eyebrow ?? ''}
+                onChange={(e) => onChange({ eyebrow: e.target.value })}
+            />
+            <Input
+                label="Title"
+                value={data.title ?? ''}
+                onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <Input
+                label="Subtitle (optional)"
+                value={data.subtitle ?? ''}
+                onChange={(e) => onChange({ subtitle: e.target.value })}
+            />
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-fg">Q&amp;A</span>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addItem}>
+                        + Add question
+                    </Button>
+                </div>
+                {items.map((q, i) => (
+                    <div
+                        key={i}
+                        className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] uppercase tracking-wider text-fg-muted">Q{i + 1}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeItem(i)}
+                                className="text-xs text-[var(--color-danger)] hover:underline">
+                                Remove
+                            </button>
+                        </div>
+                        <Input
+                            label="Question"
+                            value={q.question}
+                            onChange={(e) => updateItem(i, { question: e.target.value })}
+                        />
+                        <Textarea
+                            label="Answer"
+                            rows={3}
+                            value={q.answer}
+                            onChange={(e) => updateItem(i, { answer: e.target.value })}
+                            hint="Newlines are preserved."
+                        />
                     </div>
                 ))}
             </div>
