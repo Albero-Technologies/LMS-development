@@ -156,6 +156,78 @@ ${note ? `<blockquote>${note}</blockquote>` : ''}
             }
         }
 
+        case 'enquiry_assigned_counsellor': {
+            // Pinged at the counsellor when round-robin assigns them a new
+            // enquiry. Keeps the bell icon useful for them — without this
+            // they had to refresh the pipeline page to see new leads.
+            const studentName = String(data.studentName ?? 'A new prospect')
+            const courseTitle = String(data.courseTitle ?? '')
+            return {
+                subject: `New enquiry assigned — ${studentName}`,
+                text: `${studentName} just enquired${courseTitle ? ` about ${courseTitle}` : ''}. Open the lead pipeline to follow up.`,
+                html: `<p><strong>${studentName}</strong> just submitted an enquiry${courseTitle ? ` for <strong>${courseTitle}</strong>` : ''}.</p>
+<p>Open the <a href="${config.SERVER_URL.replace('/api/v1', '')}/app/counsellor/pipeline">Lead Pipeline</a> to schedule a follow-up.</p>`
+            }
+        }
+
+        case 'payment_request_submitted': {
+            // Counsellor → admin. Sent when a counsellor requests offline
+            // payment (cash / EMI) for a student so the admin knows there's
+            // an approval waiting in their queue.
+            const counsellor = String(data.counsellorName ?? 'A counsellor')
+            const student = String(data.studentName ?? 'a student')
+            const method = String(data.method ?? 'OFFLINE')
+            const amount = String(data.amountDisplay ?? '')
+            return {
+                subject: `Payment request awaiting approval — ${student}`,
+                text: `${counsellor} requested a ${method} payment of ${amount} for ${student}. Approve or reject in the admin console.`,
+                html: `<p><strong>${counsellor}</strong> requested a <strong>${method}</strong> payment for <strong>${student}</strong>.</p>
+<p><strong>Amount:</strong> ${amount}</p>
+${data.note ? `<blockquote>${String(data.note)}</blockquote>` : ''}
+<p>Open the admin console to approve or reject.</p>`
+            }
+        }
+
+        case 'payment_request_approved': {
+            const student = String(data.studentName ?? 'the student')
+            const method = String(data.method ?? '')
+            const amount = String(data.amountDisplay ?? '')
+            return {
+                subject: `Payment request approved — ${student}`,
+                text: `Your ${method} payment request of ${amount} for ${student} was approved. The invoice has been marked paid.`,
+                html: `<p>Your <strong>${method}</strong> payment request for <strong>${student}</strong> was approved.</p>
+<p><strong>Amount:</strong> ${amount}</p>
+${data.invoiceNumber ? `<p><strong>Invoice:</strong> ${String(data.invoiceNumber)}</p>` : ''}`
+            }
+        }
+
+        case 'payment_request_rejected': {
+            const student = String(data.studentName ?? 'the student')
+            const method = String(data.method ?? '')
+            return {
+                subject: `Payment request rejected — ${student}`,
+                text: `Your ${method} payment request for ${student} was rejected.${data.reason ? ` Reason: ${String(data.reason)}` : ''}`,
+                html: `<p>Your <strong>${method}</strong> payment request for <strong>${student}</strong> was rejected.</p>
+${data.reason ? `<blockquote>${String(data.reason)}</blockquote>` : ''}
+<p>Reach out to the admin if you'd like to revise the request.</p>`
+            }
+        }
+
+        case 'payment_received_admin': {
+            // Heads-up to admin / manager when a public Razorpay checkout
+            // completes. Useful for the sales-funnel "live" feel.
+            const studentName = String(data.studentName ?? 'A student')
+            const courseTitle = String(data.courseTitle ?? '')
+            const amount = String(data.amountDisplay ?? '')
+            const method = String(data.method ?? 'ONLINE')
+            return {
+                subject: `Payment received — ${studentName} · ${amount}`,
+                text: `${studentName} just paid ${amount} (${method}) for ${courseTitle}.`,
+                html: `<p><strong>${studentName}</strong> just paid <strong>${amount}</strong> (${method}) for <strong>${courseTitle}</strong>.</p>
+${data.invoiceNumber ? `<p>Invoice: <code>${String(data.invoiceNumber)}</code></p>` : ''}`
+            }
+        }
+
         default:
             return {
                 subject: `${brand} notification`,

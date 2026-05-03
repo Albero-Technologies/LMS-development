@@ -21,8 +21,10 @@ export interface InitPurchaseInput {
     // the entire course fee. Defaults to FULL on the backend if omitted.
     paymentType?: PaymentType
     // Tier picked on the program page (Self-Paced / Mentor-Led / Career Pro).
-    // Recorded on the enquiry/invoice so the counsellor follow-up can quote
-    // the same plan the student chose.
+    // tierKey is the canonical id stored in Course.priceTiers — when present
+    // the backend charges the tier price; tierLabel + tierPriceMinor are
+    // advisory display copy only, recorded on the enquiry for follow-up.
+    tierKey?: string
     tierLabel?: string
     tierPriceMinor?: number
 }

@@ -37,6 +37,11 @@ export const initPurchaseSchema = z.object({
     utmMedium: z.string().trim().max(80).optional(),
     utmCampaign: z.string().trim().max(80).optional(),
     paymentType: z.enum(['REGISTRATION', 'FULL']).default('FULL'),
+    // Tier the student picked on the marketing site. tierKey identifies the
+    // entry in Course.priceTiers (e.g. "self-paced", "mentor-led", "career-pro");
+    // when present, the backend pulls the authoritative tier price from that
+    // record. tierLabel + tierPriceMinor are advisory display copy only.
+    tierKey: z.string().trim().max(80).optional(),
     tierLabel: z.string().trim().max(80).optional(),
     tierPriceMinor: z.number().int().nonnegative().optional()
 })

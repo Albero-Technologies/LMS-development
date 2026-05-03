@@ -4,6 +4,7 @@ import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import logger from '../../util/logger'
 import { appendRow } from './google-sheets.client'
+import { enqueueNotification } from '../notifications/notification.queue'
 import type { TCreateEnquiryInput } from './enquiry.schema'
 
 // Resolve tenant from payload slug first, then fall back to sub-domain parsing
@@ -123,6 +124,23 @@ export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput
     void pushEnquiryToSheet(tenantId, enquiry, 'contact-form').catch((err: unknown) => {
         logger.error('SHEETS_PUSH_FAILED', { meta: { enquiryId: enquiry.id, err: (err as Error).message } })
     })
+
+    // Notify the assigned counsellor so the bell (and email, when SMTP is
+    // configured) lights up immediately. Best-effort — never block the public
+    // enquiry response on this.
+    if (assignedToId) {
+        void enqueueNotification({
+            tenantId,
+            userId: assignedToId,
+            template: 'enquiry_assigned_counsellor',
+            data: {
+                studentName: input.name,
+                courseTitle: input.course,
+                email: input.email,
+                phone: input.phone
+            }
+        })
+    }
 
     return enquiry
 }

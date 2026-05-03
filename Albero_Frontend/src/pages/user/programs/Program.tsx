@@ -597,6 +597,7 @@ export default function ProgramPage() {
                 courseTitle={program.title}
                 displayPrice={displayPrice}
                 defaultPaymentType={paymentIntent}
+                tierKey={selectedTier ? selectedTier.plan.toLowerCase().replace(/\s+/g, '-') : undefined}
                 tierLabel={selectedTier ? `${selectedTier.plan} · ${selectedTier.price}` : undefined}
                 tierPriceMinor={selectedTierPaise || undefined}
             />

@@ -76,7 +76,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/users', label: 'Users', icon: Users },
-        { to: '/app/students-monitor', label: 'Students Monitor', icon: GraduationCap },
+        { to: '/app/funnel', label: 'Sales Funnel', icon: Activity },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/admin/newsletter', label: 'Newsletter', icon: Mail },
@@ -93,7 +93,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/users', label: 'Users', icon: Users },
-        { to: '/app/students-monitor', label: 'Students Monitor', icon: GraduationCap },
+        { to: '/app/funnel', label: 'Sales Funnel', icon: Activity },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/counsellor/targets', label: 'Counsellor Targets', icon: Target },
@@ -133,7 +133,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/counsellor/students', label: 'Students', icon: GraduationCap },
-        { to: '/app/students-monitor', label: 'Sales Monitor', icon: Activity },
+        { to: '/app/funnel', label: 'Sales Funnel', icon: Activity },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck }
     ],
     COUNSELLING_MANAGER: [
@@ -141,7 +141,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
         { to: '/app/counsellor/students', label: 'Students', icon: GraduationCap },
-        { to: '/app/students-monitor', label: 'Sales Monitor', icon: Activity },
+        { to: '/app/funnel', label: 'Sales Funnel', icon: Activity },
         { to: '/app/counsellor/targets', label: 'Targets', icon: Target },
         { to: '/app/reports', label: 'Team Reports', icon: LineChart },
         { to: '/app/users', label: 'Team', icon: Users }

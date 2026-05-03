@@ -16,7 +16,14 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Runtime app traffic — typically the Neon pooler URL (the hostname has
+  // "-pooler" in it). Prisma's query engine talks here.
   url      = env("DATABASE_URL")
+  // DDL-only — migrations run through here so they bypass the pooler. Falls
+  // back to DATABASE_URL when DIRECT_URL is unset (e.g. local Postgres in
+  // Docker, where there is no pooler). For Neon, set this to the same URL
+  // as DATABASE_URL with `-pooler` removed from the hostname.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------- Enums ----------
@@ -102,6 +109,23 @@ enum InvoiceStatus {
 enum PaymentGateway {
   RAZORPAY
   STRIPE
+}
+
+// How a student paid. ONLINE is the default Razorpay/Stripe flow. EMI tags
+// invoices that are part of an installment plan; CASH is offline (counsellor
+// collected at branch) — admin/superadmin must approve a counsellor's CASH
+// or EMI request before the invoice flips to PAID.
+enum PaymentMethod {
+  ONLINE
+  EMI
+  CASH
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
 }
 
 enum PaymentEventStatus {
@@ -222,6 +246,7 @@ model Tenant {
   collections           Collection[]
   assignments           Assignment[]
   assignmentSubmissions AssignmentSubmission[]
+  paymentRequests       PaymentRequest[]
 
   @@index([slug])
   @@map("tenants")
@@ -231,24 +256,24 @@ model Tenant {
 // tenant for their subscription. Distinct from Invoice (which is the tenant's
 // own invoices to its students). §4.4 + §10.2.
 model TenantPayment {
-  id          String              @id @default(uuid())
-  tenantId    String
-  amount      Int // total in paise (smallest currency unit)
-  currency    String              @default("INR")
-  planLabel   String? // free-form label like "GROWTH · monthly"
-  periodStart DateTime?
-  periodEnd   DateTime?
-  description String? // optional internal/customer-facing line item
-  status      TenantPaymentStatus @default(PENDING)
+  id               String              @id @default(uuid())
+  tenantId         String
+  amount           Int // total in paise (smallest currency unit)
+  currency         String              @default("INR")
+  planLabel        String? // free-form label like "GROWTH · monthly"
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  description      String? // optional internal/customer-facing line item
+  status           TenantPaymentStatus @default(PENDING)
   // Razorpay handshake — populated when a payment order is created.
-  gateway          PaymentGateway? @default(RAZORPAY)
+  gateway          PaymentGateway?     @default(RAZORPAY)
   gatewayOrderId   String?
   gatewayPaymentId String?
   // Audit / authorship.
-  createdById String? // SA who issued the invoice
-  paidAt      DateTime?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  createdById      String? // SA who issued the invoice
+  paidAt           DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
@@ -312,6 +337,9 @@ model User {
   assignmentsLed             Assignment[]           @relation("AssignmentTrainer")
   assignmentSubmissions      AssignmentSubmission[] @relation("AssignmentSubmissionUser")
   assignmentsGraded          AssignmentSubmission[] @relation("AssignmentSubmissionGrader")
+  paymentRequestsRequested   PaymentRequest[]       @relation("PaymentRequestRequester")
+  paymentRequestsForMe       PaymentRequest[]       @relation("PaymentRequestStudent")
+  paymentRequestsReviewed    PaymentRequest[]       @relation("PaymentRequestReviewer")
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -359,50 +387,60 @@ model Invite {
 // ---------- Courses & Lessons ----------
 
 model Course {
-  id             String             @id @default(uuid())
-  tenantId       String
-  title          String
+  id                   String             @id @default(uuid())
+  tenantId             String
+  title                String
   // Short marketing tag-line shown under the title on the catalog card and
   // detail hero. Distinct from `description`, which is the long-form body.
-  subtitle       String?
-  slug           String
-  description    String?
+  subtitle             String?
+  slug                 String
+  description          String?
   // Catalog thumbnail (16:9 card image). `heroUrl` is a separate, larger
   // banner shown on the course detail page; tenants can either reuse the
   // thumbnail or upload a wider crop here.
-  thumbnailUrl   String?
-  heroUrl        String?
-  price          Int                @default(0) // smallest currency unit (paise)
-  currency       String             @default("INR")
-  gstPercent     Int                @default(18)
-  trainerId      String?
-  publishState   CoursePublishState @default(DRAFT)
-  tags           String[]           @default([])
+  thumbnailUrl         String?
+  heroUrl              String?
+  price                Int                @default(0) // smallest currency unit (paise)
+  currency             String             @default("INR")
+  gstPercent           Int                @default(18)
+  trainerId            String?
+  publishState         CoursePublishState @default(DRAFT)
+  tags                 String[]           @default([])
   // Skill-level + delivery language. `language` is an ISO-639-1 code
   // (e.g. 'en', 'hi'); we keep it free-form so tenants can pick anything.
-  level          CourseLevel        @default(ALL_LEVELS)
-  language       String             @default("en")
+  level                CourseLevel        @default(ALL_LEVELS)
+  language             String             @default("en")
   // Long-form arrays — what students will learn, what they need before
   // joining, who the course is built for. Each entry is one bullet point.
-  outcomes       String[]           @default([])
-  prerequisites  String[]           @default([])
-  audience       String[]           @default([])
+  outcomes             String[]           @default([])
+  prerequisites        String[]           @default([])
+  audience             String[]           @default([])
   // Enrolment window. `enrolmentCap` 0/null means unlimited; dates are
   // optional and only enforced by the public site (the Razorpay flow
   // refuses checkouts outside the window).
-  enrolmentCap   Int?
-  startsAt       DateTime?
-  endsAt         DateTime?
+  enrolmentCap         Int?
+  startsAt             DateTime?
+  endsAt               DateTime?
   // Issue a verifiable certificate when a student hits 100% progress.
   // `certificateTemplate` is a free-form key (e.g. 'default') reserved
   // for a future template registry; for now the platform default ships
   // for every course where the toggle is on.
-  certificateEnabled  Boolean      @default(false)
-  certificateTemplate String?
-  curriculumJson Json               @default("{}") // section → lesson tree
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  deletedAt      DateTime?
+  certificateEnabled   Boolean            @default(false)
+  certificateTemplate  String?
+  // Pricing tiers — array of { key, label, priceMinor, emiMinor?, recommended?, features?[] }.
+  // Empty array means the legacy single-price flow applies (charge `price`).
+  // Used by the public checkout: when the frontend passes a `tierKey`, the
+  // backend looks up the tier here and charges that price (overriding `price`).
+  // Stored as JSON so admins can grow the schema without a per-field migration.
+  priceTiers           Json               @default("[]")
+  // Default registration / reservation fee in paise charged when the user
+  // picks "Reserve seat" instead of paying full. Falls back to the tenant
+  // default (tenant.settings.payments.registrationFeeMinor → ₹5,000).
+  registrationFeeMinor Int?
+  curriculumJson       Json               @default("{}") // section → lesson tree
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  deletedAt            DateTime?
 
   tenant                Tenant                 @relation(fields: [tenantId], references: [id])
   trainer               User?                  @relation("CourseTrainer", fields: [trainerId], references: [id])
@@ -549,6 +587,12 @@ model Invoice {
   gatewayOrderId   String?
   gatewayPaymentId String?
   gatewayRef       String? // legacy ref
+  // How the student paid. ONLINE invoices flow through Razorpay; EMI/CASH
+  // are admin-approved offline payments captured by counsellors.
+  paymentMethod    PaymentMethod  @default(ONLINE)
+  // Free-form note ("Cash collected at branch", "EMI 3 of 6") — surfaced to
+  // counsellor + admin in the invoice list. Optional.
+  paymentNote      String?
   pdfUrl           String?
   status           InvoiceStatus  @default(DRAFT)
   dueAt            DateTime?
@@ -557,14 +601,59 @@ model Invoice {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
-  user          User           @relation(fields: [userId], references: [id])
-  enrollment    Enrollment?    @relation(fields: [enrollmentId], references: [id])
-  paymentEvents PaymentEvent[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+  user            User             @relation(fields: [userId], references: [id])
+  enrollment      Enrollment?      @relation(fields: [enrollmentId], references: [id])
+  paymentEvents   PaymentEvent[]
+  paymentRequests PaymentRequest[]
 
   @@unique([tenantId, number])
   @@index([tenantId, status])
   @@map("invoices")
+}
+
+// Counsellor-initiated request to record an offline (CASH) or installment
+// (EMI) payment against a student. The request lives in PENDING until an
+// ADMIN or SUPER_ADMIN approves or rejects it; on approval the linked
+// Invoice flips to PAID with paymentMethod set, and the counsellor gets a
+// notification. Tenants with no offline collection just never use this
+// model — it's additive and doesn't affect the public Razorpay flow.
+model PaymentRequest {
+  id              String               @id @default(uuid())
+  tenantId        String
+  invoiceId       String? // null when the counsellor is requesting a brand-new payment (course + amount provided inline)
+  // The counsellor making the request + the student the payment is for.
+  requestedById   String
+  studentId       String
+  // What the counsellor is asking for.
+  method          PaymentMethod
+  amountMinor     Int
+  currency        String               @default("INR")
+  note            String?
+  // Optional EMI breakdown — total installments + which one this represents.
+  // Both null for non-EMI methods.
+  emiTotal        Int?
+  emiSequence     Int?
+  status          PaymentRequestStatus @default(PENDING)
+  // Resolution audit. reviewerId + reviewedAt are populated once approved
+  // or rejected; rejectionReason holds the explanation when applicable.
+  reviewerId      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  deletedAt       DateTime?
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  invoice     Invoice? @relation(fields: [invoiceId], references: [id])
+  requestedBy User     @relation("PaymentRequestRequester", fields: [requestedById], references: [id])
+  student     User     @relation("PaymentRequestStudent", fields: [studentId], references: [id])
+  reviewer    User?    @relation("PaymentRequestReviewer", fields: [reviewerId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([tenantId, requestedById])
+  @@index([tenantId, studentId])
+  @@map("payment_requests")
 }
 
 model PaymentEvent {
@@ -658,10 +747,10 @@ model QuizAttempt {
 // there's no auto-grading and no time limit.
 
 enum AssignmentSubmissionStatus {
-  DRAFT     // student saved progress but didn't submit
+  DRAFT // student saved progress but didn't submit
   SUBMITTED // sealed by the student, awaiting grading
-  GRADED    // staff marked + scored
-  RETURNED  // staff sent it back for rework (student can re-submit)
+  GRADED // staff marked + scored
+  RETURNED // staff sent it back for rework (student can re-submit)
 }
 
 model Assignment {
@@ -932,18 +1021,18 @@ model Enquiry {
 // surfaced to ADMIN/SA in a per-tenant list. Email is unique per tenant so
 // repeat sign-ups update status rather than creating duplicates.
 model NewsletterSubscriber {
-  id         String   @id @default(uuid())
-  tenantId   String
-  email      String
-  name       String?
+  id          String   @id @default(uuid())
+  tenantId    String
+  email       String
+  name        String?
   // Where on the site they signed up — 'blog-sidebar', 'footer', etc.
-  source     String   @default("website")
-  status     String   @default("active") // active | unsubscribed
-  utmSource  String?
-  utmMedium  String?
+  source      String   @default("website")
+  status      String   @default("active") // active | unsubscribed
+  utmSource   String?
+  utmMedium   String?
   utmCampaign String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 

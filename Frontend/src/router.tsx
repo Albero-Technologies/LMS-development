@@ -45,7 +45,7 @@ import { SettingsPage } from '@features/settings/pages/SettingsPage'
 import { ReportsPage } from '@features/reports/pages/ReportsPage'
 import { OnboardingPage } from '@features/onboarding/pages/OnboardingPage'
 import { LeadPipelinePage } from '@features/counsellor/pages/LeadPipelinePage'
-import { StudentsMonitorPage } from '@features/students-monitor/pages/StudentsMonitorPage'
+import { SalesFunnelPage } from '@features/students-monitor/pages/SalesFunnelPage'
 import { CounsellorLinksPage } from '@features/counsellor/pages/CounsellorLinksPage'
 import { CounsellorStudentsPage } from '@features/counsellor/pages/CounsellorStudentsPage'
 import { AuditLogsPage } from '@features/audit/pages/AuditLogsPage'
@@ -265,12 +265,13 @@ export const router = createBrowserRouter([
                 )
             },
             {
-                // Sales-perspective student monitoring with tabbed views for
-                // categories, team buckets, and stats timelines. Backend
-                // scopes by role — SUPER_ADMIN sees every tenant, ADMIN their
-                // own, MANAGER their team, COUNSELLOR their own students,
-                // TRAINER students enrolled in their courses.
-                path: 'students-monitor',
+                // Sales Funnel — single page, four tabs (Students / Teams /
+                // Charts / Payments). Backend scopes by role: SUPER_ADMIN sees
+                // every tenant, ADMIN their own, MANAGER their team's,
+                // COUNSELLOR their own students, TRAINER the students
+                // enrolled in their courses. /app/students-monitor stays as a
+                // permanent redirect so old bookmarks keep working.
+                path: 'funnel',
                 element: (
                     <ProtectedRoute
                         roles={[
@@ -280,9 +281,13 @@ export const router = createBrowserRouter([
                             ROLES.COUNSELLOR,
                             ROLES.TRAINER
                         ]}>
-                        <StudentsMonitorPage />
+                        <SalesFunnelPage />
                     </ProtectedRoute>
                 )
+            },
+            {
+                path: 'students-monitor',
+                element: <Navigate to="/app/funnel" replace />
             },
             {
                 path: 'admin/demo-control',

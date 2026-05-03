@@ -129,6 +129,7 @@ npm run prisma:seed
 
 ```bash
 npm run dev
+npm run worker:dev
 ```
 
 A healthy boot prints (colours stripped):

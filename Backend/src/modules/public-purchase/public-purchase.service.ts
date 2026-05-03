@@ -16,7 +16,7 @@ import responseMessage from '../../constant/responseMessage'
 import logger from '../../util/logger'
 import { hashPassword } from '../../util/password'
 import { resolveRazorpay, verifyPaymentSignature } from '../payments/razorpay.client'
-import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
+import { enqueueNotification } from '../notifications/notification.queue'
 import { pickCounsellor, pushEnquiryToSheet } from '../enquiries/enquiry.service'
 import type { TInitPurchaseInput, TVerifyPurchaseInput, TCancelPurchaseInput } from './public-purchase.schema'
 
@@ -80,20 +80,59 @@ interface PurchaseIntent {
     // exact remaining balance regardless of which path the student took.
     paymentType: 'REGISTRATION' | 'FULL'
     fullCourseFeeMinor: number
+    tierKey?: string
     tierLabel?: string
     tierPriceMinor?: number
 }
 
 // Default registration fee in paise (₹5,000). Tenants override this via
 // `tenant.settings.payments.registrationFeeMinor` when they want a different
-// reservation amount.
+// reservation amount; courses can also pin their own with
+// `course.registrationFeeMinor`.
 const DEFAULT_REGISTRATION_FEE_MINOR = 5_000_00
 
-const resolveRegistrationFee = (settings: unknown): number => {
+const resolveRegistrationFee = (settings: unknown, courseOverrideMinor: number | null | undefined): number => {
+    if (typeof courseOverrideMinor === 'number' && Number.isFinite(courseOverrideMinor) && courseOverrideMinor > 0) {
+        return Math.round(courseOverrideMinor)
+    }
     const blob = settings as { payments?: { registrationFeeMinor?: number } } | null
     const v = blob?.payments?.registrationFeeMinor
     if (typeof v === 'number' && Number.isFinite(v) && v > 0) return Math.round(v)
     return DEFAULT_REGISTRATION_FEE_MINOR
+}
+
+// Pricing tier shape stored on Course.priceTiers. Frontend mirror lives in
+// Albero_Frontend/src/constants/programs.ts; admins can edit via the CMS.
+interface CoursePriceTier {
+    key: string
+    label?: string
+    priceMinor: number
+    emiMinor?: number
+    recommended?: boolean
+    features?: string[]
+}
+
+const readPriceTiers = (raw: unknown): CoursePriceTier[] => {
+    if (!Array.isArray(raw)) return []
+    return raw
+        .filter((t): t is CoursePriceTier => {
+            if (!t || typeof t !== 'object') return false
+            const obj = t as Record<string, unknown>
+            return typeof obj.key === 'string' && typeof obj.priceMinor === 'number' && Number.isFinite(obj.priceMinor) && obj.priceMinor > 0
+        })
+        .map((t) => ({ ...t }))
+}
+
+// Resolve the authoritative full-fee amount for a course. If the request
+// names a tierKey AND that key exists in Course.priceTiers, charge the tier
+// price; otherwise fall back to Course.price (legacy single-price flow).
+const resolveFullPriceMinor = (course: { price: number; priceTiers: unknown }, tierKey: string | undefined): { priceMinor: number; tier: CoursePriceTier | null } => {
+    const tiers = readPriceTiers(course.priceTiers)
+    if (tierKey) {
+        const tier = tiers.find((t) => t.key === tierKey)
+        if (tier) return { priceMinor: tier.priceMinor, tier }
+    }
+    return { priceMinor: course.price, tier: null }
 }
 
 const readPurchaseIntent = (extra: unknown): PurchaseIntent | null => {
@@ -118,12 +157,16 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
     const tenant = await resolveTenant(input.tenantSlug)
     const course = await findCourse(tenant.id, input.courseSlug)
 
-    // Charged amount depends on paymentType. REGISTRATION → flat tenant fee;
-    // FULL → course price. Tier metadata is advisory (display-only on the
-    // marketing site) and is never trusted as the charged amount.
+    // Charged amount depends on paymentType. REGISTRATION → flat tenant
+    // (or per-course) fee; FULL → tier price if a known tierKey was sent,
+    // otherwise the legacy course.price. Tier metadata from the request
+    // (label / priceMinor) is recorded as advisory copy only — the price
+    // we charge is always read from the database.
     const isRegistration = input.paymentType === 'REGISTRATION'
-    const registrationFeeMinor = resolveRegistrationFee(tenant.settings)
-    const chargedPriceMinor = isRegistration ? registrationFeeMinor : course.price
+    const registrationFeeMinor = resolveRegistrationFee(tenant.settings, course.registrationFeeMinor)
+    const { priceMinor: fullPriceMinor, tier } = resolveFullPriceMinor(course, input.tierKey)
+    const chargedPriceMinor = isRegistration ? registrationFeeMinor : fullPriceMinor
+    const resolvedTierLabel = tier?.label ?? input.tierLabel
 
     const { gstAmount, totalAmount } = computeTotal(chargedPriceMinor, course.gstPercent)
 
@@ -155,16 +198,17 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
         status: 'pending',
         initiatedAt: new Date().toISOString(),
         paymentType: input.paymentType,
-        fullCourseFeeMinor: course.price,
-        tierLabel: input.tierLabel,
-        tierPriceMinor: input.tierPriceMinor
+        fullCourseFeeMinor: fullPriceMinor,
+        tierKey: input.tierKey ?? tier?.key,
+        tierLabel: resolvedTierLabel,
+        tierPriceMinor: tier?.priceMinor ?? input.tierPriceMinor
     }
 
     const assignedToId = await pickCounsellor(tenant.id)
 
     const intentSummary = isRegistration
-        ? `Reserve seat (${input.tierLabel ?? 'tier'}) for ${course.title}`
-        : `Full payment (${input.tierLabel ?? 'full'}) for ${course.title}`
+        ? `Reserve seat (${resolvedTierLabel ?? 'tier'}) for ${course.title}`
+        : `Full payment (${resolvedTierLabel ?? 'full'}) for ${course.title}`
 
     const enquiry = await db.client.enquiry.create({
         data: {
@@ -202,9 +246,10 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
         priceMinor: chargedPriceMinor,
         gstAmount,
         totalAmount,
-        fullCourseFeeMinor: course.price,
-        balanceMinor: isRegistration ? Math.max(course.price - chargedPriceMinor, 0) : 0,
-        tierLabel: input.tierLabel,
+        fullCourseFeeMinor: fullPriceMinor,
+        balanceMinor: isRegistration ? Math.max(fullPriceMinor - chargedPriceMinor, 0) : 0,
+        tierKey: input.tierKey ?? tier?.key,
+        tierLabel: resolvedTierLabel,
         prefill: { name: input.name, email: input.email, phone: input.phone }
     }
 }
@@ -363,23 +408,42 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
     })
 
     // Outside the transaction — if the email queue is down we still want the
-    // user account to exist. Failures here are logged + retried by BullMQ.
+    // user account to exist. The enqueueNotification helper falls back to
+    // inline processing so the Notification row + bell update still happen
+    // even when the worker is unreachable.
     const loginUrl = `${config.PUBLIC_SITE_URL}/login`
-    try {
-        await notifyQueue.add(NOTIFY_JOB, {
+    await enqueueNotification({
+        tenantId: enquiry.tenantId,
+        userId: result.user.id,
+        template: 'enrollment_credentials',
+        data: {
+            firstName: result.user.firstName,
+            courseTitle: intent.courseTitle,
+            email: result.user.email,
+            tempPassword,
+            loginUrl
+        }
+    })
+
+    // Heads-up to admin + manager + assigned counsellor that money landed.
+    // Drives the funnel "live activity" tab + email digest. Best-effort:
+    // failures are logged inside enqueueNotification and never thrown.
+    const amountDisplay = `₹${(intent.totalAmount / 100).toLocaleString('en-IN')}`
+    const studentDisplayName = `${result.user.firstName} ${result.user.lastName}`.trim()
+    const stakeholderIds = await collectPaymentStakeholders(enquiry.tenantId, enquiry.assignedToId)
+    for (const recipientId of stakeholderIds) {
+        await enqueueNotification({
             tenantId: enquiry.tenantId,
-            userId: result.user.id,
-            template: 'enrollment_credentials',
+            userId: recipientId,
+            template: 'payment_received_admin',
             data: {
-                firstName: result.user.firstName,
+                studentName: studentDisplayName,
                 courseTitle: intent.courseTitle,
-                email: result.user.email,
-                tempPassword,
-                loginUrl
+                amountDisplay,
+                method: intent.paymentType === 'REGISTRATION' ? 'ONLINE · registration' : 'ONLINE · full',
+                invoiceNumber: result.invoice.number
             }
         })
-    } catch (err) {
-        logger.error('PURCHASE_EMAIL_QUEUE_FAILED', { meta: { enquiryId: enquiry.id, err: (err as Error).message } })
     }
 
     return {
@@ -431,6 +495,25 @@ export const cancelPurchase = async (input: TCancelPurchaseInput) => {
             ? { id: updated.assignedTo.id, name: `${updated.assignedTo.firstName} ${updated.assignedTo.lastName}` }
             : null
     }
+}
+
+// Resolve who should be notified when a public payment lands. Returns a
+// dedup'd list of user ids: the assigned counsellor (if any), every ADMIN
+// in the tenant, and every COUNSELLING_MANAGER. Suspended/deleted users
+// are filtered out so we don't email shut-down accounts.
+const collectPaymentStakeholders = async (tenantId: string, assignedCounsellorId: string | null | undefined): Promise<string[]> => {
+    const staff = await db.client.user.findMany({
+        where: {
+            tenantId,
+            role: { in: [Role.ADMIN, Role.COUNSELLING_MANAGER] },
+            status: UserStatus.ACTIVE,
+            deletedAt: null
+        },
+        select: { id: true }
+    })
+    const ids = new Set<string>(staff.map((u) => u.id))
+    if (assignedCounsellorId) ids.add(assignedCounsellorId)
+    return Array.from(ids)
 }
 
 // 12-character, mixed-case + digit random string. URL-safe alphabet so the

@@ -19,7 +19,10 @@ interface EnrollModalProps {
     // between the two from inside the modal too.
     defaultPaymentType?: PaymentType
     // Tier metadata — recorded as advisory info on the enquiry/invoice so the
-    // counsellor knows which plan the student picked.
+    // counsellor knows which plan the student picked. tierKey is the canonical
+    // id matching an entry in Course.priceTiers; when set, the backend uses
+    // its priceMinor as the authoritative full-fee charge.
+    tierKey?: string
     tierLabel?: string
     tierPriceMinor?: number
     // Display-only registration fee amount (in INR, not paise). Used in the
@@ -63,6 +66,7 @@ export default function EnrollModal({
     courseTitle,
     displayPrice,
     defaultPaymentType = 'FULL',
+    tierKey,
     tierLabel,
     tierPriceMinor,
     registrationFeeDisplay = '₹5,000'
@@ -106,6 +110,7 @@ export default function EnrollModal({
                 phone: form.phone,
                 city: form.city || undefined,
                 paymentType,
+                tierKey,
                 tierLabel,
                 tierPriceMinor
             })

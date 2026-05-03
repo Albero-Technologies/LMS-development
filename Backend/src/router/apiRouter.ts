@@ -21,6 +21,7 @@ import enquiryRouter from '../modules/enquiries/enquiry.router'
 import newsletterRouter from '../modules/newsletter/newsletter.router'
 import publicPurchaseRouter from '../modules/public-purchase/public-purchase.router'
 import studentsMonitorRouter from '../modules/students-monitor/students-monitor.router'
+import paymentRequestRouter from '../modules/payment-requests/payment-request.router'
 import auditRouter from '../modules/audit/audit.router'
 import mediaRouter from '../modules/media/media.router'
 import cmsRouter from '../modules/cms/cms.router'
@@ -50,6 +51,7 @@ router.use('/enquiries', enquiryRouter)
 router.use('/newsletter', newsletterRouter)
 router.use('/public/purchase', publicPurchaseRouter)
 router.use('/students-monitor', studentsMonitorRouter)
+router.use('/payment-requests', paymentRequestRouter)
 router.use('/tickets', ticketRouter)
 router.use('/notifications', notificationRouter)
 router.use('/dashboard', dashboardRouter)

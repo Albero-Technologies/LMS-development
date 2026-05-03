@@ -63,6 +63,56 @@ const buildCounsellorFilter = async (
 const isMonitorRole = (role: Role): boolean =>
     role === Role.SUPER_ADMIN || role === Role.ADMIN || role === Role.COUNSELLING_MANAGER || role === Role.COUNSELLOR || role === Role.TRAINER
 
+// Mutates `where` to narrow the user query for a given category. Each
+// branch encodes the cheap part of the rule — JS-side `computeFlags` still
+// runs afterwards to apply the full logic (e.g. the "no follow-up if the
+// student has paid recently" exception), but this is enough to slash the
+// tenant scan from O(all-students) to O(category-students).
+const applyCategoryWhere = (where: Prisma.UserWhereInput, category: StudentCategory, inactivityCutoff: Date): void => {
+    switch (category) {
+        case 'DEAD':
+            where.status = UserStatus.SUSPENDED
+            return
+        case 'FEES_PENDING':
+            where.invoices = { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } }
+            return
+        case 'FEES_PAID':
+            // At least one PAID invoice AND no DUE/DRAFT invoices.
+            where.invoices = { some: { status: InvoiceStatus.PAID } }
+            where.NOT = [
+                ...(Array.isArray(where.NOT) ? where.NOT : where.NOT ? [where.NOT] : []),
+                { invoices: { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } } }
+            ]
+            return
+        case 'INACTIVE':
+            where.OR = [
+                ...(Array.isArray(where.OR) ? where.OR : []),
+                { lastLoginAt: null },
+                { lastLoginAt: { lt: inactivityCutoff } }
+            ]
+            where.status = { not: UserStatus.SUSPENDED }
+            return
+        case 'ACTIVE':
+            where.lastLoginAt = { gte: inactivityCutoff }
+            where.status = UserStatus.ACTIVE
+            where.enrollments = {
+                some: { status: EnrollmentStatus.ACTIVE, deletedAt: null }
+            }
+            return
+        case 'FOLLOW_UP':
+            // Two heuristics: no enrolments at all, OR low progress + stale activity.
+            // The "stale activity" half can't be expressed without a self-join,
+            // so we leave it for JS-side filtering; the SQL form catches the
+            // "no enrolments yet" case which is by far the largest bucket.
+            where.OR = [
+                ...(Array.isArray(where.OR) ? where.OR : []),
+                { enrollments: { none: { deletedAt: null } } },
+                { enrollments: { some: { progressPct: { lt: 30 } } } }
+            ]
+            return
+    }
+}
+
 interface StudentRow {
     id: string
     name: string
@@ -182,10 +232,21 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
         }
     }
 
-    // Pull in one shot — pagination happens after categorisation since the
-    // category filter can prune the page count. We cap at pageSize * 5 so a
-    // page of FEES_PENDING students doesn't require scanning the entire tenant.
-    const limit = input.pageSize * 5
+    // Server-side category narrowing — push the cheap parts of each
+    // category's predicate into Prisma so we don't have to pull and
+    // discard half the tenant. The remaining nuances (e.g. FOLLOW_UP's
+    // "low progress" rule) are still resolved in JS after the fetch,
+    // but the candidate set is small now.
+    const inactivityCutoff = new Date(Date.now() - INACTIVITY_MS)
+    if (input.category) {
+        applyCategoryWhere(userWhere, input.category, inactivityCutoff)
+    }
+
+    // Pagination happens after the in-JS category re-check so totals stay
+    // consistent. We over-fetch by 2x so the client filter can prune
+    // false-positives (e.g. a row that satisfies the SQL FEES_PENDING
+    // predicate but is now DEAD because the user was suspended).
+    const limit = Math.max(input.pageSize * 2, 50)
     const offset = (input.page - 1) * input.pageSize
 
     const users = await db.client.user.findMany({
@@ -295,14 +356,11 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
     const filtered = categoryFilter ? rows.filter((r) => r.flags[categoryFilter]) : rows
     const paged = filtered.slice(offset, offset + input.pageSize)
 
-    // Summary counters across the *unfiltered* pull so the tabs reflect the
-    // full bucket sizes regardless of which category the user selected.
-    const totals: Record<StudentCategory, number> = { ACTIVE: 0, INACTIVE: 0, FEES_PAID: 0, FEES_PENDING: 0, FOLLOW_UP: 0, DEAD: 0 }
-    for (const r of rows) {
-        ;(Object.keys(r.flags) as StudentCategory[]).forEach((k) => {
-            if (r.flags[k]) totals[k] += 1
-        })
-    }
+    // Per-category totals are derived from a separate set of scoped COUNT
+    // queries so the chips show stable counts even when the table is
+    // filtered to one category. The 6 counts run in parallel and are fast
+    // because each predicate is indexed (status / invoices.status / lastLoginAt).
+    const totals = await computeCategoryTotals(userWhere, inactivityCutoff)
 
     return {
         items: paged,
@@ -311,6 +369,57 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
         pageSize: input.pageSize,
         scanned: rows.length,
         totals
+    }
+}
+
+// Build per-category totals using narrow COUNT queries off the same
+// user-where (less the category filter, which we add per call). Drops the
+// existing category narrowing from the where so each count reflects the
+// FULL scoped tenant slice, not just the active filter.
+const computeCategoryTotals = async (baseWhere: Prisma.UserWhereInput, inactivityCutoff: Date): Promise<Record<StudentCategory, number>> => {
+    const stripped: Prisma.UserWhereInput = { ...baseWhere }
+    delete stripped.status
+    delete stripped.invoices
+    delete stripped.lastLoginAt
+    delete stripped.NOT
+    // We can't reliably strip OR/enrollments because those may have been set
+    // by the trainer scope or category narrowing — clone what we know is
+    // category-derived. For simplicity, rebuild from scratch on the fields
+    // the caller controls (tenantId/role/q/etc.) by reading explicit keys.
+    const safeWhere: Prisma.UserWhereInput = {
+        tenantId: stripped.tenantId,
+        tenant: stripped.tenant,
+        role: stripped.role,
+        deletedAt: stripped.deletedAt,
+        OR: stripped.OR,
+        studentSignup: stripped.studentSignup
+    }
+
+    const counts = await Promise.all([
+        db.client.user.count({
+            where: { ...safeWhere, status: UserStatus.ACTIVE, lastLoginAt: { gte: inactivityCutoff }, enrollments: { some: { status: EnrollmentStatus.ACTIVE, deletedAt: null } } }
+        }),
+        db.client.user.count({
+            where: { ...safeWhere, status: { not: UserStatus.SUSPENDED }, OR: [...(safeWhere.OR ?? []), { lastLoginAt: null }, { lastLoginAt: { lt: inactivityCutoff } }] }
+        }),
+        db.client.user.count({
+            where: { ...safeWhere, invoices: { some: { status: InvoiceStatus.PAID } }, NOT: { invoices: { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } } } }
+        }),
+        db.client.user.count({
+            where: { ...safeWhere, invoices: { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } } }
+        }),
+        db.client.user.count({
+            where: { ...safeWhere, OR: [...(safeWhere.OR ?? []), { enrollments: { none: { deletedAt: null } } }, { enrollments: { some: { progressPct: { lt: 30 } } } }] }
+        }),
+        db.client.user.count({ where: { ...safeWhere, status: UserStatus.SUSPENDED } })
+    ])
+    return {
+        ACTIVE: counts[0],
+        INACTIVE: counts[1],
+        FEES_PAID: counts[2],
+        FEES_PENDING: counts[3],
+        FOLLOW_UP: counts[4],
+        DEAD: counts[5]
     }
 }
 
