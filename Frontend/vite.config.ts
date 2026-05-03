@@ -60,7 +60,8 @@ export default defineConfig(({ mode }) => {
             tailwindcss(),
             VitePWA({
                 registerType: 'autoUpdate',
-                includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
+                injectRegister: 'auto',
+                includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png', 'icons/*.png'],
                 manifest: {
                     name: 'Albero Academy — Modern Learning Platform',
                     short_name: 'Albero',
@@ -70,16 +71,37 @@ export default defineConfig(({ mode }) => {
                     display: 'standalone',
                     orientation: 'portrait',
                     start_url: '/',
+                    id: '/',
                     scope: '/',
+                    lang: 'en-IN',
+                    // Chrome's install criteria need (1) a registered + activated
+                    // service worker AND (2) a manifest with both 192px and 512px
+                    // icons that actually 200 OK. The previous config pointed at
+                    // /icons/icon-192.png + /icons/icon-512.png that didn't exist
+                    // on disk, so Chrome silently failed the eligibility check
+                    // and never offered "Install app". Listing every available
+                    // size — including a dedicated maskable variant — makes the
+                    // app installable on Android (where maskable icons are
+                    // strictly required) and gives Chrome multiple resolutions
+                    // to pick from.
                     icons: [
-                        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-                        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                        { src: '/icons/icon-96.png', sizes: '96x96', type: 'image/png' },
+                        { src: '/icons/icon-144.png', sizes: '144x144', type: 'image/png' },
+                        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+                        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+                        { src: '/icons/icon-384.png', sizes: '384x384', type: 'image/png' },
+                        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+                        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
                     ],
-                    categories: ['education', 'productivity']
+                    categories: ['education', 'productivity'],
+                    prefer_related_applications: false
                 },
                 workbox: {
                     globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
                     navigateFallback: '/index.html',
+                    cleanupOutdatedCaches: true,
+                    clientsClaim: true,
+                    skipWaiting: true,
                     runtimeCaching: [
                         {
                             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
@@ -101,7 +123,14 @@ export default defineConfig(({ mode }) => {
                     ]
                 },
                 devOptions: {
-                    enabled: false
+                    // Register the service worker in dev so the "Install app"
+                    // prompt appears during `npm run dev` too — without this
+                    // Chrome only treats the prod build as installable, which
+                    // is annoying when iterating on the install UX.
+                    enabled: true,
+                    type: 'module',
+                    navigateFallback: 'index.html',
+                    suppressWarnings: true
                 }
             }),
             ...(env.VITE_ENV === 'production' && env.SENTRY_TOKEN

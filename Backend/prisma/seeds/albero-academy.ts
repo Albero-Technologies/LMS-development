@@ -1588,44 +1588,117 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
         where: { tenantId_email: { tenantId: tenant.id, email: TRAINER_EMAIL } }
     })
 
-    // 3. Three flagship courses, each published with a sample lesson
+    // 3. Flagship courses — one per program slug on the public marketing site
+    // (Albero_Frontend/.../constants/programs.ts). Slugs MUST match those
+    // exactly so the public Razorpay checkout flow can resolve a course from
+    // a /programs/:slug page click. Prices mirror each program's
+    // recommended "Mentor-Led" tier (in paise, INR-major × 100 × 100). When
+    // a new program is added on the marketing site, add a matching entry
+    // here and re-run the seed.
     const courseSeeds: { slug: string; title: string; description: string; price: number; thumbnail: string; tags: string[] }[] = [
         {
-            slug: 'business-analytics-pro',
-            title: 'Business Analytics Pro',
+            slug: 'business-analytics',
+            title: 'Business Analytics',
             description:
-                '14-week live cohort: SQL, Power BI, Tableau, A/B testing, and stakeholder communication. Built for fresh grads + early-career switchers.',
-            price: 4999900,
+                '6-month structured program: Excel, SQL, Power BI, Tableau, Python and storytelling — designed to make you industry-ready for analytics, consulting, and BI roles.',
+            price: 6500000,
             thumbnail: IMG.courseBA,
-            tags: ['analytics', 'sql', 'power-bi', 'tableau']
+            tags: ['analytics', 'sql', 'power-bi', 'tableau', 'excel']
         },
         {
-            slug: 'data-analytics-mastery',
-            title: 'Data Analytics Mastery',
-            description: '20-week deep dive: Python, statistics, ML basics, cloud warehousing. Geared toward analyst → data scientist transitions.',
-            price: 7499900,
+            slug: 'data-analytics',
+            title: 'Data Analytics',
+            description:
+                '5-month hands-on program covering SQL, Python, statistics, Power BI and Tableau — with portfolio-grade projects and a placement-focused career sprint.',
+            price: 7500000,
             thumbnail: IMG.courseDA,
-            tags: ['data-science', 'python', 'machine-learning', 'snowflake']
+            tags: ['data-analytics', 'sql', 'python', 'statistics', 'power-bi']
         },
         {
-            slug: 'ai-ml-engineer',
-            title: 'AI/ML Engineer',
-            description: '24-week intensive: Neural nets, transformers, MLOps, model deployment. For engineers building production AI systems.',
-            price: 9999900,
+            slug: 'data-science-ai',
+            title: 'Data Science with ML & GenAI',
+            description:
+                '9-month flagship: Python, ML, deep learning, NLP & GenAI, MLOps. For engineers building production AI systems and ML products.',
+            price: 12500000,
             thumbnail: IMG.courseAI,
-            tags: ['ai', 'ml', 'pytorch', 'llm', 'mlops']
+            tags: ['data-science', 'machine-learning', 'deep-learning', 'genai', 'mlops']
+        },
+        {
+            slug: 'full-stack',
+            title: 'Full Stack Development',
+            description:
+                '7-month MERN-stack program: React, Node, Express, MongoDB, Postgres, Docker, AWS — with DSA, system design, and mock interviews built in.',
+            price: 9500000,
+            thumbnail: IMG.courseBA,
+            tags: ['full-stack', 'react', 'node', 'mongodb', 'devops']
+        },
+        {
+            slug: 'data-engineering',
+            title: 'Data Engineering',
+            description:
+                '8-month program covering SQL modelling, Spark, Airflow, dbt + Snowflake, and cloud data platforms — for engineers building the pipelines that power AI.',
+            price: 8500000,
+            thumbnail: IMG.courseDA,
+            tags: ['data-engineering', 'spark', 'airflow', 'dbt', 'snowflake']
+        },
+        {
+            slug: 'cybersecurity',
+            title: 'Cybersecurity',
+            description:
+                '6-month security-engineering track: network security, OWASP, threat modelling, blue/red-team labs, and CTF-style capstones.',
+            price: 7000000,
+            thumbnail: IMG.courseAI,
+            tags: ['cybersecurity', 'network-security', 'owasp', 'ctf']
+        },
+        {
+            slug: 'investment-banking',
+            title: 'Investment Banking',
+            description:
+                '6-month finance program: financial modelling, DCF & comparables valuation, M&A, LBO, pitchbook builds, and IB mock interviews.',
+            price: 8000000,
+            thumbnail: IMG.courseBA,
+            tags: ['investment-banking', 'financial-modelling', 'valuation', 'm-and-a']
+        },
+        {
+            slug: 'product-analytics',
+            title: 'Product Analytics',
+            description:
+                '5-month program: SQL + Python + experimentation + dashboarding, anchored on product-sense case studies and an A/B-testing capstone.',
+            price: 6000000,
+            thumbnail: IMG.courseDA,
+            tags: ['product-analytics', 'sql', 'python', 'experimentation', 'a-b-testing']
         }
     ]
 
     if (trainer) {
-        for (const c of courseSeeds) {
-            const existing = await prisma.course.findUnique({
-                where: { tenantId_slug: { tenantId: tenant.id, slug: c.slug } }
-            })
-            if (existing) continue
+        // Soft-delete legacy course slugs that pre-date the current public
+        // site. Without this, the dashboard's course list keeps stale
+        // entries forever — and worse, a counsellor could enrol someone
+        // into one that has no public landing page. Keep the rows around
+        // (deletedAt) for audit + analytics on prior cohorts.
+        const LEGACY_SLUGS = ['business-analytics-pro', 'data-analytics-mastery', 'ai-ml-engineer']
+        await prisma.course.updateMany({
+            where: { tenantId: tenant.id, slug: { in: LEGACY_SLUGS }, deletedAt: null },
+            data: { deletedAt: new Date(), publishState: CoursePublishState.ARCHIVED }
+        })
 
-            const course = await prisma.course.create({
-                data: {
+        for (const c of courseSeeds) {
+            // Upsert so re-runs pick up price/description changes — the seed
+            // is the canonical source for these in dev.
+            const course = await prisma.course.upsert({
+                where: { tenantId_slug: { tenantId: tenant.id, slug: c.slug } },
+                update: {
+                    title: c.title,
+                    description: c.description,
+                    thumbnailUrl: c.thumbnail,
+                    price: c.price,
+                    currency: 'INR',
+                    gstPercent: 18,
+                    publishState: CoursePublishState.PUBLISHED,
+                    tags: c.tags,
+                    deletedAt: null
+                },
+                create: {
                     tenantId: tenant.id,
                     trainerId: trainer.id,
                     title: c.title,
@@ -1639,23 +1712,36 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     tags: c.tags
                 }
             })
-            const section = await prisma.courseSection.create({
-                data: { courseId: course.id, title: 'Welcome & orientation', order: 0 }
-            })
-            await prisma.lesson.create({
-                data: {
-                    sectionId: section.id,
-                    title: `Intro to ${c.title}`,
-                    type: LessonType.YOUTUBE,
-                    youtubeId: 'dQw4w9WgXcQ',
-                    durationSec: 480,
-                    order: 0
-                }
-            })
+
+            // Skip section/lesson scaffolding when the course already has
+            // any content — we don't want to keep stacking "Welcome &
+            // orientation" sections on every reseed.
+            const sectionCount = await prisma.courseSection.count({ where: { courseId: course.id } })
+            if (sectionCount === 0) {
+                const section = await prisma.courseSection.create({
+                    data: { courseId: course.id, title: 'Welcome & orientation', order: 0 }
+                })
+                await prisma.lesson.create({
+                    data: {
+                        sectionId: section.id,
+                        title: `Intro to ${c.title}`,
+                        type: LessonType.YOUTUBE,
+                        youtubeId: 'dQw4w9WgXcQ',
+                        durationSec: 480,
+                        order: 0
+                    }
+                })
+            }
         }
     }
 
-    // 4. CMS collections — testimonials, blog, faqs
+    // 4. CMS collections — testimonials, blog, faqs, programs + 5 resource
+    // categories (tutorials, soft-skills, case-studies, interview-guides,
+    // cheatsheets). The public site fetches each collection by slug, so
+    // collection slugs MUST match the routes in Albero_Frontend (e.g.
+    // /resources/tutorials → collection slug "tutorials"). When the
+    // marketing team wants to add/remove items they go to the LMS dashboard
+    // → Programs / Resources, never to a static constants file.
     interface FieldDef {
         key: string
         label: string
@@ -1808,6 +1894,393 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                         role: 'Business Analyst',
                         company: 'Flipkart',
                         avatar: IMG.avatar2
+                    },
+                    published: true
+                }
+            ]
+        },
+        // ── Programs ─────────────────────────────────────────────────────────
+        // One row per public-site program landing page (/programs/:slug).
+        // Slug MUST match the Course.slug seeded above and the Albero_Frontend
+        // programs.ts entry, otherwise the Enroll Now flow can't resolve the
+        // course or the public site will 404.
+        {
+            slug: 'programs',
+            name: 'Programs',
+            description: 'Public-site program landing pages. Editing a row here updates the marketing copy on /programs/:slug — pricing still comes from the Course row.',
+            fields: [
+                { key: 'title', label: 'Title', type: 'text', required: true },
+                { key: 'subtitle', label: 'Subtitle', type: 'text' },
+                { key: 'badge', label: 'Badge (e.g. "Career Track", "Most Popular")', type: 'text' },
+                { key: 'description', label: 'Description', type: 'longtext' },
+                { key: 'duration', label: 'Duration (e.g. "6 Months")', type: 'text' },
+                { key: 'mode', label: 'Mode (e.g. "Live + Recorded")', type: 'text' },
+                { key: 'level', label: 'Level (e.g. "Beginner Friendly")', type: 'text' },
+                { key: 'enrollDate', label: 'Next batch start', type: 'text' },
+                { key: 'thumbnail', label: 'Thumbnail image URL', type: 'image' },
+                { key: 'displayOrder', label: 'Display order on /programs', type: 'number' },
+                { key: 'featured', label: 'Featured', type: 'boolean' }
+            ],
+            items: [
+                {
+                    slug: 'business-analytics',
+                    data: {
+                        title: 'Business Analytics',
+                        subtitle: 'Turn business problems into data-driven decisions',
+                        badge: 'Career Track',
+                        description:
+                            '6-month structured program covering Excel, SQL, Power BI, Tableau, Python and storytelling — designed to make you industry-ready for analytics, consulting, and BI roles.',
+                        duration: '6 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Beginner to Pro',
+                        enrollDate: 'Next batch: 12 May 2026',
+                        thumbnail: IMG.courseBA,
+                        displayOrder: 1,
+                        featured: true
+                    },
+                    published: true
+                },
+                {
+                    slug: 'data-analytics',
+                    data: {
+                        title: 'Data Analytics',
+                        subtitle: 'From beginner to job-ready data analyst',
+                        badge: 'Most Popular',
+                        description:
+                            '5-month hands-on program covering SQL, Python, statistics, Power BI and Tableau — with portfolio-grade projects and a placement-focused career sprint.',
+                        duration: '5 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Beginner Friendly',
+                        enrollDate: 'Next batch: 19 May 2026',
+                        thumbnail: IMG.courseDA,
+                        displayOrder: 2,
+                        featured: true
+                    },
+                    published: true
+                },
+                {
+                    slug: 'data-science-ai',
+                    data: {
+                        title: 'Data Science with ML & GenAI',
+                        subtitle: 'Build the AI products of tomorrow',
+                        badge: 'Flagship',
+                        description:
+                            '9-month flagship program: Python, ML, deep learning, NLP & GenAI, MLOps. For engineers building production AI systems and ML products.',
+                        duration: '9 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Intermediate',
+                        enrollDate: 'Next batch: 26 May 2026',
+                        thumbnail: IMG.courseAI,
+                        displayOrder: 3,
+                        featured: true
+                    },
+                    published: true
+                },
+                {
+                    slug: 'full-stack',
+                    data: {
+                        title: 'Full Stack Development',
+                        subtitle: 'Ship products. End to end. With confidence.',
+                        badge: 'Career Track',
+                        description:
+                            '7-month MERN-stack program: React, Node, Express, MongoDB, Postgres, Docker, AWS — with DSA, system design, and mock interviews built in.',
+                        duration: '7 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Beginner to Pro',
+                        enrollDate: 'Next batch: 02 June 2026',
+                        thumbnail: IMG.courseBA,
+                        displayOrder: 4,
+                        featured: false
+                    },
+                    published: true
+                },
+                {
+                    slug: 'data-engineering',
+                    data: {
+                        title: 'Data Engineering',
+                        subtitle: 'Build the pipelines that power AI',
+                        badge: 'Career Track',
+                        description:
+                            '8-month program covering SQL modelling, Spark, Airflow, dbt + Snowflake, and cloud data platforms — for engineers building the pipelines that power AI.',
+                        duration: '8 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Intermediate',
+                        enrollDate: 'Next batch: 09 June 2026',
+                        thumbnail: IMG.courseDA,
+                        displayOrder: 5,
+                        featured: false
+                    },
+                    published: true
+                },
+                {
+                    slug: 'cybersecurity',
+                    data: {
+                        title: 'Cybersecurity',
+                        subtitle: 'Defend the systems that hold the data',
+                        badge: 'Career Track',
+                        description:
+                            '6-month security-engineering track: network security, OWASP, threat modelling, blue/red-team labs, and CTF-style capstones.',
+                        duration: '6 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Intermediate',
+                        enrollDate: 'Next batch: 16 June 2026',
+                        thumbnail: IMG.courseAI,
+                        displayOrder: 6,
+                        featured: false
+                    },
+                    published: true
+                },
+                {
+                    slug: 'investment-banking',
+                    data: {
+                        title: 'Investment Banking',
+                        subtitle: 'Financial modelling, valuations & deals',
+                        badge: 'Career Track',
+                        description:
+                            '6-month finance program: financial modelling, DCF & comparables valuation, M&A, LBO, pitchbook builds, and IB mock interviews.',
+                        duration: '6 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Beginner to Pro',
+                        enrollDate: 'Next batch: 23 June 2026',
+                        thumbnail: IMG.courseBA,
+                        displayOrder: 7,
+                        featured: false
+                    },
+                    published: true
+                },
+                {
+                    slug: 'product-analytics',
+                    data: {
+                        title: 'Product Analytics',
+                        subtitle: 'Drive product with data',
+                        badge: 'Career Track',
+                        description:
+                            '5-month program covering SQL, Python, experimentation, dashboarding — anchored on product-sense case studies and an A/B-testing capstone.',
+                        duration: '5 Months',
+                        mode: 'Live + Recorded',
+                        level: 'Beginner Friendly',
+                        enrollDate: 'Next batch: 30 June 2026',
+                        thumbnail: IMG.courseDA,
+                        displayOrder: 8,
+                        featured: false
+                    },
+                    published: true
+                }
+            ]
+        },
+        // ── Tutorials ────────────────────────────────────────────────────────
+        // Step-by-step coding walkthroughs grouped by `topic`. The public
+        // /resources/tutorials page lists topics; clicking one drills into
+        // /resources/tutorials/:topic/:chapter for each item with that topic.
+        {
+            slug: 'tutorials',
+            name: 'Tutorials',
+            description: 'Step-by-step coding walkthroughs surfaced at /resources/tutorials. Group multiple items under the same topic to build a chapter sequence.',
+            fields: [
+                { key: 'title', label: 'Chapter title', type: 'text', required: true },
+                { key: 'topic', label: 'Topic / track', type: 'text', required: true },
+                { key: 'chapter', label: 'Chapter number', type: 'number' },
+                { key: 'description', label: 'Short description', type: 'longtext' },
+                { key: 'readMin', label: 'Read time (minutes)', type: 'number' },
+                { key: 'coverImage', label: 'Cover image URL', type: 'image' },
+                { key: 'body', label: 'Body (HTML / markdown)', type: 'richtext' },
+                { key: 'code', label: 'Code samples (longtext)', type: 'longtext' }
+            ],
+            items: [
+                {
+                    slug: 'sql-joins-101',
+                    data: {
+                        title: 'SQL Joins 101: Inner, Left, Right, Full',
+                        topic: 'SQL',
+                        chapter: 1,
+                        description: 'A practical walkthrough of every join type with a single shared dataset so you can see exactly what each one returns.',
+                        readMin: 8,
+                        coverImage: IMG.blogChart,
+                        body: '<p>Joins are how SQL stitches rows from multiple tables together...</p>',
+                        code: '-- Inner join\nSELECT u.name, o.amount\nFROM users u\nJOIN orders o ON o.user_id = u.id;'
+                    },
+                    published: true
+                },
+                {
+                    slug: 'python-pandas-quickstart',
+                    data: {
+                        title: 'Pandas in 20 minutes',
+                        topic: 'Python',
+                        chapter: 1,
+                        description: 'The 10 Pandas verbs that handle 90% of analyst work — read, filter, group, aggregate, pivot, merge, sort, dropna, apply, to_csv.',
+                        readMin: 20,
+                        coverImage: IMG.blogStudying,
+                        body: '<p>Pandas is the data-frame library that makes Python a serious analyst tool...</p>',
+                        code: 'import pandas as pd\ndf = pd.read_csv("orders.csv")\ndf.groupby("region").amount.sum()'
+                    },
+                    published: true
+                }
+            ]
+        },
+        // ── Soft skills ──────────────────────────────────────────────────────
+        {
+            slug: 'soft-skills',
+            name: 'Soft Skills Training',
+            description: 'Communication, leadership, and interview-polish sessions. Surfaced at /resources/soft-skills.',
+            fields: [
+                { key: 'title', label: 'Session title', type: 'text', required: true },
+                { key: 'tagline', label: 'Tagline', type: 'text' },
+                { key: 'duration', label: 'Duration', type: 'text' },
+                { key: 'level', label: 'Level', type: 'select', options: ['Beginner', 'Intermediate', 'Advanced'] },
+                { key: 'keyOutcomes', label: 'Key outcomes (one per line)', type: 'longtext' },
+                { key: 'body', label: 'Body', type: 'richtext' },
+                { key: 'coverImage', label: 'Cover image URL', type: 'image' }
+            ],
+            items: [
+                {
+                    slug: 'storytelling-with-data',
+                    data: {
+                        title: 'Storytelling with Data',
+                        tagline: 'Turn dashboards into decisions',
+                        duration: '90 min',
+                        level: 'Intermediate',
+                        keyOutcomes: 'Frame the executive question first\nLead with the answer, defend with the chart\nKill the chart-junk reflex',
+                        body: '<p>Most dashboards die because they answer a question nobody asked...</p>',
+                        coverImage: IMG.blogTeam
+                    },
+                    published: true
+                },
+                {
+                    slug: 'cracking-the-behavioural-round',
+                    data: {
+                        title: 'Cracking the Behavioural Round',
+                        tagline: 'STAR stories that actually land',
+                        duration: '60 min',
+                        level: 'Beginner',
+                        keyOutcomes: 'Build a 6-story bank that covers every prompt\nAnswer with structure, not autobiography\nHandle "weakness" without flinching',
+                        body: '<p>Behavioural interviews are won in story selection, not delivery...</p>',
+                        coverImage: IMG.blogStudying
+                    },
+                    published: true
+                }
+            ]
+        },
+        // ── Case studies ─────────────────────────────────────────────────────
+        {
+            slug: 'case-studies',
+            name: 'Case Studies',
+            description: 'Real-world business problems, broken down end-to-end. Surfaced at /resources/case-studies.',
+            fields: [
+                { key: 'brand', label: 'Brand', type: 'text', required: true },
+                { key: 'title', label: 'Case title', type: 'text', required: true },
+                { key: 'sector', label: 'Sector', type: 'text' },
+                { key: 'founded', label: 'Brand founded', type: 'text' },
+                { key: 'keyFacts', label: 'Key facts (one per line)', type: 'longtext' },
+                { key: 'body', label: 'Body', type: 'richtext' },
+                { key: 'coverImage', label: 'Cover image URL', type: 'image' }
+            ],
+            items: [
+                {
+                    slug: 'flipkart-big-billion-days',
+                    data: {
+                        brand: 'Flipkart',
+                        title: 'Big Billion Days: surviving 10× peak load on a marketplace',
+                        sector: 'E-commerce',
+                        founded: '2007',
+                        keyFacts: 'Peak: 10× normal traffic\nCart abandonment dropped 18%\nCheckout latency held under 800ms',
+                        body: '<p>Big Billion Days is the cliff Flipkart bets a quarter on...</p>',
+                        coverImage: IMG.blogChart
+                    },
+                    published: true
+                },
+                {
+                    slug: 'razorpay-fraud-models',
+                    data: {
+                        brand: 'Razorpay',
+                        title: 'Building real-time fraud models for Indian payments',
+                        sector: 'Fintech',
+                        founded: '2014',
+                        keyFacts: 'Fraud rate cut by 42% in 6 months\nModel inference under 50ms p99\nFalse-positive rate dropped 28%',
+                        body: '<p>UPI fraud at Indian scale is a different game from card fraud...</p>',
+                        coverImage: IMG.blogTeam
+                    },
+                    published: true
+                }
+            ]
+        },
+        // ── Interview guides ─────────────────────────────────────────────────
+        {
+            slug: 'interview-guides',
+            name: 'Interview Guides',
+            description: 'Company-specific prep for MAANG, IB & product roles. Surfaced at /resources/interview-guides.',
+            fields: [
+                { key: 'title', label: 'Guide title', type: 'text', required: true },
+                { key: 'description', label: 'Short description', type: 'longtext' },
+                { key: 'difficulty', label: 'Difficulty', type: 'select', options: ['Easy', 'Medium', 'Hard'] },
+                { key: 'targetCompanies', label: 'Target companies (comma-separated)', type: 'text' },
+                { key: 'sections', label: 'Sections (markdown / longtext)', type: 'longtext' },
+                { key: 'body', label: 'Body', type: 'richtext' },
+                { key: 'coverImage', label: 'Cover image URL', type: 'image' }
+            ],
+            items: [
+                {
+                    slug: 'sql-50',
+                    data: {
+                        title: 'SQL 50: the questions every analyst should know',
+                        description: 'A curated set of 50 SQL interview questions covering joins, window functions, performance, and pitfalls — with annotated solutions.',
+                        difficulty: 'Medium',
+                        targetCompanies: 'Razorpay, Flipkart, Swiggy, Zomato, Paytm',
+                        sections: '## Joins (1–10)\n## Window functions (11–25)\n## CTEs & recursion (26–35)\n## Performance (36–45)\n## Curveballs (46–50)',
+                        body: '<p>If you can answer these 50 cold, you can answer any analyst SQL round...</p>',
+                        coverImage: IMG.blogChart
+                    },
+                    published: true
+                },
+                {
+                    slug: 'pm-product-sense',
+                    data: {
+                        title: 'PM Product-Sense: 30 prompts with rubrics',
+                        description: 'Thirty real product-sense prompts ("Design X for Y") with the four-section answer structure top PM coaches use.',
+                        difficulty: 'Hard',
+                        targetCompanies: 'Google, Meta, Amazon, Flipkart, Swiggy',
+                        sections: '## User & user pain\n## Goals & success metric\n## Solutions ranked\n## Tradeoffs + roadmap',
+                        body: '<p>Product-sense is judged on structure, not creativity...</p>',
+                        coverImage: IMG.blogStudying
+                    },
+                    published: true
+                }
+            ]
+        },
+        // ── Cheatsheets ──────────────────────────────────────────────────────
+        {
+            slug: 'cheatsheets',
+            name: 'Cheatsheets',
+            description: 'Quick one-pagers for revising key concepts. Surfaced at /resources/cheatsheet.',
+            fields: [
+                { key: 'title', label: 'Title', type: 'text', required: true },
+                { key: 'description', label: 'Short description', type: 'longtext' },
+                { key: 'category', label: 'Category', type: 'select', options: ['SQL', 'Python', 'Statistics', 'Excel', 'Power BI', 'Pandas', 'Git'] },
+                { key: 'body', label: 'Body', type: 'richtext' },
+                { key: 'code', label: 'Code samples / snippets', type: 'longtext' },
+                { key: 'coverImage', label: 'Cover image URL', type: 'image' }
+            ],
+            items: [
+                {
+                    slug: 'sql-window-functions',
+                    data: {
+                        title: 'SQL Window Functions cheat sheet',
+                        description: 'ROW_NUMBER, RANK, LAG/LEAD, running totals, partitioned aggregates — every pattern on one page.',
+                        category: 'SQL',
+                        body: '<p>Window functions partition the result set, then run an aggregate...</p>',
+                        code: 'SELECT name, dept,\n  ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS rk\nFROM employees;',
+                        coverImage: IMG.blogChart
+                    },
+                    published: true
+                },
+                {
+                    slug: 'pandas-by-verb',
+                    data: {
+                        title: 'Pandas by verb',
+                        description: 'Filter, group, agg, pivot, merge, melt — every Pandas verb with a one-line example.',
+                        category: 'Pandas',
+                        body: '<p>The fastest way to learn Pandas: think in verbs, not classes.</p>',
+                        code: 'df.query("region == \'south\'")\ndf.groupby("region").amount.sum()\ndf.pivot_table(index="region", values="amount", aggfunc="sum")',
+                        coverImage: IMG.blogStudying
                     },
                     published: true
                 }

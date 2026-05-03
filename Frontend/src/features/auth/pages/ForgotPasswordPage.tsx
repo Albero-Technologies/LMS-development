@@ -26,7 +26,8 @@ export const ForgotPasswordPage = () => {
 
     return (
         <AuthShell
-            title="Reset your password"
+            title="Reset"
+            titleAccent="your password."
             subtitle="We'll email you a link. It expires in 15 minutes."
             footer={
                 <Link

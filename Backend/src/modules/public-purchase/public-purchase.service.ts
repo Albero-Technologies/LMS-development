@@ -17,7 +17,7 @@ import logger from '../../util/logger'
 import { hashPassword } from '../../util/password'
 import { resolveRazorpay, verifyPaymentSignature } from '../payments/razorpay.client'
 import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
-import { pickCounsellor } from '../enquiries/enquiry.service'
+import { pickCounsellor, pushEnquiryToSheet } from '../enquiries/enquiry.service'
 import type { TInitPurchaseInput, TVerifyPurchaseInput, TCancelPurchaseInput } from './public-purchase.schema'
 
 // Resolve a tenant by slug for public traffic. Mirrors enquiries' resolver
@@ -133,6 +133,12 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
             extra: { purchaseIntent } as unknown as Prisma.InputJsonValue,
             assignedToId
         }
+    })
+
+    // Same fire-and-forget sheet push as the contact form, but flagged as
+    // an enrol-checkout row so the marketing team can filter the funnel.
+    void pushEnquiryToSheet(tenant.id, enquiry, 'enroll-checkout').catch((err: unknown) => {
+        logger.error('SHEETS_PUSH_FAILED', { meta: { enquiryId: enquiry.id, err: (err as Error).message } })
     })
 
     return {

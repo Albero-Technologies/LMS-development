@@ -45,6 +45,33 @@ export const reassignLead = async (id: string, counsellorId: string): Promise<Le
     return data.data
 }
 
+// Roster the "Assign to" picker draws from. Pulls counsellors AND counselling
+// managers from the tenant via /users — admins routinely hand high-value
+// leads to managers, so we surface both. Two parallel calls keep the
+// payloads small (no need for an OR-role server query).
+export type AssignableUser = {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    role: 'COUNSELLOR' | 'COUNSELLING_MANAGER'
+}
+
+interface UsersListEnvelope {
+    items: AssignableUser[]
+    total: number
+}
+
+export const listAssignableCounsellors = async (): Promise<AssignableUser[]> => {
+    const fetchRole = async (role: AssignableUser['role']): Promise<AssignableUser[]> => {
+        const { data } = await api.get<Envelope<UsersListEnvelope>>('/users', { params: { role, take: 100 } })
+        return data.data.items
+    }
+    const [counsellors, managers] = await Promise.all([fetchRole('COUNSELLOR'), fetchRole('COUNSELLING_MANAGER')])
+    // Show counsellors first (they take most leads), then managers.
+    return [...counsellors, ...managers]
+}
+
 // Public enquiry submission (used by /enquiry page). No auth — backend
 // resolves the tenant from `tenantSlug` or the Host header. Mirrors the
 // onboarding payload so the same applicant context is captured up-front.

@@ -28,7 +28,9 @@ import {
     Link2,
     Telescope,
     Database,
-    Target
+    Target,
+    Sparkles,
+    Library
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
@@ -61,6 +63,8 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/admin/tenants', label: 'Tenants', icon: Building2 },
         { to: '/app/admin/website-editor', label: 'Website Editor', icon: Globe },
         { to: '/app/admin/cms', label: 'CMS', icon: Database },
+        { to: '/app/admin/programs', label: 'Programs', icon: Sparkles },
+        { to: '/app/admin/resources', label: 'Resources', icon: Library },
         { to: '/app/admin/utm-builder', label: 'UTM Builder', icon: Link2 },
         { to: '/app/admin/seo-builder', label: 'SEO Builder', icon: Telescope },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
@@ -81,6 +85,8 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/admin/cms', label: 'Content', icon: Database },
+        { to: '/app/admin/programs', label: 'Programs', icon: Sparkles },
+        { to: '/app/admin/resources', label: 'Resources', icon: Library },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/admin/billing', label: 'Subscription', icon: Briefcase },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck },

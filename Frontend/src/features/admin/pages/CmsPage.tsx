@@ -49,11 +49,29 @@ import {
     type FieldType
 } from '../services/cms.service'
 
-export const CmsPage = () => {
+// CmsPage doubles as the focused editor for the per-resource admin pages
+// (Programs, Resources). Pass `lockedCollectionSlug` to lock onto a single
+// collection — the left rail and "New collection" CTA are hidden, the
+// collection auto-selects, and the page header swaps to the props-supplied
+// title so the user sees "Programs" rather than "CMS". Same flow,
+// stripped-down chrome.
+interface CmsPageProps {
+    /** When set, the page only edits this one collection — no left rail. */
+    lockedCollectionSlug?: string
+    /** Override the page header eyebrow when running locked. */
+    headerEyebrow?: string
+    /** Override the page header title when running locked. */
+    headerTitle?: string
+    /** Override the page header description when running locked. */
+    headerDescription?: string
+}
+
+export const CmsPage = ({ lockedCollectionSlug, headerEyebrow, headerTitle, headerDescription }: CmsPageProps = {}) => {
     const queryClient = useQueryClient()
     const confirm = useConfirm()
     const role = useAuthStore((s) => s.user?.role)
     const isSuperAdmin = role === ROLES.SUPER_ADMIN
+    const isLocked = !!lockedCollectionSlug
 
     // SUPER_ADMIN picks any tenant; everyone else stays on their own.
     // `tenantId === undefined` means "use the JWT's tenantId on the backend",
@@ -101,10 +119,27 @@ export const CmsPage = () => {
     })
     const collections = collectionsQuery.data ?? []
 
-    // Auto-select first collection on load (or after tenant switch).
+    // Auto-select. Locked mode: pick the collection matching the slug
+    // (if it exists; otherwise fall back to first so we never show an
+    // empty pane). Unlocked: just first.
     useEffect(() => {
-        if (!selectedId && collections.length > 0) setSelectedId(collections[0].id)
-    }, [selectedId, collections])
+        if (selectedId || collections.length === 0) return
+        if (isLocked) {
+            const match = collections.find((c) => c.slug === lockedCollectionSlug)
+            setSelectedId((match ?? collections[0]).id)
+        } else {
+            setSelectedId(collections[0].id)
+        }
+    }, [selectedId, collections, isLocked, lockedCollectionSlug])
+
+    // When the locked slug changes (e.g. user clicks a different tab on the
+    // Resources page) re-select even if we already had a selection.
+    useEffect(() => {
+        if (!isLocked || collections.length === 0) return
+        const match = collections.find((c) => c.slug === lockedCollectionSlug)
+        if (match && match.id !== selectedId) setSelectedId(match.id)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lockedCollectionSlug, isLocked])
 
     const selected = collections.find((c) => c.id === selectedId) ?? null
 
@@ -131,9 +166,12 @@ export const CmsPage = () => {
     return (
         <>
             <PageHeader
-                eyebrow="Content"
-                title="CMS"
-                description="Define content types, then add and publish items. Used by the Collection-list block on your site."
+                eyebrow={headerEyebrow ?? 'Content'}
+                title={headerTitle ?? 'CMS'}
+                description={
+                    headerDescription ??
+                    'Define content types, then add and publish items. Used by the Collection-list block on your site.'
+                }
                 actions={
                     <>
                         {isSuperAdmin && (
@@ -154,13 +192,17 @@ export const CmsPage = () => {
                                 </Select>
                             </div>
                         )}
-                        <Button
-                            size="sm"
-                            leftIcon={<Plus size={14} />}
-                            disabled={isSuperAdmin && !effectiveTenantId}
-                            onClick={() => setNewCollectionOpen(true)}>
-                            New collection
-                        </Button>
+                        {/* Hide the schema-creation CTA on focused pages — those pages exist precisely
+                            because the schema is fixed. Admins still get full schema access from /content. */}
+                        {!isLocked && (
+                            <Button
+                                size="sm"
+                                leftIcon={<Plus size={14} />}
+                                disabled={isSuperAdmin && !effectiveTenantId}
+                                onClick={() => setNewCollectionOpen(true)}>
+                                New collection
+                            </Button>
+                        )}
                     </>
                 }
             />
@@ -174,38 +216,55 @@ export const CmsPage = () => {
                 <Empty
                     icon={<Database size={32} />}
                     title="No collections yet"
-                    description="Spin up a content type — Blog, Press, Events, anything. Each item lives in this tenant only."
+                    description={
+                        isLocked
+                            ? 'This collection has not been seeded for the selected tenant. Re-run the Albero seed or pick a tenant that has it.'
+                            : 'Spin up a content type — Blog, Press, Events, anything. Each item lives in this tenant only.'
+                    }
                     action={
-                        <Button
-                            leftIcon={<Plus size={14} />}
-                            onClick={() => setNewCollectionOpen(true)}>
-                            New collection
-                        </Button>
+                        isLocked ? null : (
+                            <Button
+                                leftIcon={<Plus size={14} />}
+                                onClick={() => setNewCollectionOpen(true)}>
+                                New collection
+                            </Button>
+                        )
                     }
                 />
+            ) : isLocked && !collections.find((c) => c.slug === lockedCollectionSlug) ? (
+                // Tenant exists but the locked collection isn't seeded for them
+                // yet — make this a one-line, actionable empty state instead of
+                // dropping them into the wrong collection.
+                <Empty
+                    icon={<Database size={32} />}
+                    title={`No "${lockedCollectionSlug}" collection on this tenant yet`}
+                    description="Re-run the Albero seed (npm run prisma:seed) or open the full CMS to create one manually."
+                />
             ) : (
-                <div className="grid lg:grid-cols-[280px_1fr] gap-4 items-start">
-                    <Card padded={false}>
-                        <ul className="divide-y">
-                            {collections.map((c) => (
-                                <li key={c.id}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedId(c.id)}
-                                        className={cn(
-                                            'w-full text-left p-3 hover:bg-surface-hover transition-colors',
-                                            selectedId === c.id && 'bg-[var(--color-brand-50)]'
-                                        )}>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-fg truncate">{c.name}</span>
-                                            <span className="text-[11px] text-fg-muted font-mono">{c._count?.items ?? 0}</span>
-                                        </div>
-                                        <div className="text-[11px] text-fg-muted font-mono">/{c.slug}</div>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </Card>
+                <div className={cn('grid gap-4 items-start', isLocked ? 'grid-cols-1' : 'lg:grid-cols-[280px_1fr]')}>
+                    {!isLocked && (
+                        <Card padded={false}>
+                            <ul className="divide-y">
+                                {collections.map((c) => (
+                                    <li key={c.id}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedId(c.id)}
+                                            className={cn(
+                                                'w-full text-left p-3 hover:bg-surface-hover transition-colors',
+                                                selectedId === c.id && 'bg-[var(--color-brand-50)]'
+                                            )}>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium text-fg truncate">{c.name}</span>
+                                                <span className="text-[11px] text-fg-muted font-mono">{c._count?.items ?? 0}</span>
+                                            </div>
+                                            <div className="text-[11px] text-fg-muted font-mono">/{c.slug}</div>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+                    )}
 
                     {selected ? (
                         <CollectionPane

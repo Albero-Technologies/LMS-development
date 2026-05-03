@@ -120,14 +120,31 @@ export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput
     // Fire-and-forget push to the tenant's Google Sheet (§9.2). The marketing
     // team's existing spreadsheet stays in sync without blocking the public
     // form's response. Errors are logged, never surfaced to the prospect.
-    void pushEnquiryToSheet(tenantId, enquiry).catch((err: unknown) => {
+    void pushEnquiryToSheet(tenantId, enquiry, 'contact-form').catch((err: unknown) => {
         logger.error('SHEETS_PUSH_FAILED', { meta: { enquiryId: enquiry.id, err: (err as Error).message } })
     })
 
     return enquiry
 }
 
-const pushEnquiryToSheet = async (tenantId: string, enquiry: Awaited<ReturnType<typeof db.client.enquiry.create>>): Promise<void> => {
+// Sheet row shape — STABLE across callers. If you reorder, also rename the
+// column headers in any onboarding doc. Order is the row layout used in the
+// Google Sheet (left → right): time-of-event, identity, intent, attribution,
+// internal routing, source channel.
+//
+// formType labels which surface produced the row so admins can filter the
+// sheet by funnel: a "contact-form" row from /contact, a "enroll-checkout"
+// row from a public Razorpay init, etc. Stage tracks whether the lead has
+// since been progressed (CONVERTED / DEMO_SCHEDULED / LOST) — useful when
+// the sheet is the marketing team's primary view.
+type EnquiryLike = Pick<
+    Awaited<ReturnType<typeof db.client.enquiry.create>>,
+    'name' | 'email' | 'phone' | 'course' | 'city' | 'language' | 'message' | 'source' | 'utmSource' | 'utmMedium' | 'utmCampaign' | 'assignedToId' | 'stage' | 'id'
+>
+
+export type EnquiryFormType = 'contact-form' | 'enroll-checkout'
+
+export const pushEnquiryToSheet = async (tenantId: string, enquiry: EnquiryLike, formType: EnquiryFormType): Promise<void> => {
     const tenant = await db.client.tenant.findUnique({ where: { id: tenantId } })
     const settings = tenant?.settings as {
         googleSheetId?: string
@@ -143,6 +160,7 @@ const pushEnquiryToSheet = async (tenantId: string, enquiry: Awaited<ReturnType<
         serviceAccountJson: settings?.environment?.googleSheets?.serviceAccountJson,
         values: [
             new Date().toISOString(),
+            formType,
             enquiry.name,
             enquiry.email,
             enquiry.phone,
@@ -150,10 +168,13 @@ const pushEnquiryToSheet = async (tenantId: string, enquiry: Awaited<ReturnType<
             enquiry.city ?? '',
             enquiry.language ?? '',
             enquiry.message ?? '',
+            enquiry.source ?? '',
             enquiry.utmSource ?? '',
             enquiry.utmMedium ?? '',
             enquiry.utmCampaign ?? '',
-            enquiry.assignedToId ?? ''
+            enquiry.stage,
+            enquiry.assignedToId ?? '',
+            enquiry.id
         ]
     })
 }
@@ -208,14 +229,23 @@ export const updateEnquiryStage = async (tenantId: string, id: string, stage: En
     return { enquiry: updated, previousStage: enquiry.stage }
 }
 
+// Counselling-track roles that can own a lead. Admins should be able to
+// hand a lead to either an individual counsellor or a counselling manager
+// (managers sometimes pick up high-value leads themselves).
+const ASSIGNABLE_ROLES: Role[] = [Role.COUNSELLOR, Role.COUNSELLING_MANAGER]
+
 export const reassignEnquiry = async (tenantId: string, id: string, counsellorId: string) => {
     const enquiry = await db.client.enquiry.findUnique({ where: { id } })
     if (!enquiry || enquiry.tenantId !== tenantId) {
         throw AppError.notFound(responseMessage.NOT_FOUND('Enquiry'), 'ENQUIRY_NOT_FOUND')
     }
     const counsellor = await db.client.user.findUnique({ where: { id: counsellorId } })
-    if (!counsellor || counsellor.tenantId !== tenantId || counsellor.role !== Role.COUNSELLOR) {
-        throw AppError.badRequest('Target user is not a counsellor for this tenant', 'INVALID_COUNSELLOR')
+    if (!counsellor || counsellor.tenantId !== tenantId || !ASSIGNABLE_ROLES.includes(counsellor.role)) {
+        throw AppError.badRequest('Target user is not a counsellor or counselling manager for this tenant', 'INVALID_COUNSELLOR')
     }
-    return db.client.enquiry.update({ where: { id }, data: { assignedToId: counsellorId } })
+    return db.client.enquiry.update({
+        where: { id },
+        data: { assignedToId: counsellorId },
+        include: { assignedTo: { select: { id: true, firstName: true, lastName: true } } }
+    })
 }

@@ -61,6 +61,8 @@ import { TenantBillingPage } from '@features/admin/pages/TenantBillingPage'
 import { TenantLandingPage } from '@features/marketing/pages/TenantLandingPage'
 import { TenantCollectionItemPage } from '@features/marketing/pages/TenantCollectionItemPage'
 import { CmsPage } from '@features/admin/pages/CmsPage'
+import { ProgramsCmsPage } from '@features/admin/pages/ProgramsCmsPage'
+import { ResourcesCmsPage } from '@features/admin/pages/ResourcesCmsPage'
 import { TenantBrandingProvider } from '@shared/contexts/TenantBrandingContext'
 
 export const router = createBrowserRouter([
@@ -281,6 +283,24 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <CmsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                // Focused programs editor — same backend, different chrome.
+                path: 'admin/programs',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <ProgramsCmsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                // Tabbed editor for the 6 public-site resource categories.
+                path: 'admin/resources',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <ResourcesCmsPage />
                     </ProtectedRoute>
                 )
             },

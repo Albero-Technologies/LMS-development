@@ -46,7 +46,8 @@ export const LoginPage = () => {
 
     return (
         <AuthShell
-            title="Welcome back"
+            title="Welcome"
+            titleAccent="back."
             subtitle="Sign in to continue where you left off."
             footer={
                 <div className="flex items-center justify-between">

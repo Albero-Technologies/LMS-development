@@ -45,7 +45,8 @@ export const RegisterPage = () => {
 
     return (
         <AuthShell
-            title="Create your tenant"
+            title="Create your"
+            titleAccent="tenant."
             subtitle="You become the first admin. Invite your team after."
             footer={
                 <span>

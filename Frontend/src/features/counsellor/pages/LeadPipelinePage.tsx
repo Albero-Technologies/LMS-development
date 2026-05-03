@@ -1,6 +1,6 @@
 import { useMemo, useState, type DragEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Phone, Mail, MessageCircle, Calendar, MoreHorizontal, ChevronRight, LayoutGrid, Table2 } from 'lucide-react'
+import { Phone, Mail, MessageCircle, Calendar, MoreHorizontal, ChevronRight, LayoutGrid, Table2, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -9,7 +9,18 @@ import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
-import { listMyLeads, STAGE_LABEL, STAGE_ORDER, STAGE_TONE, updateLeadStage, type Lead, type LeadStage } from '../services/lead.service'
+import {
+    listMyLeads,
+    listAssignableCounsellors,
+    reassignLead,
+    STAGE_LABEL,
+    STAGE_ORDER,
+    STAGE_TONE,
+    updateLeadStage,
+    type AssignableUser,
+    type Lead,
+    type LeadStage
+} from '../services/lead.service'
 
 const timeAgo = (iso: string): string => {
     const diff = Date.now() - new Date(iso).getTime()
@@ -53,6 +64,49 @@ export const LeadPipelinePage = () => {
         onError: (err: unknown, _vars, ctx) => {
             if (ctx?.previous) queryClient.setQueryData(['leads'], ctx.previous)
             const msg = err instanceof Error ? err.message : 'Could not update stage'
+            toast.error(msg)
+        },
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ['leads'] })
+    })
+
+    // Roster of counsellors + counselling managers a lead can be assigned to.
+    // Loaded once with the page; React Query caches it for 5 minutes.
+    const counsellorsQuery = useQuery({
+        queryKey: ['lead-assignees'],
+        queryFn: listAssignableCounsellors,
+        staleTime: 5 * 60_000
+    })
+    const counsellors = counsellorsQuery.data ?? []
+
+    const assignMutation = useMutation({
+        mutationFn: ({ id, counsellorId }: { id: string; counsellorId: string }) => reassignLead(id, counsellorId),
+        // Optimistic — patch the assignedTo in cache so the card label updates instantly.
+        onMutate: async ({ id, counsellorId }) => {
+            await queryClient.cancelQueries({ queryKey: ['leads'] })
+            const previous = queryClient.getQueryData<Lead[]>(['leads'])
+            const target = counsellors.find((c) => c.id === counsellorId)
+            if (previous && target) {
+                queryClient.setQueryData<Lead[]>(
+                    ['leads'],
+                    previous.map((l) =>
+                        l.id === id
+                            ? {
+                                  ...l,
+                                  assignedToId: target.id,
+                                  assignedTo: { id: target.id, firstName: target.firstName, lastName: target.lastName }
+                              }
+                            : l
+                    )
+                )
+            }
+            return { previous }
+        },
+        onSuccess: (lead) => {
+            toast.success(`Assigned to ${lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : 'counsellor'}`)
+        },
+        onError: (err: unknown, _vars, ctx) => {
+            if (ctx?.previous) queryClient.setQueryData(['leads'], ctx.previous)
+            const msg = err instanceof Error ? err.message : 'Could not reassign'
             toast.error(msg)
         },
         onSettled: () => queryClient.invalidateQueries({ queryKey: ['leads'] })
@@ -170,8 +224,10 @@ export const LeadPipelinePage = () => {
                                         <LeadCard
                                             key={lead.id}
                                             lead={lead}
+                                            counsellors={counsellors}
                                             onDragStart={(e) => onDragStart(e, lead)}
                                             onMove={(s) => stageMutation.mutate({ id: lead.id, stage: s })}
+                                            onAssign={(counsellorId) => assignMutation.mutate({ id: lead.id, counsellorId })}
                                         />
                                     ))}
                                 </div>
@@ -186,7 +242,9 @@ export const LeadPipelinePage = () => {
                     onStageFilter={setTableStageFilter}
                     counts={columns}
                     totalLeads={leads.length}
+                    counsellors={counsellors}
                     onMove={(id, stage) => stageMutation.mutate({ id, stage })}
+                    onAssign={(id, counsellorId) => assignMutation.mutate({ id, counsellorId })}
                 />
             )}
         </>
@@ -195,12 +253,16 @@ export const LeadPipelinePage = () => {
 
 const LeadCard = ({
     lead,
+    counsellors,
     onDragStart,
-    onMove
+    onMove,
+    onAssign
 }: {
     lead: Lead
+    counsellors: AssignableUser[]
     onDragStart: (e: DragEvent<HTMLElement>) => void
     onMove: (s: LeadStage) => void
+    onAssign: (counsellorId: string) => void
 }) => {
     const [menuOpen, setMenuOpen] = useState(false)
     return (
@@ -232,7 +294,7 @@ const LeadCard = ({
                                 className="fixed inset-0 z-10"
                                 onClick={() => setMenuOpen(false)}
                             />
-                            <div className="absolute right-0 top-8 z-20 bg-surface border rounded-md shadow-lift text-sm py-1 w-48">
+                            <div className="absolute right-0 top-8 z-20 bg-surface border rounded-md shadow-lift text-sm py-1 w-56 max-h-[420px] overflow-y-auto">
                                 <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider text-fg-muted font-medium">Move to</div>
                                 {STAGE_ORDER.filter((s) => s !== lead.stage).map((s) => (
                                     <button
@@ -247,6 +309,39 @@ const LeadCard = ({
                                         <ChevronRight size={12} />
                                     </button>
                                 ))}
+
+                                <div className="my-1 h-px bg-[var(--color-border)]" />
+                                <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider text-fg-muted font-medium">Assign to</div>
+                                {counsellors.length === 0 ? (
+                                    <div className="px-3 py-1.5 text-xs text-fg-muted">No counsellors yet</div>
+                                ) : (
+                                    counsellors.map((c) => {
+                                        const isCurrent = lead.assignedToId === c.id
+                                        return (
+                                            <button
+                                                key={c.id}
+                                                type="button"
+                                                disabled={isCurrent}
+                                                className={cn(
+                                                    'w-full flex items-center justify-between px-3 py-1.5 text-left',
+                                                    isCurrent ? 'text-fg-muted cursor-default' : 'hover:bg-surface-hover'
+                                                )}
+                                                onClick={() => {
+                                                    if (isCurrent) return
+                                                    onAssign(c.id)
+                                                    setMenuOpen(false)
+                                                }}>
+                                                <span className="truncate">
+                                                    {c.firstName} {c.lastName}
+                                                    {c.role === 'COUNSELLING_MANAGER' && (
+                                                        <span className="ml-1 text-[10px] uppercase tracking-wider text-fg-muted">Mgr</span>
+                                                    )}
+                                                </span>
+                                                {isCurrent ? <UserCheck size={12} className="text-[var(--color-brand-500)]" /> : <ChevronRight size={12} />}
+                                            </button>
+                                        )
+                                    })
+                                )}
                             </div>
                         </>
                     )}
@@ -300,14 +395,18 @@ const LeadTable = ({
     onStageFilter,
     counts,
     totalLeads,
-    onMove
+    counsellors,
+    onMove,
+    onAssign
 }: {
     leads: Lead[]
     stageFilter: LeadStage | 'ALL'
     onStageFilter: (s: LeadStage | 'ALL') => void
     counts: Record<LeadStage, Lead[]>
     totalLeads: number
+    counsellors: AssignableUser[]
     onMove: (id: string, stage: LeadStage) => void
+    onAssign: (id: string, counsellorId: string) => void
 }) => {
     return (
         <>
@@ -369,10 +468,17 @@ const LeadTable = ({
                                         </td>
                                         <td className="py-3 px-5 text-xs text-fg-muted">{fmtDate(l.createdAt)}</td>
                                         <td className="py-3 px-5 text-right">
-                                            <StageMenu
-                                                current={l.stage}
-                                                onPick={(s) => onMove(l.id, s)}
-                                            />
+                                            <div className="inline-flex items-center gap-1">
+                                                <AssignMenu
+                                                    counsellors={counsellors}
+                                                    currentId={l.assignedToId}
+                                                    onPick={(cid) => onAssign(l.id, cid)}
+                                                />
+                                                <StageMenu
+                                                    current={l.stage}
+                                                    onPick={(s) => onMove(l.id, s)}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -399,6 +505,71 @@ const FilterChip = ({ label, count, active, onClick }: { label: string; count: n
         <span className="font-mono text-[11px] text-fg-muted">{count}</span>
     </button>
 )
+
+const AssignMenu = ({
+    counsellors,
+    currentId,
+    onPick
+}: {
+    counsellors: AssignableUser[]
+    currentId: string | null
+    onPick: (counsellorId: string) => void
+}) => {
+    const [open, setOpen] = useState(false)
+    return (
+        <div className="relative inline-block">
+            <Button
+                size="sm"
+                variant="ghost"
+                leftIcon={<UserCheck size={12} />}
+                onClick={() => setOpen((v) => !v)}>
+                Assign
+            </Button>
+            {open && (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Close menu"
+                        className="fixed inset-0 z-10"
+                        onClick={() => setOpen(false)}
+                    />
+                    <div className="absolute right-0 top-9 z-20 bg-surface border rounded-md shadow-lift text-sm py-1 w-56 max-h-[360px] overflow-y-auto">
+                        {counsellors.length === 0 ? (
+                            <div className="px-3 py-2 text-xs text-fg-muted">No counsellors yet</div>
+                        ) : (
+                            counsellors.map((c) => {
+                                const isCurrent = currentId === c.id
+                                return (
+                                    <button
+                                        key={c.id}
+                                        type="button"
+                                        disabled={isCurrent}
+                                        className={cn(
+                                            'w-full flex items-center justify-between px-3 py-1.5 text-left',
+                                            isCurrent ? 'text-fg-muted cursor-default' : 'hover:bg-surface-hover'
+                                        )}
+                                        onClick={() => {
+                                            if (isCurrent) return
+                                            onPick(c.id)
+                                            setOpen(false)
+                                        }}>
+                                        <span className="truncate">
+                                            {c.firstName} {c.lastName}
+                                            {c.role === 'COUNSELLING_MANAGER' && (
+                                                <span className="ml-1 text-[10px] uppercase tracking-wider text-fg-muted">Mgr</span>
+                                            )}
+                                        </span>
+                                        {isCurrent && <UserCheck size={12} className="text-[var(--color-brand-500)]" />}
+                                    </button>
+                                )
+                            })
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
 
 const StageMenu = ({ current, onPick }: { current: LeadStage; onPick: (s: LeadStage) => void }) => {
     const [open, setOpen] = useState(false)
