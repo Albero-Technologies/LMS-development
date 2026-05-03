@@ -191,9 +191,7 @@ export default function StaircaseClimb() {
     return (
         <section
             ref={sectionRef}
-            className="relative"
-            // Total scroll height — 3× viewport gives the climb a comfortable
-            // pacing without dragging on too long.
+            className="relative hidden md:block"
             style={{ height: '320vh', background: 'var(--page-bg)' }}>
             <div
                 className="sticky overflow-hidden"

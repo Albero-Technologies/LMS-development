@@ -97,6 +97,12 @@ export const CourseBuilderPage = () => {
     // opens in create mode; passing a TLesson opens in edit mode.
     const [lessonEditor, setLessonEditor] = useState<TLesson | 'new' | null>(null)
 
+    // Section editor modal — replaces the native window.prompt that looked
+    // out-of-place against the rest of the dashboard chrome. Shape mirrors
+    // the lesson editor: 'new' for create, a TSection ref for rename, null
+    // to close.
+    const [sectionEditor, setSectionEditor] = useState<TSection | 'new' | null>(null)
+
     useEffect(() => {
         if (sections.length === 0) {
             setActiveSectionId(null)
@@ -108,6 +114,58 @@ export const CourseBuilderPage = () => {
 
     const activeSection = sections.find((s) => s.id === activeSectionId) ?? null
     const previewLesson = activeSection?.lessons.find((l) => l.id === previewLessonId) ?? activeSection?.lessons[0] ?? null
+
+    // ---- Drag-and-drop reorder (sections + lessons) --------------------
+    // Native HTML5 drag-drop — no extra dep. We track the `dragging` id
+    // (whichever row started the drag) and `dragOver` (the row currently
+    // hovered) so the source row can dim and the target shows a top
+    // accent line.
+    const [dragSection, setDragSection] = useState<{ id: string; over: string | null } | null>(null)
+    const [dragLesson, setDragLesson] = useState<{ id: string; over: string | null } | null>(null)
+
+    // Helper — given an array, move `fromIdx` to `toIdx` (returning a new array).
+    // Used by both the section + lesson drag handlers.
+    const moveItem = <T,>(arr: T[], fromIdx: number, toIdx: number): T[] => {
+        if (fromIdx === toIdx) return arr
+        const next = arr.slice()
+        const [item] = next.splice(fromIdx, 1)
+        next.splice(toIdx, 0, item)
+        return next
+    }
+
+    const handleSectionDrop = (targetId: string) => {
+        if (!dragSection || dragSection.id === targetId) return setDragSection(null)
+        const fromIdx = sections.findIndex((s) => s.id === dragSection.id)
+        const toIdx = sections.findIndex((s) => s.id === targetId)
+        if (fromIdx === -1 || toIdx === -1) return setDragSection(null)
+        const next = moveItem(sections, fromIdx, toIdx)
+        // Optimistic invalidation comes from the chained PATCHes; we don't
+        // mutate the cache directly here because each updateSection invalidates
+        // on its own and the final state converges.
+        Promise.all(
+            next.map((sec, i) =>
+                sec.order === i ? null : reorderSectionMutation.mutateAsync({ sectionId: sec.id, order: i })
+            )
+        ).finally(() => {
+            invalidate()
+            setDragSection(null)
+        })
+    }
+
+    const handleLessonDrop = (targetId: string) => {
+        if (!activeSection || !dragLesson || dragLesson.id === targetId) return setDragLesson(null)
+        const ls = activeSection.lessons
+        const fromIdx = ls.findIndex((l) => l.id === dragLesson.id)
+        const toIdx = ls.findIndex((l) => l.id === targetId)
+        if (fromIdx === -1 || toIdx === -1) return setDragLesson(null)
+        const next = moveItem(ls, fromIdx, toIdx)
+        Promise.all(
+            next.map((l, i) => (l.order === i ? null : reorderLessonMutation.mutateAsync({ lessonId: l.id, order: i })))
+        ).finally(() => {
+            invalidate()
+            setDragLesson(null)
+        })
+    }
 
     const invalidate = () => queryClient.invalidateQueries({ queryKey: ['courses', id] })
 
@@ -126,6 +184,21 @@ export const CourseBuilderPage = () => {
         mutationFn: ({ sectionId, title }: { sectionId: string; title: string }) => updateSection(id, sectionId, { title }, tenantId),
         onSuccess: () => invalidate(),
         onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not rename')
+    })
+
+    // Re-numbering mutations — `updateSection`/`updateLesson` accept an
+    // `order` field. After a drag, we walk the new array and PATCH each
+    // entry whose order changed. The list is short (typically <30) so the
+    // chatty endpoint is fine; React Query invalidates after the last call.
+    const reorderSectionMutation = useMutation({
+        mutationFn: ({ sectionId, order }: { sectionId: string; order: number }) =>
+            updateSection(id, sectionId, { order }, tenantId),
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not reorder section')
+    })
+    const reorderLessonMutation = useMutation({
+        mutationFn: ({ lessonId, order }: { lessonId: string; order: number }) =>
+            updateLesson(id, lessonId, { order }, tenantId),
+        onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not reorder lesson')
     })
 
     const deleteSectionMutation = useMutation({
@@ -151,17 +224,8 @@ export const CourseBuilderPage = () => {
 
     // ---- Handlers ------------------------------------------------------
 
-    const handleAddSection = () => {
-        const title = window.prompt('Section title', `Module ${sections.length + 1}`)?.trim()
-        if (!title) return
-        addSectionMutation.mutate(title)
-    }
-
-    const handleRenameSection = (sec: TSection) => {
-        const title = window.prompt('Rename section', sec.title)?.trim()
-        if (!title || title === sec.title) return
-        renameSectionMutation.mutate({ sectionId: sec.id, title })
-    }
+    const handleAddSection = () => setSectionEditor('new')
+    const handleRenameSection = (sec: TSection) => setSectionEditor(sec)
 
     const handleRemoveSection = async (sec: TSection) => {
         const ok = await confirm({
@@ -301,14 +365,36 @@ export const CourseBuilderPage = () => {
                             {sections.map((sec) => (
                                 <li
                                     key={sec.id}
+                                    draggable
+                                    onDragStart={(e) => {
+                                        e.dataTransfer.effectAllowed = 'move'
+                                        setDragSection({ id: sec.id, over: null })
+                                    }}
+                                    onDragOver={(e) => {
+                                        if (!dragSection || dragSection.id === sec.id) return
+                                        e.preventDefault()
+                                        e.dataTransfer.dropEffect = 'move'
+                                        if (dragSection.over !== sec.id) setDragSection({ ...dragSection, over: sec.id })
+                                    }}
+                                    onDragLeave={() => {
+                                        if (dragSection?.over === sec.id) setDragSection({ ...dragSection, over: null })
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault()
+                                        handleSectionDrop(sec.id)
+                                    }}
+                                    onDragEnd={() => setDragSection(null)}
                                     className={cn(
-                                        'group flex items-center gap-2 rounded-md px-2 py-2 cursor-pointer transition-colors',
-                                        activeSection?.id === sec.id ? 'bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover'
+                                        'group relative flex items-center gap-2 rounded-md px-2 py-2 cursor-pointer transition-colors',
+                                        activeSection?.id === sec.id ? 'bg-[var(--color-brand-50)]' : 'hover:bg-surface-hover',
+                                        dragSection?.id === sec.id && 'opacity-40',
+                                        dragSection?.over === sec.id && 'ring-2 ring-[var(--color-brand-500)]'
                                     )}
                                     onClick={() => setActiveSectionId(sec.id)}>
                                     <GripVertical
                                         size={14}
-                                        className="text-fg-muted shrink-0 opacity-0 group-hover:opacity-100"
+                                        className="text-fg-muted shrink-0 cursor-grab active:cursor-grabbing"
+                                        aria-label="Drag to reorder"
                                     />
                                     <div className="min-w-0 flex-1">
                                         <div className="text-sm font-medium text-fg truncate">{sec.title}</div>
@@ -397,11 +483,37 @@ export const CourseBuilderPage = () => {
                             {activeSection.lessons.map((l, i) => (
                                 <li
                                     key={l.id}
+                                    draggable
+                                    onDragStart={(e) => {
+                                        e.dataTransfer.effectAllowed = 'move'
+                                        setDragLesson({ id: l.id, over: null })
+                                    }}
+                                    onDragOver={(e) => {
+                                        if (!dragLesson || dragLesson.id === l.id) return
+                                        e.preventDefault()
+                                        e.dataTransfer.dropEffect = 'move'
+                                        if (dragLesson.over !== l.id) setDragLesson({ ...dragLesson, over: l.id })
+                                    }}
+                                    onDragLeave={() => {
+                                        if (dragLesson?.over === l.id) setDragLesson({ ...dragLesson, over: null })
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault()
+                                        handleLessonDrop(l.id)
+                                    }}
+                                    onDragEnd={() => setDragLesson(null)}
                                     className={cn(
                                         'group flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors',
-                                        previewLesson?.id === l.id && 'bg-[var(--color-brand-50)]'
+                                        previewLesson?.id === l.id && 'bg-[var(--color-brand-50)]',
+                                        dragLesson?.id === l.id && 'opacity-40',
+                                        dragLesson?.over === l.id && 'ring-2 ring-[var(--color-brand-500)] ring-inset'
                                     )}
                                     onClick={() => setPreviewLessonId(l.id)}>
+                                    <GripVertical
+                                        size={12}
+                                        className="text-fg-muted shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100"
+                                        aria-label="Drag to reorder"
+                                    />
                                     <span className="font-mono text-xs text-fg-muted w-6 text-center">{i + 1}</span>
                                     {l.type === 'YOUTUBE' && l.youtubeId ? (
                                         <img
@@ -537,7 +649,104 @@ export const CourseBuilderPage = () => {
                     tenantId={tenantId}
                 />
             )}
+
+            {sectionEditor !== null && (
+                <SectionEditorModal
+                    open={sectionEditor !== null}
+                    mode={sectionEditor === 'new' ? 'create' : 'rename'}
+                    initialTitle={sectionEditor === 'new' ? `Module ${sections.length + 1}` : sectionEditor.title}
+                    isPending={addSectionMutation.isPending || renameSectionMutation.isPending}
+                    onClose={() => setSectionEditor(null)}
+                    onSubmit={(title) => {
+                        if (sectionEditor === 'new') {
+                            addSectionMutation.mutate(title, { onSuccess: () => setSectionEditor(null) })
+                        } else {
+                            renameSectionMutation.mutate(
+                                { sectionId: sectionEditor.id, title },
+                                { onSuccess: () => setSectionEditor(null) }
+                            )
+                        }
+                    }}
+                />
+            )}
         </>
+    )
+}
+
+// -----------------------------------------------------------------------------
+// Section editor modal — premium replacement for `window.prompt`. Used for
+// both creating new sections and renaming existing ones; the only diff is
+// the modal title + initial value.
+// -----------------------------------------------------------------------------
+
+const SectionEditorModal = ({
+    open,
+    mode,
+    initialTitle,
+    isPending,
+    onClose,
+    onSubmit
+}: {
+    open: boolean
+    mode: 'create' | 'rename'
+    initialTitle: string
+    isPending: boolean
+    onClose: () => void
+    onSubmit: (title: string) => void
+}) => {
+    const [title, setTitle] = useState(initialTitle)
+    useEffect(() => {
+        if (open) setTitle(initialTitle)
+    }, [open, initialTitle])
+
+    const trimmed = title.trim()
+    const valid = trimmed.length >= 1 && trimmed.length <= 200
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!valid) return
+        onSubmit(trimmed)
+    }
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={mode === 'create' ? 'Add a new section' : 'Rename section'}
+            description={
+                mode === 'create'
+                    ? 'Sections group lessons into a module — students see them as collapsible chapters.'
+                    : 'Rename the chapter visible to students.'
+            }
+            footer={
+                <>
+                    <Button
+                        variant="ghost"
+                        onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        form="section-form"
+                        type="submit"
+                        loading={isPending}
+                        disabled={!valid}>
+                        {mode === 'create' ? 'Add section' : 'Save'}
+                    </Button>
+                </>
+            }>
+            <form
+                id="section-form"
+                onSubmit={submit}>
+                <Input
+                    label="Section title"
+                    autoFocus
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Module 1 · Foundations"
+                    hint="Up to 200 characters."
+                />
+            </form>
+        </Modal>
     )
 }
 

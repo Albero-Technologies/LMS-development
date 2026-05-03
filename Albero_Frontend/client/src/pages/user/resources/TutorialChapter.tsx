@@ -65,8 +65,11 @@ export default function TutorialChapter() {
     }
 
     return (
+        // NOTE: avoid `overflow-hidden` on this root — it breaks the sticky
+        // TOC `position: sticky; top: 8rem` on the right rail. Decorative
+        // orbs in the hero are confined with their own clipping below.
         <div
-            className="min-h-screen relative overflow-hidden"
+            className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
             {/* Hero */}
             <section className="relative pt-[140px] pb-10 px-5 md:px-8">

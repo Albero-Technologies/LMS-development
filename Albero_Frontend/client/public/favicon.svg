@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Albero Academy">
-  <!-- Same brand mark as the marketing site (5173) so the LMS dashboard
-       reads as part of the same product family. Rounded emerald square +
-       leaf glyph. -->
+  <!-- Rounded square in the brand emerald (#0d4f3c). Mirrors the leaf
+       monogram cube used throughout Albero Academy's UI. -->
   <rect width="64" height="64" rx="14" fill="#0d4f3c"/>
+  <!-- Leaf shape, identical path to the navbar Wordmark glyph. The mid
+       vein is drawn as a separate stroke so it stays crisp at favicon
+       sizes. -->
   <g fill="none" stroke="#f8f6ee" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M32 11.5 C 18.5 23, 15 36, 32 56 C 49 36, 45.5 23, 32 11.5 Z"/>
     <path d="M32 25 L32 56"/>

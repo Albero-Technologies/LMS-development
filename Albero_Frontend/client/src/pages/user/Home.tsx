@@ -8,6 +8,7 @@ import Collaboration from '@/components/user/home/lms/Collaboration'
 import ThreeSection from '@/components/user/home/lms/ThreeSection'
 import InteractiveSkillsGrid from '@/components/user/home/lms/InteractiveSkillsGrid'
 import StaircaseClimb from '@/components/user/home/lms/StaircaseClimb'
+import MobileLadderClimb from '@/components/user/home/lms/MobileLadderClimb'
 import Mentors from '@/components/user/home/lms/Mentors'
 import LearnerStories from '@/components/user/home/lms/LearnerStories'
 import Certifications from '@/components/user/home/lms/Certifications'
@@ -42,6 +43,7 @@ export default function Home() {
             <InteractiveSkillsGrid />
             <LearningExperience />
             <StaircaseClimb />
+            <MobileLadderClimb />
             <ThreeSection />
             <Outcomes />
             <CertificationPath />

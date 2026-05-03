@@ -41,7 +41,7 @@ export default function InterviewGuideDetail() {
 
     return (
         <div
-            className="min-h-screen relative overflow-hidden"
+            className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
             {/* Hero */}
             <section className="relative pt-[140px] pb-12 px-5 md:px-8">

@@ -519,6 +519,14 @@ const Navbar = () => {
                                 }}
                             />
                             <MobileLink
+                                label="About"
+                                active={path.startsWith('/about')}
+                                onClick={() => {
+                                    setIsOpen(false)
+                                    goLink('/about')
+                                }}
+                            />
+                            <MobileLink
                                 label="Contact"
                                 active={isContact}
                                 onClick={() => {

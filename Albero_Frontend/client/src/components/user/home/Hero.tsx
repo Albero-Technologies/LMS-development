@@ -38,12 +38,11 @@ export function Hero({ subtitle }: HeroProps) {
     return (
         <section
             id="home"
-            className="relative overflow-hidden flex flex-col"
+            className="relative overflow-hidden flex flex-col lg:h-screen"
             style={{
                 background: 'var(--page-bg)',
                 color: 'var(--text-primary)',
-                minHeight: '100svh',
-                height: '100svh'
+                minHeight: '100svh'
             }}>
             {/* ── Background decor ── */}
             <div
@@ -207,12 +206,13 @@ export function Hero({ subtitle }: HeroProps) {
                             Rated 4.8/5
                         </div>
 
-                        {/* Co-certified by IBM + Microsoft — top-right of card */}
+                        {/* Co-certified by IBM + Microsoft — top-right of card. Hidden on
+                            very narrow phones where it would overlap the rating pill. */}
                         <motion.div
                             initial={{ opacity: 0, y: -6 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25, duration: 0.4 }}
-                            className="absolute -top-3 right-3 px-3 py-1.5 rounded-full inline-flex items-center gap-2 text-[10px] font-semibold z-[2]"
+                            className="hidden sm:inline-flex absolute -top-3 right-3 px-3 py-1.5 rounded-full items-center gap-2 text-[10px] font-semibold z-[2]"
                             style={{
                                 background: 'var(--surface)',
                                 border: '1px solid var(--brand-soft)',

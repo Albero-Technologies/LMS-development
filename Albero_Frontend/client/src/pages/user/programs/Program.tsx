@@ -95,7 +95,7 @@ export default function ProgramPage() {
                     }}
                 />
 
-                <div className="max-w-6xl mx-auto relative z-[1] grid lg:grid-cols-[1fr_360px] gap-12 items-start">
+                <div className="max-w-6xl mx-auto relative z-[1] grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-start">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                         <div
                             className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-6 text-[12px] font-semibold tracking-tight"
@@ -105,8 +105,8 @@ export default function ProgramPage() {
                         </div>
 
                         <h1
-                            className="font-display text-[40px] md:text-[64px] leading-[0.96] tracking-[-0.02em] mb-5"
-                            style={{ color: 'var(--text-primary)' }}>
+                            className="font-display leading-[1.0] tracking-[-0.02em] mb-5"
+                            style={{ color: 'var(--text-primary)', fontSize: 'clamp(32px, 6.5vw, 64px)' }}>
                             <span className="font-medium">{program.title}</span>
                             <br />
                             <span className="italic font-light" style={{ color: 'var(--brand)' }}>{program.highlight}</span>
