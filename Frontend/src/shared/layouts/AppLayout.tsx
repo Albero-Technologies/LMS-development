@@ -199,7 +199,8 @@ const AppLayoutBody = () => {
     // SUPER_ADMIN lives in the platform tenant — they don't get a customer
     // brand color, so skip the fetch entirely. Other roles paint the tenant's
     // brand color across the auth surface (sidebar accent, primary buttons,
-    // links) by overriding the --color-brand-* CSS variables.
+    // links) by overriding the --color-brand-* CSS variables, and the brand
+    // wordmark in the sidebar reads the tenant's display name + logo.
     const brandingQuery = useQuery({
         queryKey: ['tenant', 'me', 'branding'],
         queryFn: getMyTenant,
@@ -211,6 +212,24 @@ const AppLayoutBody = () => {
         if (!brandColor) return
         return applyBrandPalette(deriveBrandPalette(brandColor))
     }, [brandColor])
+
+    // SA explicitly clears any --color-brand-* overrides that a previous
+    // ADMIN session may have left on document.documentElement. Without this
+    // hard reset, an admin → logout → super-admin login keeps the customer
+    // tenant's accent paint on the SA's sidebar, "Sign In" button, etc.,
+    // because the SA never registers a cleanup of its own.
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        const root = document.documentElement
+        for (const tier of [50, 100, 300, 500, 600, 700, 900]) {
+            root.style.removeProperty(`--color-brand-${tier}`)
+        }
+    }, [isSuperAdmin])
+
+    // Wordmark + logo shown in the sidebar header. SA stays on the platform
+    // identity (no customer name); everyone else sees their tenant's brand.
+    const brandName = isSuperAdmin ? 'LearnHub Platform' : brandingQuery.data?.name
+    const brandLogo = isSuperAdmin ? null : brandingQuery.data?.brandingLogo
 
     // Open the socket connection while authenticated and route push events to
     // TanStack Query invalidations.
@@ -254,18 +273,22 @@ const AppLayoutBody = () => {
                     <div className={cn('flex items-center justify-between px-4 h-16', collapsed && 'justify-center px-2')}>
                         <Link
                             to="/"
-                            aria-label="Albero Academy home"
+                            aria-label={`${brandName ?? 'Platform'} home`}
                             className="flex items-center min-w-0">
                             {collapsed ? (
                                 <Brand
                                     size="md"
                                     onDark
                                     iconOnly
+                                    name={brandName}
+                                    logoUrl={brandLogo}
                                 />
                             ) : (
                                 <Brand
                                     size="md"
                                     onDark
+                                    name={brandName}
+                                    logoUrl={brandLogo}
                                 />
                             )}
                         </Link>
