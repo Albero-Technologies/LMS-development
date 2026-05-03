@@ -13,6 +13,13 @@ import { z } from 'zod'
 // Tenant slug is required on /init because the request is unauthenticated;
 // /verify and /cancel resolve the tenant from the purchaseId we issued.
 
+// Payment intent — either a small "reserve your slot" registration fee (a
+// flat tenant-configured amount) or the full course fee. The frontend lets
+// the user pick a tier (Self-Paced / Mentor-Led / Career Pro) for display
+// purposes; we accept the chosen tierLabel + tierPrice as advisory metadata
+// (recorded on the enquiry/invoice for the counsellor to follow up), but
+// the authoritative full-fee amount is always the Course.price on record
+// so a tampered client cannot underpay.
 export const initPurchaseSchema = z.object({
     tenantSlug: z.string().trim().min(1).max(80),
     courseSlug: z.string().trim().min(1).max(120),
@@ -28,7 +35,10 @@ export const initPurchaseSchema = z.object({
     message: z.string().trim().max(1000).optional(),
     utmSource: z.string().trim().max(80).optional(),
     utmMedium: z.string().trim().max(80).optional(),
-    utmCampaign: z.string().trim().max(80).optional()
+    utmCampaign: z.string().trim().max(80).optional(),
+    paymentType: z.enum(['REGISTRATION', 'FULL']).default('FULL'),
+    tierLabel: z.string().trim().max(80).optional(),
+    tierPriceMinor: z.number().int().nonnegative().optional()
 })
 
 export const verifyPurchaseSchema = z.object({

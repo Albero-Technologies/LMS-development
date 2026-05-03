@@ -5,6 +5,8 @@ import { TENANT_SLUG } from '@/config/tenant'
 // site's compile-time config; verify + cancel only need the purchaseId
 // the backend returns from init.
 
+export type PaymentType = 'REGISTRATION' | 'FULL'
+
 export interface InitPurchaseInput {
     courseSlug: string
     name: string
@@ -15,6 +17,14 @@ export interface InitPurchaseInput {
     utmSource?: string
     utmMedium?: string
     utmCampaign?: string
+    // 'REGISTRATION' charges the small "reserve your seat" fee; 'FULL' charges
+    // the entire course fee. Defaults to FULL on the backend if omitted.
+    paymentType?: PaymentType
+    // Tier picked on the program page (Self-Paced / Mentor-Led / Career Pro).
+    // Recorded on the enquiry/invoice so the counsellor follow-up can quote
+    // the same plan the student chose.
+    tierLabel?: string
+    tierPriceMinor?: number
 }
 
 export interface InitPurchaseResponse {
@@ -25,6 +35,13 @@ export interface InitPurchaseResponse {
     keyId: string
     courseTitle: string
     courseId: string
+    paymentType: PaymentType
+    priceMinor: number
+    gstAmount: number
+    totalAmount: number
+    fullCourseFeeMinor: number
+    balanceMinor: number
+    tierLabel?: string
     prefill: { name: string; email: string; phone: string }
 }
 
@@ -47,6 +64,10 @@ export interface VerifyPurchaseResponse {
     email: string
     loginUrl: string
     invoiceNumber?: string
+    paymentType?: PaymentType
+    amountPaidMinor?: number
+    balanceDueMinor?: number
+    balanceInvoiceNumber?: string
 }
 
 export const verifyPurchase = async (input: VerifyPurchaseInput): Promise<VerifyPurchaseResponse> => {

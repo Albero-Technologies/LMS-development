@@ -45,6 +45,7 @@ import { SettingsPage } from '@features/settings/pages/SettingsPage'
 import { ReportsPage } from '@features/reports/pages/ReportsPage'
 import { OnboardingPage } from '@features/onboarding/pages/OnboardingPage'
 import { LeadPipelinePage } from '@features/counsellor/pages/LeadPipelinePage'
+import { StudentsMonitorPage } from '@features/students-monitor/pages/StudentsMonitorPage'
 import { CounsellorLinksPage } from '@features/counsellor/pages/CounsellorLinksPage'
 import { CounsellorStudentsPage } from '@features/counsellor/pages/CounsellorStudentsPage'
 import { AuditLogsPage } from '@features/audit/pages/AuditLogsPage'
@@ -260,6 +261,26 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.COUNSELLOR, ROLES.COUNSELLING_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <CounsellorStudentsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                // Sales-perspective student monitoring with tabbed views for
+                // categories, team buckets, and stats timelines. Backend
+                // scopes by role — SUPER_ADMIN sees every tenant, ADMIN their
+                // own, MANAGER their team, COUNSELLOR their own students,
+                // TRAINER students enrolled in their courses.
+                path: 'students-monitor',
+                element: (
+                    <ProtectedRoute
+                        roles={[
+                            ROLES.SUPER_ADMIN,
+                            ROLES.ADMIN,
+                            ROLES.COUNSELLING_MANAGER,
+                            ROLES.COUNSELLOR,
+                            ROLES.TRAINER
+                        ]}>
+                        <StudentsMonitorPage />
                     </ProtectedRoute>
                 )
             },

@@ -1,10 +1,23 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { CheckCircle2, Clock, Users, GraduationCap, Sparkles, ArrowRight, Briefcase, Award, ChevronRight } from 'lucide-react'
+import { CheckCircle2, Clock, Users, GraduationCap, Sparkles, ArrowRight, Briefcase, Award, ChevronRight, Tag, Wallet } from 'lucide-react'
 import { findProgram } from '@/constants/programs'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
 import { useCollectionItem } from '@/hooks/useContent'
+import type { PaymentType } from '@/services/purchaseService'
+
+// Convert "₹65,000" or "₹1,25,000" → 65000 / 125000 (rupees), then to paise.
+// Returns 0 when the string is unparsable so the modal can fall back to the
+// backend's authoritative course price.
+const parseRupeeStringToPaise = (priceStr: string | undefined): number => {
+    if (!priceStr) return 0
+    const digits = priceStr.replace(/[^0-9]/g, '')
+    if (!digits) return 0
+    const rupees = Number(digits)
+    if (!Number.isFinite(rupees)) return 0
+    return rupees * 100
+}
 
 // Pull the marketing-copy fields from the dashboard's `programs` collection
 // when the admin has populated them; fall back to whatever the static
@@ -30,6 +43,16 @@ export default function ProgramPage() {
     const navigate = useNavigate()
     const fallback = slug ? findProgram(slug) : undefined
     const [enrollOpen, setEnrollOpen] = useState(false)
+    // Default to the recommended tier (Mentor-Led on every program). When no
+    // tier is flagged recommended we just pick the second tier as a sensible
+    // mid-priced default. Captured as state so user picks override the default.
+    const recommendedIndex = (() => {
+        if (!fallback) return 0
+        const idx = fallback.fees.findIndex((t) => t.recommended)
+        return idx >= 0 ? idx : Math.min(1, fallback.fees.length - 1)
+    })()
+    const [selectedTierIdx, setSelectedTierIdx] = useState(recommendedIndex)
+    const [paymentIntent, setPaymentIntent] = useState<PaymentType>('REGISTRATION')
 
     // Fetch the matching CMS row. Drafts are filtered out by the backend, so
     // an unpublished item simply 404s and we render the constants version.
@@ -64,7 +87,15 @@ export default function ProgramPage() {
     // Best-effort price string from the program's pricing tiers (used as a
     // hint in the modal). The authoritative amount comes from the backend
     // when checkout starts, so a missing value here is harmless.
-    const displayPrice = (program as { pricing?: { tiers?: { price?: string }[] } }).pricing?.tiers?.[0]?.price
+    const displayPrice = program.fees[0]?.price
+    const selectedTier = program.fees[selectedTierIdx] ?? program.fees[0]
+    const selectedTierPaise = parseRupeeStringToPaise(selectedTier?.price)
+
+    const openWith = (intent: PaymentType, tierIdx: number) => {
+        setPaymentIntent(intent)
+        setSelectedTierIdx(tierIdx)
+        setEnrollOpen(true)
+    }
 
     return (
         <div
@@ -131,21 +162,28 @@ export default function ProgramPage() {
 
                         <div className="flex flex-wrap gap-3">
                             <button
-                                onClick={() => setEnrollOpen(true)}
+                                onClick={() => openWith('REGISTRATION', selectedTierIdx)}
                                 className="px-6 py-3 rounded-full font-semibold inline-flex items-center gap-2 transition-all hover:translate-y-[-1px]"
                                 style={{
                                     background: 'var(--brand)',
                                     color: 'var(--text-on-inverse)',
                                     boxShadow: '0 8px 22px rgba(13,79,60,0.30)'
                                 }}>
-                                Enroll Now <ArrowRight size={16} />
+                                Reserve Slot · ₹5,000 <ArrowRight size={16} />
                             </button>
                             <button
-                                onClick={() => navigate('/pricing')}
-                                className="px-6 py-3 rounded-full font-semibold transition-colors"
-                                style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line-strong)' }}>
-                                See Pricing
+                                onClick={() => openWith('FULL', selectedTierIdx)}
+                                className="px-6 py-3 rounded-full font-semibold inline-flex items-center gap-2 transition-all hover:translate-y-[-1px]"
+                                style={{
+                                    background: 'var(--surface)',
+                                    color: 'var(--brand)',
+                                    border: '1px solid var(--brand)'
+                                }}>
+                                Pay Full Fee {selectedTier?.price ? `· ${selectedTier.price}` : ''}
                             </button>
+                            <a href="#pricing" className="px-6 py-3 rounded-full font-semibold transition-colors" style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line-strong)' }}>
+                                See Pricing
+                            </a>
                         </div>
                     </motion.div>
 
@@ -370,6 +408,143 @@ export default function ProgramPage() {
                 </div>
             </section>
 
+            {/* Choose Your Plan + Reserve / Pay-Full */}
+            <section id="pricing" className="px-5 md:px-8 mb-20 scroll-mt-24">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-10">
+                        <div
+                            className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-4 text-[12px] font-semibold tracking-tight"
+                            style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
+                            <Tag size={14} style={{ color: 'var(--brand)' }} />
+                            Course Investment
+                        </div>
+                        <h2
+                            className="font-display text-[32px] md:text-[44px] font-semibold tracking-[-0.02em] mb-3"
+                            style={{ color: 'var(--text-primary)' }}>
+                            Choose Your Plan
+                        </h2>
+                        <p style={{ color: 'var(--text-secondary)' }}>Reserve your seat with a small registration fee, or pay the full course fee in one go.</p>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                        {program.fees.map((tier, i) => {
+                            const isSelected = i === selectedTierIdx
+                            const recommended = !!tier.recommended
+                            return (
+                                <button
+                                    key={tier.plan}
+                                    type="button"
+                                    onClick={() => setSelectedTierIdx(i)}
+                                    className="text-left rounded-2xl p-6 transition-all relative"
+                                    style={{
+                                        background: isSelected ? 'var(--brand-soft)' : 'var(--surface)',
+                                        border: `1px solid ${isSelected ? 'var(--brand)' : 'var(--line)'}`,
+                                        boxShadow: isSelected ? 'var(--card-shadow-hover)' : 'var(--card-shadow)'
+                                    }}>
+                                    {recommended && (
+                                        <div
+                                            className="absolute -top-3 left-6 text-[10px] font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-full"
+                                            style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
+                                            Recommended
+                                        </div>
+                                    )}
+                                    <div
+                                        className="text-[11px] font-bold tracking-[0.16em] uppercase mb-2"
+                                        style={{ color: 'var(--brand)' }}>
+                                        {tier.plan}
+                                    </div>
+                                    <div
+                                        className="font-display text-[32px] font-semibold leading-none mb-1"
+                                        style={{ color: 'var(--text-primary)' }}>
+                                        {tier.price}
+                                    </div>
+                                    {tier.emi && (
+                                        <div
+                                            className="text-[12.5px] font-semibold mb-4"
+                                            style={{ color: 'var(--text-tertiary)' }}>
+                                            or {tier.emi} on EMI · GST extra
+                                        </div>
+                                    )}
+                                    <ul className="space-y-2 mt-4">
+                                        {tier.features.map((f, j) => (
+                                            <li
+                                                key={j}
+                                                className="flex items-start gap-2 text-[13.5px]"
+                                                style={{ color: 'var(--text-secondary)' }}>
+                                                <CheckCircle2 size={14} className="flex-shrink-0 mt-1" style={{ color: 'var(--brand)' }} />
+                                                <span>{f}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <div
+                                        className="mt-5 inline-flex items-center gap-2 text-[12.5px] font-semibold"
+                                        style={{ color: isSelected ? 'var(--brand)' : 'var(--text-tertiary)' }}>
+                                        {isSelected ? (
+                                            <>
+                                                <CheckCircle2 size={14} /> Selected
+                                            </>
+                                        ) : (
+                                            'Tap to select'
+                                        )}
+                                    </div>
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {selectedTier && (
+                        <div
+                            className="rounded-3xl p-6 md:p-8 grid lg:grid-cols-[1fr_auto] gap-6 items-center"
+                            style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow)' }}>
+                            <div>
+                                <div
+                                    className="inline-flex items-center gap-2 py-1 px-2.5 rounded-full mb-3 text-[10.5px] font-bold tracking-[0.16em] uppercase"
+                                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                                    <Wallet size={12} />
+                                    Reserve Your Spot
+                                </div>
+                                <h3
+                                    className="font-display text-[22px] md:text-[26px] font-semibold mb-2"
+                                    style={{ color: 'var(--text-primary)' }}>
+                                    Lock {selectedTier.plan} for ₹5,000 today
+                                </h3>
+                                <p className="text-[14px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    Pay a flat ₹5,000 registration fee to reserve your seat for the next batch ({program.enrollDate ?? 'upcoming cohort'}).
+                                </p>
+                                <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
+                                    Balance of <strong style={{ color: 'var(--text-secondary)' }}>{selectedTier.price}</strong> can be paid before the course starts — or pay the full amount now and skip the follow-up.
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-3 min-w-[260px]">
+                                <button
+                                    onClick={() => openWith('REGISTRATION', selectedTierIdx)}
+                                    className="w-full px-6 py-3 rounded-full font-semibold inline-flex items-center justify-center gap-2 transition-all hover:translate-y-[-1px]"
+                                    style={{
+                                        background: 'var(--brand)',
+                                        color: 'var(--text-on-inverse)',
+                                        boxShadow: '0 8px 22px rgba(13,79,60,0.30)'
+                                    }}>
+                                    <Wallet size={15} /> Reserve seat · ₹5,000
+                                </button>
+                                <button
+                                    onClick={() => openWith('FULL', selectedTierIdx)}
+                                    className="w-full px-6 py-3 rounded-full font-semibold inline-flex items-center justify-center gap-2 transition-all hover:translate-y-[-1px]"
+                                    style={{
+                                        background: 'var(--surface)',
+                                        color: 'var(--brand)',
+                                        border: '1px solid var(--brand)'
+                                    }}>
+                                    Pay full fee · {selectedTier.price}
+                                </button>
+                                <span className="text-[11.5px] text-center" style={{ color: 'var(--text-tertiary)' }}>
+                                    Secure payments via Razorpay · GST applicable at checkout
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </section>
+
             {/* Bottom CTA */}
             <section className="px-5 md:px-8 mb-24">
                 <div className="max-w-6xl mx-auto">
@@ -400,8 +575,8 @@ export default function ProgramPage() {
                                 }}>
                                 Book a Free 1:1 Call <ArrowRight size={16} />
                             </button>
-                            <button
-                                onClick={() => navigate('/pricing')}
+                            <a
+                                href="#pricing"
                                 className="px-7 py-3.5 rounded-full font-semibold inline-flex items-center gap-2 transition-all hover:translate-y-[-1px]"
                                 style={{
                                     background: 'var(--surface)',
@@ -409,7 +584,7 @@ export default function ProgramPage() {
                                     border: '1px solid var(--line-strong)'
                                 }}>
                                 See Pricing &amp; Plans <ArrowRight size={16} />
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -421,6 +596,9 @@ export default function ProgramPage() {
                 courseSlug={program.slug}
                 courseTitle={program.title}
                 displayPrice={displayPrice}
+                defaultPaymentType={paymentIntent}
+                tierLabel={selectedTier ? `${selectedTier.plan} · ${selectedTier.price}` : undefined}
+                tierPriceMinor={selectedTierPaise || undefined}
             />
         </div>
     )

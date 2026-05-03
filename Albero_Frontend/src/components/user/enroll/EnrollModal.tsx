@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { CheckCircle2, CreditCard, Loader2, Mail, Phone, ShieldCheck, User, X } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { initPurchase, verifyPurchase, cancelPurchase, type InitPurchaseResponse } from '@/services/purchaseService'
+import { initPurchase, verifyPurchase, cancelPurchase, type InitPurchaseResponse, type PaymentType } from '@/services/purchaseService'
 import { openRazorpayCheckout } from '@/lib/razorpay'
 
 interface EnrollModalProps {
@@ -14,6 +14,18 @@ interface EnrollModalProps {
     // actual amount comes from the backend at init time, so this is purely
     // cosmetic. Pass undefined to hide the price line.
     displayPrice?: string
+    // Default payment intent — the program page passes 'REGISTRATION' for the
+    // "Reserve Your Slot" CTA and 'FULL' for "Pay Full Fee". The user can flip
+    // between the two from inside the modal too.
+    defaultPaymentType?: PaymentType
+    // Tier metadata — recorded as advisory info on the enquiry/invoice so the
+    // counsellor knows which plan the student picked.
+    tierLabel?: string
+    tierPriceMinor?: number
+    // Display-only registration fee amount (in INR, not paise). Used in the
+    // "Reserve Your Slot" pill so the user knows the upfront cost. The
+    // authoritative amount comes from the backend — this is hint-only.
+    registrationFeeDisplay?: string
 }
 
 type Phase =
@@ -21,8 +33,22 @@ type Phase =
     | { kind: 'initializing' } // waiting for /init response + Razorpay script
     | { kind: 'checkout'; init: InitPurchaseResponse } // Razorpay window open
     | { kind: 'verifying'; init: InitPurchaseResponse } // /verify in flight
-    | { kind: 'success'; email: string; loginUrl: string; courseTitle: string }
+    | {
+          kind: 'success'
+          email: string
+          loginUrl: string
+          courseTitle: string
+          paymentType: PaymentType
+          amountPaidMinor: number
+          balanceDueMinor: number
+          balanceInvoiceNumber?: string
+      }
     | { kind: 'demo'; message: string }
+
+const fmtINR = (paise: number): string => {
+    if (!Number.isFinite(paise)) return '—'
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(paise / 100)
+}
 
 // One modal that walks the user through:
 //   form → init → Razorpay checkout → verify → success
@@ -30,9 +56,20 @@ type Phase =
 // The component owns the phase state machine; the parent only knows whether
 // the modal is open. Closing mid-checkout calls /cancel so we don't strand a
 // hung "pending" enquiry.
-export default function EnrollModal({ open, onClose, courseSlug, courseTitle, displayPrice }: EnrollModalProps) {
+export default function EnrollModal({
+    open,
+    onClose,
+    courseSlug,
+    courseTitle,
+    displayPrice,
+    defaultPaymentType = 'FULL',
+    tierLabel,
+    tierPriceMinor,
+    registrationFeeDisplay = '₹5,000'
+}: EnrollModalProps) {
     const [phase, setPhase] = useState<Phase>({ kind: 'form' })
     const [form, setForm] = useState({ name: '', email: '', phone: '', city: '' })
+    const [paymentType, setPaymentType] = useState<PaymentType>(defaultPaymentType)
 
     // Reset state every time the modal re-opens. Otherwise a previous success
     // screen would persist when the user starts a fresh enrolment.
@@ -40,8 +77,9 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
         if (open) {
             setPhase({ kind: 'form' })
             setForm({ name: '', email: '', phone: '', city: '' })
+            setPaymentType(defaultPaymentType)
         }
-    }, [open])
+    }, [open, defaultPaymentType])
 
     const close = async () => {
         // If the checkout is pending and we have a purchaseId, mark it
@@ -66,7 +104,10 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                 name: form.name,
                 email: form.email,
                 phone: form.phone,
-                city: form.city || undefined
+                city: form.city || undefined,
+                paymentType,
+                tierLabel,
+                tierPriceMinor
             })
             setPhase({ kind: 'checkout', init })
             await openRazorpayCheckout({
@@ -95,7 +136,11 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                             kind: 'success',
                             email: verified.email,
                             loginUrl: verified.loginUrl,
-                            courseTitle: verified.courseTitle
+                            courseTitle: verified.courseTitle,
+                            paymentType: verified.paymentType ?? paymentType,
+                            amountPaidMinor: verified.amountPaidMinor ?? init.totalAmount,
+                            balanceDueMinor: verified.balanceDueMinor ?? init.balanceMinor,
+                            balanceInvoiceNumber: verified.balanceInvoiceNumber
                         })
                     } catch (err) {
                         const msg = errorMessage(err, 'Payment verification failed.')
@@ -148,7 +193,7 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-6">
                             <div className="text-[11px] tracking-[0.2em] uppercase font-bold" style={{ color: 'var(--brand)' }}>
-                                Enroll in
+                                {paymentType === 'REGISTRATION' ? 'Reserve your seat in' : 'Enroll in'}
                             </div>
                             <button
                                 onClick={close}
@@ -162,10 +207,44 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                             <h3 className="font-display text-[22px] md:text-[26px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
                                 {courseTitle}
                             </h3>
-                            {displayPrice && phase.kind === 'form' && (
+                            {tierLabel && phase.kind === 'form' && (
+                                <p className="mt-1 text-[12.5px] font-semibold" style={{ color: 'var(--brand)' }}>
+                                    {tierLabel}
+                                    {tierPriceMinor ? <span className="font-medium" style={{ color: 'var(--text-tertiary)' }}> · {fmtINR(tierPriceMinor)}</span> : null}
+                                </p>
+                            )}
+                            {displayPrice && phase.kind === 'form' && !tierLabel && (
                                 <p className="mt-1 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
                                     From <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>{displayPrice}</span> · GST applicable at checkout
                                 </p>
+                            )}
+
+                            {phase.kind === 'form' && (
+                                <div
+                                    className="mt-4 grid grid-cols-2 gap-2 p-1 rounded-xl"
+                                    style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentType('REGISTRATION')}
+                                        className="px-3 py-2 rounded-lg text-[12.5px] font-semibold transition-colors"
+                                        style={{
+                                            background: paymentType === 'REGISTRATION' ? 'var(--brand)' : 'transparent',
+                                            color: paymentType === 'REGISTRATION' ? 'var(--text-on-inverse)' : 'var(--text-secondary)'
+                                        }}>
+                                        Reserve seat · {registrationFeeDisplay}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentType('FULL')}
+                                        className="px-3 py-2 rounded-lg text-[12.5px] font-semibold transition-colors"
+                                        style={{
+                                            background: paymentType === 'FULL' ? 'var(--brand)' : 'transparent',
+                                            color: paymentType === 'FULL' ? 'var(--text-on-inverse)' : 'var(--text-secondary)'
+                                        }}>
+                                        Pay full fee
+                                        {tierPriceMinor ? ` · ${fmtINR(tierPriceMinor)}` : ''}
+                                    </button>
+                                </div>
                             )}
                         </div>
 
@@ -213,7 +292,12 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                                             color: 'var(--text-on-inverse)',
                                             boxShadow: '0 8px 22px rgba(13,79,60,0.30)'
                                         }}>
-                                        <CreditCard size={15} /> Pay securely &amp; enroll
+                                        <CreditCard size={15} />{' '}
+                                        {paymentType === 'REGISTRATION'
+                                            ? `Reserve seat · ${registrationFeeDisplay}`
+                                            : tierPriceMinor
+                                              ? `Pay full fee · ${fmtINR(tierPriceMinor)}`
+                                              : 'Pay securely & enroll'}
                                     </button>
 
                                     <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
@@ -264,7 +348,9 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                                     <h4
                                         className="font-display text-[20px] font-semibold mt-4"
                                         style={{ color: 'var(--text-primary)' }}>
-                                        You're enrolled in {phase.courseTitle}!
+                                        {phase.paymentType === 'REGISTRATION'
+                                            ? `Seat reserved in ${phase.courseTitle}!`
+                                            : `You're enrolled in ${phase.courseTitle}!`}
                                     </h4>
                                     <p
                                         className="mt-2 text-[13.5px] leading-relaxed"
@@ -272,6 +358,33 @@ export default function EnrollModal({ open, onClose, courseSlug, courseTitle, di
                                         We've emailed your login credentials to <strong>{phase.email}</strong>. Sign in to start
                                         learning.
                                     </p>
+
+                                    <div
+                                        className="mt-4 w-full rounded-xl p-4 text-left"
+                                        style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
+                                        <div className="flex items-center justify-between text-[13px]">
+                                            <span style={{ color: 'var(--text-tertiary)' }}>Paid today</span>
+                                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                                {fmtINR(phase.amountPaidMinor)}
+                                            </span>
+                                        </div>
+                                        {phase.balanceDueMinor > 0 && (
+                                            <>
+                                                <div className="flex items-center justify-between text-[13px] mt-2">
+                                                    <span style={{ color: 'var(--text-tertiary)' }}>Balance due</span>
+                                                    <span className="font-semibold" style={{ color: 'var(--accent)' }}>
+                                                        {fmtINR(phase.balanceDueMinor)}
+                                                    </span>
+                                                </div>
+                                                {phase.balanceInvoiceNumber && (
+                                                    <p className="mt-2 text-[11.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                                        A counsellor will reach out to collect the balance · Invoice {phase.balanceInvoiceNumber}
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+
                                     <a
                                         href={phase.loginUrl}
                                         target="_blank"

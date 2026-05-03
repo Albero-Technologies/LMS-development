@@ -74,11 +74,40 @@ interface PurchaseIntent {
     invoiceId?: string
     enrollmentId?: string
     userId?: string
+    // Two-stage fees: REGISTRATION is the small "reserve your seat" payment;
+    // FULL settles the entire course fee. fullCourseFeeMinor is always the
+    // authoritative course price, so the counsellor follow-up can quote the
+    // exact remaining balance regardless of which path the student took.
+    paymentType: 'REGISTRATION' | 'FULL'
+    fullCourseFeeMinor: number
+    tierLabel?: string
+    tierPriceMinor?: number
+}
+
+// Default registration fee in paise (₹5,000). Tenants override this via
+// `tenant.settings.payments.registrationFeeMinor` when they want a different
+// reservation amount.
+const DEFAULT_REGISTRATION_FEE_MINOR = 5_000_00
+
+const resolveRegistrationFee = (settings: unknown): number => {
+    const blob = settings as { payments?: { registrationFeeMinor?: number } } | null
+    const v = blob?.payments?.registrationFeeMinor
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) return Math.round(v)
+    return DEFAULT_REGISTRATION_FEE_MINOR
 }
 
 const readPurchaseIntent = (extra: unknown): PurchaseIntent | null => {
-    const blob = extra as { purchaseIntent?: PurchaseIntent } | null
-    return blob?.purchaseIntent ?? null
+    const blob = extra as { purchaseIntent?: Partial<PurchaseIntent> } | null
+    const raw = blob?.purchaseIntent
+    if (!raw) return null
+    // Backfill the new fields for older intents written before paymentType
+    // existed on the schema. They are always FULL — registration is a new
+    // flow — and fullCourseFeeMinor falls back to the priceMinor we charged.
+    return {
+        ...(raw as PurchaseIntent),
+        paymentType: raw.paymentType ?? 'FULL',
+        fullCourseFeeMinor: raw.fullCourseFeeMinor ?? raw.priceMinor ?? 0
+    }
 }
 
 // /init — creates a Razorpay order + an Enquiry that captures the intent.
@@ -89,7 +118,14 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
     const tenant = await resolveTenant(input.tenantSlug)
     const course = await findCourse(tenant.id, input.courseSlug)
 
-    const { gstAmount, totalAmount } = computeTotal(course.price, course.gstPercent)
+    // Charged amount depends on paymentType. REGISTRATION → flat tenant fee;
+    // FULL → course price. Tier metadata is advisory (display-only on the
+    // marketing site) and is never trusted as the charged amount.
+    const isRegistration = input.paymentType === 'REGISTRATION'
+    const registrationFeeMinor = resolveRegistrationFee(tenant.settings)
+    const chargedPriceMinor = isRegistration ? registrationFeeMinor : course.price
+
+    const { gstAmount, totalAmount } = computeTotal(chargedPriceMinor, course.gstPercent)
 
     const rp = await resolveRazorpay(tenant.id)
     const order = await rp.client.orders.create({
@@ -98,24 +134,37 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
         // Razorpay receipt has a 40-char limit; uuid (36) is fine but we
         // shorten in case we ever prefix.
         receipt: `enq-${crypto.randomBytes(8).toString('hex')}`,
-        notes: { tenantId: tenant.id, courseId: course.id, source: 'public-purchase' }
+        notes: {
+            tenantId: tenant.id,
+            courseId: course.id,
+            source: 'public-purchase',
+            paymentType: input.paymentType
+        }
     })
 
     const purchaseIntent: PurchaseIntent = {
         courseId: course.id,
         courseSlug: course.slug,
         courseTitle: course.title,
-        priceMinor: course.price,
+        priceMinor: chargedPriceMinor,
         gstAmount,
         totalAmount,
         currency: course.currency,
         razorpayOrderId: order.id,
         razorpayKeyId: rp.keyId,
         status: 'pending',
-        initiatedAt: new Date().toISOString()
+        initiatedAt: new Date().toISOString(),
+        paymentType: input.paymentType,
+        fullCourseFeeMinor: course.price,
+        tierLabel: input.tierLabel,
+        tierPriceMinor: input.tierPriceMinor
     }
 
     const assignedToId = await pickCounsellor(tenant.id)
+
+    const intentSummary = isRegistration
+        ? `Reserve seat (${input.tierLabel ?? 'tier'}) for ${course.title}`
+        : `Full payment (${input.tierLabel ?? 'full'}) for ${course.title}`
 
     const enquiry = await db.client.enquiry.create({
         data: {
@@ -125,7 +174,7 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
             phone: input.phone,
             course: course.title,
             city: input.city,
-            message: input.message ?? `Started checkout for ${course.title}`,
+            message: input.message ?? intentSummary,
             source: input.utmSource ? `utm:${input.utmSource}` : 'website-checkout',
             utmSource: input.utmSource,
             utmMedium: input.utmMedium,
@@ -149,6 +198,13 @@ export const initPurchase = async (input: TInitPurchaseInput) => {
         keyId: rp.keyId,
         courseTitle: course.title,
         courseId: course.id,
+        paymentType: input.paymentType,
+        priceMinor: chargedPriceMinor,
+        gstAmount,
+        totalAmount,
+        fullCourseFeeMinor: course.price,
+        balanceMinor: isRegistration ? Math.max(course.price - chargedPriceMinor, 0) : 0,
+        tierLabel: input.tierLabel,
         prefill: { name: input.name, email: input.email, phone: input.phone }
     }
 }
@@ -176,7 +232,11 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             alreadyProcessed: true,
             courseTitle: intent.courseTitle,
             email: enquiry.email,
-            loginUrl: `${config.PUBLIC_SITE_URL}/login`
+            loginUrl: `${config.PUBLIC_SITE_URL}/login`,
+            paymentType: intent.paymentType,
+            amountPaidMinor: intent.totalAmount,
+            balanceDueMinor:
+                intent.paymentType === 'REGISTRATION' ? Math.max(intent.fullCourseFeeMinor - intent.priceMinor, 0) : 0
         }
     }
 
@@ -197,6 +257,10 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
 
     // Atomically materialise the User + Enrollment + Invoice + Enquiry update
     // so a partial failure doesn't leave the world half-paid.
+    const isRegistration = intent.paymentType === 'REGISTRATION'
+    const balanceMinor = isRegistration ? Math.max(intent.fullCourseFeeMinor - intent.priceMinor, 0) : 0
+    const balanceWithGst = isRegistration ? balanceMinor + Math.round((balanceMinor * 18) / 100) : 0
+
     const result = await db.client.$transaction(async (tx) => {
         let user = await tx.user.findUnique({
             where: { tenantId_email: { tenantId: enquiry.tenantId, email: enquiry.email } }
@@ -232,17 +296,18 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             }
         })
 
-        // Tenant-scoped, monotonic invoice number — mirrors the existing
-        // payment service's pattern (count + 1, padded).
-        const count = await tx.invoice.count({ where: { tenantId: enquiry.tenantId } })
-        const invoiceNumber = `ALB-${String(count + 1).padStart(6, '0')}`
+        // Tenant-scoped, monotonic invoice numbers — mirrors the existing
+        // payment service's pattern (count + 1, padded). Reserve two slots
+        // when the registration path also writes a DUE invoice for the balance.
+        const baseCount = await tx.invoice.count({ where: { tenantId: enquiry.tenantId } })
+        const paidNumber = `ALB-${String(baseCount + 1).padStart(6, '0')}`
 
         const invoice = await tx.invoice.create({
             data: {
                 tenantId: enquiry.tenantId,
                 userId: user.id,
                 enrollmentId: enrollment.id,
-                number: invoiceNumber,
+                number: paidNumber,
                 amount: intent.priceMinor,
                 gstPercent: Math.round((intent.gstAmount * 100) / Math.max(intent.priceMinor, 1)),
                 gstAmount: intent.gstAmount,
@@ -255,6 +320,27 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
                 paidAt: new Date()
             }
         })
+
+        let balanceInvoice: typeof invoice | null = null
+        if (isRegistration && balanceMinor > 0) {
+            const balanceNumber = `ALB-${String(baseCount + 2).padStart(6, '0')}`
+            balanceInvoice = await tx.invoice.create({
+                data: {
+                    tenantId: enquiry.tenantId,
+                    userId: user.id,
+                    enrollmentId: enrollment.id,
+                    number: balanceNumber,
+                    amount: balanceMinor,
+                    gstPercent: 18,
+                    gstAmount: balanceWithGst - balanceMinor,
+                    totalAmount: balanceWithGst,
+                    currency: intent.currency,
+                    gateway: PaymentGateway.RAZORPAY,
+                    status: InvoiceStatus.DUE,
+                    dueAt: null
+                }
+            })
+        }
 
         const completedIntent: PurchaseIntent = {
             ...intent,
@@ -273,7 +359,7 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             }
         })
 
-        return { user, enrollment, invoice, completedIntent }
+        return { user, enrollment, invoice, balanceInvoice, completedIntent }
     })
 
     // Outside the transaction — if the email queue is down we still want the
@@ -302,7 +388,11 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
         courseTitle: intent.courseTitle,
         email: result.user.email,
         loginUrl,
-        invoiceNumber: result.invoice.number
+        invoiceNumber: result.invoice.number,
+        paymentType: intent.paymentType,
+        amountPaidMinor: intent.totalAmount,
+        balanceDueMinor: result.balanceInvoice?.totalAmount ?? 0,
+        balanceInvoiceNumber: result.balanceInvoice?.number
     }
 }
 
