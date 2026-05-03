@@ -1,6 +1,7 @@
 import React from 'react'
 import { Instagram, Linkedin, Youtube, Facebook, ArrowUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { dashboardLoginUrl } from '@/config/tenant'
 
 interface FooterProps {
     copyrightText: string
@@ -9,6 +10,7 @@ interface FooterProps {
 interface LinkItem {
     label: string
     href: string
+    external?: boolean
 }
 
 // ─── Link columns (match the screenshot) ──────────────────────────────────────
@@ -38,7 +40,7 @@ const companyLinks: LinkItem[] = [
     { label: 'Contact Us', href: '/contact' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Corporate Training', href: '/contact' },
-    { label: 'Student Portal', href: '/contact' }
+    { label: 'Student Portal', href: dashboardLoginUrl(), external: true }
 ]
 
 const legalLinks: LinkItem[] = [
@@ -64,14 +66,19 @@ const caseStudyShortcuts: LinkItem[] = [
 const Footer: React.FC<FooterProps> = ({ copyrightText }) => {
     const navigate = useNavigate()
 
-    const handleClick = (href: string) => (e: React.MouseEvent) => {
-        if (href.startsWith('#')) {
+    const handleClick = (item: LinkItem) => (e: React.MouseEvent) => {
+        if (item.external) {
             e.preventDefault()
-            navigate('/', { state: { scrollTo: href.replace('#', '') } })
-        } else if (href.startsWith('/')) {
+            window.location.href = item.href
+            return
+        }
+        if (item.href.startsWith('#')) {
+            e.preventDefault()
+            navigate('/', { state: { scrollTo: item.href.replace('#', '') } })
+        } else if (item.href.startsWith('/')) {
             // SPA navigate so we don't trigger a full page reload
             e.preventDefault()
-            navigate(href)
+            navigate(item.href)
         }
     }
 
@@ -212,7 +219,7 @@ function FooterColumn({
 }: {
     title: string
     links: LinkItem[]
-    onItemClick: (href: string) => (e: React.MouseEvent) => void
+    onItemClick: (item: LinkItem) => (e: React.MouseEvent) => void
 }) {
     return (
         <div>
@@ -226,7 +233,7 @@ function FooterColumn({
                     <li key={i}>
                         <a
                             href={l.href}
-                            onClick={onItemClick(l.href)}
+                            onClick={onItemClick(l)}
                             className="text-[14px] transition-colors"
                             style={{ color: '#94a3b8' }}>
                             {l.label}

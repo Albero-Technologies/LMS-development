@@ -352,31 +352,38 @@ export default function ContactPage() {
                     {/* Side rail */}
                     <div className="space-y-5">
                         <div
-                            className="rounded-3xl p-6"
+                            className="rounded-3xl p-6 relative overflow-hidden"
                             style={{
-                                background: 'var(--brand)',
-                                color: 'var(--text-on-inverse)'
+                                background:
+                                    'linear-gradient(155deg, #0d2740 0%, #061026 60%, #04081a 100%)',
+                                color: '#f8f6ee',
+                                border: '1px solid rgba(255,255,255,0.06)'
                             }}>
                             <div
-                                className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full mb-3 text-[10.5px] font-bold tracking-[0.16em] uppercase"
-                                style={{ background: 'rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.92)' }}>
+                                aria-hidden="true"
+                                className="absolute -top-20 -right-20 w-[260px] h-[260px] rounded-full pointer-events-none"
+                                style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.18) 0%, transparent 70%)', filter: 'blur(40px)' }}
+                            />
+                            <div
+                                className="relative inline-flex items-center gap-2 px-2.5 py-1 rounded-full mb-3 text-[10.5px] font-bold tracking-[0.16em] uppercase"
+                                style={{ background: 'rgba(52,211,153,0.14)', color: '#34d399', border: '1px solid rgba(52,211,153,0.28)' }}>
                                 <Clock size={11} /> Hours
                             </div>
-                            <h3 className="font-display text-[20px] leading-tight font-semibold mb-3">
+                            <h3 className="relative font-display text-[20px] leading-tight font-semibold mb-3">
                                 When we pick up the phone.
                             </h3>
-                            <ul className="space-y-2 text-[13.5px]" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                            <ul className="relative space-y-2 text-[13.5px]" style={{ color: 'rgba(248,246,238,0.78)' }}>
                                 <li className="flex items-center justify-between">
                                     <span>Mon – Fri</span>
-                                    <span className="font-semibold" style={{ color: '#fff' }}>10 AM – 9 PM</span>
+                                    <span className="font-semibold" style={{ color: '#f8f6ee' }}>10 AM – 9 PM</span>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <span>Saturday</span>
-                                    <span className="font-semibold" style={{ color: '#fff' }}>10 AM – 6 PM</span>
+                                    <span className="font-semibold" style={{ color: '#f8f6ee' }}>10 AM – 6 PM</span>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <span>Sunday</span>
-                                    <span className="font-semibold" style={{ color: '#fff' }}>WhatsApp only</span>
+                                    <span className="font-semibold" style={{ color: '#f8f6ee' }}>WhatsApp only</span>
                                 </li>
                             </ul>
                         </div>

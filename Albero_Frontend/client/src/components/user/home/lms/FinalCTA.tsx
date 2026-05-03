@@ -16,26 +16,28 @@ export default function FinalCTA() {
                 <div
                     className="rounded-[28px] p-8 md:p-14 lg:p-16 relative overflow-hidden"
                     style={{
-                        background: 'var(--brand)',
-                        color: 'var(--text-on-inverse)'
+                        background:
+                            'radial-gradient(ellipse at 75% 30%, #0d2740 0%, #061026 55%, #04081a 100%)',
+                        color: '#f8f6ee',
+                        border: '1px solid rgba(255,255,255,0.06)'
                     }}>
                     {/* Background art */}
                     <div
                         aria-hidden="true"
                         className="absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full pointer-events-none"
-                        style={{ background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)', opacity: 0.32, filter: 'blur(50px)' }}
+                        style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.18) 0%, transparent 70%)', filter: 'blur(50px)' }}
                     />
                     <div
                         aria-hidden="true"
                         className="absolute -bottom-40 -left-32 w-[480px] h-[480px] rounded-full pointer-events-none"
-                        style={{ background: 'radial-gradient(circle, #fff 0%, transparent 70%)', opacity: 0.12, filter: 'blur(60px)' }}
+                        style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.14) 0%, transparent 70%)', filter: 'blur(60px)' }}
                     />
                     {/* dot grid */}
                     <div
                         aria-hidden="true"
-                        className="absolute inset-0 pointer-events-none opacity-[0.18]"
+                        className="absolute inset-0 pointer-events-none opacity-[0.10]"
                         style={{
-                            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)',
+                            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.45) 1px, transparent 0)',
                             backgroundSize: '24px 24px',
                             maskImage: 'linear-gradient(to bottom, transparent, #000, transparent)',
                             WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000, transparent)'
@@ -44,29 +46,30 @@ export default function FinalCTA() {
 
                     <div className="relative z-[1] grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center">
                         <div>
-                            <div
-                                className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4"
-                                style={{ color: 'var(--accent)' }}>
-                                Talk to a counsellor
+                            <div className="inline-flex items-center gap-2 mb-5">
+                                <span className="inline-block w-10 h-[2px] rounded-full" style={{ background: '#34d399' }} />
+                                <span className="text-[11px] font-semibold tracking-[0.22em] uppercase" style={{ color: '#34d399' }}>
+                                    Talk to a counsellor
+                                </span>
                             </div>
                             <h2
                                 className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium">
                                 Not sure which program{' '}
-                                <span className="italic font-light" style={{ color: 'var(--accent)' }}>
+                                <span className="italic font-light" style={{ color: '#fbbf24' }}>
                                     fits you?
                                 </span>
                             </h2>
                             <p
                                 className="mt-5 text-[16px] md:text-[17px] max-w-[520px] leading-relaxed"
-                                style={{ color: 'rgba(255,255,255,0.78)' }}>
+                                style={{ color: 'rgba(248,246,238,0.75)' }}>
                                 Get on a 15-minute call with a senior counsellor. We'll map your background, goals, and timeline to the right
                                 track — and if Albero isn't right for you, we'll tell you that too.
                             </p>
 
-                            <div className="mt-7 flex flex-wrap items-center gap-4 text-[13.5px]" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                            <div className="mt-7 flex flex-wrap items-center gap-4 text-[13.5px]" style={{ color: 'rgba(248,246,238,0.82)' }}>
                                 {['No sales pitch', 'No commitment', 'WhatsApp follow-up'].map((t, i) => (
                                     <div key={i} className="inline-flex items-center gap-2">
-                                        <CheckCircle2 size={15} style={{ color: 'var(--accent)' }} />
+                                        <CheckCircle2 size={15} style={{ color: '#34d399' }} />
                                         {t}
                                     </div>
                                 ))}
