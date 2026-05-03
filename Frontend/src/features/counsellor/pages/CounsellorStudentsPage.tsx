@@ -302,12 +302,12 @@ const CredsModal = ({ state, onClose }: { state: { student: MyStudent; creds: Sh
                         />
                         <Row
                             label="Password"
-                            value={state.creds.initialPassword ?? '—'}
-                            onCopy={() => state.creds.initialPassword && copy(state.creds.initialPassword)}
-                            danger={!state.creds.initialPassword}
+                            value={state.creds.password ?? '—'}
+                            onCopy={() => state.creds.password && copy(state.creds.password)}
+                            danger={!state.creds.password}
                         />
                     </div>
-                    {!state.creds.initialPassword && (
+                    {!state.creds.password && (
                         <Badge tone="warn">The student already logged in — this password has been cleared. Trigger a password reset instead.</Badge>
                     )}
                 </div>

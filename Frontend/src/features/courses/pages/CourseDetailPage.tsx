@@ -235,7 +235,7 @@ export const CourseDetailPage = () => {
                                     )}
                                 </div>
                             </>
-                        ) : currentLesson?.type === 'LINK' && currentLesson.externalUrl ? (
+                        ) : currentLesson?.type === 'EXTERNAL_LIVE' && currentLesson.externalUrl ? (
                             <div className="aspect-video bg-surface-2 flex items-center justify-center p-6">
                                 <div className="text-center">
                                     <LinkIcon
@@ -251,12 +251,6 @@ export const CourseDetailPage = () => {
                                     </a>
                                 </div>
                             </div>
-                        ) : currentLesson?.type === 'PDF' && currentLesson.externalUrl ? (
-                            <iframe
-                                src={currentLesson.externalUrl}
-                                title={currentLesson.title}
-                                className="w-full aspect-video"
-                            />
                         ) : (
                             <div className="aspect-video bg-surface-2 flex items-center justify-center">
                                 <div className="text-center px-6">

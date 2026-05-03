@@ -119,7 +119,7 @@ export const NewsletterPage = () => {
     const handleDelete = async (sub: NewsletterSubscriber) => {
         const ok = await confirm({
             title: 'Remove subscriber?',
-            message: `${sub.email} will be permanently removed from the list.`,
+            description: `${sub.email} will be permanently removed from the list.`,
             confirmLabel: 'Remove',
             tone: 'danger'
         })
@@ -265,7 +265,7 @@ export const NewsletterPage = () => {
                                         <td className="px-4 py-3 font-mono text-xs text-fg">{s.email}</td>
                                         <td className="px-4 py-3 text-fg">{s.name ?? <span className="text-fg-muted">—</span>}</td>
                                         <td className="px-4 py-3">
-                                            <Badge tone={s.status === 'active' ? 'brand' : 'neutral'}>
+                                            <Badge tone={s.status === 'active' ? 'brand' : 'default'}>
                                                 {s.status === 'active' ? 'Active' : 'Unsubscribed'}
                                             </Badge>
                                         </td>

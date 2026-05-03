@@ -32,7 +32,7 @@ import { Modal } from '@shared/components/ui/Modal'
 import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Select } from '@shared/components/ui/Select'
 import { Tabs } from '@shared/components/ui/Tabs'
-import { useAuthStore } from '@shared/stores/authStore'
+import { useAuthStore, fullName } from '@shared/stores/authStore'
 import {
     FEATURE_FLAGS,
     createTenantPayment,
@@ -1031,7 +1031,7 @@ const NotesTab = ({ tenant, queryKey }: { tenant: TenantDetail; queryKey: readon
             id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
             body,
             createdAt: new Date().toISOString(),
-            createdBy: author ? { id: author.id, name: author.name ?? author.email } : undefined
+            createdBy: author ? { id: author.id, name: fullName(author) || author.email } : undefined
         }
         writeNotes.mutate([newNote, ...notes], {
             onSuccess: () => {
