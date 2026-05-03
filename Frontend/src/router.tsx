@@ -63,6 +63,7 @@ import { TenantCollectionItemPage } from '@features/marketing/pages/TenantCollec
 import { CmsPage } from '@features/admin/pages/CmsPage'
 import { ProgramsCmsPage } from '@features/admin/pages/ProgramsCmsPage'
 import { ResourcesCmsPage } from '@features/admin/pages/ResourcesCmsPage'
+import { NewsletterPage } from '@features/newsletter/pages/NewsletterPage'
 import { TenantBrandingProvider } from '@shared/contexts/TenantBrandingContext'
 
 export const router = createBrowserRouter([
@@ -309,6 +310,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                         <TenantBillingPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'admin/newsletter',
+                element: (
+                    <ProtectedRoute roles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                        <NewsletterPage />
                     </ProtectedRoute>
                 )
             },

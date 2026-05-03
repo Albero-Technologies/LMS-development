@@ -1,9 +1,11 @@
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import ResourceLayout from '@/components/user/resources/ResourceLayout'
 import ResourceCard from '@/components/user/resources/ResourceCard'
-import { Pen, BookOpen, Database, Brain, Code2, BarChart3, Briefcase, ArrowUpRight, Clock } from 'lucide-react'
+import { Pen, BookOpen, Database, Brain, Code2, BarChart3, Briefcase, ArrowUpRight, Clock, Check, Loader2 } from 'lucide-react'
 import { useCollection } from '@/hooks/useContent'
+import { subscribeToNewsletter } from '@/services/newsletterService'
 
 const ACCENT_CYCLE = ['orange', 'emerald', 'rose', 'amber', 'purple', 'blue'] as const
 const ICON_CYCLE = [BookOpen, BarChart3, Brain, Brain, Code2, Briefcase] as const
@@ -97,6 +99,35 @@ const categories = [
 export default function Blogs() {
     const navigate = useNavigate()
     const blogQ = useCollection('blog')
+
+    // Newsletter form state. Status drives the UI: idle → loading → success
+    // (locks the form + flashes a check) or error (inline message under input).
+    const [newsletterEmail, setNewsletterEmail] = useState('')
+    const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+    const [newsletterError, setNewsletterError] = useState<string | null>(null)
+
+    const handleNewsletterSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const email = newsletterEmail.trim().toLowerCase()
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setNewsletterStatus('error')
+            setNewsletterError('Please enter a valid email')
+            return
+        }
+        setNewsletterStatus('loading')
+        setNewsletterError(null)
+        try {
+            await subscribeToNewsletter({ email, source: 'blog-sidebar' })
+            setNewsletterStatus('success')
+            setNewsletterEmail('')
+        } catch (err: unknown) {
+            const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err instanceof Error ? err.message : 'Could not subscribe — please try again')
+            setNewsletterStatus('error')
+            setNewsletterError(msg)
+        }
+    }
 
     // When the backend returns posts, prepend them to the static fallback so
     // editor-driven content shows first. Empty backend → falls through to the
@@ -271,17 +302,60 @@ export default function Blogs() {
                             style={{ color: 'var(--text-secondary)' }}>
                             Practitioner-written, ad-free. One email a week.
                         </p>
-                        <input
-                            type="email"
-                            placeholder="you@example.com"
-                            className="w-full rounded-lg px-3 py-2 text-[13px] outline-none mb-2"
-                            style={{ background: 'var(--surface)', border: '1px solid var(--line-strong)', color: 'var(--text-primary)' }}
-                        />
-                        <button
-                            className="w-full rounded-lg py-2 text-[13px] font-semibold transition-colors"
-                            style={{ background: 'var(--accent)', color: '#fff' }}>
-                            Subscribe
-                        </button>
+                        {newsletterStatus === 'success' ? (
+                            <div
+                                className="w-full rounded-lg px-3 py-3 text-[13px] inline-flex items-center gap-2 font-semibold"
+                                style={{ background: 'var(--surface)', color: 'var(--brand)', border: '1px solid var(--brand)' }}
+                                role="status">
+                                <Check size={14} /> You're on the list — check your inbox.
+                            </div>
+                        ) : (
+                            <form
+                                onSubmit={handleNewsletterSubmit}
+                                noValidate>
+                                <input
+                                    type="email"
+                                    required
+                                    value={newsletterEmail}
+                                    onChange={(e) => {
+                                        setNewsletterEmail(e.target.value)
+                                        if (newsletterStatus === 'error') {
+                                            setNewsletterStatus('idle')
+                                            setNewsletterError(null)
+                                        }
+                                    }}
+                                    placeholder="you@example.com"
+                                    disabled={newsletterStatus === 'loading'}
+                                    aria-invalid={newsletterStatus === 'error'}
+                                    className="w-full rounded-lg px-3 py-2 text-[13px] outline-none mb-2 disabled:opacity-60"
+                                    style={{
+                                        background: 'var(--surface)',
+                                        border: `1px solid ${newsletterStatus === 'error' ? '#dc2626' : 'var(--line-strong)'}`,
+                                        color: 'var(--text-primary)'
+                                    }}
+                                />
+                                {newsletterError && (
+                                    <div
+                                        className="text-[11.5px] mb-2"
+                                        style={{ color: '#dc2626' }}>
+                                        {newsletterError}
+                                    </div>
+                                )}
+                                <button
+                                    type="submit"
+                                    disabled={newsletterStatus === 'loading'}
+                                    className="w-full rounded-lg py-2 text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    style={{ background: 'var(--accent)', color: '#fff' }}>
+                                    {newsletterStatus === 'loading' ? (
+                                        <>
+                                            <Loader2 size={13} className="animate-spin" /> Subscribing…
+                                        </>
+                                    ) : (
+                                        'Subscribe'
+                                    )}
+                                </button>
+                            </form>
+                        )}
                     </div>
                 </aside>
             </div>

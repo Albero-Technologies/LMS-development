@@ -1,3 +1,11 @@
+// Prefer IPv4 for DNS lookups. Some managed Postgres providers (Neon on
+// AWS us-east) publish AAAA records pointing to IPv6 addresses many local
+// networks can't route to. Node 18+ defaults to "verbatim" lookup order
+// (IPv6 first when present), so the connection times out without ever
+// falling back to IPv4. Forcing ipv4first sidesteps the issue.
+import dns from 'dns'
+dns.setDefaultResultOrder('ipv4first')
+
 import app from './app'
 import config from './config/config'
 import { initRateLimiter } from './config/rateLimiter'

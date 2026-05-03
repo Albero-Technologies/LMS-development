@@ -216,6 +216,7 @@ model Tenant {
   notifications         Notification[]
   auditLogs             AuditLog[]
   enquiries             Enquiry[]
+  newsletterSubscribers NewsletterSubscriber[]
   saasPayments          TenantPayment[]
   mediaAssets           MediaAsset[]
   collections           Collection[]
@@ -925,6 +926,30 @@ model Enquiry {
   @@index([tenantId, stage, createdAt])
   @@index([tenantId, assignedToId, stage])
   @@map("enquiries")
+}
+
+// Newsletter subscribers — captured by the public marketing site (5173) and
+// surfaced to ADMIN/SA in a per-tenant list. Email is unique per tenant so
+// repeat sign-ups update status rather than creating duplicates.
+model NewsletterSubscriber {
+  id         String   @id @default(uuid())
+  tenantId   String
+  email      String
+  name       String?
+  // Where on the site they signed up — 'blog-sidebar', 'footer', etc.
+  source     String   @default("website")
+  status     String   @default("active") // active | unsubscribed
+  utmSource  String?
+  utmMedium  String?
+  utmCampaign String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, email])
+  @@index([tenantId, createdAt])
+  @@map("newsletter_subscribers")
 }
 
 // ---------- CMS / dynamic collections (per-tenant) ----------

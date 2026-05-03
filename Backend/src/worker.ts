@@ -1,3 +1,8 @@
+// See server.ts for the rationale — Neon publishes AAAA records that some
+// local networks can't route to, so we force IPv4-first DNS resolution.
+import dns from 'dns'
+dns.setDefaultResultOrder('ipv4first')
+
 import { Worker } from 'bullmq'
 import { NOTIFY_QUEUE_NAME, type TNotifyJobData } from './modules/notifications/notification.queue'
 import { processNotificationJob } from './modules/notifications/notification.service'

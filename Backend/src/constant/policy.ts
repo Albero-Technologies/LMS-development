@@ -26,6 +26,7 @@ export type TModule =
     | 'ticket'
     | 'notification'
     | 'dashboard'
+    | 'newsletter'
 
 export type TAction = 'read' | 'write'
 
@@ -127,6 +128,11 @@ export const POLICY: TPolicy = {
     dashboard: {
         read: [Role.SUPER_ADMIN, Role.ADMIN, Role.TRAINER, Role.STUDENT, ...COUNSELLING_ROLES, Role.SUPPORT],
         write: []
+    },
+    newsletter: {
+        // Tenant admins manage their own subscriber list; SA reads any tenant.
+        read: [Role.SUPER_ADMIN, Role.ADMIN, Role.SUPPORT],
+        write: [Role.SUPER_ADMIN, Role.ADMIN]
     }
 }
 

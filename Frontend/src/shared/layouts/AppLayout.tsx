@@ -31,7 +31,8 @@ import {
     Target,
     Sparkles,
     Library,
-    Search
+    Search,
+    Mail
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
@@ -77,6 +78,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/users', label: 'Users', icon: Users },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
+        { to: '/app/admin/newsletter', label: 'Newsletter', icon: Mail },
         { to: '/app/tickets', label: 'Tickets', icon: TicketCheck },
         { to: '/app/payments', label: 'Client Payments', icon: CreditCard },
         { to: '/app/reports', label: 'Analytics', icon: LineChart },
@@ -97,6 +99,7 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/admin/programs', label: 'Programs', icon: Sparkles },
         { to: '/app/admin/resources', label: 'Resources', icon: Library },
+        { to: '/app/admin/newsletter', label: 'Newsletter', icon: Mail },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/admin/billing', label: 'Subscription', icon: Briefcase },
         { to: '/app/tickets', label: 'Support', icon: TicketCheck },

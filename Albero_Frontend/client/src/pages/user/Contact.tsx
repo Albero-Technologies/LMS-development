@@ -181,7 +181,7 @@ export default function ContactPage() {
                                     {label}
                                 </div>
                                 <div
-                                    className="font-display text-[18px] font-semibold mt-1 leading-tight"
+                                    className="font-display text-[18px] font-semibold mt-1 leading-tight break-all"
                                     style={{ color: 'var(--text-primary)' }}>
                                     {value}
                                 </div>
