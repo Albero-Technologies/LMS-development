@@ -7,7 +7,7 @@ import { globalIgnores } from 'eslint/config'
 import eslintConfigPrettier from 'eslint-config-prettier'
 
 export default tseslint.config([
-    globalIgnores(['dist', 'node_modules', 'build', 'coverage']),
+    globalIgnores(['dist', 'dev-dist', 'node_modules', 'build', 'coverage']),
     {
         files: ['**/*.{ts,tsx}'],
         extends: [

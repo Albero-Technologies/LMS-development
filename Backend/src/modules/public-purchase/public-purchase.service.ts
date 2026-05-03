@@ -349,6 +349,6 @@ const generateTempPassword = (): string => {
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
     const buf = crypto.randomBytes(12)
     let out = ''
-    for (let i = 0; i < buf.length; i++) out += alphabet[buf[i] % alphabet.length]
+    for (const byte of buf) out += alphabet[byte % alphabet.length]
     return out
 }

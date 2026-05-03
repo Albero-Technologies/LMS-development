@@ -12,7 +12,7 @@
 // strings inside JSX, nested SQL CTEs, etc.). Our cheat sheets are
 // short and mostly use canonical syntax — the regex pass is good enough.
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
 import type { CodeLanguage, CodeSectionData } from '@features/admin/services/tenant.service'
 
