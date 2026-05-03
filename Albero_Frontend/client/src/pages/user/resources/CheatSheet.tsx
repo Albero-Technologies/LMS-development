@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUpRight, FileText, Code2, Database, BarChart3, FileSpreadsheet, Calculator, PieChart, Brain, Sparkles } from 'lucide-react'
 import { listSheets } from '@/constants/cheatsheet-content'
+import { useCollection } from '@/hooks/useContent'
 
 const iconMap = {
     python: Code2,
@@ -15,9 +16,44 @@ const iconMap = {
     genai: Sparkles
 } as const
 
+// Map a CMS `category` (the schema's select field) to a sensible icon key
+// + accent gradient. Falls back to a brand-tinted gradient + the FileText
+// glyph for any category we haven't styled yet.
+const CATEGORY_TO_ICON: Record<string, keyof typeof iconMap> = {
+    SQL: 'sql',
+    Python: 'python',
+    Pandas: 'python',
+    Statistics: 'statistics',
+    Excel: 'excel',
+    'Power BI': 'powerbi',
+    Tableau: 'tableau'
+}
+const DEFAULT_ACCENT = 'linear-gradient(135deg, #0d4f3c 0%, #34d399 100%)'
+
 export default function CheatSheet() {
     const navigate = useNavigate()
-    const all = listSheets()
+    const fallback = listSheets()
+    const cmsQuery = useCollection('cheatsheets')
+
+    // Map CMS items into the same shape the cards expect. Backend entries
+    // appear FIRST so newly-published cheatsheets surface at the top of the
+    // page; static items follow as a baseline. We dedupe by slug so a CMS
+    // entry with the same slug as a constant overrides it cleanly.
+    const cmsItems = (cmsQuery.data?.items ?? []).map((it) => {
+        const data = it.data as { title?: string; description?: string; category?: string; code?: string }
+        const iconKey = (data.category && CATEGORY_TO_ICON[data.category]) || 'sql'
+        return {
+            slug: it.slug,
+            title: String(data.title ?? it.slug),
+            description: String(data.description ?? ''),
+            tags: data.category ? [data.category] : [],
+            pages: 1,
+            iconKey,
+            accentGradient: DEFAULT_ACCENT
+        }
+    })
+    const cmsSlugs = new Set(cmsItems.map((c) => c.slug))
+    const all = [...cmsItems, ...fallback.filter((s) => !cmsSlugs.has(s.slug))]
 
     return (
         <ResourceLayout

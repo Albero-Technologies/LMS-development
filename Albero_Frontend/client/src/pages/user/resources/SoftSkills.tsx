@@ -3,6 +3,7 @@ import { Users, Clock, GraduationCap, PlayCircle, ArrowUpRight } from 'lucide-re
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { listSessions } from '@/constants/soft-skill-content'
+import { useCollection } from '@/hooks/useContent'
 
 const audiences = [
     { label: 'Students', sub: 'Build foundations early' },
@@ -10,9 +11,39 @@ const audiences = [
     { label: 'Working Professionals', sub: 'Level up to senior' }
 ]
 
+const DEFAULT_GRADIENT = 'linear-gradient(135deg,#0d4f3c,#34d399)'
+
 export default function SoftSkills() {
     const navigate = useNavigate()
-    const all = listSessions()
+    const fallback = listSessions()
+    const cmsQuery = useCollection('soft-skills')
+
+    // Backend-published soft-skill rows lead. Card shape uses the same
+    // fields as the static `listSessions()` array so the grid renders
+    // uniformly. `Icon` defaults to PlayCircle (the page's video metaphor)
+    // since the CMS schema doesn't capture an icon choice.
+    const cmsSessions = (cmsQuery.data?.items ?? []).map((it) => {
+        const data = it.data as { title?: string; tagline?: string; duration?: string; level?: string; keyOutcomes?: string }
+        const outcomes = String(data.keyOutcomes ?? '')
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        return {
+            slug: it.slug,
+            title: String(data.title ?? it.slug),
+            tagline: String(data.tagline ?? ''),
+            description: '',
+            duration: String(data.duration ?? '—'),
+            level: String(data.level ?? 'Intermediate'),
+            audience: ['Working Professionals'],
+            tags: [],
+            Icon: PlayCircle,
+            coverGradient: DEFAULT_GRADIENT,
+            keyOutcomes: outcomes
+        }
+    })
+    const cmsSlugs = new Set(cmsSessions.map((c) => c.slug))
+    const all = [...cmsSessions, ...fallback.filter((s) => !cmsSlugs.has(s.slug))]
     const featured = all.slice(0, 2)
     const rest = all.slice(2)
 

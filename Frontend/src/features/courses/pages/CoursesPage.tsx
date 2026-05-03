@@ -43,13 +43,14 @@ export const CoursesPage = () => {
     return <AdminCoursesView />
 }
 
-// SUPER_ADMIN cross-tenant courses view. Mirrors the Website Editor's tenant
-// picker: pick a tenant, see their published + draft course catalog. Read-only
-// for now — SAs don't author courses on tenants' behalf, that's tenant ADMIN's
-// job; the SA just monitors enrolment counts and publish state.
+// SUPER_ADMIN cross-tenant courses view. Same picker as the Website Editor /
+// CMS / Lead Pipeline: choose a tenant, edit their courses end-to-end. The
+// picked tenantId is threaded through every mutation so edits land on the
+// right tenant — backend honours `?tenantId=` for SA only.
 const SuperAdminCoursesView = () => {
     const [q, setQ] = useState('')
     const [tenantId, setTenantId] = useState('')
+    const [newOpen, setNewOpen] = useState(false)
 
     const tenantsQuery = useQuery({ queryKey: ['tenants'], queryFn: listAllTenants, staleTime: 60_000 })
     const tenants = tenantsQuery.data ?? []
@@ -75,7 +76,7 @@ const SuperAdminCoursesView = () => {
                 title="Courses"
                 description={
                     activeTenant
-                        ? `Catalog for ${activeTenant.name}. Switch tenants to monitor a different institute.`
+                        ? `Catalog for ${activeTenant.name}. Switch tenants to manage a different institute.`
                         : 'Pick a tenant to see their course catalog.'
                 }
                 actions={
@@ -104,6 +105,13 @@ const SuperAdminCoursesView = () => {
                                 aria-label="Search courses"
                             />
                         </div>
+                        <Button
+                            leftIcon={<Plus size={14} />}
+                            size="sm"
+                            disabled={!tenantId}
+                            onClick={() => setNewOpen(true)}>
+                            New course
+                        </Button>
                     </>
                 }
             />
@@ -124,10 +132,15 @@ const SuperAdminCoursesView = () => {
                 <Empty
                     icon={<BookOpen size={36} />}
                     title={q ? 'No matches' : 'No courses for this tenant'}
-                    description={
-                        q
-                            ? 'Try a different search.'
-                            : 'This tenant has not published any courses yet. Tenant ADMINs add courses from their own panel.'
+                    description={q ? 'Try a different search.' : 'This tenant has no courses yet. Click "New course" to create one.'}
+                    action={
+                        !q && tenantId ? (
+                            <Button
+                                leftIcon={<Plus size={14} />}
+                                onClick={() => setNewOpen(true)}>
+                                New course
+                            </Button>
+                        ) : null
                     }
                 />
             )}
@@ -135,57 +148,22 @@ const SuperAdminCoursesView = () => {
             {courses.length > 0 && (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {courses.map((c) => (
-                        <SuperAdminCourseCard
+                        <AdminCourseCard
                             key={c.id}
                             course={c}
+                            canEdit
+                            tenantId={tenantId}
                         />
                     ))}
                 </div>
             )}
-        </>
-    )
-}
 
-const SuperAdminCourseCard = ({ course }: { course: ApiCourse }) => {
-    const isPublished = course.publishState === 'PUBLISHED' || course.isPublished === true
-    const enrolled = course.enrolledCount ?? 0
-    const cover = course.thumbnailUrl ?? course.coverUrl ?? null
-    const priceRupees = Math.round((course.price ?? 0) / 100)
-    return (
-        <Card className="flex flex-col">
-            <div
-                className="h-32 rounded-md mb-4 relative overflow-hidden grid-dots"
-                style={{
-                    background: cover ? undefined : 'linear-gradient(135deg, var(--color-brand-50), var(--color-surface-2))'
-                }}>
-                {cover ? (
-                    <img
-                        src={cover}
-                        alt={course.title}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <BookOpen
-                            size={36}
-                            className="text-[var(--color-brand-500)]/60"
-                        />
-                    </div>
-                )}
-            </div>
-            <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <h3 className="text-base font-semibold text-fg truncate">{course.title}</h3>
-                    <p className="text-xs text-fg-muted mt-1 font-mono">/{course.slug}</p>
-                </div>
-                <Badge tone={isPublished ? 'ok' : 'default'}>{isPublished ? 'Live' : 'Draft'}</Badge>
-            </div>
-            {course.description && <p className="mt-2 text-sm text-fg-soft line-clamp-2">{course.description}</p>}
-            <div className="mt-3 flex items-center justify-between text-sm text-fg-soft">
-                <span className="font-mono font-semibold">{priceRupees > 0 ? `₹${priceRupees.toLocaleString('en-IN')}` : 'Free'}</span>
-                <span className="text-xs text-fg-muted">{enrolled} enrolled</span>
-            </div>
-        </Card>
+            <NewCourseModal
+                open={newOpen}
+                onClose={() => setNewOpen(false)}
+                tenantId={tenantId}
+            />
+        </>
     )
 }
 
@@ -282,7 +260,17 @@ const AdminCoursesView = () => {
     )
 }
 
-const AdminCourseCard = ({ course, canEdit }: { course: ApiCourse; canEdit: boolean }) => {
+const AdminCourseCard = ({
+    course,
+    canEdit,
+    tenantId
+}: {
+    course: ApiCourse
+    canEdit: boolean
+    /** Cross-tenant context for SUPER_ADMIN — when set, edits land on this
+     *  tenant via `?tenantId=` instead of the SA's own platform tenant. */
+    tenantId?: string
+}) => {
     const queryClient = useQueryClient()
     const confirm = useConfirm()
     const isPublished = course.publishState === 'PUBLISHED' || course.isPublished === true
@@ -291,7 +279,7 @@ const AdminCourseCard = ({ course, canEdit }: { course: ApiCourse; canEdit: bool
     const priceRupees = Math.round((course.price ?? 0) / 100)
 
     const deleteMutation = useMutation({
-        mutationFn: () => deleteCourse(course.id),
+        mutationFn: () => deleteCourse(course.id, tenantId),
         onSuccess: () => {
             toast.success('Course deleted')
             void queryClient.invalidateQueries({ queryKey: ['courses'] })
@@ -345,7 +333,7 @@ const AdminCourseCard = ({ course, canEdit }: { course: ApiCourse; canEdit: bool
                     </Button>
                 </Link>
                 {canEdit && (
-                    <Link to={`/app/courses/${course.id}/builder`}>
+                    <Link to={`/app/courses/${course.id}/builder${tenantId ? `?tenantId=${tenantId}` : ''}`}>
                         <Button
                             variant="subtle"
                             size="icon"
@@ -380,7 +368,7 @@ const AdminCourseCard = ({ course, canEdit }: { course: ApiCourse; canEdit: bool
 // Wraps the backend POST /courses. Title is required; slug is auto-generated
 // from the title. Backend stores price in paise; we accept rupees from the UI
 // and multiply on submit. On success, navigate to the builder.
-const NewCourseModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+const NewCourseModal = ({ open, onClose, tenantId }: { open: boolean; onClose: () => void; tenantId?: string }) => {
     const queryClient = useQueryClient()
     const [title, setTitle] = useState('')
     const [slug, setSlug] = useState('')
@@ -398,21 +386,24 @@ const NewCourseModal = ({ open, onClose }: { open: boolean; onClose: () => void 
 
     const mutation = useMutation({
         mutationFn: () =>
-            createCourse({
-                title: title.trim(),
-                slug: (slug || slugify(title)).trim(),
-                description: description.trim() || undefined,
-                price: Math.max(0, Math.round(Number(priceRupees) * 100)),
-                currency: 'INR',
-                gstPercent: 18
-            }),
+            createCourse(
+                {
+                    title: title.trim(),
+                    slug: (slug || slugify(title)).trim(),
+                    description: description.trim() || undefined,
+                    price: Math.max(0, Math.round(Number(priceRupees) * 100)),
+                    currency: 'INR',
+                    gstPercent: 18
+                },
+                tenantId
+            ),
         onSuccess: (course) => {
             toast.success('Course created — add your first lesson.')
             void queryClient.invalidateQueries({ queryKey: ['courses'] })
             reset()
             onClose()
             window.setTimeout(() => {
-                window.location.assign(`/app/courses/${course.id}/builder`)
+                window.location.assign(`/app/courses/${course.id}/builder${tenantId ? `?tenantId=${tenantId}` : ''}`)
             }, 50)
         },
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not create')

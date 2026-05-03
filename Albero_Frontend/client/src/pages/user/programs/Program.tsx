@@ -1,15 +1,62 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { CheckCircle2, Clock, Users, GraduationCap, Sparkles, ArrowRight, Briefcase, Award, ChevronRight } from 'lucide-react'
 import { findProgram } from '@/constants/programs'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
+import { useCollectionItem } from '@/hooks/useContent'
+
+// Pull the marketing-copy fields from the dashboard's `programs` collection
+// when the admin has populated them; fall back to whatever the static
+// constants file ships. Curriculum (modules / outcomes / fees / tools)
+// stays in code — those are richer than what the CMS schema captures and
+// rarely change. Editable from the dashboard:
+//   title, subtitle, badge, description, duration, mode, level,
+//   enrollDate (next batch), thumbnail, featured.
+type ProgramOverlay = {
+    title?: string
+    subtitle?: string
+    badge?: string
+    description?: string
+    duration?: string
+    mode?: string
+    level?: string
+    enrollDate?: string
+    thumbnail?: string
+}
 
 export default function ProgramPage() {
     const { slug } = useParams<{ slug: string }>()
     const navigate = useNavigate()
-    const program = slug ? findProgram(slug) : undefined
+    const fallback = slug ? findProgram(slug) : undefined
     const [enrollOpen, setEnrollOpen] = useState(false)
+
+    // Fetch the matching CMS row. Drafts are filtered out by the backend, so
+    // an unpublished item simply 404s and we render the constants version.
+    const cmsQuery = useCollectionItem('programs', slug)
+    const overlay = (cmsQuery.data?.item.data ?? null) as ProgramOverlay | null
+
+    // Merge: backend wins for any non-empty marketing field; constants
+    // supply the rest (icon, accent, modules, outcomes, fees, tools, …).
+    const program = useMemo(() => {
+        if (!fallback) return undefined
+        if (!overlay) return fallback
+        const pick = <K extends keyof ProgramOverlay>(key: K): string | undefined => {
+            const v = overlay[key]
+            return typeof v === 'string' && v.trim() ? v : undefined
+        }
+        return {
+            ...fallback,
+            title: pick('title') ?? fallback.title,
+            subtitle: pick('subtitle') ?? fallback.subtitle,
+            badge: pick('badge') ?? fallback.badge,
+            description: pick('description') ?? fallback.description,
+            duration: pick('duration') ?? fallback.duration,
+            mode: pick('mode') ?? fallback.mode,
+            level: pick('level') ?? fallback.level,
+            enrollDate: pick('enrollDate') ?? fallback.enrollDate
+        }
+    }, [fallback, overlay])
 
     if (!program) return <Navigate to="/" replace />
 

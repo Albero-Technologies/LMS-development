@@ -28,25 +28,31 @@ export type CreateInviteLinkPayload = {
     expiresInDays?: number
 }
 
-export const listInviteLinks = async (): Promise<CounsellorInviteLink[]> => {
-    const { data } = await api.get<Envelope<CounsellorInviteLink[]>>('/counsellor/invites')
+// `tenantId` is honoured for SUPER_ADMIN only — backend silently drops it
+// for any other role. Lets SA manage shareable links across tenants.
+const tenantParam = (tenantId: string | undefined): Record<string, string> | undefined => (tenantId ? { tenantId } : undefined)
+
+export const listInviteLinks = async (tenantId?: string): Promise<CounsellorInviteLink[]> => {
+    const { data } = await api.get<Envelope<CounsellorInviteLink[]>>('/counsellor/invites', { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const createInviteLink = async (payload: CreateInviteLinkPayload): Promise<CounsellorInviteLink> => {
-    const { data } = await api.post<Envelope<CounsellorInviteLink>>('/counsellor/invites', payload)
+export const createInviteLink = async (payload: CreateInviteLinkPayload, tenantId?: string): Promise<CounsellorInviteLink> => {
+    const { data } = await api.post<Envelope<CounsellorInviteLink>>('/counsellor/invites', payload, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const revokeInviteLink = async (id: string): Promise<CounsellorInviteLink> => {
-    const { data } = await api.post<Envelope<CounsellorInviteLink>>(`/counsellor/invites/${id}/revoke`)
+export const revokeInviteLink = async (id: string, tenantId?: string): Promise<CounsellorInviteLink> => {
+    const { data } = await api.post<Envelope<CounsellorInviteLink>>(`/counsellor/invites/${id}/revoke`, undefined, {
+        params: tenantParam(tenantId)
+    })
     return data.data
 }
 
 // Hard-removes the link from the counsellor's list. Existing signups created
 // from it stay intact, but the link can no longer be revived.
-export const deleteInviteLink = async (id: string): Promise<void> => {
-    await api.delete(`/counsellor/invites/${id}`)
+export const deleteInviteLink = async (id: string, tenantId?: string): Promise<void> => {
+    await api.delete(`/counsellor/invites/${id}`, { params: tenantParam(tenantId) })
 }
 
 // Detailed view used by the link-info modal — backend returns the link plus
@@ -68,8 +74,8 @@ export interface InviteLinkDetail extends CounsellorInviteLink {
     signups?: InviteLinkSignup[]
 }
 
-export const getInviteLink = async (id: string): Promise<InviteLinkDetail> => {
-    const { data } = await api.get<Envelope<InviteLinkDetail>>(`/counsellor/invites/${id}`)
+export const getInviteLink = async (id: string, tenantId?: string): Promise<InviteLinkDetail> => {
+    const { data } = await api.get<Envelope<InviteLinkDetail>>(`/counsellor/invites/${id}`, { params: tenantParam(tenantId) })
     return data.data
 }
 

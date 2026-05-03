@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { Target, Sparkles, Code2, FileSpreadsheet, BarChart3, Database, Calculator, PieChart, ArrowRight, Clock } from 'lucide-react'
 import { listGuides } from '@/constants/interview-guide-content'
+import { useCollection } from '@/hooks/useContent'
 
 const iconMap = {
     python: Code2,
@@ -13,9 +14,50 @@ const iconMap = {
     tableau: PieChart
 } as const
 
+const DEFAULT_GRADIENT = 'linear-gradient(135deg,#0d4f3c,#34d399)'
+
 export default function InterviewGuides() {
     const navigate = useNavigate()
-    const all = listGuides()
+    const fallback = listGuides()
+    const cmsQuery = useCollection('interview-guides')
+
+    // Map CMS rows to the same shape as `listGuides()`. The CMS schema
+    // captures title / description / difficulty / target companies /
+    // sections — we infer questionCount from `sections` lines (one per
+    // line in the longtext) and pick a sensible default icon. Static
+    // entries with the same slug get suppressed so a CMS edit overrides
+    // a constant cleanly.
+    const cmsGuides = (cmsQuery.data?.items ?? []).map((it) => {
+        const data = it.data as { title?: string; description?: string; difficulty?: string; targetCompanies?: string; sections?: string }
+        const lines = String(data.sections ?? '')
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        const questionCount = lines.length || 10
+        // Match the static InterviewGuide shape EXACTLY so the array union
+        // collapses cleanly — every field the page renders (badge, readMin,
+        // tags, etc.) needs a value, even if it's a sensible default.
+        return {
+            slug: it.slug,
+            name: String(data.title ?? it.slug),
+            title: String(data.title ?? it.slug),
+            description: String(data.description ?? ''),
+            iconKey: 'sql' as const,
+            accentGradient: DEFAULT_GRADIENT,
+            questionCount,
+            difficulty: String(data.difficulty ?? 'Medium'),
+            badge: undefined as string | undefined,
+            readMin: Math.max(5, Math.round(questionCount * 0.6)),
+            tags: data.targetCompanies
+                ? String(data.targetCompanies)
+                      .split(',')
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                : []
+        }
+    })
+    const cmsSlugs = new Set(cmsGuides.map((c) => c.slug))
+    const all = [...cmsGuides, ...fallback.filter((g) => !cmsSlugs.has(g.slug))]
     const totalQ = all.reduce((acc, g) => acc + g.questionCount, 0)
 
     return (

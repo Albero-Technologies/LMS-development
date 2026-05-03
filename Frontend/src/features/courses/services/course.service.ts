@@ -48,29 +48,33 @@ type Envelope<T> = { success: boolean; data: T; message: string }
 type PagedResponse<T> = Envelope<{ items: T[]; total: number; page: number; pageSize: number }>
 
 // `tenantId` is honoured for SUPER_ADMIN only — the backend silently drops it
-// for any other role, so it's safe to always pass through.
+// for any other role, so it's safe to always pass through. Threading it on
+// every mutation lets the SA edit a course owned by ANY tenant from the
+// cross-tenant catalog view.
+const tenantParam = (tenantId: string | undefined): Record<string, string> | undefined => (tenantId ? { tenantId } : undefined)
+
 export const listCourses = async (params?: { q?: string; page?: number; tenantId?: string }): Promise<TCourse[]> => {
     const { data } = await api.get<PagedResponse<TCourse>>('/courses', { params })
     return data.data.items
 }
 
-export const getCourse = async (id: string): Promise<TCourse> => {
-    const { data } = await api.get<Envelope<TCourse>>(`/courses/${id}`)
+export const getCourse = async (id: string, tenantId?: string): Promise<TCourse> => {
+    const { data } = await api.get<Envelope<TCourse>>(`/courses/${id}`, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const createCourse = async (body: Partial<TCourse>): Promise<TCourse> => {
-    const { data } = await api.post<Envelope<TCourse>>('/courses', body)
+export const createCourse = async (body: Partial<TCourse>, tenantId?: string): Promise<TCourse> => {
+    const { data } = await api.post<Envelope<TCourse>>('/courses', body, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const updateCourse = async (id: string, body: Partial<TCourse>): Promise<TCourse> => {
-    const { data } = await api.patch<Envelope<TCourse>>(`/courses/${id}`, body)
+export const updateCourse = async (id: string, body: Partial<TCourse>, tenantId?: string): Promise<TCourse> => {
+    const { data } = await api.patch<Envelope<TCourse>>(`/courses/${id}`, body, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const deleteCourse = async (id: string): Promise<void> => {
-    await api.delete(`/courses/${id}`)
+export const deleteCourse = async (id: string, tenantId?: string): Promise<void> => {
+    await api.delete(`/courses/${id}`, { params: tenantParam(tenantId) })
 }
 
 // ---- Sections / lessons (curriculum builder) -----------------------------
@@ -89,32 +93,32 @@ export type CreateLessonPayload = {
 }
 export type UpdateLessonPayload = Omit<Partial<CreateLessonPayload>, 'sectionId'>
 
-export const createSection = async (courseId: string, body: CreateSectionPayload): Promise<TSection> => {
-    const { data } = await api.post<Envelope<TSection>>(`/courses/${courseId}/sections`, body)
+export const createSection = async (courseId: string, body: CreateSectionPayload, tenantId?: string): Promise<TSection> => {
+    const { data } = await api.post<Envelope<TSection>>(`/courses/${courseId}/sections`, body, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const updateSection = async (courseId: string, sectionId: string, body: UpdateSectionPayload): Promise<TSection> => {
-    const { data } = await api.patch<Envelope<TSection>>(`/courses/${courseId}/sections/${sectionId}`, body)
+export const updateSection = async (courseId: string, sectionId: string, body: UpdateSectionPayload, tenantId?: string): Promise<TSection> => {
+    const { data } = await api.patch<Envelope<TSection>>(`/courses/${courseId}/sections/${sectionId}`, body, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const deleteSection = async (courseId: string, sectionId: string): Promise<void> => {
-    await api.delete(`/courses/${courseId}/sections/${sectionId}`)
+export const deleteSection = async (courseId: string, sectionId: string, tenantId?: string): Promise<void> => {
+    await api.delete(`/courses/${courseId}/sections/${sectionId}`, { params: tenantParam(tenantId) })
 }
 
-export const createLesson = async (courseId: string, body: CreateLessonPayload): Promise<TLesson> => {
-    const { data } = await api.post<Envelope<TLesson>>(`/courses/${courseId}/lessons`, body)
+export const createLesson = async (courseId: string, body: CreateLessonPayload, tenantId?: string): Promise<TLesson> => {
+    const { data } = await api.post<Envelope<TLesson>>(`/courses/${courseId}/lessons`, body, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const updateLesson = async (courseId: string, lessonId: string, body: UpdateLessonPayload): Promise<TLesson> => {
-    const { data } = await api.patch<Envelope<TLesson>>(`/courses/${courseId}/lessons/${lessonId}`, body)
+export const updateLesson = async (courseId: string, lessonId: string, body: UpdateLessonPayload, tenantId?: string): Promise<TLesson> => {
+    const { data } = await api.patch<Envelope<TLesson>>(`/courses/${courseId}/lessons/${lessonId}`, body, { params: tenantParam(tenantId) })
     return data.data
 }
 
-export const deleteLesson = async (courseId: string, lessonId: string): Promise<void> => {
-    await api.delete(`/courses/${courseId}/lessons/${lessonId}`)
+export const deleteLesson = async (courseId: string, lessonId: string, tenantId?: string): Promise<void> => {
+    await api.delete(`/courses/${courseId}/lessons/${lessonId}`, { params: tenantParam(tenantId) })
 }
 
 // Per-lesson progress mark — "I watched/read this lesson". Backend persists

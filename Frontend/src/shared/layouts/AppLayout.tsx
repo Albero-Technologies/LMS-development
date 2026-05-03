@@ -59,23 +59,30 @@ type NavItem = { to: string; label: string; icon: ComponentType<{ size?: number 
 
 const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
     SUPER_ADMIN: [
+        // Programs + Resources are tenant-content surfaces — owned by the
+        // tenant ADMIN, not the platform SA. SA still has the raw CMS for
+        // cross-tenant content audits, plus Lead Pipeline (tenant-scoped via
+        // the picker on that page) so they can monitor any tenant's funnel.
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/admin/tenants', label: 'Tenants', icon: Building2 },
         { to: '/app/admin/website-editor', label: 'Website Editor', icon: Globe },
         { to: '/app/admin/cms', label: 'CMS', icon: Database },
-        { to: '/app/admin/programs', label: 'Programs', icon: Sparkles },
-        { to: '/app/admin/resources', label: 'Resources', icon: Library },
         { to: '/app/admin/utm-builder', label: 'UTM Builder', icon: Link2 },
         { to: '/app/admin/seo-builder', label: 'SEO Builder', icon: Telescope },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/users', label: 'Users', icon: Users },
+        { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
         { to: '/app/payments', label: 'Client Payments', icon: CreditCard },
         { to: '/app/reports', label: 'Analytics', icon: LineChart },
         { to: '/app/audit-logs', label: 'Activity Logs', icon: Activity }
     ],
     ADMIN: [
+        // ADMIN sees Programs + Resources (their day-to-day content surface).
+        // The raw "Content" / CMS tab is hidden — Programs + Resources cover
+        // the same data with a focused UI; admins who want the schema editor
+        // can still hit /app/admin/cms by URL but it's not in the sidebar.
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/users', label: 'Users', icon: Users },
@@ -84,7 +91,6 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor/targets', label: 'Counsellor Targets', icon: Target },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
-        { to: '/app/admin/cms', label: 'Content', icon: Database },
         { to: '/app/admin/programs', label: 'Programs', icon: Sparkles },
         { to: '/app/admin/resources', label: 'Resources', icon: Library },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },

@@ -56,13 +56,20 @@ export type TicketListQuery = {
     assigneeId?: string
 }
 
-export const listTickets = async (query: TicketListQuery): Promise<TicketListResponse> => {
-    const { data } = await api.get<Envelope<TicketListResponse>>('/tickets', { params: query })
+// `tenantId` is honoured for SUPER_ADMIN only — the backend silently drops
+// it for other roles. Lets SA monitor + work tickets across tenants.
+const withTenant = <T extends Record<string, unknown> | undefined>(query: T, tenantId?: string): Record<string, unknown> | undefined => {
+    if (!tenantId) return query
+    return { ...(query ?? {}), tenantId }
+}
+
+export const listTickets = async (query: TicketListQuery, tenantId?: string): Promise<TicketListResponse> => {
+    const { data } = await api.get<Envelope<TicketListResponse>>('/tickets', { params: withTenant(query, tenantId) })
     return data.data
 }
 
-export const getTicket = async (id: string): Promise<TicketDetail> => {
-    const { data } = await api.get<Envelope<TicketDetail>>(`/tickets/${id}`)
+export const getTicket = async (id: string, tenantId?: string): Promise<TicketDetail> => {
+    const { data } = await api.get<Envelope<TicketDetail>>(`/tickets/${id}`, { params: tenantId ? { tenantId } : undefined })
     return data.data
 }
 
@@ -72,8 +79,8 @@ export type CreateTicketPayload = {
     priority: TicketPriority
 }
 
-export const createTicket = async (payload: CreateTicketPayload): Promise<TicketListItem> => {
-    const { data } = await api.post<Envelope<TicketListItem>>('/tickets', payload)
+export const createTicket = async (payload: CreateTicketPayload, tenantId?: string): Promise<TicketListItem> => {
+    const { data } = await api.post<Envelope<TicketListItem>>('/tickets', payload, { params: tenantId ? { tenantId } : undefined })
     return data.data
 }
 
@@ -84,8 +91,8 @@ export type UpdateTicketPayload = {
     assigneeId?: string | null
 }
 
-export const updateTicket = async (id: string, payload: UpdateTicketPayload): Promise<TicketListItem> => {
-    const { data } = await api.patch<Envelope<TicketListItem>>(`/tickets/${id}`, payload)
+export const updateTicket = async (id: string, payload: UpdateTicketPayload, tenantId?: string): Promise<TicketListItem> => {
+    const { data } = await api.patch<Envelope<TicketListItem>>(`/tickets/${id}`, payload, { params: tenantId ? { tenantId } : undefined })
     return data.data
 }
 
@@ -94,8 +101,10 @@ export type AddCommentPayload = {
     internal?: boolean
 }
 
-export const addTicketComment = async (id: string, payload: AddCommentPayload): Promise<TicketComment> => {
-    const { data } = await api.post<Envelope<TicketComment>>(`/tickets/${id}/comments`, payload)
+export const addTicketComment = async (id: string, payload: AddCommentPayload, tenantId?: string): Promise<TicketComment> => {
+    const { data } = await api.post<Envelope<TicketComment>>(`/tickets/${id}/comments`, payload, {
+        params: tenantId ? { tenantId } : undefined
+    })
     return data.data
 }
 

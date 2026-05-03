@@ -1,4 +1,4 @@
-import { useMemo, useState, type DragEvent } from 'react'
+import { useEffect, useMemo, useState, type DragEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Phone, Mail, MessageCircle, Calendar, MoreHorizontal, ChevronRight, LayoutGrid, Table2, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
@@ -8,7 +8,11 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { Select } from '@shared/components/ui/Select'
 import { cn } from '@shared/helpers/cn'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { listAllTenants } from '@features/admin/services/tenant.service'
 import {
     listMyLeads,
     listAssignableCounsellors,
@@ -37,32 +41,63 @@ type ViewMode = 'kanban' | 'table'
 
 export const LeadPipelinePage = () => {
     const queryClient = useQueryClient()
+    const role = useAuthStore((s) => s.user?.role)
+    const isSuperAdmin = role === ROLES.SUPER_ADMIN
+
     const [view, setView] = useState<ViewMode>('kanban')
     const [tableStageFilter, setTableStageFilter] = useState<LeadStage | 'ALL'>('ALL')
     const [dragOverStage, setDragOverStage] = useState<LeadStage | null>(null)
 
+    // SA tenant picker — same UX as the CMS / Courses pages. Persist the
+    // chosen tenant in localStorage so refresh doesn't bounce back to the
+    // (empty) platform tenant.
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        staleTime: 60_000,
+        enabled: isSuperAdmin
+    })
+    const tenants = tenantsQuery.data ?? []
+    const [tenantId, setTenantId] = useState<string>(() => (isSuperAdmin ? localStorage.getItem('leads.tenantId') ?? '' : ''))
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        if (!tenantId && tenants.length > 0) setTenantId(tenants[0].id)
+    }, [isSuperAdmin, tenantId, tenants])
+    useEffect(() => {
+        if (isSuperAdmin && tenantId) localStorage.setItem('leads.tenantId', tenantId)
+    }, [isSuperAdmin, tenantId])
+
+    // Effective tenantId we forward to the API. Undefined means "use the
+    // JWT's tenant" (correct for ADMIN / counsellor / manager).
+    const effectiveTenantId = isSuperAdmin && tenantId ? tenantId : undefined
+
     const leadsQuery = useQuery({
-        queryKey: ['leads'],
-        queryFn: () => listMyLeads(),
-        staleTime: 30_000
+        queryKey: ['leads', effectiveTenantId ?? 'self'],
+        queryFn: () => listMyLeads({}, effectiveTenantId),
+        staleTime: 30_000,
+        enabled: !isSuperAdmin || !!effectiveTenantId
     })
 
+    // The full leads cache key includes the effective tenant so the SA's
+    // per-tenant lists don't trample each other when they switch.
+    const leadsKey = useMemo(() => ['leads', effectiveTenantId ?? 'self'] as const, [effectiveTenantId])
+
     const stageMutation = useMutation({
-        mutationFn: ({ id, stage }: { id: string; stage: LeadStage }) => updateLeadStage(id, stage),
+        mutationFn: ({ id, stage }: { id: string; stage: LeadStage }) => updateLeadStage(id, stage, effectiveTenantId),
         // Optimistically move the card so the kanban feels instant.
         onMutate: async ({ id, stage }) => {
-            await queryClient.cancelQueries({ queryKey: ['leads'] })
-            const previous = queryClient.getQueryData<Lead[]>(['leads'])
+            await queryClient.cancelQueries({ queryKey: leadsKey })
+            const previous = queryClient.getQueryData<Lead[]>(leadsKey)
             if (previous) {
                 queryClient.setQueryData<Lead[]>(
-                    ['leads'],
+                    leadsKey,
                     previous.map((l) => (l.id === id ? { ...l, stage } : l))
                 )
             }
             return { previous }
         },
         onError: (err: unknown, _vars, ctx) => {
-            if (ctx?.previous) queryClient.setQueryData(['leads'], ctx.previous)
+            if (ctx?.previous) queryClient.setQueryData(leadsKey, ctx.previous)
             const msg = err instanceof Error ? err.message : 'Could not update stage'
             toast.error(msg)
         },
@@ -70,24 +105,26 @@ export const LeadPipelinePage = () => {
     })
 
     // Roster of counsellors + counselling managers a lead can be assigned to.
-    // Loaded once with the page; React Query caches it for 5 minutes.
+    // Re-fetched when the SA flips tenants so the picker shows the right
+    // tenant's people.
     const counsellorsQuery = useQuery({
-        queryKey: ['lead-assignees'],
-        queryFn: listAssignableCounsellors,
-        staleTime: 5 * 60_000
+        queryKey: ['lead-assignees', effectiveTenantId ?? 'self'],
+        queryFn: () => listAssignableCounsellors(effectiveTenantId),
+        staleTime: 5 * 60_000,
+        enabled: !isSuperAdmin || !!effectiveTenantId
     })
     const counsellors = counsellorsQuery.data ?? []
 
     const assignMutation = useMutation({
-        mutationFn: ({ id, counsellorId }: { id: string; counsellorId: string }) => reassignLead(id, counsellorId),
+        mutationFn: ({ id, counsellorId }: { id: string; counsellorId: string }) => reassignLead(id, counsellorId, effectiveTenantId),
         // Optimistic — patch the assignedTo in cache so the card label updates instantly.
         onMutate: async ({ id, counsellorId }) => {
-            await queryClient.cancelQueries({ queryKey: ['leads'] })
-            const previous = queryClient.getQueryData<Lead[]>(['leads'])
+            await queryClient.cancelQueries({ queryKey: leadsKey })
+            const previous = queryClient.getQueryData<Lead[]>(leadsKey)
             const target = counsellors.find((c) => c.id === counsellorId)
             if (previous && target) {
                 queryClient.setQueryData<Lead[]>(
-                    ['leads'],
+                    leadsKey,
                     previous.map((l) =>
                         l.id === id
                             ? {
@@ -105,7 +142,7 @@ export const LeadPipelinePage = () => {
             toast.success(`Assigned to ${lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : 'counsellor'}`)
         },
         onError: (err: unknown, _vars, ctx) => {
-            if (ctx?.previous) queryClient.setQueryData(['leads'], ctx.previous)
+            if (ctx?.previous) queryClient.setQueryData(leadsKey, ctx.previous)
             const msg = err instanceof Error ? err.message : 'Could not reassign'
             toast.error(msg)
         },
@@ -152,26 +189,48 @@ export const LeadPipelinePage = () => {
                 title="Lead pipeline"
                 description="Drag cards across stages, or switch to the table for filtering and bulk review."
                 actions={
-                    <div className="inline-flex rounded-md border border-[var(--color-border)] bg-surface-2 p-1">
-                        <button
-                            type="button"
-                            onClick={() => setView('kanban')}
-                            className={cn(
-                                'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs',
-                                view === 'kanban' ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
-                            )}>
-                            <LayoutGrid size={12} /> Kanban
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setView('table')}
-                            className={cn(
-                                'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs',
-                                view === 'table' ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
-                            )}>
-                            <Table2 size={12} /> Table
-                        </button>
-                    </div>
+                    <>
+                        {isSuperAdmin && (
+                            <div className="w-64">
+                                <Select
+                                    aria-label="Choose tenant"
+                                    value={tenantId}
+                                    onChange={(e) => setTenantId(e.target.value)}
+                                    disabled={tenantsQuery.isLoading}>
+                                    {tenants.length === 0 && (
+                                        <option value="">{tenantsQuery.isLoading ? 'Loading…' : 'No tenants'}</option>
+                                    )}
+                                    {tenants.map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.id}>
+                                            {t.name} (/{t.slug})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                        <div className="inline-flex rounded-md border border-[var(--color-border)] bg-surface-2 p-1">
+                            <button
+                                type="button"
+                                onClick={() => setView('kanban')}
+                                className={cn(
+                                    'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs',
+                                    view === 'kanban' ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+                                )}>
+                                <LayoutGrid size={12} /> Kanban
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setView('table')}
+                                className={cn(
+                                    'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs',
+                                    view === 'table' ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+                                )}>
+                                <Table2 size={12} /> Table
+                            </button>
+                        </div>
+                    </>
                 }
             />
 

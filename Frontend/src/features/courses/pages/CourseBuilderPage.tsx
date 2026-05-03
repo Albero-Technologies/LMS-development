@@ -7,7 +7,7 @@
 // lessons mutate the server, then we invalidate the course query so the
 // sidebar/preview re-render with fresh data.
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Plus, Youtube, Trash2, Eye, GripVertical, Clock, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
@@ -37,12 +37,19 @@ import {
 
 export const CourseBuilderPage = () => {
     const { id = '' } = useParams()
+    const [params] = useSearchParams()
     const queryClient = useQueryClient()
     const confirm = useConfirm()
 
+    // SUPER_ADMIN cross-tenant context. When the SA opens this page from the
+    // cross-tenant catalog, the deep link carries `?tenantId=<id>` so every
+    // GET/PATCH/DELETE on the curriculum lands on the right tenant. Other
+    // roles open without the param and the backend uses their JWT tenant.
+    const tenantId = params.get('tenantId') ?? undefined
+
     const courseQuery = useQuery({
-        queryKey: ['courses', id],
-        queryFn: () => getCourse(id),
+        queryKey: ['courses', id, tenantId ?? 'self'],
+        queryFn: () => getCourse(id, tenantId),
         enabled: id.length > 0,
         staleTime: 30_000,
         retry: false
@@ -74,7 +81,7 @@ export const CourseBuilderPage = () => {
     // ---- Mutations -----------------------------------------------------
 
     const addSectionMutation = useMutation({
-        mutationFn: (title: string) => createSection(id, { title, order: sections.length }),
+        mutationFn: (title: string) => createSection(id, { title, order: sections.length }, tenantId),
         onSuccess: (sec) => {
             invalidate()
             setActiveSectionId(sec.id)
@@ -83,25 +90,25 @@ export const CourseBuilderPage = () => {
     })
 
     const renameSectionMutation = useMutation({
-        mutationFn: ({ sectionId, title }: { sectionId: string; title: string }) => updateSection(id, sectionId, { title }),
+        mutationFn: ({ sectionId, title }: { sectionId: string; title: string }) => updateSection(id, sectionId, { title }, tenantId),
         onSuccess: () => invalidate(),
         onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not rename')
     })
 
     const deleteSectionMutation = useMutation({
-        mutationFn: (sectionId: string) => deleteSection(id, sectionId),
+        mutationFn: (sectionId: string) => deleteSection(id, sectionId, tenantId),
         onSuccess: () => invalidate(),
         onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not delete section')
     })
 
     const deleteLessonMutation = useMutation({
-        mutationFn: (lessonId: string) => deleteLesson(id, lessonId),
+        mutationFn: (lessonId: string) => deleteLesson(id, lessonId, tenantId),
         onSuccess: () => invalidate(),
         onError: (e: unknown) => toast.error(toApiError(e).message || 'Could not delete lesson')
     })
 
     const publishMutation = useMutation({
-        mutationFn: (publish: boolean) => updateCourse(id, { publishState: publish ? 'PUBLISHED' : 'DRAFT' }),
+        mutationFn: (publish: boolean) => updateCourse(id, { publishState: publish ? 'PUBLISHED' : 'DRAFT' }, tenantId),
         onSuccess: (next) => {
             invalidate()
             toast.success(next.publishState === 'PUBLISHED' ? 'Course published — visible to students' : 'Course unpublished')
@@ -418,6 +425,7 @@ export const CourseBuilderPage = () => {
                     onClose={() => setLessonModalOpen(false)}
                     courseId={course.id}
                     section={activeSection}
+                    tenantId={tenantId}
                 />
             )}
         </>
@@ -433,12 +441,14 @@ const AddYouTubeLessonModal = ({
     open,
     onClose,
     courseId,
-    section
+    section,
+    tenantId
 }: {
     open: boolean
     onClose: () => void
     courseId: string
     section: TSection
+    tenantId?: string
 }) => {
     const queryClient = useQueryClient()
     const [title, setTitle] = useState('')
@@ -459,14 +469,18 @@ const AddYouTubeLessonModal = ({
         mutationFn: () => {
             if (!videoId) throw new Error("That doesn't look like a YouTube URL or video ID.")
             const durationSec = duration ? Math.max(0, Math.round(Number(duration) * 60)) : 0
-            return createLesson(courseId, {
-                sectionId: section.id,
-                title: title.trim(),
-                type: 'YOUTUBE',
-                youtubeId: videoId,
-                durationSec,
-                order: section.lessons.length
-            })
+            return createLesson(
+                courseId,
+                {
+                    sectionId: section.id,
+                    title: title.trim(),
+                    type: 'YOUTUBE',
+                    youtubeId: videoId,
+                    durationSec,
+                    order: section.lessons.length
+                },
+                tenantId
+            )
         },
         onSuccess: () => {
             toast.success('Lesson added')

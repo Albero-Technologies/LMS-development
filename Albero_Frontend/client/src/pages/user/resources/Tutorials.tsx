@@ -2,6 +2,7 @@ import ResourceLayout from '@/components/user/resources/ResourceLayout'
 import { Library, Code2, BarChart3, Database, FileSpreadsheet, PieChart, Calculator, ChevronRight, Clock } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { useCollection } from '@/hooks/useContent'
 
 const topics = [
     {
@@ -71,6 +72,28 @@ const featuredChapters = [
 
 export default function Tutorials() {
     const navigate = useNavigate()
+    const cmsQuery = useCollection('tutorials')
+
+    // Convert CMS tutorial rows into the same shape as `featuredChapters` so
+    // newly-published items appear in the grid alongside the static
+    // "Python from beginner to advanced" path. We slug-prefix with the
+    // CMS topic so the chapter route still resolves
+    // (/resources/tutorials/<topic>/<chapter-slug>).
+    const cmsChapters = (cmsQuery.data?.items ?? []).map((it, i) => {
+        const data = it.data as { title?: string; topic?: string; chapter?: number; description?: string; readMin?: number }
+        const topic = String(data.topic ?? 'general').toLowerCase().replace(/\s+/g, '-')
+        return {
+            ch: `Chapter ${data.chapter ?? i + 1}`,
+            slug: `${topic}/${it.slug}`,
+            title: String(data.title ?? it.slug),
+            desc: String(data.description ?? ''),
+            read: data.readMin ? `${data.readMin} min` : '—',
+            tags: [String(data.topic ?? 'Tutorial')]
+        }
+    })
+    // CMS rows lead — they're freshly published and likely the most-relevant.
+    const allChapters = [...cmsChapters, ...featuredChapters]
+
     return (
         <ResourceLayout
             eyebrow="Free Tutorials"
@@ -170,7 +193,7 @@ export default function Tutorials() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {featuredChapters.map((c, i) => (
+                    {allChapters.map((c, i) => (
                         <motion.button
                             key={i}
                             initial={{ opacity: 0, y: 16 }}

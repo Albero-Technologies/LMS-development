@@ -1,14 +1,55 @@
 import { useParams, Link, Navigate, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Clock, Calendar, ChevronRight, Share2, Bookmark } from 'lucide-react'
-import { findPost, listPosts } from '@/constants/blog-content'
+import { findPost, listPosts, type BlogPost } from '@/constants/blog-content'
+import { useCollectionItem } from '@/hooks/useContent'
+
+const DEFAULT_GRADIENT = 'linear-gradient(135deg,#0d4f3c,#34d399)'
 
 export default function BlogPostPage() {
     const { slug = '' } = useParams<{ slug?: string }>()
     const location = useLocation()
-    const post = findPost(slug)
+    const fallback = findPost(slug)
     const all = listPosts()
+
+    // Pull the matching CMS row. When the post exists in the CMS we render
+    // it (admin edits flow through); when it doesn't, we fall back to the
+    // hand-curated constants. The CMS body field is plain HTML — wrapped in
+    // dangerouslySetInnerHTML below since the only writers are tenant
+    // admins, not end users.
+    const cmsQuery = useCollectionItem('blog', slug)
+    const cmsItem = cmsQuery.data?.item
+    const post: BlogPost | null = useMemo(() => {
+        if (cmsItem) {
+            const data = cmsItem.data as { title?: string; summary?: string; coverImage?: string; body?: string; author?: string; category?: string }
+            return {
+                slug: cmsItem.slug,
+                title: String(data.title ?? cmsItem.slug),
+                description: String(data.summary ?? ''),
+                category: String(data.category ?? 'Insights'),
+                date: cmsItem.publishedAt ? new Date(cmsItem.publishedAt).toLocaleDateString() : '',
+                readMin: 5,
+                tags: [],
+                author: { name: String(data.author ?? 'Albero Editorial'), role: 'Editor' },
+                coverGradient: DEFAULT_GRADIENT,
+                toc: [],
+                // Render backend HTML inside a wrapper that matches the prose
+                // styling. The constant version uses tutorial-prose JSX
+                // helpers — for CMS posts we lean on a single rich-text
+                // wrapper instead.
+                content: (
+                    <div
+                        className="prose-cms"
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: String(data.body ?? '') }}
+                    />
+                )
+            }
+        }
+        return fallback ?? null
+    }, [cmsItem, fallback])
+
     const [activeSection, setActiveSection] = useState<string>('')
 
     useEffect(() => {

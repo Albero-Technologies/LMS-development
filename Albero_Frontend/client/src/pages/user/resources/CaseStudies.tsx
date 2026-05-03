@@ -2,7 +2,8 @@ import ResourceLayout from '@/components/user/resources/ResourceLayout'
 import { FolderOpen, Award, TrendingUp, ArrowRight, Building2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { listCaseStudies } from '@/constants/case-study-content'
+import { listCaseStudies, type CaseStudyEntry } from '@/constants/case-study-content'
+import { useCollection } from '@/hooks/useContent'
 
 const stats = [
     { v: '12+', l: 'Global brands analysed', icon: Building2 },
@@ -10,9 +11,49 @@ const stats = [
     { v: '40+', l: 'Business strategies', icon: TrendingUp }
 ]
 
+const DEFAULT_GRADIENT = 'linear-gradient(135deg,#0d4f3c,#34d399)'
+
 export default function CaseStudies() {
     const navigate = useNavigate()
-    const all = listCaseStudies()
+    const fallback = listCaseStudies()
+    const cmsQuery = useCollection('case-studies')
+
+    // Map CMS rows into the same `CaseStudyEntry` shape the cards consume.
+    // Backend captures the headline marketing fields (brand, title, sector,
+    // founded, keyFacts) — the deeper rich content (full TOC, ReactNode body)
+    // stays in code. New CMS entries link to the detail route, which falls
+    // back to a 404 if no constant matches; future work: render CMS detail
+    // body via a lightweight HTML renderer.
+    const cmsCases: CaseStudyEntry[] = (cmsQuery.data?.items ?? []).map((it) => {
+        const data = it.data as { brand?: string; title?: string; sector?: string; founded?: string; keyFacts?: string }
+        const facts = String(data.keyFacts ?? '')
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .map((line) => {
+                const [label, ...rest] = line.split(':')
+                return { label: label.trim(), value: rest.join(':').trim() || label.trim() }
+            })
+        return {
+            slug: it.slug,
+            brand: String(data.brand ?? it.slug),
+            title: String(data.title ?? data.brand ?? it.slug),
+            description: '',
+            sector: String(data.sector ?? '—'),
+            founded: String(data.founded ?? '—'),
+            headquarters: '—',
+            coverGradient: DEFAULT_GRADIENT,
+            tags: [String(data.sector ?? 'Business')],
+            author: { name: 'Albero Editorial', role: 'Editor' },
+            readMin: 8,
+            date: it.publishedAt ? new Date(it.publishedAt).toLocaleDateString() : '',
+            keyFacts: facts,
+            toc: [],
+            content: null
+        }
+    })
+    const cmsSlugs = new Set(cmsCases.map((c) => c.slug))
+    const all = [...cmsCases, ...fallback.filter((c) => !cmsSlugs.has(c.slug))]
     const featured = all.filter((c) => c.badge).slice(0, 3)
     const everything = all
 
