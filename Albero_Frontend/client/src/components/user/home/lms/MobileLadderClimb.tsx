@@ -1,247 +1,259 @@
-import { useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
-import { Trophy, Sparkles, Flag } from 'lucide-react'
+import { motion, useInView } from 'motion/react'
+import { useRef } from 'react'
+import { Sparkles, Trophy } from 'lucide-react'
 
 const steps = [
     {
         title: 'Day 1 — Join the cohort',
-        body: 'Get matched to a mentor and meet your batch within 7 days of enrollment.'
+        body: 'Get matched to a mentor and meet your batch within 7 days of enrollment.',
+        accent: '#0d4f3c'
     },
     {
         title: 'Month 1 — First capstone',
-        body: 'Ship your first portfolio-grade project, reviewed live by a senior practitioner.'
+        body: 'Ship your first portfolio-grade project, reviewed live by a senior practitioner.',
+        accent: '#1d6f4f'
     },
     {
         title: 'Month 3 — Mentor sign-off',
-        body: 'Pass the mid-program review and earn your IBM SkillsBuild badge.'
+        body: 'Pass the mid-program review and earn your IBM SkillsBuild badge.',
+        accent: '#0530AD'
     },
     {
         title: 'Month 5 — Mock interviews',
-        body: 'Run 6 mock rounds with hiring managers. Resume + LinkedIn rebuilt.'
+        body: 'Run 6 mock rounds with hiring managers. Resume + LinkedIn rebuilt.',
+        accent: '#b86a18'
     },
     {
         title: 'Month 6 — Offer in hand',
-        body: 'Referrals routed to 180+ partners. Placement support runs until you sign.'
+        body: 'Referrals routed to 180+ partners. Placement support runs until you sign.',
+        accent: '#34d399'
     }
 ]
 
-// Mobile vertical ladder. The whole section is taller than the viewport
-// so the user scrolls through it; a center rail fills emerald as the
-// active step changes, and a hiker icon climbs from rung to rung.
+// Mobile-only ladder. Scrolls naturally (no sticky pin) so the page flow
+// stays smooth on phones. Each rung uses its own IntersectionObserver via
+// `useInView` so the card swings in from the right and the rung dot pops
+// the moment that step enters the viewport — feels like climbing without
+// fighting scroll.
 export default function MobileLadderClimb() {
-    const sectionRef = useRef<HTMLElement | null>(null)
-    const [progress, setProgress] = useState(0)
-
-    useEffect(() => {
-        const onScroll = () => {
-            const el = sectionRef.current
-            if (!el) return
-            const rect = el.getBoundingClientRect()
-            const total = rect.height - window.innerHeight
-            const raw = -rect.top / Math.max(total, 1)
-            setProgress(Math.min(1, Math.max(0, raw)))
-        }
-        onScroll()
-        window.addEventListener('scroll', onScroll, { passive: true })
-        window.addEventListener('resize', onScroll, { passive: true })
-        return () => {
-            window.removeEventListener('scroll', onScroll)
-            window.removeEventListener('resize', onScroll)
-        }
-    }, [])
-
-    const climbProgress = Math.min(1, progress / 0.85)
-    const trophyProgress = Math.max(0, (progress - 0.8) / 0.2)
-    const activeStep = climbProgress >= 1
-        ? steps.length - 1
-        : Math.min(steps.length - 1, Math.floor(climbProgress * steps.length))
-
     return (
         <section
-            ref={sectionRef}
-            className="relative md:hidden"
-            // 280vh gives the climb breathing room without being interminable.
-            style={{ height: '280vh', background: 'var(--page-bg)' }}>
+            className="relative md:hidden py-12 px-5"
+            style={{ background: 'var(--page-bg)' }}>
+            {/* Decorative blob */}
             <div
-                className="sticky top-0 h-screen flex flex-col overflow-hidden"
-                style={{ background: 'var(--page-bg)' }}>
-                {/* Decorative blob */}
+                aria-hidden="true"
+                className="absolute -top-12 -right-16 w-[260px] h-[260px] rounded-full pointer-events-none"
+                style={{
+                    background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)',
+                    filter: 'blur(50px)'
+                }}
+            />
+
+            {/* Header */}
+            <div className="text-center mb-8 relative z-[1]">
+                <div
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 text-[10px] font-semibold tracking-[0.18em] uppercase"
+                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                    <Sparkles size={11} /> Step-by-step success
+                </div>
+                <h2
+                    className="font-display tracking-[-0.02em]"
+                    style={{
+                        color: 'var(--text-primary)',
+                        fontSize: 'clamp(26px, 7.5vw, 36px)',
+                        lineHeight: 1.1
+                    }}>
+                    Six months,{' '}
+                    <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        one rung at a time.
+                    </span>
+                </h2>
+                <p
+                    className="mt-3 text-[13px] leading-relaxed max-w-[320px] mx-auto"
+                    style={{ color: 'var(--text-secondary)' }}>
+                    Scroll through every milestone — each rung lights up as you reach it.
+                </p>
+            </div>
+
+            {/* Rungs */}
+            <ol className="relative max-w-[420px] mx-auto space-y-5">
+                {/* Vertical rail — runs the full ol from top-2 to bottom-2 */}
                 <div
                     aria-hidden="true"
-                    className="absolute -top-20 -right-24 w-[320px] h-[320px] rounded-full pointer-events-none"
-                    style={{
-                        background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)',
-                        filter: 'blur(50px)'
-                    }}
+                    className="absolute top-2 bottom-2 w-[3px] rounded-full"
+                    style={{ left: 22, background: 'var(--line)' }}
                 />
 
-                {/* Header */}
-                <div className="text-center px-5 pt-[120px] pb-3 relative z-[1]">
-                    <div
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 text-[10.5px] font-semibold tracking-[0.18em] uppercase"
-                        style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                        <Sparkles size={11} /> Step-by-step success
-                    </div>
-                    <h2
-                        className="font-display tracking-[-0.02em]"
+                {steps.map((s, i) => (
+                    <Rung
+                        key={i}
+                        index={i}
+                        title={s.title}
+                        body={s.body}
+                        accent={s.accent}
+                    />
+                ))}
+
+                {/* Trophy at the top of the climb */}
+                <FinaleRung />
+            </ol>
+        </section>
+    )
+}
+
+function Rung({ index, title, body, accent }: { index: number; title: string; body: string; accent: string }) {
+    const ref = useRef<HTMLLIElement | null>(null)
+    const inView = useInView(ref, { once: true, amount: 0.5 })
+
+    return (
+        <li
+            ref={ref}
+            className="relative flex items-stretch gap-4">
+            {/* Rail column — fixed-width gutter that holds the dot centred on the
+                vertical rail. Card sits in the flex-1 column to the right so the
+                dot can never overlap card text. */}
+            <div className="relative flex-shrink-0" style={{ width: 32 }}>
+                <motion.span
+                    aria-hidden="true"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={inView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 20, delay: 0.05 }}
+                    className="absolute z-[2] w-5 h-5 rounded-full"
+                    style={{
+                        left: 22 - 10, // rail at 22px, dot is 20px wide — left edge at 12 centres it
+                        top: 14,
+                        background: inView ? accent : 'var(--surface)',
+                        border: `2px solid ${accent}`,
+                        boxShadow: inView ? `0 0 0 4px ${accent}22, 0 4px 10px ${accent}40` : 'none'
+                    }}>
+                    <motion.span
+                        aria-hidden="true"
+                        initial={{ scale: 0.6, opacity: 0.6 }}
+                        animate={inView ? { scale: 2, opacity: 0 } : { scale: 0.6, opacity: 0 }}
+                        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeOut' }}
+                        className="absolute inset-0 rounded-full"
+                        style={{ background: accent }}
+                    />
+                </motion.span>
+            </div>
+
+            {/* Card column */}
+            <motion.div
+                initial={{ opacity: 0, x: 28 }}
+                animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 28 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 22, delay: 0.12 }}
+                className="flex-1 min-w-0"
+                style={{
+                    background: 'var(--surface)',
+                    border: `1px solid ${inView ? accent + '55' : 'var(--line)'}`,
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    boxShadow: inView ? `0 6px 18px ${accent}1a` : 'var(--card-shadow)'
+                }}>
+                <div className="flex items-center gap-2 mb-1">
+                    <span
+                        className="font-mono text-[10px] font-bold tracking-[0.16em] px-1.5 py-0.5 rounded-md"
                         style={{
-                            color: 'var(--text-primary)',
-                            fontSize: 'clamp(26px, 7.5vw, 38px)',
-                            lineHeight: 1.05
+                            background: `${accent}15`,
+                            color: accent
                         }}>
-                        Six months,{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
-                            one rung at a time.
-                        </span>
-                    </h2>
+                        STEP {String(index + 1).padStart(2, '0')}
+                    </span>
                 </div>
+                <h3
+                    className="font-display text-[14px] font-semibold leading-tight mb-1"
+                    style={{ color: 'var(--text-primary)' }}>
+                    {title}
+                </h3>
+                <p
+                    className="text-[12px] leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}>
+                    {body}
+                </p>
+            </motion.div>
+        </li>
+    )
+}
 
-                {/* Ladder */}
-                <div className="relative flex-1 overflow-hidden px-5 pb-4">
-                    <div className="relative h-full max-w-[420px] mx-auto">
-                        {/* Vertical rail (background track) */}
-                        <div
-                            className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[3px] rounded-full"
-                            style={{ background: 'var(--line)' }}
-                        />
-                        {/* Vertical rail (filled progress) — grows top-down as climb progresses */}
-                        <div
-                            className="absolute left-1/2 -translate-x-1/2 top-0 w-[3px] rounded-full"
-                            style={{
-                                background: 'linear-gradient(180deg, var(--accent), var(--brand))',
-                                height: `${climbProgress * 100}%`,
-                                transition: 'height 120ms linear'
-                            }}
-                        />
+function FinaleRung() {
+    const ref = useRef<HTMLLIElement | null>(null)
+    const inView = useInView(ref, { once: true, amount: 0.6 })
 
-                        {/* Rungs — each is a horizontal line crossing the rail */}
-                        <div className="relative h-full flex flex-col justify-between py-6">
-                            {steps.map((s, i) => {
-                                const reached = i <= activeStep
-                                const onLeft = i % 2 === 0
-                                return (
-                                    <div
-                                        key={i}
-                                        className="relative flex items-center"
-                                        style={{ height: 64 }}>
-                                        {/* Rung dot */}
-                                        <div
-                                            className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full z-[2]"
-                                            style={{
-                                                background: reached ? 'var(--brand)' : 'var(--surface)',
-                                                border: `2px solid ${reached ? 'var(--brand)' : 'var(--line-strong)'}`,
-                                                boxShadow: reached ? '0 0 0 4px var(--brand-soft)' : 'none',
-                                                transition: 'all 220ms ease'
-                                            }}
-                                        />
-                                        {/* Step number badge sits on the dot */}
-                                        <span
-                                            className="absolute left-1/2 -translate-x-1/2 -translate-y-[28px] font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md z-[2]"
-                                            style={{
-                                                background: reached ? 'var(--brand)' : 'var(--surface-2)',
-                                                color: reached ? 'var(--text-on-inverse)' : 'var(--text-tertiary)',
-                                                transition: 'all 220ms ease'
-                                            }}>
-                                            {String(i + 1).padStart(2, '0')}
-                                        </span>
+    return (
+        <li
+            ref={ref}
+            className="relative flex items-stretch gap-4 pt-2">
+            {/* Rail column with trophy badge centred on the rail */}
+            <div className="relative flex-shrink-0" style={{ width: 32 }}>
+                <motion.div
+                    initial={{ scale: 0, rotate: -45, opacity: 0 }}
+                    animate={inView ? { scale: 1, rotate: 0, opacity: 1 } : { scale: 0, rotate: -45, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 280, damping: 16 }}
+                    className="absolute z-[2] w-9 h-9 rounded-full inline-flex items-center justify-center"
+                    style={{
+                        left: 22 - 18, // 9*4=36px wide, half = 18, centre on rail at 22 → left = 4
+                        top: 8,
+                        background: 'linear-gradient(135deg, var(--brand), var(--accent))',
+                        color: '#fff',
+                        boxShadow: '0 8px 22px rgba(13,79,60,0.35)'
+                    }}>
+                    <Trophy size={16} />
+                </motion.div>
 
-                                        {/* Card */}
-                                        <motion.div
-                                            initial={{ opacity: 0, x: onLeft ? -20 : 20 }}
-                                            animate={{
-                                                opacity: reached ? 1 : 0.4,
-                                                x: 0
-                                            }}
-                                            transition={{ duration: 0.35 }}
-                                            className={`absolute ${onLeft ? 'right-1/2 mr-5 text-right' : 'left-1/2 ml-5 text-left'} max-w-[44vw]`}
-                                            style={{
-                                                background: 'var(--surface)',
-                                                border: `1px solid ${reached ? 'var(--brand)' : 'var(--line)'}`,
-                                                borderRadius: 12,
-                                                padding: '8px 10px',
-                                                boxShadow: 'var(--card-shadow)'
-                                            }}>
-                                            <div
-                                                className="text-[10px] font-bold tracking-[0.15em] uppercase mb-0.5"
-                                                style={{ color: reached ? 'var(--brand)' : 'var(--text-tertiary)' }}>
-                                                Step {i + 1}
-                                            </div>
-                                            <div
-                                                className="font-display text-[12.5px] font-semibold leading-tight"
-                                                style={{ color: 'var(--text-primary)' }}>
-                                                {s.title}
-                                            </div>
-                                        </motion.div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* Climbing hiker — moves down the rail as climbProgress grows.
-                            Sits ABOVE the active rung so it visibly leads the climb. */}
-                        <div
-                            className="absolute left-1/2 -translate-x-1/2 z-[3] flex items-center justify-center w-9 h-9 rounded-full"
-                            style={{
-                                top: `calc(${Math.min(climbProgress, 1) * 100}% - 18px)`,
-                                background: 'var(--brand)',
-                                color: 'var(--text-on-inverse)',
-                                boxShadow: '0 6px 18px rgba(13,79,60,0.35), 0 0 0 4px var(--page-bg)',
-                                transition: 'top 120ms linear'
-                            }}>
-                            {trophyProgress > 0.5 ? <Trophy size={16} /> : <Flag size={16} />}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bottom progress bar */}
-                <div className="px-5 pb-6 pt-2 relative z-[1]">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span
-                            className="w-7 h-7 rounded-lg inline-flex items-center justify-center font-mono text-[10.5px] font-bold flex-shrink-0"
-                            style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                            {String(activeStep + 1).padStart(2, '0')}
-                        </span>
-                        <div className="leading-tight min-w-0">
-                            <div
-                                className="font-display text-[13px] font-semibold truncate"
-                                style={{ color: 'var(--text-primary)' }}>
-                                {progress >= 0.95 ? 'Offer in hand 🎉' : steps[activeStep].title}
-                            </div>
-                            <div
-                                className="text-[10.5px] leading-snug line-clamp-2"
-                                style={{ color: 'var(--text-tertiary)' }}>
-                                {progress >= 0.95
-                                    ? "You climbed every rung — that's the Albero promise."
-                                    : steps[activeStep].body}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span
-                            className="text-[9.5px] tracking-[0.16em] uppercase font-semibold"
-                            style={{ color: 'var(--text-tertiary)' }}>
-                            Climb
-                        </span>
-                        <div
-                            className="flex-1 h-1.5 rounded-full overflow-hidden"
-                            style={{ background: 'var(--line)' }}>
-                            <div
-                                className="h-full rounded-full"
+                {inView && (
+                    <>
+                        {[0, 60, 120, 180, 240, 300].map((angle, k) => (
+                            <motion.span
+                                key={k}
+                                aria-hidden="true"
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{
+                                    opacity: [0, 1, 0],
+                                    scale: [0, 1, 0],
+                                    x: Math.cos((angle * Math.PI) / 180) * 26,
+                                    y: Math.sin((angle * Math.PI) / 180) * 26
+                                }}
+                                transition={{ duration: 1.2, delay: 0.3 + k * 0.05 }}
+                                className="absolute w-1.5 h-1.5 rounded-full"
                                 style={{
-                                    width: `${progress * 100}%`,
-                                    background: 'linear-gradient(90deg, var(--brand), var(--accent))',
-                                    transition: 'width 80ms linear'
+                                    left: 22 - 3,
+                                    top: 26,
+                                    background: 'var(--accent)'
                                 }}
                             />
-                        </div>
-                        <span
-                            className="font-mono text-[10.5px] font-semibold"
-                            style={{ color: 'var(--brand)' }}>
-                            {Math.round(progress * 100)}%
-                        </span>
-                    </div>
-                </div>
+                        ))}
+                    </>
+                )}
             </div>
-        </section>
+
+            <motion.div
+                initial={{ opacity: 0, x: 28 }}
+                animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 28 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 22, delay: 0.25 }}
+                className="flex-1 min-w-0"
+                style={{
+                    background: 'linear-gradient(135deg, var(--brand-soft) 0%, var(--accent-soft) 100%)',
+                    border: '1px solid var(--brand)',
+                    borderRadius: 14,
+                    padding: '14px 16px'
+                }}>
+                <div
+                    className="text-[10px] font-bold tracking-[0.18em] uppercase mb-1"
+                    style={{ color: 'var(--brand)' }}>
+                    The summit
+                </div>
+                <h3
+                    className="font-display text-[16px] font-semibold leading-tight"
+                    style={{ color: 'var(--text-primary)' }}>
+                    Offer in hand 🎉
+                </h3>
+                <p
+                    className="text-[12px] mt-1 leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}>
+                    You climbed every rung — that's the Albero promise.
+                </p>
+            </motion.div>
+        </li>
     )
 }

@@ -42,7 +42,7 @@ export default function CertificationPath() {
                     <div className="grid lg:grid-cols-[1.1fr_1.4fr] gap-0">
                         {/* ── Left: pitch ── */}
                         <div
-                            className="relative p-8 md:p-10 overflow-hidden"
+                            className="relative p-6 md:p-10 overflow-hidden min-w-0"
                             style={{
                                 background: 'linear-gradient(160deg, #0a1140 0%, #04081f 100%)',
                                 color: '#f8f6ee'
@@ -72,9 +72,14 @@ export default function CertificationPath() {
 
                                 <h2
                                     className="font-display tracking-[-0.02em]"
-                                    style={{ fontSize: 'clamp(28px, 3.4vw, 40px)', lineHeight: 1.05, color: '#f8f6ee' }}>
-                                    Graduate with a credential
-                                    <br />
+                                    style={{
+                                        fontSize: 'clamp(24px, 6vw, 40px)',
+                                        lineHeight: 1.08,
+                                        color: '#f8f6ee',
+                                        overflowWrap: 'break-word',
+                                        wordBreak: 'break-word'
+                                    }}>
+                                    Graduate with a credential{' '}
                                     <span className="italic font-light" style={{ color: '#a7f3d0' }}>
                                         recruiters already filter on.
                                     </span>
@@ -134,7 +139,7 @@ export default function CertificationPath() {
                         </div>
 
                         {/* ── Right: 3-step path ── */}
-                        <div className="p-8 md:p-10">
+                        <div className="p-6 md:p-10 min-w-0">
                             <div
                                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-[11px] font-semibold tracking-[0.18em] uppercase"
                                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>

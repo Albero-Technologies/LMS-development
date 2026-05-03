@@ -294,7 +294,7 @@ export default function Certifications() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: '-50px' }}
                                 transition={{ duration: 0.4, delay: i * 0.05 }}
-                                className="group relative rounded-2xl p-6 overflow-hidden transition-all hover:-translate-y-1"
+                                className="group relative rounded-2xl p-4 md:p-6 overflow-hidden transition-all hover:-translate-y-1"
                                 style={{
                                     background: 'var(--surface)',
                                     border: '1px solid var(--line)',
@@ -449,7 +449,7 @@ function CertifiedByCarousel() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: '-30px' }}
                         transition={{ duration: 0.4, delay: (i % 4) * 0.06 }}
-                        className="snap-start flex-shrink-0 w-[300px] md:w-[360px] rounded-2xl p-5 md:p-6 transition-all"
+                        className="snap-start flex-shrink-0 w-[250px] md:w-[360px] rounded-2xl p-5 md:p-6 transition-all"
                         style={{
                             background: 'var(--surface)',
                             border: '1px solid',

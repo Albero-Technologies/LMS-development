@@ -49,16 +49,16 @@ export const AdminDashboard = () => {
             />
 
             {dashboardQuery.isLoading ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     {[0, 1, 2, 3].map((i) => (
                         <Skeleton
                             key={i}
-                            className="h-24"
+                            className="h-20 sm:h-24"
                         />
                     ))}
                 </div>
             ) : isSuperAdmin ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     <button
                         type="button"
                         onClick={() => navigate('/app/admin/tenants')}
@@ -109,7 +109,7 @@ export const AdminDashboard = () => {
                     </button>
                 </div>
             ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     <button
                         type="button"
                         onClick={() => navigate('/app/users')}

@@ -30,7 +30,8 @@ import {
     Database,
     Target,
     Sparkles,
-    Library
+    Library,
+    Search
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
@@ -423,39 +424,57 @@ const AppLayoutBody = () => {
                 {/* Main */}
                 <div className="flex-1 min-w-0">
                     <header className="sticky top-0 z-30 bg-surface border-b">
-                        <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
+                        <div className="h-14 sm:h-16 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4">
                             <button
                                 type="button"
                                 onClick={() => setOpenMobile(true)}
-                                className="lg:hidden btn btn-ghost btn-icon"
+                                className="lg:hidden btn btn-ghost btn-icon flex-shrink-0"
                                 aria-label="Open menu">
                                 <Menu size={16} />
                             </button>
 
-                            {/* Search — opens the Cmd+K command palette. */}
-                            <CommandPaletteTrigger onClick={() => setPaletteOpen(true)} />
+                            {/* Search — full palette trigger on sm+, compact icon on mobile */}
+                            <div className="hidden sm:flex flex-1 justify-center">
+                                <CommandPaletteTrigger onClick={() => setPaletteOpen(true)} />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setPaletteOpen(true)}
+                                className="sm:hidden btn btn-ghost btn-icon flex-shrink-0"
+                                aria-label="Search">
+                                <Search size={16} />
+                            </button>
 
-                            <div className="flex items-center gap-1.5">
+                            {/* Spacer pushes the action cluster to the right on mobile */}
+                            <div className="flex-1 sm:hidden" />
+
+                            <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                                 <ThemeToggle />
-                                <NotificationBell />
-                                <div
-                                    aria-hidden
-                                    className="h-5 w-px bg-[var(--color-border)] mx-1"
-                                />
-                                {user && (
-                                    <button
-                                        type="button"
-                                        onClick={handleLogout}
-                                        className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-md hover:bg-surface-hover"
-                                        title="Sign out">
-                                        <div className="w-7 h-7 rounded-full bg-[var(--color-brand-500)] flex items-center justify-center text-white text-xs font-semibold">
-                                            {fullName(user)[0]?.toUpperCase()}
-                                        </div>
-                                        <span className="text-sm text-fg hidden sm:inline">
-                                            {user.firstName || user.email.split('@')[0]}
-                                        </span>
-                                    </button>
-                                )}
+                                {/* Notification bell + avatar are desktop-only —
+                                    notifications still reachable from the sidebar
+                                    profile, and tapping the menu hamburger shows
+                                    the full sidebar (with sign-out) on mobile. */}
+                                <div className="hidden sm:flex items-center gap-1.5">
+                                    <NotificationBell />
+                                    <div
+                                        aria-hidden
+                                        className="h-5 w-px bg-[var(--color-border)] mx-1"
+                                    />
+                                    {user && (
+                                        <button
+                                            type="button"
+                                            onClick={handleLogout}
+                                            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-md hover:bg-surface-hover"
+                                            title="Sign out">
+                                            <div className="w-7 h-7 rounded-full bg-[var(--color-brand-500)] flex items-center justify-center text-white text-xs font-semibold">
+                                                {fullName(user)[0]?.toUpperCase()}
+                                            </div>
+                                            <span className="text-sm text-fg hidden md:inline">
+                                                {user.firstName || user.email.split('@')[0]}
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </header>

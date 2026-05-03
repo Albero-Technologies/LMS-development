@@ -145,6 +145,16 @@
 }
 
 html,
+html,
+body {
+    /* Defensive: stop any rogue absolutely-positioned decor blob from
+       creating a horizontal scrollbar. Use `clip` instead of `hidden`
+       so we don't establish a new scroll container — `overflow: hidden`
+       on the root element silently breaks `position: sticky` on every
+       descendant (e.g. the desktop StaircaseClimb pinned canvas). */
+    overflow-x: clip;
+}
+
 body {
     background-color: var(--page-bg);
     color: var(--text-primary);

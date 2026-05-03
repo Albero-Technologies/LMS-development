@@ -119,14 +119,18 @@ export default function ThreeSection() {
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true, margin: '-50px' }}
                         transition={{ duration: 0.6 }}
-                        className="relative rounded-[28px] overflow-hidden"
+                        className="relative rounded-[28px] overflow-hidden w-full max-w-full"
                         style={{
                             background:
                                 'linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%)',
                             border: '1px solid var(--line)',
                             boxShadow: 'var(--card-shadow-hover)',
+                            // Aspect-ratio plus minHeight overflowed on narrow phones
+                            // (360px minHeight × 5/4 = 450px wide). Cap height
+                            // explicitly so the canvas always fits the parent column.
                             aspectRatio: '5 / 4',
-                            minHeight: 360
+                            minHeight: 280,
+                            maxHeight: 'min(60vh, 480px)'
                         }}>
                         {/* Browser-style header */}
                         <div

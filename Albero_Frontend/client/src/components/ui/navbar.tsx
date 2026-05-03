@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
@@ -288,6 +289,7 @@ const Navbar = () => {
     }, [])
 
     return (
+        <>
         <header
             className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
             style={{
@@ -422,16 +424,27 @@ const Navbar = () => {
                 </div>
             </div>
 
-            {/* ── Mobile drawer ── */}
+        </header>
+
+        {/* ── Mobile drawer — portalled to document.body so the parent
+            <header>'s backdrop-filter doesn't trap its `position: fixed`
+            inside the header's containing block. Without this, the drawer
+            renders only inside the header and the page bleeds through. */}
+        {createPortal(
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 lg:hidden"
-                        style={{ background: 'var(--page-bg)' }}>
-                        <div className="h-[68px] px-5 flex items-center justify-between border-b" style={{ borderColor: 'var(--line)' }}>
+                        initial={{ x: '100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '100%' }}
+                        transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                        className="fixed inset-0 z-[100] lg:hidden"
+                        // Inline a solid hex fallback in case the CSS var is
+                        // overridden by an ancestor in some theme.
+                        style={{ background: 'var(--page-bg, #fbfaf6)' }}>
+                        <div
+                            className="h-[68px] px-5 flex items-center justify-between border-b"
+                            style={{ borderColor: 'var(--line)', background: 'var(--page-bg, #fbfaf6)' }}>
                             <Wordmark />
                             <button
                                 onClick={() => setIsOpen(false)}
@@ -441,7 +454,9 @@ const Navbar = () => {
                             </button>
                         </div>
 
-                        <div className="px-5 py-6 overflow-y-auto h-[calc(100vh-68px)]">
+                        <div
+                            className="px-5 py-6 overflow-y-auto h-[calc(100vh-68px)]"
+                            style={{ background: 'var(--page-bg, #fbfaf6)' }}>
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-[11px] tracking-[0.2em] uppercase" style={{ color: 'var(--text-tertiary)' }}>
                                     Theme
@@ -558,8 +573,10 @@ const Navbar = () => {
                         </div>
                     </motion.div>
                 )}
-            </AnimatePresence>
-        </header>
+            </AnimatePresence>,
+            document.body
+        )}
+        </>
     )
 }
 

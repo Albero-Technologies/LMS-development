@@ -221,7 +221,9 @@ export default function ProgramsShowcase() {
                     </p>
                 </div>
 
-                {/* Bento layout: left main showcase + right list/carousel */}
+                {/* Bento layout: left main showcase + right list/carousel.
+                    The showcase card is hidden on mobile — too tall to be useful;
+                    the right-side carousel becomes the primary mobile view. */}
                 <div className="grid lg:grid-cols-[1.2fr_1fr] gap-5">
                     {/* ── Left: Active program showcase ── */}
                     <AnimatePresence mode="wait">
@@ -233,7 +235,7 @@ export default function ProgramsShowcase() {
                             transition={{ duration: 0.4 }}
                             onMouseEnter={() => setAuto(false)}
                             onMouseLeave={() => setAuto(true)}
-                            className="relative rounded-3xl p-7 md:p-10 overflow-hidden flex flex-col"
+                            className="relative rounded-3xl p-7 md:p-10 overflow-hidden hidden lg:flex flex-col"
                             style={{
                                 background: 'var(--surface)',
                                 border: '1px solid var(--line)',
@@ -397,7 +399,7 @@ export default function ProgramsShowcase() {
 
                     {/* ── Right: Carousel list ── */}
                     <div
-                        className="rounded-3xl p-5 md:p-6 flex flex-col"
+                        className="rounded-3xl p-2 md:p-6 flex flex-col"
                         style={{
                             background: 'var(--surface)',
                             border: '1px solid var(--line)',
@@ -442,6 +444,13 @@ export default function ProgramsShowcase() {
                                     <motion.button
                                         key={p.name + i}
                                         onClick={() => {
+                                            // On mobile the showcase card is hidden, so a tap
+                                            // jumps straight to the program detail page.
+                                            // On lg+ it still toggles the active showcase.
+                                            if (window.matchMedia('(max-width: 1023px)').matches) {
+                                                navigate(`/programs/${p.slug}`)
+                                                return
+                                            }
                                             setActive(i)
                                             setAuto(false)
                                         }}
