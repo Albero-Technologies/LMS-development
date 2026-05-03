@@ -18,6 +18,7 @@ import counsellorPublicRouter from '../modules/counsellor-invites/counsellor-pub
 import counsellorManagementRouter from '../modules/counsellor-management/counsellor-management.router'
 import paymentRouter from '../modules/payments/payment.router'
 import enquiryRouter from '../modules/enquiries/enquiry.router'
+import publicPurchaseRouter from '../modules/public-purchase/public-purchase.router'
 import auditRouter from '../modules/audit/audit.router'
 import mediaRouter from '../modules/media/media.router'
 import cmsRouter from '../modules/cms/cms.router'
@@ -44,6 +45,7 @@ router.use('/counsellor', counsellorManagementRouter)
 router.use('/onboarding', counsellorPublicRouter)
 router.use('/payments', paymentRouter)
 router.use('/enquiries', enquiryRouter)
+router.use('/public/purchase', publicPurchaseRouter)
 router.use('/tickets', ticketRouter)
 router.use('/notifications', notificationRouter)
 router.use('/dashboard', dashboardRouter)

@@ -1,0 +1,24 @@
+/* TEAM */
+  Company: Albero Academy Pvt Ltd
+  Founder & Lead Developer: Jitendra Kumar
+  Site: https://www.albero.in
+  Contact: info@albero.in
+  Location: Noida, Uttar Pradesh, India
+
+/* THANKS */
+  Clients across India who trusted us to build their technology
+
+/* TECHNOLOGY COLOPHON */
+  Frontend:    React 18, Vite, TypeScript, Tailwind CSS, Framer Motion
+  Backend:     Node.js, Express, Django, Laravel
+  Database:    PostgreSQL, MongoDB, Redis
+  Cloud:       AWS, Vercel, Netlify
+  Design:      Figma
+  AI:          OpenAI GPT-4, Anthropic Claude, LangChain
+
+/* SITE */
+  Last update: 2025/04/01
+  Language: English (en-IN)
+  Standards: HTML5, CSS3, WCAG 2.1 AA
+  Components: React, Tailwind CSS, shadcn/ui
+  Software: VS Code, Figma, Docker

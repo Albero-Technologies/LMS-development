@@ -1,0 +1,35 @@
+/* box-sizing: border-box is already applied globally by Tailwind's preflight */
+
+/* Base element styles expressed via Tailwind's @layer base */
+@layer base {
+    * {
+        /* Custom font families cannot be expressed as Tailwind utilities
+           unless registered in tailwind.config — kept as raw CSS */
+        font-family: ClashDisplay, sans-serif;
+    }
+
+    h1,
+    h2 {
+        font-family: Archivo, sans-serif;
+    }
+}
+
+/* @font-face declarations must stay as raw CSS — Tailwind has no equivalent */
+
+/* Tanker */
+@font-face {
+    font-family: Tanker;
+    src: url('./assets/fonts/Tanker/Fonts/OTF/Tanker-Regular.otf') format('opentype');
+}
+
+/* Archivo */
+@font-face {
+    font-family: Archivo;
+    src: url('./assets/fonts/Archivo/Fonts/OTF/Archivo-Regular.otf') format('opentype');
+}
+
+/* ClashDisplay */
+@font-face {
+    font-family: ClashDisplay;
+    src: url('./assets/fonts/ClashDisplay/Fonts/OTF/ClashDisplay-Regular.otf') format('opentype');
+}

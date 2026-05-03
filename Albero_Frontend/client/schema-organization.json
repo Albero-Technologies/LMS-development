@@ -1,0 +1,110 @@
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://www.albero.in/#organization",
+    "name": "Albero Academy",
+    "legalName": "Albero Academy Pvt Ltd",
+    "url": "https://www.albero.in",
+    "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.albero.in/logo.png",
+        "width": 200,
+        "height": 60
+    },
+    "image": "https://www.albero.in/og-image.png",
+    "description": "Albero Academy is a product engineering and SaaS-driven technology company helping businesses launch faster, automate operations, and scale with high-performance digital systems.",
+    "foundingDate": "2021",
+    "numberOfEmployees": {
+        "@type": "QuantitativeValue",
+        "minValue": 5,
+        "maxValue": 50
+    },
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Noida",
+        "addressLocality": "Noida",
+        "addressRegion": "Uttar Pradesh",
+        "postalCode": "201301",
+        "addressCountry": "IN"
+    },
+    "contactPoint": [
+        {
+            "@type": "ContactPoint",
+            "telephone": "+91-9170780671",
+            "contactType": "customer service",
+            "email": "info@albero.in",
+            "availableLanguage": ["English", "Hindi"],
+            "areaServed": "IN",
+            "contactOption": "TollFree"
+        },
+        {
+            "@type": "ContactPoint",
+            "telephone": "+91-9170780671",
+            "contactType": "sales",
+            "email": "info@albero.in",
+            "availableLanguage": ["English", "Hindi"]
+        }
+    ],
+    "email": "info@albero.in",
+    "telephone": "+91-9170780671",
+    "sameAs": [
+        "https://www.facebook.com/AlberoTechnologies1",
+        "https://x.com/Alberotech1",
+        "https://www.linkedin.com/company/albero-technologies-pvt-ltd/",
+        "https://www.instagram.com/albero.technologies/"
+    ],
+    "areaServed": [
+        {
+            "@type": "City",
+            "name": "Lucknow"
+        },
+        {
+            "@type": "City",
+            "name": "Delhi"
+        },
+        {
+            "@type": "City",
+            "name": "Bengaluru"
+        },
+        {
+            "@type": "City",
+            "name": "Hyderabad"
+        },
+        {
+            "@type": "City",
+            "name": "Pune"
+        },
+        {
+            "@type": "City",
+            "name": "Mumbai"
+        },
+        {
+            "@type": "Country",
+            "name": "India"
+        }
+    ],
+    "knowsAbout": [
+        "Web Development",
+        "SaaS Development",
+        "AI Solutions",
+        "Enterprise Software",
+        "E-Commerce Development",
+        "STEAM Education Labs",
+        "Digital Marketing",
+        "ERP Systems",
+        "Mobile App Development",
+        "Cloud Infrastructure"
+    ],
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Albero Academy Services",
+        "url": "https://www.albero.in/#services"
+    },
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "67",
+        "bestRating": "5",
+        "worstRating": "1"
+    }
+}

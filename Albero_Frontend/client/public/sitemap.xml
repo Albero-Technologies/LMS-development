@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xsi:schemaLocation="
+    http://www.sitemaps.org/schemas/sitemap/0.9
+    http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+    http://www.google.com/schemas/sitemap-image/1.1
+    http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
+
+  <!-- ═══════════════════════════════════════════════
+       CORE PAGES
+  ════════════════════════════════════════════════ -->
+
+  <!-- Homepage — highest priority, crawled daily -->
+  <url>
+    <loc>https://www.albero.in/</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://www.albero.in/og-image.png</image:loc>
+      <image:title>Albero Academy — Your Career Starts Here &amp; AI Solutions</image:title>
+    </image:image>
+  </url>
+
+  <!-- About — company info, team, mission, story -->
+  <url>
+    <loc>https://www.albero.in/about</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://www.albero.in/og-image.png</image:loc>
+      <image:title>About Albero Academy — Who We Are</image:title>
+    </image:image>
+  </url>
+
+  <!-- Work / Case Studies — SEO-rich content page -->
+  <url>
+    <loc>https://www.albero.in/work</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://www.albero.in/og-image.png</image:loc>
+      <image:title>Case Studies &amp; Proven Results — Albero Academy</image:title>
+    </image:image>
+  </url>
+
+  <!-- ═══════════════════════════════════════════════
+       LEGAL / POLICY PAGES
+  ════════════════════════════════════════════════ -->
+
+  <!-- Refund Policy -->
+  <url>
+    <loc>https://www.albero.in/refund-policy</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.30</priority>
+  </url>
+
+  <!-- Terms & Conditions -->
+  <url>
+    <loc>https://www.albero.in/terms-and-policies</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.30</priority>
+  </url>
+
+  <!-- ═══════════════════════════════════════════════
+       HOMEPAGE ANCHOR SECTIONS
+       Listed as canonical deep-links so search engines
+       can surface individual sections in rich results.
+  ════════════════════════════════════════════════ -->
+
+  <!-- Services section -->
+  <url>
+    <loc>https://www.albero.in/#services</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Pricing section -->
+  <url>
+    <loc>https://www.albero.in/#pricing</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- Contact section -->
+  <url>
+    <loc>https://www.albero.in/#contact</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <!-- About/Stats section on homepage -->
+  <url>
+    <loc>https://www.albero.in/#about</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+
+  <!-- ═══════════════════════════════════════════════
+       WORK PAGE ANCHOR SECTIONS
+       Individual service categories for targeted indexing
+  ════════════════════════════════════════════════ -->
+
+  <!-- Web & Software Development case studies -->
+  <url>
+    <loc>https://www.albero.in/work#it-web</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- E-Commerce & SaaS case studies -->
+  <url>
+    <loc>https://www.albero.in/work#it-ecom</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- STEAM Labs case studies -->
+  <url>
+    <loc>https://www.albero.in/work#steam-schools</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <!-- Branding & Digital Marketing case studies -->
+  <url>
+    <loc>https://www.albero.in/work#digital</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <!-- ERP & Enterprise Solutions case studies -->
+  <url>
+    <loc>https://www.albero.in/work#erp</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <!-- AI & Innovation services -->
+  <url>
+    <loc>https://www.albero.in/work#ai-services</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.68</priority>
+  </url>
+
+  <!-- STEAM Lab Packages -->
+  <url>
+    <loc>https://www.albero.in/work#steam-packages</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.60</priority>
+  </url>
+
+</urlset>

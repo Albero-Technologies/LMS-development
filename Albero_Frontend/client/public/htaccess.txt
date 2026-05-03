@@ -1,0 +1,93 @@
+# ============================================================
+# .htaccess — Albero Academy  |  www.albero.in
+# Apache 2.4 — place in site root (public/)
+# RENAME THIS FILE TO: .htaccess  after downloading
+# ============================================================
+
+Options -Indexes
+Options +FollowSymLinks
+
+# ── Mod Rewrite ──────────────────────────────────────────────
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1. Force HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # 2. Force www (canonical domain)
+  RewriteCond %{HTTP_HOST} !^www\. [NC]
+  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # 3. Remove trailing slash (except root)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+  # 4. React SPA — serve index.html for all non-file routes
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+# ── Security Headers (improve SEO trust signals) ─────────────
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self), interest-cohort=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.anthropic.com https://www.google-analytics.com; frame-ancestors 'none';"
+</IfModule>
+
+# ── Caching (performance = ranking signal) ───────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html                         "access plus 1 hour"
+  ExpiresByType text/css                          "access plus 1 year"
+  ExpiresByType application/javascript            "access plus 1 year"
+  ExpiresByType text/javascript                   "access plus 1 year"
+  ExpiresByType image/png                         "access plus 1 year"
+  ExpiresByType image/jpg                         "access plus 1 year"
+  ExpiresByType image/jpeg                        "access plus 1 year"
+  ExpiresByType image/gif                         "access plus 1 year"
+  ExpiresByType image/webp                        "access plus 1 year"
+  ExpiresByType image/avif                        "access plus 1 year"
+  ExpiresByType image/svg+xml                     "access plus 1 year"
+  ExpiresByType image/x-icon                      "access plus 1 year"
+  ExpiresByType font/woff                         "access plus 1 year"
+  ExpiresByType font/woff2                        "access plus 1 year"
+  ExpiresByType application/manifest+json         "access plus 1 week"
+  ExpiresByType text/xml                          "access plus 1 day"
+  ExpiresByType application/xml                   "access plus 1 day"
+</IfModule>
+
+# ── Gzip Compression (reduces TTFB, improves Core Web Vitals) ──
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE application/manifest+json
+  AddOutputFilterByType DEFLATE font/woff2
+</IfModule>
+
+# ── ETags ────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header unset ETag
+</IfModule>
+FileETag None
+
+# ── Custom 404 ───────────────────────────────────────────────
+ErrorDocument 404 /index.html
+
+# ── Block bad bots ───────────────────────────────────────────
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
+  RewriteCond %{HTTP_USER_AGENT} (scrapy|zgrab|masscan|nikto|sqlmap) [NC]
+  RewriteRule .* - [F,L]
+</IfModule>

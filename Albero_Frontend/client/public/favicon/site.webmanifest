@@ -1,0 +1,113 @@
+{
+    "name": "Albero Academy",
+    "short_name": "Albero",
+    "description": "High-performance websites, SaaS platforms, and AI-powered systems that help businesses launch faster, automate operations, and scale efficiently.",
+    "start_url": "/",
+    "id": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "lang": "en-IN",
+    "dir": "ltr",
+    "categories": ["business", "productivity", "technology"],
+    "iarc_rating_id": "",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "/icons/icon-48x48.png",
+            "sizes": "48x48",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-72x72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-96x96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-128x128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-152x152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/desktop-home.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Albero Academy Homepage"
+        },
+        {
+            "src": "/screenshots/mobile-home.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Albero Academy on Mobile"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Our Work",
+            "short_name": "Work",
+            "description": "View our case studies and project portfolio",
+            "url": "/work",
+            "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Contact Us",
+            "short_name": "Contact",
+            "description": "Get a free strategy call with our team",
+            "url": "/#contact",
+            "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "About Us",
+            "short_name": "About",
+            "description": "Learn about Albero Academy",
+            "url": "/about",
+            "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+        }
+    ],
+    "related_applications": []
+}

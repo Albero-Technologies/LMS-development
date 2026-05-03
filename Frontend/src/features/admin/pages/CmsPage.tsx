@@ -9,7 +9,11 @@
 //   - Schema editor (add/remove typed fields)
 //   - New / edit item (typed inputs from the collection schema)
 //
-// Auth: gated to ADMIN/SA in the router.
+// Auth: gated to ADMIN/SA in the router. SUPER_ADMIN can pick which tenant
+// they're editing via the dropdown in the header — tenantId is threaded
+// through every query/mutation so the right tenant's collections appear and
+// every write lands on the right tenant. ADMIN sees their own tenant only
+// (the picker is hidden, tenantId stays undefined → backend uses JWT).
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -26,6 +30,9 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import { Empty } from '@shared/components/ui/Empty'
 import { fmtDate } from '@shared/libs/pdf'
 import { cn } from '@shared/helpers/cn'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { listAllTenants } from '../services/tenant.service'
 import {
     FIELD_TYPE_LABEL,
     createCollection,
@@ -45,15 +52,56 @@ import {
 export const CmsPage = () => {
     const queryClient = useQueryClient()
     const confirm = useConfirm()
+    const role = useAuthStore((s) => s.user?.role)
+    const isSuperAdmin = role === ROLES.SUPER_ADMIN
+
+    // SUPER_ADMIN picks any tenant; everyone else stays on their own.
+    // `tenantId === undefined` means "use the JWT's tenantId on the backend",
+    // which is the right behaviour for ADMIN. We persist the SA's choice in
+    // localStorage so refreshing the page doesn't snap back to the platform
+    // tenant (which has no collections by design).
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        staleTime: 60_000,
+        enabled: isSuperAdmin
+    })
+    const [tenantId, setTenantId] = useState<string>(() => (isSuperAdmin ? localStorage.getItem('cms.tenantId') ?? '' : ''))
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        if (!tenantId && tenantsQuery.data && tenantsQuery.data.length > 0) {
+            setTenantId(tenantsQuery.data[0].id)
+        }
+    }, [isSuperAdmin, tenantId, tenantsQuery.data])
+    useEffect(() => {
+        if (isSuperAdmin && tenantId) localStorage.setItem('cms.tenantId', tenantId)
+    }, [isSuperAdmin, tenantId])
+
+    // The effective tenantId we forward to the API. Undefined for ADMIN
+    // (backend uses JWT). Empty-string sentinel from the SA picker also
+    // becomes undefined so we don't ship `?tenantId=` to the backend.
+    const effectiveTenantId = isSuperAdmin && tenantId ? tenantId : undefined
+
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [newCollectionOpen, setNewCollectionOpen] = useState(false)
     const [schemaOpen, setSchemaOpen] = useState(false)
     const [editingItem, setEditingItem] = useState<CollectionItem | 'new' | null>(null)
 
-    const collectionsQuery = useQuery({ queryKey: ['cms', 'collections'], queryFn: listCollections, staleTime: 30_000 })
+    // Reset the selected collection when the SA flips between tenants —
+    // otherwise we'd keep showing the previous tenant's collection id.
+    useEffect(() => {
+        setSelectedId(null)
+    }, [effectiveTenantId])
+
+    const collectionsQuery = useQuery({
+        queryKey: ['cms', 'collections', effectiveTenantId ?? 'self'],
+        queryFn: () => listCollections(effectiveTenantId),
+        staleTime: 30_000,
+        enabled: !isSuperAdmin || !!effectiveTenantId
+    })
     const collections = collectionsQuery.data ?? []
 
-    // Auto-select first collection on load.
+    // Auto-select first collection on load (or after tenant switch).
     useEffect(() => {
         if (!selectedId && collections.length > 0) setSelectedId(collections[0].id)
     }, [selectedId, collections])
@@ -61,15 +109,15 @@ export const CmsPage = () => {
     const selected = collections.find((c) => c.id === selectedId) ?? null
 
     const itemsQuery = useQuery({
-        queryKey: ['cms', 'items', selectedId],
-        queryFn: () => listItems(selectedId!),
+        queryKey: ['cms', 'items', effectiveTenantId ?? 'self', selectedId],
+        queryFn: () => listItems(selectedId!, undefined, effectiveTenantId),
         enabled: !!selectedId,
         staleTime: 30_000
     })
     const items = itemsQuery.data ?? []
 
     const deleteCollectionMutation = useMutation({
-        mutationFn: (id: string) => deleteCollection(id),
+        mutationFn: (id: string) => deleteCollection(id, effectiveTenantId),
         onSuccess: (collection) => {
             toast.success(`Deleted "${collection.name}"`)
             void queryClient.invalidateQueries({ queryKey: ['cms', 'collections'] })
@@ -78,6 +126,8 @@ export const CmsPage = () => {
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not delete')
     })
 
+    const tenants = tenantsQuery.data ?? []
+
     return (
         <>
             <PageHeader
@@ -85,12 +135,33 @@ export const CmsPage = () => {
                 title="CMS"
                 description="Define content types, then add and publish items. Used by the Collection-list block on your site."
                 actions={
-                    <Button
-                        size="sm"
-                        leftIcon={<Plus size={14} />}
-                        onClick={() => setNewCollectionOpen(true)}>
-                        New collection
-                    </Button>
+                    <>
+                        {isSuperAdmin && (
+                            <div className="w-64">
+                                <Select
+                                    aria-label="Choose tenant"
+                                    value={tenantId}
+                                    onChange={(e) => setTenantId(e.target.value)}
+                                    disabled={tenantsQuery.isLoading}>
+                                    {tenants.length === 0 && <option value="">{tenantsQuery.isLoading ? 'Loading…' : 'No tenants'}</option>}
+                                    {tenants.map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.id}>
+                                            {t.name} (/{t.slug})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                        <Button
+                            size="sm"
+                            leftIcon={<Plus size={14} />}
+                            disabled={isSuperAdmin && !effectiveTenantId}
+                            onClick={() => setNewCollectionOpen(true)}>
+                            New collection
+                        </Button>
+                    </>
                 }
             />
 
@@ -141,6 +212,7 @@ export const CmsPage = () => {
                             collection={selected}
                             items={items}
                             itemsLoading={itemsQuery.isLoading}
+                            tenantId={effectiveTenantId}
                             onSchema={() => setSchemaOpen(true)}
                             onNewItem={() => setEditingItem('new')}
                             onEditItem={(it) => setEditingItem(it)}
@@ -166,6 +238,7 @@ export const CmsPage = () => {
             <NewCollectionModal
                 open={newCollectionOpen}
                 onClose={() => setNewCollectionOpen(false)}
+                tenantId={effectiveTenantId}
                 onCreated={(c) => {
                     setSelectedId(c.id)
                     setNewCollectionOpen(false)
@@ -176,6 +249,7 @@ export const CmsPage = () => {
                 <SchemaEditorModal
                     collection={selected}
                     open={schemaOpen}
+                    tenantId={effectiveTenantId}
                     onClose={() => setSchemaOpen(false)}
                 />
             )}
@@ -184,6 +258,7 @@ export const CmsPage = () => {
                 <ItemEditorModal
                     collection={selected}
                     item={editingItem === 'new' ? null : editingItem}
+                    tenantId={effectiveTenantId}
                     onClose={() => setEditingItem(null)}
                 />
             )}
@@ -197,6 +272,7 @@ const CollectionPane = ({
     collection,
     items,
     itemsLoading,
+    tenantId,
     onSchema,
     onNewItem,
     onEditItem,
@@ -205,6 +281,7 @@ const CollectionPane = ({
     collection: Collection
     items: CollectionItem[]
     itemsLoading: boolean
+    tenantId: string | undefined
     onSchema: () => void
     onNewItem: () => void
     onEditItem: (it: CollectionItem) => void
@@ -215,15 +292,15 @@ const CollectionPane = ({
     const fields = collection.fields ?? []
 
     const togglePublishMutation = useMutation({
-        mutationFn: (it: CollectionItem) => updateItem(collection.id, it.id, { published: !it.published }),
-        onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['cms', 'items', collection.id] }),
+        mutationFn: (it: CollectionItem) => updateItem(collection.id, it.id, { published: !it.published }, tenantId),
+        onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['cms', 'items'] }),
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not update')
     })
     const deleteItemMutation = useMutation({
-        mutationFn: (it: CollectionItem) => deleteItem(collection.id, it.id),
+        mutationFn: (it: CollectionItem) => deleteItem(collection.id, it.id, tenantId),
         onSuccess: () => {
             toast.success('Item deleted')
-            void queryClient.invalidateQueries({ queryKey: ['cms', 'items', collection.id] })
+            void queryClient.invalidateQueries({ queryKey: ['cms', 'items'] })
         },
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not delete')
     })
@@ -384,7 +461,17 @@ const slugify = (s: string): string =>
         .replace(/^-+|-+$/g, '')
         .slice(0, 60) || 'collection'
 
-const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (c: Collection) => void }) => {
+const NewCollectionModal = ({
+    open,
+    onClose,
+    onCreated,
+    tenantId
+}: {
+    open: boolean
+    onClose: () => void
+    onCreated: (c: Collection) => void
+    tenantId: string | undefined
+}) => {
     const queryClient = useQueryClient()
     const [presetId, setPresetId] = useState<CollectionPresetId>('blank')
     const [name, setName] = useState('')
@@ -406,12 +493,15 @@ const NewCollectionModal = ({ open, onClose, onCreated }: { open: boolean; onClo
 
     const mutation = useMutation({
         mutationFn: () =>
-            createCollection({
-                name: name.trim(),
-                slug: slug.trim(),
-                description: description.trim() || undefined,
-                fields: preset.fields
-            }),
+            createCollection(
+                {
+                    name: name.trim(),
+                    slug: slug.trim(),
+                    description: description.trim() || undefined,
+                    fields: preset.fields
+                },
+                tenantId
+            ),
         onSuccess: (c) => {
             toast.success('Collection created — add items now')
             void queryClient.invalidateQueries({ queryKey: ['cms', 'collections'] })
@@ -612,7 +702,17 @@ const COLLECTION_PRESETS: Record<CollectionPresetId, CollectionPreset> = {
 
 // ---- Schema editor modal ---------------------------------------------------
 
-const SchemaEditorModal = ({ collection, open, onClose }: { collection: Collection; open: boolean; onClose: () => void }) => {
+const SchemaEditorModal = ({
+    collection,
+    open,
+    onClose,
+    tenantId
+}: {
+    collection: Collection
+    open: boolean
+    onClose: () => void
+    tenantId: string | undefined
+}) => {
     const queryClient = useQueryClient()
     const [fields, setFields] = useState<FieldDef[]>(collection.fields ?? [])
 
@@ -621,7 +721,7 @@ const SchemaEditorModal = ({ collection, open, onClose }: { collection: Collecti
     }, [collection.fields, open])
 
     const mutation = useMutation({
-        mutationFn: () => updateCollection(collection.id, { fields }),
+        mutationFn: () => updateCollection(collection.id, { fields }, tenantId),
         onSuccess: () => {
             toast.success('Schema saved')
             void queryClient.invalidateQueries({ queryKey: ['cms', 'collections'] })
@@ -737,7 +837,17 @@ const SchemaEditorModal = ({ collection, open, onClose }: { collection: Collecti
 
 // ---- Item editor modal -----------------------------------------------------
 
-const ItemEditorModal = ({ collection, item, onClose }: { collection: Collection; item: CollectionItem | null; onClose: () => void }) => {
+const ItemEditorModal = ({
+    collection,
+    item,
+    onClose,
+    tenantId
+}: {
+    collection: Collection
+    item: CollectionItem | null
+    onClose: () => void
+    tenantId: string | undefined
+}) => {
     const queryClient = useQueryClient()
     const fields = collection.fields ?? []
     const [slug, setSlug] = useState(item?.slug ?? '')
@@ -758,12 +868,12 @@ const ItemEditorModal = ({ collection, item, onClose }: { collection: Collection
 
     const mutation = useMutation({
         mutationFn: () => {
-            if (item) return updateItem(collection.id, item.id, { slug, data, published })
-            return createItem(collection.id, { slug, data, published })
+            if (item) return updateItem(collection.id, item.id, { slug, data, published }, tenantId)
+            return createItem(collection.id, { slug, data, published }, tenantId)
         },
         onSuccess: () => {
             toast.success(item ? 'Item updated' : 'Item created')
-            void queryClient.invalidateQueries({ queryKey: ['cms', 'items', collection.id] })
+            void queryClient.invalidateQueries({ queryKey: ['cms', 'items'] })
             onClose()
         },
         onError: (err: unknown) => toast.error(err instanceof Error ? err.message : 'Could not save')

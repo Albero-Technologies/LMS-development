@@ -1,5 +1,10 @@
 // CMS client. Backed by /api/v1/cms — collections + items CRUD.
 // Public read (for the website renderer) hits /tenants/by-slug/:slug/collections/:collectionSlug.
+//
+// `tenantId` is optional on every function. When omitted, the backend uses
+// the JWT's tenantId. SUPER_ADMIN can pass any tenantId to manage another
+// tenant's content (the tenant-picker on CmsPage uses this); the backend
+// silently ignores the override for non-SA roles.
 
 import { api } from '@shared/libs/api'
 
@@ -50,57 +55,85 @@ export interface CollectionItem {
     updatedAt: string
 }
 
-export const listCollections = async (): Promise<Collection[]> => {
-    const { data } = await api.get<Envelope<Collection[]>>('/cms/collections')
+// Build a `params` object that includes tenantId only when it's set; merging
+// avoids a `?tenantId=undefined` literal landing in the URL.
+const withTenant = (tenantId: string | undefined, extra?: Record<string, string>): Record<string, string> | undefined => {
+    const out: Record<string, string> = { ...(extra ?? {}) }
+    if (tenantId) out.tenantId = tenantId
+    return Object.keys(out).length > 0 ? out : undefined
+}
+
+export const listCollections = async (tenantId?: string): Promise<Collection[]> => {
+    const { data } = await api.get<Envelope<Collection[]>>('/cms/collections', { params: withTenant(tenantId) })
     return data.data
 }
 
-export const getCollection = async (id: string): Promise<Collection> => {
-    const { data } = await api.get<Envelope<Collection>>(`/cms/collections/${id}`)
+export const getCollection = async (id: string, tenantId?: string): Promise<Collection> => {
+    const { data } = await api.get<Envelope<Collection>>(`/cms/collections/${id}`, { params: withTenant(tenantId) })
     return data.data
 }
 
-export const createCollection = async (payload: { name: string; slug: string; description?: string; fields?: FieldDef[] }): Promise<Collection> => {
-    const { data } = await api.post<Envelope<Collection>>('/cms/collections', payload)
+export const createCollection = async (
+    payload: { name: string; slug: string; description?: string; fields?: FieldDef[] },
+    tenantId?: string
+): Promise<Collection> => {
+    const { data } = await api.post<Envelope<Collection>>('/cms/collections', payload, { params: withTenant(tenantId) })
     return data.data
 }
 
-export const updateCollection = async (id: string, payload: { name?: string; description?: string; fields?: FieldDef[] }): Promise<Collection> => {
-    const { data } = await api.patch<Envelope<Collection>>(`/cms/collections/${id}`, payload)
+export const updateCollection = async (
+    id: string,
+    payload: { name?: string; description?: string; fields?: FieldDef[] },
+    tenantId?: string
+): Promise<Collection> => {
+    const { data } = await api.patch<Envelope<Collection>>(`/cms/collections/${id}`, payload, { params: withTenant(tenantId) })
     return data.data
 }
 
-export const deleteCollection = async (id: string): Promise<Collection> => {
-    const { data } = await api.delete<Envelope<Collection>>(`/cms/collections/${id}`)
+export const deleteCollection = async (id: string, tenantId?: string): Promise<Collection> => {
+    const { data } = await api.delete<Envelope<Collection>>(`/cms/collections/${id}`, { params: withTenant(tenantId) })
     return data.data
 }
 
-export const listItems = async (collectionId: string, opts: { publishedOnly?: boolean } = {}): Promise<CollectionItem[]> => {
+export const listItems = async (
+    collectionId: string,
+    opts: { publishedOnly?: boolean } = {},
+    tenantId?: string
+): Promise<CollectionItem[]> => {
+    const extra = opts.publishedOnly ? { published: 'true' } : undefined
     const { data } = await api.get<Envelope<CollectionItem[]>>(`/cms/collections/${collectionId}/items`, {
-        params: opts.publishedOnly ? { published: 'true' } : undefined
+        params: withTenant(tenantId, extra)
     })
     return data.data
 }
 
 export const createItem = async (
     collectionId: string,
-    payload: { slug: string; data: Record<string, unknown>; published?: boolean }
+    payload: { slug: string; data: Record<string, unknown>; published?: boolean },
+    tenantId?: string
 ): Promise<CollectionItem> => {
-    const { data } = await api.post<Envelope<CollectionItem>>(`/cms/collections/${collectionId}/items`, payload)
+    const { data } = await api.post<Envelope<CollectionItem>>(`/cms/collections/${collectionId}/items`, payload, {
+        params: withTenant(tenantId)
+    })
     return data.data
 }
 
 export const updateItem = async (
     collectionId: string,
     itemId: string,
-    payload: { slug?: string; data?: Record<string, unknown>; published?: boolean }
+    payload: { slug?: string; data?: Record<string, unknown>; published?: boolean },
+    tenantId?: string
 ): Promise<CollectionItem> => {
-    const { data } = await api.patch<Envelope<CollectionItem>>(`/cms/collections/${collectionId}/items/${itemId}`, payload)
+    const { data } = await api.patch<Envelope<CollectionItem>>(`/cms/collections/${collectionId}/items/${itemId}`, payload, {
+        params: withTenant(tenantId)
+    })
     return data.data
 }
 
-export const deleteItem = async (collectionId: string, itemId: string): Promise<CollectionItem> => {
-    const { data } = await api.delete<Envelope<CollectionItem>>(`/cms/collections/${collectionId}/items/${itemId}`)
+export const deleteItem = async (collectionId: string, itemId: string, tenantId?: string): Promise<CollectionItem> => {
+    const { data } = await api.delete<Envelope<CollectionItem>>(`/cms/collections/${collectionId}/items/${itemId}`, {
+        params: withTenant(tenantId)
+    })
     return data.data
 }
 

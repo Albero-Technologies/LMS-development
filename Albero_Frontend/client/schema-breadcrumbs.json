@@ -1,0 +1,176 @@
+{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/#breadcrumb-home",
+            "name": "Home Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/about#breadcrumb",
+            "name": "About Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "About Us",
+                    "item": "https://www.albero.in/about"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/work#breadcrumb",
+            "name": "Work Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Case Studies & Work",
+                    "item": "https://www.albero.in/work"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/work#breadcrumb-web",
+            "name": "Web Development Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Case Studies",
+                    "item": "https://www.albero.in/work"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Web & Software Development",
+                    "item": "https://www.albero.in/work#it-web"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/work#breadcrumb-ecom",
+            "name": "E-Commerce Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Case Studies",
+                    "item": "https://www.albero.in/work"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "E-Commerce & SaaS Platforms",
+                    "item": "https://www.albero.in/work#it-ecom"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/work#breadcrumb-ai",
+            "name": "AI Services Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Case Studies",
+                    "item": "https://www.albero.in/work"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "AI & Innovation Services",
+                    "item": "https://www.albero.in/work#ai-services"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/refund-policy#breadcrumb",
+            "name": "Refund Policy Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Refund Policy",
+                    "item": "https://www.albero.in/refund-policy"
+                }
+            ]
+        },
+
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.albero.in/terms-and-policies#breadcrumb",
+            "name": "Terms Breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://www.albero.in/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Terms & Policies",
+                    "item": "https://www.albero.in/terms-and-policies"
+                }
+            ]
+        }
+    ]
+}

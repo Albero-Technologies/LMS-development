@@ -1,0 +1,179 @@
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": "https://www.albero.in/#services-list",
+    "name": "Albero Academy — Full Service Catalog",
+    "description": "Complete list of digital, software, and AI services offered by Albero Academy.",
+    "url": "https://www.albero.in/#services",
+    "numberOfItems": 12,
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-web-dev",
+                "name": "Custom Website Development",
+                "description": "Conversion-focused, high-performance websites engineered to generate leads, drive engagement, and scale with your business.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Web Development",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-web-app",
+                "name": "Web Application Development",
+                "description": "Robust, scalable web applications built with modern stacks like React, Next.js, Laravel, and Node.js.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Software Development",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-ecommerce",
+                "name": "E-Commerce Development",
+                "description": "High-converting e-commerce platforms with optimized checkout flows, payment integrations, and inventory management.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "E-Commerce Development",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 4,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-saas",
+                "name": "SaaS Product Development",
+                "description": "End-to-end SaaS product development from MVP to enterprise scale — CRM, LMS, HRM, ERP and custom platforms.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "SaaS Development",
+                "url": "https://www.albero.in/#pricing"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 5,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-ai",
+                "name": "AI & Automation Solutions",
+                "description": "Production-ready AI systems: custom chatbots, LLM apps, autonomous agents, computer vision, and workflow automation.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Artificial Intelligence",
+                "url": "https://www.albero.in/work#ai-services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 6,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-erp",
+                "name": "ERP & Enterprise Software",
+                "description": "Custom ERP systems to automate admissions, fees, HR, logistics, and complex business operations.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Enterprise Software",
+                "url": "https://www.albero.in/work#erp"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 7,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-steam",
+                "name": "STEAM Lab Installation for Schools",
+                "description": "AI, robotics and innovation labs designed, supplied and installed across India's top schools with curriculum support.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Education Technology",
+                "url": "https://www.albero.in/work#steam-schools"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 8,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-ui-ux",
+                "name": "UI/UX Product Design",
+                "description": "User-first design systems, wireframes and Figma prototypes crafted to maximise engagement and conversions.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "UI/UX Design",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 9,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-seo",
+                "name": "SEO & Digital Growth",
+                "description": "Data-driven SEO strategies, content optimisation and analytics to increase visibility, traffic and qualified leads.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Search Engine Optimisation",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 10,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-cloud",
+                "name": "Cloud Hosting & DevOps",
+                "description": "Secure cloud infrastructure, CI/CD pipelines and DevOps solutions for reliable, scalable deployments on AWS, GCP and Azure.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Cloud Infrastructure",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 11,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-wordpress",
+                "name": "WordPress & CMS Development",
+                "description": "Flexible CMS solutions with custom themes, plugins, and performance optimisation for content-driven businesses.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "CMS Development",
+                "url": "https://www.albero.in/#services"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 12,
+            "item": {
+                "@type": "Service",
+                "@id": "https://www.albero.in/#service-marketing",
+                "name": "Branding & Digital Marketing",
+                "description": "Social media creative strategy, performance ads, brand identity, and growth campaigns that drive measurable results.",
+                "provider": { "@id": "https://www.albero.in/#organization" },
+                "areaServed": "India",
+                "serviceType": "Digital Marketing",
+                "url": "https://www.albero.in/work#digital"
+            }
+        }
+    ]
+}

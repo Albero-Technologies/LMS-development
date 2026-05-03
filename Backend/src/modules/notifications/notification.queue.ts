@@ -14,6 +14,7 @@ export interface TNotifyJobData {
         | 'welcome'
         | 'invite'
         | 'enrollment'
+        | 'enrollment_credentials'
         | 'payment'
         | 'ticket_update'
         | 'counsellor_signup_received'

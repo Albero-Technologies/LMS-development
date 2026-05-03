@@ -80,6 +80,25 @@ export const listPublicCollectionItems = async (tenantSlug: string, collectionSl
     }
 }
 
+// Public detail read for a single published item — used by blog/resource
+// detail pages on the marketing site. Drafts (`published: false`) are hidden
+// even with a direct slug, so unfinished posts don't leak.
+export const getPublicCollectionItem = async (tenantSlug: string, collectionSlug: string, itemSlug: string) => {
+    if (tenantSlug === PLATFORM_TENANT_SLUG) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+    const tenant = await db.client.tenant.findUnique({ where: { slug: tenantSlug }, select: { id: true } })
+    if (!tenant) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+    const collection = await db.client.collection.findUnique({
+        where: { tenantId_slug: { tenantId: tenant.id, slug: collectionSlug } },
+        select: { id: true, slug: true, name: true, fields: true }
+    })
+    if (!collection) throw AppError.notFound(responseMessage.NOT_FOUND('Collection'), 'COLLECTION_NOT_FOUND')
+    const item = await db.client.collectionItem.findFirst({
+        where: { collectionId: collection.id, slug: itemSlug, published: true }
+    })
+    if (!item) throw AppError.notFound(responseMessage.NOT_FOUND('Item'), 'ITEM_NOT_FOUND')
+    return { collection, item }
+}
+
 // Public lookup by slug. Returns only the safe-to-expose subset that the
 // per-tenant landing page needs to render branding without leaking SA-only
 // fields (settings, plan, status). The `landing` JSON sub-key IS surfaced

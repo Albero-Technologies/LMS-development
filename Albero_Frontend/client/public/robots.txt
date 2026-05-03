@@ -1,0 +1,48 @@
+# ============================================================
+# robots.txt — Albero Academy
+# https://www.albero.in
+# ============================================================
+
+# ── Allow all well-behaved crawlers ──────────────────────────
+User-agent: *
+Allow: /
+
+# ── Block non-public paths ───────────────────────────────────
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /*.json$
+Disallow: /node_modules/
+
+# ── Block AI training crawlers (optional — remove if unwanted)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# ── Google-specific hints ─────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Googlebot-Image
+Allow: /
+
+# ── Bing ─────────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 3
+
+# ── Sitemap location ──────────────────────────────────────────
+Sitemap: https://www.albero.in/sitemap.xml

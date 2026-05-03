@@ -13,6 +13,7 @@ const router = Router()
 router.get('/by-slug/:slug', asyncHandler(ctrl.getPublicTenant))
 // Public CMS read — published items only. Used by the Collection-list section.
 router.get('/by-slug/:slug/collections/:collectionSlug', asyncHandler(ctrl.getPublicCollectionItems))
+router.get('/by-slug/:slug/collections/:collectionSlug/items/:itemSlug', asyncHandler(ctrl.getPublicCollectionItem))
 
 // Create — reserved for SUPER_ADMIN of the platform.
 router.post('/', requireAuth, requireRole(Role.SUPER_ADMIN), validate(createTenantSchema), asyncHandler(ctrl.createTenant))

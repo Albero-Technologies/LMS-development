@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0" />
+
+        <meta
+            property="og:title"
+            content="Albero – Software Development & Digital Growth Partner" />
+        <meta
+            property="og:site_name"
+            content="Albero Academy" />
+        <meta
+            property="og:url"
+            content="https://www.alberotechnologies.com/" />
+
+        <meta
+            property="og:description"
+            content="Albero helps startups, SMEs, and enterprises with smarter web development, faster launch, and digital growth solutions. Build, scale, and grow your business online." />
+
+        <meta
+            property="og:type"
+            content="website" />
+
+        <meta
+            property="og:image"
+            content="/favicon/albero logo.png" />
+
+        <!-- Meta Title -->
+        <title>Albero - Software Development & Digital Growth Partner</title>
+        <!-- Meta Description -->
+        <meta
+            name="description"
+            content="Albero helps startups, SMEs, and enterprises with smarter web development, faster launch, and digital growth solutions. Build, scale, and grow your business online." />
+
+        <!-- Favicon -->
+        <link
+            rel="icon"
+            type="image/png"
+            href="/favicon/favicon-96x96.png"
+            sizes="96x96" />
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="/favicon/favicon.svg" />
+        <link
+            rel="shortcut icon"
+            href="/favicon/favicon.ico"
+            type="image/x-icon" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/favicon/apple-touch-icon.png" />
+        <meta
+            name="apple-mobile-web-app-title"
+            content="Albero" />
+        <link
+            rel="manifest"
+            href="/favicon/site.webmanifest" />
+
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com" />
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@600;700&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600;1,700;1,800;1,900&family=Barlow:wght@300;400;500&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet" />
+
+        <!-- Theme bootstrap (no-flash) -->
+        <script>
+            ;(function () {
+                try {
+                    var saved = localStorage.getItem('albero-theme')
+                    var prefers = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+                    var theme = saved || prefers
+                    document.documentElement.setAttribute('data-theme', theme)
+                } catch (e) {
+                    document.documentElement.setAttribute('data-theme', 'light')
+                }
+            })()
+        </script>
+
+        <!-- Google Tag Manager -->
+        <script>
+            ;(function (w, d, s, l, i) {
+                w[l] = w[l] || []
+                w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+                var f = d.getElementsByTagName(s)[0],
+                    j = d.createElement(s),
+                    dl = l != 'dataLayer' ? '&l=' + l : ''
+                j.async = true
+                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
+                f.parentNode.insertBefore(j, f)
+            })(window, document, 'script', 'dataLayer', 'GTM-NCWVL2JM')
+        </script>
+        <!-- End Google Tag Manager -->
+
+        <!-- Google Analytics -->
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-XC2N3W46VZ"></script>
+        <script>
+            window.dataLayer = window.dataLayer || []
+            function gtag() {
+                dataLayer.push(arguments)
+            }
+            gtag('js', new Date())
+
+            gtag('config', 'G-XC2N3W46VZ')
+        </script>
+    </head>
+
+    <body>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript
+            ><iframe
+                src="https://www.googletagmanager.com/ns.html?id=GTM-NCWVL2JM"
+                height="0"
+                width="0"
+                style="display: none; visibility: hidden"></iframe
+        ></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+        <h1></h1>
+        <div id="root"></div>
+        <script
+            type="module"
+            src="/src/main.tsx"></script>
+    </body>
+</html>

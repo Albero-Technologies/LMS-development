@@ -1,0 +1,40 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Allow sitemap.xml and robots.txt
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap.xml"
+  status = 200
+
+# SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Redirect HTTP to HTTPS
+[[redirects]]
+  from = "http://albero.in/*"
+  to = "https://albero.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.albero.in/*"
+  to = "https://www.albero.in/:splat"
+  status = 301
+  force = true
+
+# Redirect non-www to www
+[[redirects]]
+  from = "https://albero.in/*"
+  to = "https://www.albero.in/:splat"
+  status = 301
+  force = true

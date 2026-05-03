@@ -1,0 +1,24 @@
+# ============================================================
+# _redirects — Albero Academy
+# Netlify redirect rules — place in publish directory (dist/)
+# ============================================================
+
+# ── Canonical: force www ──────────────────────────────────────
+https://albero.in/*          https://www.albero.in/:splat        301!
+
+# ── Legacy / vanity URL aliases ──────────────────────────────
+/case-studies                /work                                301
+/portfolio                   /work                                301
+/services                    /#services                           301
+/pricing                     /#pricing                            301
+/contact                     /#contact                            301
+/blog                        /                                    302
+
+# ── Remove trailing slashes ───────────────────────────────────
+/about/                      /about                               301
+/work/                       /work                                301
+/refund-policy/              /refund-policy                       301
+/terms-and-policies/         /terms-and-policies                  301
+
+# ── React SPA catch-all — must be LAST ───────────────────────
+/*                           /index.html                          200

@@ -1,0 +1,111 @@
+{
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "ProfessionalService", "SoftwareApplication"],
+    "@id": "https://www.albero.in/#local-business",
+    "name": "Albero Academy",
+    "alternateName": ["Albero Tech", "Albero Academy Pvt Ltd"],
+    "url": "https://www.albero.in",
+    "logo": "https://www.albero.in/logo.png",
+    "image": ["https://www.albero.in/og-image.png"],
+    "description": "Product engineering and SaaS-driven technology company building high-performance websites, SaaS platforms, and AI-powered automation systems for startups and enterprises across India.",
+    "telephone": "+91-9170780671",
+    "email": "info@albero.in",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Noida",
+        "addressLocality": "Noida",
+        "addressRegion": "Uttar Pradesh",
+        "postalCode": "201301",
+        "addressCountry": "IN"
+    },
+    "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 28.5355,
+        "longitude": 77.391
+    },
+    "openingHoursSpecification": [
+        {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "opens": "09:00",
+            "closes": "18:30"
+        },
+        {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Saturday"],
+            "opens": "10:00",
+            "closes": "15:00"
+        }
+    ],
+    "priceRange": "₹₹",
+    "currenciesAccepted": "INR, USD",
+    "paymentAccepted": "Cash, Credit Card, Debit Card, Net Banking, UPI",
+    "areaServed": "India",
+    "serviceArea": {
+        "@type": "GeoCircle",
+        "geoMidpoint": {
+            "@type": "GeoCoordinates",
+            "latitude": 20.5937,
+            "longitude": 78.9629
+        },
+        "geoRadius": "3000000"
+    },
+    "hasMap": "https://www.google.com/maps/search/?api=1&query=Noida,+Uttar+Pradesh,+India",
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "67",
+        "bestRating": "5",
+        "worstRating": "1"
+    },
+    "review": [
+        {
+            "@type": "Review",
+            "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5"
+            },
+            "author": {
+                "@type": "Person",
+                "name": "Rahul Sharma"
+            },
+            "reviewBody": "Albero completely transformed our online presence. Within 30 days of launch, we saw a 2.5x increase in inbound leads. The execution was fast, structured, and highly result-driven.",
+            "datePublished": "2024-10-01"
+        },
+        {
+            "@type": "Review",
+            "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5"
+            },
+            "author": {
+                "@type": "Person",
+                "name": "Priya Verma"
+            },
+            "reviewBody": "Our operations were chaotic before this. Their custom software streamlined everything—saving us hours daily and improving team productivity by over 40%.",
+            "datePublished": "2024-11-15"
+        },
+        {
+            "@type": "Review",
+            "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5"
+            },
+            "author": {
+                "@type": "Person",
+                "name": "Rohit Malhotra"
+            },
+            "reviewBody": "Strong architecture, clean code, and scalable systems — this is a team that actually understands engineering.",
+            "datePublished": "2025-01-20"
+        }
+    ],
+    "sameAs": [
+        "https://www.facebook.com/AlberoTechnologies1",
+        "https://x.com/Alberotech1",
+        "https://www.linkedin.com/company/albero-technologies-pvt-ltd/",
+        "https://www.instagram.com/albero.technologies/"
+    ]
+}

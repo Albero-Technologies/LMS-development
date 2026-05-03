@@ -1,0 +1,64 @@
+# ============================================================
+# _headers — Albero Academy
+# For Netlify / Cloudflare Pages deployments
+# Place in the root of the publish directory (dist/ or public/)
+# ============================================================
+
+# ── Global security headers (all routes) ────────────────────
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self), interest-cohort=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.anthropic.com https://www.google-analytics.com; frame-ancestors 'none';
+
+# ── Long-cache for hashed Vite assets ───────────────────────
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ── Medium-cache for icons and static images ─────────────────
+/icons/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/screenshots/*
+  Cache-Control: public, max-age=604800
+
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.jpg
+  Cache-Control: public, max-age=604800
+
+/*.webp
+  Cache-Control: public, max-age=604800
+
+/*.svg
+  Cache-Control: public, max-age=604800
+
+# ── Short-cache for SEO / manifest files ─────────────────────
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/xml; charset=utf-8
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+  Content-Type: text/plain; charset=utf-8
+
+/site.webmanifest
+  Cache-Control: public, max-age=604800
+  Content-Type: application/manifest+json
+
+/browserconfig.xml
+  Cache-Control: public, max-age=604800
+  Content-Type: application/xml; charset=utf-8
+
+# ── No-cache for HTML (SPA re-validates on every visit) ──────
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache

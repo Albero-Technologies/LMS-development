@@ -1,0 +1,352 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Albero Academy — Editorial Theme System
+   Light = paper-cream + ink navy. Dark = midnight + warm cream.
+   Toggle via [data-theme="dark"] on <html>.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root,
+[data-theme='light'] {
+    /* Surfaces */
+    --page-bg: #fbfaf6;
+    --page-bg-soft: #f4f2eb;
+    --surface: #ffffff;
+    --surface-2: #faf7ef;
+    --surface-3: #ecebe5;
+    --surface-inverse: #0a0e1f;
+
+    /* Text */
+    --text-primary: #0a0e1f;
+    --text-secondary: #3a4055;
+    --text-tertiary: #6b7180;
+    --text-muted: #98a0ad;
+    --text-on-inverse: #f8f6ee;
+
+    /* Borders & lines */
+    --line: #e6e3d8;
+    --line-strong: #c9c4b3;
+    --line-soft: rgba(10, 14, 31, 0.08);
+
+    /* Brand */
+    --brand: #0d4f3c; /* deep emerald */
+    --brand-mid: #14785f;
+    --brand-soft: #d3ebde;
+    --accent: #b86a18; /* burnt amber */
+    --accent-soft: #f5e0c2;
+    --highlight: #f4d35e;
+
+    /* Cards / shadows */
+    --card-shadow: 0 1px 0 rgba(10, 14, 31, 0.04), 0 8px 24px rgba(10, 14, 31, 0.08);
+    --card-shadow-hover: 0 1px 0 rgba(10, 14, 31, 0.06), 0 18px 40px rgba(10, 14, 31, 0.12);
+
+    /* Floating action buttons — back-to-top (left) */
+    --btt-bg: #ffffff;
+    --btt-fg: #0d4f3c;
+    --btt-border: rgba(10, 14, 31, 0.10);
+    --btt-shadow: 0 1px 0 rgba(10, 14, 31, 0.04), 0 12px 32px rgba(10, 14, 31, 0.18);
+    --btt-ring: #0d4f3c;
+    --btt-track: rgba(10, 14, 31, 0.10);
+
+    /* Floating action buttons — WhatsApp (right) */
+    --wa-bg: #25d366;
+    --wa-fg: #ffffff;
+    --wa-border: rgba(255, 255, 255, 0.30);
+    --wa-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 14px 32px rgba(37, 211, 102, 0.40);
+    --wa-tooltip-bg: #0a0e1f;
+    --wa-tooltip-fg: #ffffff;
+
+    /* Status */
+    --success: #047857;
+    --warning: #c2410c;
+
+    color-scheme: light;
+}
+
+[data-theme='dark'] {
+    --page-bg: #07091a;
+    --page-bg-soft: #0d1027;
+    --surface: #0e1230;
+    --surface-2: #11163a;
+    --surface-3: #1a204e;
+    --surface-inverse: #f8f6ee;
+
+    --text-primary: #f5f3ea;
+    --text-secondary: #c9cbd6;
+    --text-tertiary: #8e92a4;
+    --text-muted: #5b6079;
+    --text-on-inverse: #0a0e1f;
+
+    --line: rgba(255, 255, 255, 0.10);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --line-soft: rgba(255, 255, 255, 0.06);
+
+    --brand: #34d399; /* lime emerald */
+    --brand-mid: #10b981;
+    --brand-soft: rgba(52, 211, 153, 0.14);
+    --accent: #fbbf24;
+    --accent-soft: rgba(251, 191, 36, 0.14);
+    --highlight: #facc15;
+
+    --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 32px rgba(0, 0, 0, 0.45);
+    --card-shadow-hover: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 24px 56px rgba(0, 0, 0, 0.55);
+
+    /* Floating action buttons — dark mode overrides */
+    --btt-bg: #0e1230;
+    --btt-fg: #34d399;
+    --btt-border: rgba(255, 255, 255, 0.14);
+    --btt-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 14px 36px rgba(0, 0, 0, 0.55);
+    --btt-ring: #34d399;
+    --btt-track: rgba(255, 255, 255, 0.10);
+
+    --wa-bg: linear-gradient(140deg, #25d366, #128c7e);
+    --wa-fg: #ffffff;
+    --wa-border: rgba(255, 255, 255, 0.20);
+    --wa-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 18px 40px rgba(37, 211, 102, 0.30), 0 0 0 1px rgba(52, 211, 153, 0.20);
+    --wa-tooltip-bg: #f5f3ea;
+    --wa-tooltip-fg: #0a0e1f;
+
+    --success: #34d399;
+    --warning: #fbbf24;
+
+    color-scheme: dark;
+}
+
+/* Theme tokens for typography */
+:root {
+    --font-display: 'Fraunces', 'Times New Roman', serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-bebas: 'Bebas Neue', sans-serif;
+    --font-dancing: 'Dancing Script', cursive;
+    --font-barlow-condensed: 'Barlow Condensed', sans-serif;
+    --font-barlow: 'Barlow', sans-serif;
+
+    /* Legacy tokens (kept so older components don't break) */
+    --black: #000000;
+    --bg-1: #0f0f0f;
+    --bg-2: #161616;
+    --bg-card: #18181b;
+    --bg-mid: #262626;
+    --white: #ffffff;
+    --grey-mid: #747474;
+    --grey-light: oklch(0.87 0 0);
+    --grey-dim: oklch(0.371 0 0);
+    --blue-vivid: oklch(0.623 0.214 259.815);
+    --blue-deep: oklch(0.546 0.245 262.881);
+    --blue-soft: oklch(0.707 0.165 254.624);
+    --blue-dark: oklch(0.511 0.262 276.966);
+    --amber: oklch(0.795 0.184 86.047);
+    --amber-lt: oklch(0.852 0.199 91.936);
+    --amber-pale: oklch(0.973 0.071 103.193);
+    --border: rgba(255, 255, 255, 0.07);
+    --border-blu: oklch(0.623 0.214 259.815 / 0.25);
+}
+
+html,
+body {
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ── Custom cursor ─────────────────────────────────────────────────────────
+   - Light theme: dark-stroke arrow / hand on cream
+   - Dark theme: light arrow / hand on midnight
+   - Hot-spot at (0,0) so the click happens at the tip
+   ────────────────────────────────────────────────────────────────────────── */
+html,
+body,
+[data-stage='dark'] {
+    cursor: url('./assets/images/cursor/light/arrow.png') 0 0, auto;
+}
+
+a,
+button,
+[role='button'],
+[onclick],
+.cursor-hand {
+    cursor: url('./assets/images/cursor/light/hand.png') 0 0, pointer;
+}
+
+[data-theme='dark'] html,
+[data-theme='dark'] body {
+    cursor: url('./assets/images/cursor/dark/arrow.png') 0 0, auto;
+}
+
+[data-theme='dark'] a,
+[data-theme='dark'] button,
+[data-theme='dark'] [role='button'],
+[data-theme='dark'] [onclick],
+[data-theme='dark'] .cursor-hand {
+    cursor: url('./assets/images/cursor/dark/hand.png') 0 0, pointer;
+}
+
+/* "no" cursor for disabled controls */
+:disabled,
+[aria-disabled='true'],
+.cursor-not-allowed {
+    cursor: url('./assets/images/cursor/light/no.png') 0 0, not-allowed !important;
+}
+
+/* Lenis: prevent overscroll glitching on body */
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+/* Display headings — editorial serif */
+.font-display {
+    font-family: var(--font-display);
+    font-feature-settings: 'ss01' on, 'ss02' on;
+}
+.font-mono {
+    font-family: var(--font-mono);
+}
+
+/* Custom scrollbar — adapts to theme */
+::-webkit-scrollbar {
+    width: 12px;
+}
+::-webkit-scrollbar-track {
+    background-color: var(--page-bg);
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--line-strong);
+    border-radius: 999px;
+    border: 3px solid var(--page-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-tertiary);
+}
+
+#particle-canvas {
+    @apply fixed inset-0 pointer-events-none z-0 opacity-[0.45];
+    transition: opacity 0.4s ease;
+}
+
+[data-theme='light'] #particle-canvas {
+    opacity: 0;
+}
+
+/* "Dark stage" — used to keep legacy dark sections looking on-brand
+   even when the rest of the site is in light mode. Forces dark tokens
+   only inside the stage. */
+[data-stage='dark'] {
+    --page-bg: #07091a;
+    --page-bg-soft: #0d1027;
+    --surface: #0e1230;
+    --surface-2: #11163a;
+    --surface-3: #1a204e;
+    --text-primary: #f5f3ea;
+    --text-secondary: #c9cbd6;
+    --text-tertiary: #8e92a4;
+    --text-muted: #5b6079;
+    --line: rgba(255, 255, 255, 0.10);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --line-soft: rgba(255, 255, 255, 0.06);
+    --brand: #34d399;
+    --brand-soft: rgba(52, 211, 153, 0.14);
+    --accent: #fbbf24;
+    --accent-soft: rgba(251, 191, 36, 0.14);
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+    color-scheme: dark;
+}
+
+.cursor-glow {
+    @apply fixed w-[400px] h-[400px] rounded-full pointer-events-none z-[1] -translate-x-1/2 -translate-y-1/2 transition-transform duration-[50ms] ease-linear;
+    background: radial-gradient(circle, var(--brand-soft) 0%, transparent 70%);
+}
+
+/* Selection */
+::selection {
+    background-color: var(--brand);
+    color: var(--text-on-inverse);
+}
+
+/* Marquee animation reusable */
+@keyframes alb-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Hide scrollbar utility — used in horizontal carousels */
+.scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* ── Skills cloud chips ──
+   Highlighting is entirely CSS-driven via the cloud's [data-active]
+   attribute. This keeps React from re-rendering 18 chips on every
+   pointer move, which was causing hover lag. The chip's track colour
+   is passed in as the inline CSS variable --chip-color. */
+.alb-chip {
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--line);
+    box-shadow: var(--card-shadow);
+    /* Animate only the cheap properties. Transform is owned by GSAP
+       wobble and must NOT be transitioned (it would fight the tween). */
+    transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease, border-color 160ms ease;
+    will-change: transform;
+    cursor: pointer;
+}
+.alb-chip:hover {
+    color: var(--chip-color);
+    border-color: color-mix(in srgb, var(--chip-color) 35%, transparent);
+}
+
+/* When the cloud has an active track, dim every chip… */
+.alb-skills-cloud[data-active]:not([data-active='']) .alb-chip {
+    opacity: 0.4;
+}
+
+/* …and light up the chips that match the active track. */
+.alb-skills-cloud[data-active='data-analytics'] .alb-chip[data-track='data-analytics'],
+.alb-skills-cloud[data-active='business-analytics'] .alb-chip[data-track='business-analytics'],
+.alb-skills-cloud[data-active='data-science-ai'] .alb-chip[data-track='data-science-ai'],
+.alb-skills-cloud[data-active='full-stack'] .alb-chip[data-track='full-stack'],
+.alb-skills-cloud[data-active='data-engineering'] .alb-chip[data-track='data-engineering'],
+.alb-skills-cloud[data-active='cybersecurity'] .alb-chip[data-track='cybersecurity'],
+.alb-skills-cloud[data-active='product-analytics'] .alb-chip[data-track='product-analytics'],
+.alb-skills-cloud[data-active='investment-banking'] .alb-chip[data-track='investment-banking'] {
+    opacity: 1;
+    background: var(--chip-color);
+    color: #fff;
+    border-color: var(--chip-color);
+}
+
+/* ── Stairs-climb section ── */
+@keyframes alb-stair-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184, 106, 24, 0.0); }
+    50% { box-shadow: 0 0 0 12px rgba(184, 106, 24, 0.18); }
+}
+
+@keyframes alb-stair-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes alb-trophy-shine {
+    0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+    50% { transform: scale(1.18) rotate(6deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}

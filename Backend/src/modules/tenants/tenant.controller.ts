@@ -33,6 +33,13 @@ export const getPublicCollectionItems = async (req: Request, res: Response): Pro
     httpResponse(req, res, 200, responseMessage.SUCCESS, data)
 }
 
+// Public detail read — blog post / resource page slug-based lookup. Drafts
+// 404 even with a direct link.
+export const getPublicCollectionItem = async (req: Request, res: Response): Promise<void> => {
+    const data = await service.getPublicCollectionItem(req.params.slug, req.params.collectionSlug, req.params.itemSlug)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+}
+
 export const updateMyTenantBranding = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
     const tenant = await service.updateBranding(req.auth.tenantId, req.body)

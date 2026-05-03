@@ -48,7 +48,11 @@ app.use(
             return cb(new Error('CORS origin not allowed'))
         },
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+        // X-Tenant-Slug is sent by the public marketing site (Albero_Frontend
+        // at 5173) so the backend can resolve the tenant on routes that
+        // would otherwise need sub-domain parsing — without it, every
+        // preflight on /enquiries, /public/purchase/*, etc. is rejected.
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'X-Tenant-Slug'],
         credentials: true,
         maxAge: 600
     })

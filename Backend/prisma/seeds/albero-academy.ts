@@ -1502,6 +1502,16 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
     const FRONTEND_ORIGIN = process.env.FRONTEND_BASE_URL ?? 'http://localhost:5173'
 
     // 1. Tenant
+    //
+    // `environment` carries the per-tenant secrets read by payments/Sheets.
+    // Razorpay reads `tenant.settings.environment.razorpay.{keyId,keySecret,webhookSecret}`
+    // and the Sheets push reads `tenant.settings.environment.googleSheets.serviceAccountJson`.
+    //
+    // Razorpay test creds are baked into the seed for local dev so the
+    // checkout flow works out-of-the-box. Override via env vars before
+    // seeding production. Sheet ID + service-account JSON have no sensible
+    // dev default — the SuperAdmin/Admin sets those from the dashboard
+    // (Tenants → Environment, and Integrations) when ready to wire Sheets.
     const settings = {
         landing: buildLandingJson(),
         seo: buildSeo(),
@@ -1511,12 +1521,19 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
             primaryPhone: '+91-99999-99999',
             secondaryEmail: 'admissions@albero.academy'
         },
+        environment: {
+            razorpay: {
+                keyId: process.env.ALBERO_RAZORPAY_KEY_ID ?? 'rzp_test_SheFoZBecqJT2X',
+                keySecret: process.env.ALBERO_RAZORPAY_KEY_SECRET ?? 'wgcv5z3hesSl3FuY5OV0T2wp',
+                webhookSecret: process.env.ALBERO_RAZORPAY_WEBHOOK_SECRET ?? ''
+            }
+        },
         features: {
             coleadPipeline: true,
             demoControl: true,
             notifications: true,
             tickets: true,
-            googleSheetsSync: false,
+            googleSheetsSync: true,
             razorpay: true,
             websockets: true,
             auditLogs: true,

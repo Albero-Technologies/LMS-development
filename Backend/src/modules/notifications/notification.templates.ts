@@ -43,6 +43,36 @@ export const render = ({ template, data, tenantName }: TRenderInput): TRendered 
 <p>Log in to start learning.</p>`
             }
 
+        case 'enrollment_credentials': {
+            // Sent right after a public Razorpay checkout. The user paid as an
+            // anonymous prospect; we created their student account on the fly,
+            // so this email carries their first-time login credentials.
+            const courseTitle = String(data.courseTitle ?? 'the course')
+            const email = String(data.email ?? '')
+            const tempPassword = String(data.tempPassword ?? '')
+            const loginUrl = String(data.loginUrl ?? config.SERVER_URL)
+            const firstName = String(data.firstName ?? 'there')
+            return {
+                subject: `Welcome to ${brand} — your ${courseTitle} access is ready`,
+                text:
+                    `Hi ${firstName},\n\n` +
+                    `Payment received and your seat in ${courseTitle} is confirmed. We've created your student portal account:\n\n` +
+                    `Email: ${email}\n` +
+                    `Temporary password: ${tempPassword}\n\n` +
+                    `Sign in: ${loginUrl}\n\n` +
+                    `Please change your password the first time you log in.\n\n— ${brand}`,
+                html: `<p>Hi <strong>${firstName}</strong>,</p>
+<p>Payment received and your seat in <strong>${courseTitle}</strong> is confirmed. We've created your student portal account.</p>
+<p><strong>Sign in:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
+<table cellpadding="6" style="border-collapse:collapse;border:1px solid #e5e7eb;background:#f9fafb;border-radius:6px">
+  <tr><td><strong>Email</strong></td><td><code>${email}</code></td></tr>
+  <tr><td><strong>Temporary password</strong></td><td><code>${tempPassword}</code></td></tr>
+</table>
+<p>Please change your password the first time you log in.</p>
+<p>— ${brand}</p>`
+            }
+        }
+
         case 'payment':
             return {
                 subject: `Payment received — Invoice ${String(data.invoiceNumber ?? '')}`,
