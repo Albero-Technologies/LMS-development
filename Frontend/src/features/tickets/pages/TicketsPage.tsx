@@ -13,6 +13,9 @@ import { Modal } from '@shared/components/ui/Modal'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { listAllTenants } from '@features/admin/services/tenant.service'
 import { PRIORITY_TONE, STATUS_LABEL, STATUS_TONE, createTicket, listTickets, type TicketPriority } from '../services/ticket.service'
 
 const TAB_ORDER = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'ALL'] as const
@@ -35,16 +38,42 @@ export const TicketsPage = () => {
     const [newOpen, setNewOpen] = useState(false)
 
     const queryClient = useQueryClient()
+    const role = useAuthStore((s) => s.user?.role)
+    const isSuperAdmin = role === ROLES.SUPER_ADMIN
+
+    // SA tenant picker — same UX as Lead Pipeline / Shareable Links. The
+    // picked tenant is persisted in localStorage so refresh keeps the SA
+    // on the right tenant.
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        staleTime: 60_000,
+        enabled: isSuperAdmin
+    })
+    const tenants = tenantsQuery.data ?? []
+    const [tenantId, setTenantId] = useState<string>(() => (isSuperAdmin ? localStorage.getItem('tickets.tenantId') ?? '' : ''))
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        if (!tenantId && tenants.length > 0) setTenantId(tenants[0].id)
+    }, [isSuperAdmin, tenantId, tenants])
+    useEffect(() => {
+        if (isSuperAdmin && tenantId) localStorage.setItem('tickets.tenantId', tenantId)
+    }, [isSuperAdmin, tenantId])
+    const effectiveTenantId = isSuperAdmin && tenantId ? tenantId : undefined
 
     const ticketsQuery = useQuery({
-        queryKey: ['tickets', { tab, page }],
+        queryKey: ['tickets', { tab, page, tenant: effectiveTenantId ?? 'self' }],
         queryFn: () =>
-            listTickets({
-                page,
-                pageSize: PAGE_SIZE,
-                status: tab === 'ALL' ? undefined : tab
-            }),
-        staleTime: 30_000
+            listTickets(
+                {
+                    page,
+                    pageSize: PAGE_SIZE,
+                    status: tab === 'ALL' ? undefined : tab
+                },
+                effectiveTenantId
+            ),
+        staleTime: 30_000,
+        enabled: !isSuperAdmin || !!effectiveTenantId
     })
 
     useEffect(() => {
@@ -86,7 +115,7 @@ export const TicketsPage = () => {
     }, [tab, total])
 
     const createMutation = useMutation({
-        mutationFn: createTicket,
+        mutationFn: (payload: Parameters<typeof createTicket>[0]) => createTicket(payload, effectiveTenantId),
         onSuccess: (t) => {
             toast.success(`Ticket ${t.number} created`)
             setNewOpen(false)
@@ -106,6 +135,26 @@ export const TicketsPage = () => {
                 description="Internal comments, SLA timers, auto-assign — all in one queue."
                 actions={
                     <>
+                        {isSuperAdmin && (
+                            <div className="w-64">
+                                <Select
+                                    aria-label="Choose tenant"
+                                    value={tenantId}
+                                    onChange={(e) => setTenantId(e.target.value)}
+                                    disabled={tenantsQuery.isLoading}>
+                                    {tenants.length === 0 && (
+                                        <option value="">{tenantsQuery.isLoading ? 'Loading…' : 'No tenants'}</option>
+                                    )}
+                                    {tenants.map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.id}>
+                                            {t.name} (/{t.slug})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
                         <div className="w-64 hidden sm:block">
                             <Input
                                 placeholder="Search id, subject, requester"
@@ -118,6 +167,7 @@ export const TicketsPage = () => {
                         <Button
                             size="sm"
                             leftIcon={<Plus size={14} />}
+                            disabled={isSuperAdmin && !effectiveTenantId}
                             onClick={() => setNewOpen(true)}>
                             New ticket
                         </Button>

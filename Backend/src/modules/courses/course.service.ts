@@ -81,14 +81,26 @@ export const createCourse = async (tenantId: string, input: TCreateCourseInput, 
         data: {
             tenantId,
             title: input.title,
+            subtitle: input.subtitle,
             slug: input.slug,
             description: input.description,
             thumbnailUrl: input.thumbnailUrl,
+            heroUrl: input.heroUrl,
             price: input.price,
             currency: input.currency,
             gstPercent: input.gstPercent,
             trainerId,
             tags: input.tags ?? [],
+            level: input.level,
+            language: input.language,
+            outcomes: input.outcomes ?? [],
+            prerequisites: input.prerequisites ?? [],
+            audience: input.audience ?? [],
+            enrolmentCap: input.enrolmentCap ?? null,
+            startsAt: input.startsAt ? new Date(input.startsAt) : null,
+            endsAt: input.endsAt ? new Date(input.endsAt) : null,
+            certificateEnabled: input.certificateEnabled ?? false,
+            certificateTemplate: input.certificateTemplate ?? null,
             publishState: CoursePublishState.DRAFT
         }
     })
@@ -108,18 +120,35 @@ export const updateCourse = async (tenantId: string, id: string, input: TUpdateC
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'TRAINER_REASSIGN_DENIED')
     }
 
+    // Normalise dates: pass through `null` to clear, `Date` to set, leave
+    // `undefined` so Prisma keeps the existing value untouched.
+    const startsAt = input.startsAt === undefined ? undefined : input.startsAt === null ? null : new Date(input.startsAt)
+    const endsAt = input.endsAt === undefined ? undefined : input.endsAt === null ? null : new Date(input.endsAt)
+
     const updated = await db.client.course.update({
         where: { id },
         data: {
             title: input.title,
+            subtitle: input.subtitle,
             slug: input.slug,
             description: input.description,
             thumbnailUrl: input.thumbnailUrl,
+            heroUrl: input.heroUrl,
             price: input.price,
             currency: input.currency,
             gstPercent: input.gstPercent,
             trainerId: input.trainerId,
             tags: input.tags,
+            level: input.level,
+            language: input.language,
+            outcomes: input.outcomes,
+            prerequisites: input.prerequisites,
+            audience: input.audience,
+            enrolmentCap: input.enrolmentCap,
+            startsAt,
+            endsAt,
+            certificateEnabled: input.certificateEnabled,
+            certificateTemplate: input.certificateTemplate,
             publishState: input.publishState
         }
     })
@@ -187,7 +216,11 @@ export const addLesson = async (tenantId: string, courseId: string, input: TCrea
             youtubeId: input.youtubeId,
             externalUrl: input.externalUrl,
             durationSec: input.durationSec,
-            order: input.order
+            order: input.order,
+            freePreview: input.freePreview ?? false,
+            // Prisma's Json column accepts the array directly; cast through
+            // unknown because TS infers the literal too narrowly.
+            resources: (input.resources ?? null) as unknown as Prisma.InputJsonValue
         }
     })
 }
@@ -213,7 +246,10 @@ export const updateLesson = async (
             youtubeId: input.youtubeId,
             externalUrl: input.externalUrl,
             durationSec: input.durationSec,
-            order: input.order
+            order: input.order,
+            freePreview: input.freePreview,
+            resources:
+                input.resources === undefined ? undefined : ((input.resources ?? null) as unknown as Prisma.InputJsonValue)
         }
     })
 }

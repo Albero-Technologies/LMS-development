@@ -2,7 +2,17 @@ import { api } from '@shared/libs/api'
 
 export type CoursePublishState = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 
-export type LessonType = 'YOUTUBE' | 'PDF' | 'LINK'
+export type LessonType = 'YOUTUBE' | 'EXTERNAL_LIVE' | 'TEXT'
+
+export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'ALL_LEVELS'
+
+// Resource attachment on a lesson — Drive link, PDF URL, etc. Free-form by
+// design so admins can paste anything.
+export type TLessonResource = {
+    url: string
+    label?: string
+    type?: 'pdf' | 'link' | 'file'
+}
 
 export type TLesson = {
     id: string
@@ -14,6 +24,8 @@ export type TLesson = {
     externalUrl?: string | null
     durationSec: number
     order: number
+    freePreview?: boolean
+    resources?: TLessonResource[] | null
 }
 
 export type TSection = {
@@ -27,6 +39,7 @@ export type TSection = {
 export type TCourse = {
     id: string
     title: string
+    subtitle?: string | null
     slug: string
     description?: string | null
     price: number // paise (smallest currency unit)
@@ -36,9 +49,20 @@ export type TCourse = {
     isPublished?: boolean
     trainerId?: string | null
     thumbnailUrl?: string | null
+    heroUrl?: string | null
     coverUrl?: string | null
     enrolledCount?: number
     tags?: string[]
+    level?: CourseLevel
+    language?: string
+    outcomes?: string[]
+    prerequisites?: string[]
+    audience?: string[]
+    enrolmentCap?: number | null
+    startsAt?: string | null
+    endsAt?: string | null
+    certificateEnabled?: boolean
+    certificateTemplate?: string | null
     // getCourse returns the full curriculum; listCourses omits these fields.
     sections?: TSection[]
     trainer?: { id: string; firstName: string | null; lastName: string | null } | null

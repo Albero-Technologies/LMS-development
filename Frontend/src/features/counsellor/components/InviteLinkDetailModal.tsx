@@ -20,6 +20,9 @@ import { UserDetailModal } from '@features/users/components/UserDetailModal'
 interface Props {
     open: boolean
     linkId: string | null
+    /** SUPER_ADMIN cross-tenant context — when set, the link detail fetch
+     *  scopes to this tenant via `?tenantId=`. Other roles never set it. */
+    tenantId?: string
     onClose: () => void
 }
 
@@ -30,15 +33,15 @@ const STATUS_TONE: Record<InviteLinkDetail['status'], 'ok' | 'warn' | 'danger' |
     REVOKED: 'danger'
 }
 
-export const InviteLinkDetailModal = ({ open, linkId, onClose }: Props) => {
+export const InviteLinkDetailModal = ({ open, linkId, tenantId, onClose }: Props) => {
     const queryClient = useQueryClient()
     const [copied, setCopied] = useState(false)
     const [creds, setCreds] = useState<{ signupId: string; name: string; email: string; password: string | null } | null>(null)
     const [openUserId, setOpenUserId] = useState<string | null>(null)
 
     const detailQuery = useQuery({
-        queryKey: ['invite-links', linkId, 'detail'],
-        queryFn: () => getInviteLink(linkId!),
+        queryKey: ['invite-links', linkId, 'detail', tenantId ?? 'self'],
+        queryFn: () => getInviteLink(linkId!, tenantId),
         enabled: open && !!linkId,
         staleTime: 30_000
     })

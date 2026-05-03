@@ -59,10 +59,11 @@ type NavItem = { to: string; label: string; icon: ComponentType<{ size?: number 
 
 const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
     SUPER_ADMIN: [
-        // Programs + Resources are tenant-content surfaces — owned by the
-        // tenant ADMIN, not the platform SA. SA still has the raw CMS for
-        // cross-tenant content audits, plus Lead Pipeline (tenant-scoped via
-        // the picker on that page) so they can monitor any tenant's funnel.
+        // SA monitors / curates ANY tenant. Lead Pipeline, Shareable Links
+        // and Support tickets all show a tenant picker on their respective
+        // pages so the SA can switch contexts without leaving the panel.
+        // Programs + Resources stay off the SA sidebar — those are
+        // tenant-ADMIN content tools.
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/admin/tenants', label: 'Tenants', icon: Building2 },
         { to: '/app/admin/website-editor', label: 'Website Editor', icon: Globe },
@@ -74,6 +75,8 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
         { to: '/app/users', label: 'Users', icon: Users },
         { to: '/app/counsellor/pipeline', label: 'Lead Pipeline', icon: Kanban },
+        { to: '/app/counsellor/invites', label: 'Shareable Links', icon: Link2 },
+        { to: '/app/tickets', label: 'Tickets', icon: TicketCheck },
         { to: '/app/payments', label: 'Client Payments', icon: CreditCard },
         { to: '/app/reports', label: 'Analytics', icon: LineChart },
         { to: '/app/audit-logs', label: 'Activity Logs', icon: Activity }

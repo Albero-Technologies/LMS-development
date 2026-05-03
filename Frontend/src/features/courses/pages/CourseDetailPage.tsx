@@ -8,7 +8,7 @@
 // into the local-store builder for now — the backend curriculum-edit flow is
 // a separate piece of work.
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Play, CheckCircle2, Circle, ArrowLeft, Youtube, Wrench, FileText, LinkIcon, ChevronRight } from 'lucide-react'
@@ -33,10 +33,16 @@ const LESSON_ICON: Record<string, typeof Youtube> = {
 
 export const CourseDetailPage = () => {
     const { id = '' } = useParams()
+    const [params] = useSearchParams()
+    // SUPER_ADMIN cross-tenant context. Coming from the catalog or builder
+    // with `?tenantId=<id>` so the GET resolves against the right tenant.
+    // Without it, an SA sitting on the platform tenant would 404 on every
+    // course owned by a customer tenant.
+    const tenantId = params.get('tenantId') ?? undefined
     const queryClient = useQueryClient()
     const courseQuery = useQuery({
-        queryKey: ['courses', id],
-        queryFn: () => getCourse(id),
+        queryKey: ['courses', id, tenantId ?? 'self'],
+        queryFn: () => getCourse(id, tenantId),
         enabled: id.length > 0,
         staleTime: 30_000,
         retry: false
@@ -188,7 +194,7 @@ export const CourseDetailPage = () => {
                 actions={
                     <>
                         {canEdit && (
-                            <Link to={`/app/courses/${course.id}/builder`}>
+                            <Link to={`/app/courses/${course.id}/builder${tenantId ? `?tenantId=${tenantId}` : ""}`}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -264,7 +270,7 @@ export const CourseDetailPage = () => {
                                         No lessons yet.{' '}
                                         {canEdit ? (
                                             <Link
-                                                to={`/app/courses/${course.id}/builder`}
+                                                to={`/app/courses/${course.id}/builder${tenantId ? `?tenantId=${tenantId}` : ""}`}
                                                 className="text-brand hover:underline">
                                                 Open the builder
                                             </Link>

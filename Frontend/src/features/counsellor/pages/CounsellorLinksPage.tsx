@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Copy, Trash2, Link2, Check, Ban } from 'lucide-react'
 import { toast } from 'sonner'
@@ -7,10 +7,14 @@ import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Input } from '@shared/components/ui/Input'
+import { Select } from '@shared/components/ui/Select'
 import { Modal } from '@shared/components/ui/Modal'
 import { useConfirm } from '@shared/components/ui/ConfirmDialog'
 import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { useAuthStore } from '@shared/stores/authStore'
+import { ROLES } from '@shared/constants/roles'
+import { listAllTenants } from '@features/admin/services/tenant.service'
 import {
     buildInviteUrl,
     createInviteLink,
@@ -36,15 +40,38 @@ export const CounsellorLinksPage = () => {
     const [createOpen, setCreateOpen] = useState(false)
     const [openLinkId, setOpenLinkId] = useState<string | null>(null)
     const queryClient = useQueryClient()
+    const role = useAuthStore((s) => s.user?.role)
+    const isSuperAdmin = role === ROLES.SUPER_ADMIN
+
+    // SA tenant picker — same UX as CMS / Courses / Lead Pipeline. Persist
+    // the chosen tenant in localStorage so refresh keeps the SA on the right
+    // tenant instead of snapping back to the (empty) platform tenant.
+    const tenantsQuery = useQuery({
+        queryKey: ['tenants'],
+        queryFn: listAllTenants,
+        staleTime: 60_000,
+        enabled: isSuperAdmin
+    })
+    const tenants = tenantsQuery.data ?? []
+    const [tenantId, setTenantId] = useState<string>(() => (isSuperAdmin ? localStorage.getItem('invites.tenantId') ?? '' : ''))
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        if (!tenantId && tenants.length > 0) setTenantId(tenants[0].id)
+    }, [isSuperAdmin, tenantId, tenants])
+    useEffect(() => {
+        if (isSuperAdmin && tenantId) localStorage.setItem('invites.tenantId', tenantId)
+    }, [isSuperAdmin, tenantId])
+    const effectiveTenantId = isSuperAdmin && tenantId ? tenantId : undefined
 
     const linksQuery = useQuery({
-        queryKey: ['counsellor-invites'],
-        queryFn: listInviteLinks,
-        staleTime: 30_000
+        queryKey: ['counsellor-invites', effectiveTenantId ?? 'self'],
+        queryFn: () => listInviteLinks(effectiveTenantId),
+        staleTime: 30_000,
+        enabled: !isSuperAdmin || !!effectiveTenantId
     })
 
     const createMutation = useMutation({
-        mutationFn: createInviteLink,
+        mutationFn: (payload: Parameters<typeof createInviteLink>[0]) => createInviteLink(payload, effectiveTenantId),
         onSuccess: (link) => {
             toast.success('Shareable link created')
             void queryClient.invalidateQueries({ queryKey: ['counsellor-invites'] })
@@ -59,7 +86,7 @@ export const CounsellorLinksPage = () => {
     })
 
     const revokeMutation = useMutation({
-        mutationFn: revokeInviteLink,
+        mutationFn: (id: string) => revokeInviteLink(id, effectiveTenantId),
         onSuccess: () => {
             toast.success('Link revoked')
             void queryClient.invalidateQueries({ queryKey: ['counsellor-invites'] })
@@ -68,7 +95,7 @@ export const CounsellorLinksPage = () => {
     })
 
     const deleteMutation = useMutation({
-        mutationFn: deleteInviteLink,
+        mutationFn: (id: string) => deleteInviteLink(id, effectiveTenantId),
         onSuccess: () => {
             toast.success('Link deleted')
             void queryClient.invalidateQueries({ queryKey: ['counsellor-invites'] })
@@ -85,12 +112,35 @@ export const CounsellorLinksPage = () => {
                 title="Shareable links"
                 description="Generate one-tap onboarding links to send prospects. Each link captures their details into your pipeline."
                 actions={
-                    <Button
-                        size="sm"
-                        leftIcon={<Plus size={14} />}
-                        onClick={() => setCreateOpen(true)}>
-                        New link
-                    </Button>
+                    <>
+                        {isSuperAdmin && (
+                            <div className="w-64">
+                                <Select
+                                    aria-label="Choose tenant"
+                                    value={tenantId}
+                                    onChange={(e) => setTenantId(e.target.value)}
+                                    disabled={tenantsQuery.isLoading}>
+                                    {tenants.length === 0 && (
+                                        <option value="">{tenantsQuery.isLoading ? 'Loading…' : 'No tenants'}</option>
+                                    )}
+                                    {tenants.map((t) => (
+                                        <option
+                                            key={t.id}
+                                            value={t.id}>
+                                            {t.name} (/{t.slug})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                        <Button
+                            size="sm"
+                            leftIcon={<Plus size={14} />}
+                            disabled={isSuperAdmin && !effectiveTenantId}
+                            onClick={() => setCreateOpen(true)}>
+                            New link
+                        </Button>
+                    </>
                 }
             />
 
@@ -139,6 +189,7 @@ export const CounsellorLinksPage = () => {
             <InviteLinkDetailModal
                 open={!!openLinkId}
                 linkId={openLinkId}
+                tenantId={effectiveTenantId}
                 onClose={() => setOpenLinkId(null)}
             />
         </>

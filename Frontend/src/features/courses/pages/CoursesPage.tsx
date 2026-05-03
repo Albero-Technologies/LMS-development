@@ -323,7 +323,7 @@ const AdminCourseCard = ({
             </div>
             <div className="mt-4 flex items-center gap-1.5">
                 <Link
-                    to={`/app/courses/${course.id}`}
+                    to={`/app/courses/${course.id}${tenantId ? `?tenantId=${tenantId}` : ''}`}
                     className="flex-1">
                     <Button
                         variant="ghost"

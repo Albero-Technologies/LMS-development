@@ -76,6 +76,13 @@ enum LessonType {
   TEXT
 }
 
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}
+
 enum EnrollmentStatus {
   PENDING_PAYMENT
   ACTIVE
@@ -354,15 +361,43 @@ model Course {
   id             String             @id @default(uuid())
   tenantId       String
   title          String
+  // Short marketing tag-line shown under the title on the catalog card and
+  // detail hero. Distinct from `description`, which is the long-form body.
+  subtitle       String?
   slug           String
   description    String?
+  // Catalog thumbnail (16:9 card image). `heroUrl` is a separate, larger
+  // banner shown on the course detail page; tenants can either reuse the
+  // thumbnail or upload a wider crop here.
   thumbnailUrl   String?
+  heroUrl        String?
   price          Int                @default(0) // smallest currency unit (paise)
   currency       String             @default("INR")
   gstPercent     Int                @default(18)
   trainerId      String?
   publishState   CoursePublishState @default(DRAFT)
   tags           String[]           @default([])
+  // Skill-level + delivery language. `language` is an ISO-639-1 code
+  // (e.g. 'en', 'hi'); we keep it free-form so tenants can pick anything.
+  level          CourseLevel        @default(ALL_LEVELS)
+  language       String             @default("en")
+  // Long-form arrays — what students will learn, what they need before
+  // joining, who the course is built for. Each entry is one bullet point.
+  outcomes       String[]           @default([])
+  prerequisites  String[]           @default([])
+  audience       String[]           @default([])
+  // Enrolment window. `enrolmentCap` 0/null means unlimited; dates are
+  // optional and only enforced by the public site (the Razorpay flow
+  // refuses checkouts outside the window).
+  enrolmentCap   Int?
+  startsAt       DateTime?
+  endsAt         DateTime?
+  // Issue a verifiable certificate when a student hits 100% progress.
+  // `certificateTemplate` is a free-form key (e.g. 'default') reserved
+  // for a future template registry; for now the platform default ships
+  // for every course where the toggle is on.
+  certificateEnabled  Boolean      @default(false)
+  certificateTemplate String?
   curriculumJson Json               @default("{}") // section → lesson tree
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
@@ -407,6 +442,14 @@ model Lesson {
   externalUrl String?
   durationSec Int        @default(0)
   order       Int        @default(0)
+  // Free-preview lessons render outside the paywall on the public course
+  // detail page — useful for letting prospects sample one or two videos
+  // before paying. Defaults to false; admins flip it from the lesson editor.
+  freePreview Boolean    @default(false)
+  // Attached resources: array of `{ url: string, label?: string, type?: 'pdf' | 'link' | 'file' }`.
+  // Stored as JSON so we don't need a Resource table for what's effectively
+  // a tiny enrichment of the lesson.
+  resources   Json?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
