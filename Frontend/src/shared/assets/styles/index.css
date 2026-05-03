@@ -181,6 +181,7 @@ body {
     from {
         transform: translateX(0);
     }
+
     to {
         transform: translateX(-50%);
     }
@@ -190,12 +191,15 @@ body {
     animation: marquee-scroll 40s linear infinite;
     will-change: transform;
 }
+
 .marquee-track[data-speed='slow'] {
     animation-duration: 60s;
 }
+
 .marquee-track[data-speed='fast'] {
     animation-duration: 20s;
 }
+
 .marquee-track:hover {
     animation-play-state: paused;
 }
@@ -217,6 +221,7 @@ body {
     100% {
         transform: translate3d(0, 0, 0) scale(1);
     }
+
     50% {
         transform: translate3d(2%, -3%, 0) scale(1.05);
     }
@@ -256,10 +261,12 @@ body {
         transform: scale(1);
         opacity: 0.6;
     }
+
     70% {
         transform: scale(1.5);
         opacity: 0;
     }
+
     100% {
         transform: scale(1.5);
         opacity: 0;
@@ -269,6 +276,7 @@ body {
 .wa-pulse {
     position: fixed;
 }
+
 .wa-pulse::before {
     content: '';
     position: absolute;
@@ -294,9 +302,11 @@ body {
     100% {
         transform: translateY(0);
     }
+
     40% {
         transform: translateY(-3px);
     }
+
     60% {
         transform: translateY(-1px);
     }
