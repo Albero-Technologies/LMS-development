@@ -42,10 +42,10 @@ jobs:
             - name: Generate Prisma client
               run: npx prisma generate
 
-            - name: Lint
-              run: npm run lint
+            - name: Lint Fix
+              run: npm run lint:fix
 
-            - name: Format fix
+            - name: Format Fix
               run: npm run format:fix
 
             - name: TypeScript build (typecheck + emit)
@@ -76,8 +76,8 @@ jobs:
               # remove once the underlying peer-conflict is resolved upstream.
               run: npm ci --legacy-peer-deps
 
-            - name: ESLint
-              run: npm run lint:eslint
+            - name: ESLint Fix
+              run: npm run lint:fix
 
             - name: Prettier
               run: npm run format:fix
