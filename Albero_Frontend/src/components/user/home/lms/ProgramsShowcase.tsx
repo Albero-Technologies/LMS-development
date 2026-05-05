@@ -181,14 +181,11 @@ export default function ProgramsShowcase() {
     const program = programs[active]
     const Icon = program.Icon
 
-    const next = () => {
-        setAuto(false)
-        setActive((i) => (i + 1) % programs.length)
-    }
-    const prev = () => {
-        setAuto(false)
-        setActive((i) => (i - 1 + programs.length) % programs.length)
-    }
+    const next = () => { setAuto(false); setActive((i) => (i + 1) % programs.length) }
+    const prev = () => { setAuto(false); setActive((i) => (i - 1 + programs.length) % programs.length) }
+
+    const handleHover = (i: number) => { setAuto(false); setActive(i) }
+    const handleListLeave = () => setAuto(true)
 
     return (
         <section
@@ -221,10 +218,8 @@ export default function ProgramsShowcase() {
                     </p>
                 </div>
 
-                {/* Bento layout: left main showcase + right list/carousel.
-                    The showcase card is hidden on mobile — too tall to be useful;
-                    the right-side carousel becomes the primary mobile view. */}
-                <div className="grid lg:grid-cols-[1.2fr_1fr] gap-5">
+                {/* Bento layout */}
+                <div className="grid lg:grid-cols-[1.2fr_1fr] gap-5 items-start">
                     {/* ── Left: Active program showcase ── */}
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -235,12 +230,12 @@ export default function ProgramsShowcase() {
                             transition={{ duration: 0.4 }}
                             onMouseEnter={() => setAuto(false)}
                             onMouseLeave={() => setAuto(true)}
-                            className="relative rounded-3xl p-7 md:p-10 overflow-hidden hidden lg:flex flex-col"
+                            className="relative rounded-3xl p-5 md:p-7 overflow-hidden hidden lg:flex flex-col"
                             style={{
                                 background: 'var(--surface)',
                                 border: '1px solid var(--line)',
                                 boxShadow: 'var(--card-shadow-hover)',
-                                minHeight: 560
+                                minHeight: 480   // ← reduced from 560
                             }}>
                             {/* Accent wash */}
                             <div
@@ -251,16 +246,16 @@ export default function ProgramsShowcase() {
                             {/* Watermark numeral */}
                             <div
                                 className="absolute -top-2 right-6 font-display italic font-light pointer-events-none select-none opacity-[0.06]"
-                                style={{ color: program.accent, fontSize: 220, lineHeight: 1 }}>
+                                style={{ color: program.accent, fontSize: 180, lineHeight: 1 }}>
                                 {String(active + 1).padStart(2, '0')}
                             </div>
 
                             <div className="relative z-[1] flex flex-col flex-1">
-                                <div className="flex items-start justify-between mb-7">
+                                <div className="flex items-start justify-between mb-5">
                                     <div
-                                        className="w-14 h-14 rounded-2xl inline-flex items-center justify-center"
+                                        className="w-12 h-12 rounded-2xl inline-flex items-center justify-center"
                                         style={{ background: program.accent, color: '#fff' }}>
-                                        <Icon size={26} />
+                                        <Icon size={22} />
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {program.cert && <CertBadges cert={program.cert} />}
@@ -275,17 +270,17 @@ export default function ProgramsShowcase() {
                                 </div>
 
                                 <h3
-                                    className="font-display text-[30px] md:text-[40px] leading-[1.02] font-semibold mb-2"
+                                    className="font-display text-[26px] md:text-[34px] leading-[1.02] font-semibold mb-1.5"
                                     style={{ color: 'var(--text-primary)' }}>
                                     {program.name}
                                 </h3>
                                 <p
-                                    className="text-[15.5px] mb-2"
+                                    className="text-[14.5px] mb-1.5"
                                     style={{ color: 'var(--brand)' }}>
                                     {program.tagline}
                                 </p>
                                 <p
-                                    className="text-[14.5px] leading-relaxed mb-4 max-w-[520px]"
+                                    className="text-[13.5px] leading-relaxed mb-3 max-w-[520px]"
                                     style={{ color: 'var(--text-secondary)' }}>
                                     {program.description}
                                 </p>
@@ -293,14 +288,14 @@ export default function ProgramsShowcase() {
                                 {/* Inline certification call-out */}
                                 {program.cert && (
                                     <div
-                                        className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl mb-6 max-w-[520px]"
+                                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl mb-4 max-w-[520px]"
                                         style={{
                                             background: 'var(--brand-soft)',
                                             border: '1px solid var(--brand)',
                                             color: 'var(--text-primary)'
                                         }}>
-                                        <span className="text-[18px]">🎓</span>
-                                        <span className="text-[12.5px] font-semibold leading-tight">
+                                        <span className="text-[16px]">🎓</span>
+                                        <span className="text-[12px] font-semibold leading-tight">
                                             {program.cert === 'both'
                                                 ? 'Co-certified by IBM SkillsBuild + Microsoft Learn — exam voucher included.'
                                                 : program.cert === 'ibm'
@@ -312,7 +307,7 @@ export default function ProgramsShowcase() {
 
                                 {/* Meta strip */}
                                 <div
-                                    className="grid grid-cols-3 gap-3 py-4 border-y mb-6"
+                                    className="grid grid-cols-3 gap-3 py-3 border-y mb-4"
                                     style={{ borderColor: 'var(--line)' }}>
                                     <Meta icon={Clock} label="Duration" value={program.duration} />
                                     <Meta icon={Users} label="Mode" value={program.mode} />
@@ -320,15 +315,15 @@ export default function ProgramsShowcase() {
                                 </div>
 
                                 {/* Highlights */}
-                                <div className="mb-6">
+                                <div className="mb-4">
                                     <div
-                                        className="text-[10.5px] tracking-[0.16em] uppercase font-semibold mb-3"
+                                        className="text-[10.5px] tracking-[0.16em] uppercase font-semibold mb-2"
                                         style={{ color: 'var(--text-tertiary)' }}>
                                         What you'll do
                                     </div>
-                                    <ul className="grid sm:grid-cols-2 gap-2">
+                                    <ul className="grid sm:grid-cols-2 gap-1.5">
                                         {program.highlights.map((h, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
+                                            <li key={i} className="flex items-start gap-2 text-[13px]" style={{ color: 'var(--text-secondary)' }}>
                                                 <span
                                                     className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                                                     style={{ background: program.accent }}
@@ -340,7 +335,7 @@ export default function ProgramsShowcase() {
                                 </div>
 
                                 {/* Skills */}
-                                <div className="flex flex-wrap gap-1.5 mb-6">
+                                <div className="flex flex-wrap gap-1.5 mb-4">
                                     {program.skills.map((s, j) => (
                                         <span
                                             key={j}
@@ -355,7 +350,7 @@ export default function ProgramsShowcase() {
                                     ))}
                                 </div>
 
-                                <div className="flex items-center justify-between mt-auto pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                                <div className="flex items-center justify-between mt-auto pt-3 border-t" style={{ borderColor: 'var(--line)' }}>
                                     <div className="flex items-center gap-5">
                                         <div>
                                             <div
@@ -364,7 +359,7 @@ export default function ProgramsShowcase() {
                                                 Avg salary
                                             </div>
                                             <div
-                                                className="font-display text-[18px] font-semibold"
+                                                className="font-display text-[16px] font-semibold"
                                                 style={{ color: 'var(--text-primary)' }}>
                                                 {program.salary}
                                             </div>
@@ -376,7 +371,7 @@ export default function ProgramsShowcase() {
                                                 Next batch
                                             </div>
                                             <div
-                                                className="font-display text-[18px] italic font-medium"
+                                                className="font-display text-[16px] italic font-medium"
                                                 style={{ color: 'var(--brand)' }}>
                                                 {program.next}
                                             </div>
@@ -436,24 +431,23 @@ export default function ProgramsShowcase() {
                             </div>
                         </div>
 
-                        <div className="space-y-2 overflow-hidden flex-1">
+                        {/* Scrollable list — hover to preview, click to navigate */}
+                        <div
+                            className="space-y-2 overflow-y-auto pr-1"
+                            onMouseLeave={handleListLeave}
+                            style={{
+                                maxHeight: 360,
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: 'var(--line) transparent'
+                            }}>
                             {programs.map((p, i) => {
                                 const Ic = p.Icon
                                 const isActive = i === active
                                 return (
                                     <motion.button
-                                        key={p.name + i}
-                                        onClick={() => {
-                                            // On mobile the showcase card is hidden, so a tap
-                                            // jumps straight to the program detail page.
-                                            // On lg+ it still toggles the active showcase.
-                                            if (window.matchMedia('(max-width: 1023px)').matches) {
-                                                navigate(`/programs/${p.slug}`)
-                                                return
-                                            }
-                                            setActive(i)
-                                            setAuto(false)
-                                        }}
+                                        key={p.slug}
+                                        onMouseEnter={() => handleHover(i)}
+                                        onClick={() => navigate(`/programs/${p.slug}`)}
                                         whileHover={{ x: 3 }}
                                         className="w-full text-left flex items-center gap-3 p-3 rounded-2xl transition-all relative overflow-hidden"
                                         style={{
@@ -568,7 +562,7 @@ function CertBadges({ cert }: { cert: 'ibm' | 'microsoft' | 'both' }) {
     )
 }
 
-// Tiny dots for the dense list — same data, smaller surface
+// Tiny dots for the dense list
 function CertDots({ cert }: { cert: 'ibm' | 'microsoft' | 'both' }) {
     const showIBM = cert === 'ibm' || cert === 'both'
     const showMS = cert === 'microsoft' || cert === 'both'
