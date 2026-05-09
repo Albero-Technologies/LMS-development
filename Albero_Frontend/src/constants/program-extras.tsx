@@ -10,7 +10,15 @@ import type { ToolStripItem } from '@/components/user/program-page/ScrollingTool
 import type { SuccessStory } from '@/components/user/program-page/SuccessStories'
 import type { Mentor } from '@/components/user/program-page/MentorStrip'
 import type { AlumniCompany } from '@/components/user/program-page/AlumniCompanyWall'
-import type { AdvantageItem, CaseStudy, CareerOutcome, Certification, FaqItem, IndustryProject, SkillCategory } from '@/components/user/program-page/ProgramSections'
+import type {
+    AdvantageItem,
+    CaseStudy,
+    CareerOutcome,
+    Certification,
+    FaqItem,
+    IndustryProject,
+    SkillCategory
+} from '@/components/user/program-page/ProgramSections'
 import type { RoadmapStep } from '@/components/user/program-page/CareerRoadmap'
 import type { ArmorCodeNode } from '@/components/user/program-page/ArmorCodeHero'
 import { Award, Compass, Layers, MessagesSquare, Rocket, Users } from 'lucide-react'
@@ -21,8 +29,7 @@ import { Award, Compass, Layers, MessagesSquare, Rocket, Users } from 'lucide-re
 // callers don't need to maintain icon URLs.
 // ──────────────────────────────────────────────────────────────────────
 
-export const toolsForProgram = (toolNames: string[]): ToolStripItem[] =>
-    toolNames.map((name) => ({ name }))
+export const toolsForProgram = (toolNames: string[]): ToolStripItem[] => toolNames.map((name) => ({ name }))
 
 // ──────────────────────────────────────────────────────────────────────
 // Shared sample mentors — used by every program until per-program CMS
@@ -158,9 +165,27 @@ export const FEATURED_SUCCESS_STORIES: SuccessStory[] = [
 // ──────────────────────────────────────────────────────────────────────
 
 export const ALUMNI_COMPANIES: AlumniCompany[] = [
-    'Google', 'Microsoft', 'Amazon', 'Flipkart', 'Razorpay', 'Swiggy', 'PhonePe',
-    'CRED', 'Zomato', 'Meesho', 'Walmart Labs', 'Adobe', 'IBM', 'Deloitte', 'EY',
-    'Accenture', 'TCS', 'Infosys', 'Wipro', 'PwC', 'KPMG'
+    'Google',
+    'Microsoft',
+    'Amazon',
+    'Flipkart',
+    'Razorpay',
+    'Swiggy',
+    'PhonePe',
+    'CRED',
+    'Zomato',
+    'Meesho',
+    'Walmart Labs',
+    'Adobe',
+    'IBM',
+    'Deloitte',
+    'EY',
+    'Accenture',
+    'TCS',
+    'Infosys',
+    'Wipro',
+    'PwC',
+    'KPMG'
 ].map((name) => ({ name }))
 
 // ──────────────────────────────────────────────────────────────────────
@@ -176,12 +201,30 @@ export const DEFAULT_ADVANTAGE: AdvantageItem[] = [
 ]
 
 export const DEFAULT_FAQ: FaqItem[] = [
-    { question: 'Do I need a background in coding?', answer: 'No. Every program has a "Foundations" sprint at the start that brings non-coders up to speed before the core curriculum begins.' },
-    { question: 'How is this different from a typical online course?', answer: 'Live mentor sessions, code reviews on every assignment, and real placement support. You are accountable to a cohort and a coach — not a video.' },
-    { question: 'What if I miss a live class?', answer: 'Every session is recorded and posted within 24 hours. Mentors host weekly catch-up office hours so you never fall behind.' },
-    { question: 'Is there an EMI option?', answer: 'Yes. You can split the fee into 3, 6, 9 or 12-month EMIs with our partner lenders. Your counsellor walks you through the options.' },
-    { question: 'What happens if I don\'t get placed?', answer: 'Our placement support continues until you land an offer at or above the program-target salary. Specific terms are detailed on the offer letter.' },
-    { question: 'Can I switch tracks mid-program?', answer: 'Yes — within the first 14 days you can switch to any other program for free. After that, switching is allowed once per cohort with a small admin fee.' }
+    {
+        question: 'Do I need a background in coding?',
+        answer: 'No. Every program has a "Foundations" sprint at the start that brings non-coders up to speed before the core curriculum begins.'
+    },
+    {
+        question: 'How is this different from a typical online course?',
+        answer: 'Live mentor sessions, code reviews on every assignment, and real placement support. You are accountable to a cohort and a coach — not a video.'
+    },
+    {
+        question: 'What if I miss a live class?',
+        answer: 'Every session is recorded and posted within 24 hours. Mentors host weekly catch-up office hours so you never fall behind.'
+    },
+    {
+        question: 'Is there an EMI option?',
+        answer: 'Yes. You can split the fee into 3, 6, 9 or 12-month EMIs with our partner lenders. Your counsellor walks you through the options.'
+    },
+    {
+        question: "What happens if I don't get placed?",
+        answer: 'Our placement support continues until you land an offer at or above the program-target salary. Specific terms are detailed on the offer letter.'
+    },
+    {
+        question: 'Can I switch tracks mid-program?',
+        answer: 'Yes — within the first 14 days you can switch to any other program for free. After that, switching is allowed once per cohort with a small admin fee.'
+    }
 ]
 
 const TECH_TAG_COLORS: Record<string, string> = {
@@ -197,24 +240,96 @@ const TECH_TAG_COLORS: Record<string, string> = {
 export const PROJECTS_FOR_PROGRAM = (slug: string): IndustryProject[] => {
     const base: Record<string, IndustryProject[]> = {
         'business-analytics': [
-            { title: 'Retail churn dashboard', tag: 'Finance', color: TECH_TAG_COLORS.Finance, description: 'Reduce ARR loss by surfacing at-risk customers from a 5M-row sales dataset.', techStack: ['SQL', 'Power BI', 'Excel'] },
-            { title: 'Pricing experiment readout', tag: 'Data', color: TECH_TAG_COLORS.Data, description: 'A/B test analysis on a marketplace pricing change — recommend roll-out plan.', techStack: ['Python', 'Pandas', 'Tableau'] },
-            { title: 'Cohort retention deep-dive', tag: 'Data', color: TECH_TAG_COLORS.Data, description: 'Diagnose Day-7 → Day-30 drop-off on a fintech app and propose three fixes.', techStack: ['SQL', 'Looker Studio'] }
+            {
+                title: 'Retail churn dashboard',
+                tag: 'Finance',
+                color: TECH_TAG_COLORS.Finance,
+                description: 'Reduce ARR loss by surfacing at-risk customers from a 5M-row sales dataset.',
+                techStack: ['SQL', 'Power BI', 'Excel']
+            },
+            {
+                title: 'Pricing experiment readout',
+                tag: 'Data',
+                color: TECH_TAG_COLORS.Data,
+                description: 'A/B test analysis on a marketplace pricing change — recommend roll-out plan.',
+                techStack: ['Python', 'Pandas', 'Tableau']
+            },
+            {
+                title: 'Cohort retention deep-dive',
+                tag: 'Data',
+                color: TECH_TAG_COLORS.Data,
+                description: 'Diagnose Day-7 → Day-30 drop-off on a fintech app and propose three fixes.',
+                techStack: ['SQL', 'Looker Studio']
+            }
         ],
         'data-science-ai': [
-            { title: 'GenAI customer support agent', tag: 'Generative AI', color: TECH_TAG_COLORS['Generative AI'], description: 'RAG pipeline over a 10K-doc knowledge base, deployed on a FastAPI server.', techStack: ['Python', 'LangChain', 'OpenAI'] },
-            { title: 'Image classification at scale', tag: 'ML', color: TECH_TAG_COLORS.ML, description: 'Fine-tune a CNN on a custom retail SKU dataset; ship to a real-time endpoint.', techStack: ['PyTorch', 'AWS', 'Docker'] },
-            { title: 'Forecasting demand', tag: 'ML', color: TECH_TAG_COLORS.ML, description: 'Time-series forecasting for a logistics provider; explainable feature importances.', techStack: ['Python', 'Scikit-Learn'] }
+            {
+                title: 'GenAI customer support agent',
+                tag: 'Generative AI',
+                color: TECH_TAG_COLORS['Generative AI'],
+                description: 'RAG pipeline over a 10K-doc knowledge base, deployed on a FastAPI server.',
+                techStack: ['Python', 'LangChain', 'OpenAI']
+            },
+            {
+                title: 'Image classification at scale',
+                tag: 'ML',
+                color: TECH_TAG_COLORS.ML,
+                description: 'Fine-tune a CNN on a custom retail SKU dataset; ship to a real-time endpoint.',
+                techStack: ['PyTorch', 'AWS', 'Docker']
+            },
+            {
+                title: 'Forecasting demand',
+                tag: 'ML',
+                color: TECH_TAG_COLORS.ML,
+                description: 'Time-series forecasting for a logistics provider; explainable feature importances.',
+                techStack: ['Python', 'Scikit-Learn']
+            }
         ],
-        'cybersecurity': [
-            { title: 'CTF blue-team capstone', tag: 'Security', color: TECH_TAG_COLORS.Security, description: 'Live SOC simulation: detect, triage, and respond to a multi-stage intrusion.', techStack: ['Splunk', 'Wazuh', 'Linux'] },
-            { title: 'Web app pentest', tag: 'Security', color: TECH_TAG_COLORS.Security, description: 'OWASP-Top-10 sweep of a real customer-facing web app, with a written report.', techStack: ['Burp Suite', 'OWASP'] },
-            { title: 'Network forensics', tag: 'Security', color: TECH_TAG_COLORS.Security, description: 'Reconstruct an attacker timeline from PCAPs + log artefacts.', techStack: ['Wireshark', 'Linux'] }
+        cybersecurity: [
+            {
+                title: 'CTF blue-team capstone',
+                tag: 'Security',
+                color: TECH_TAG_COLORS.Security,
+                description: 'Live SOC simulation: detect, triage, and respond to a multi-stage intrusion.',
+                techStack: ['Splunk', 'Wazuh', 'Linux']
+            },
+            {
+                title: 'Web app pentest',
+                tag: 'Security',
+                color: TECH_TAG_COLORS.Security,
+                description: 'OWASP-Top-10 sweep of a real customer-facing web app, with a written report.',
+                techStack: ['Burp Suite', 'OWASP']
+            },
+            {
+                title: 'Network forensics',
+                tag: 'Security',
+                color: TECH_TAG_COLORS.Security,
+                description: 'Reconstruct an attacker timeline from PCAPs + log artefacts.',
+                techStack: ['Wireshark', 'Linux']
+            }
         ],
         'full-stack': [
-            { title: 'Realtime chat product', tag: 'Web', color: TECH_TAG_COLORS.Web, description: 'WebSocket-backed messaging app with presence, typing, and offline queueing.', techStack: ['React', 'Node.js', 'Redis'] },
-            { title: 'Marketplace MVP', tag: 'Web', color: TECH_TAG_COLORS.Web, description: 'Two-sided commerce flow with Stripe payments and admin dashboard.', techStack: ['React', 'TypeScript', 'Postgres'] },
-            { title: 'CI/CD on AWS', tag: 'Cloud', color: TECH_TAG_COLORS.Cloud, description: 'Containerise + deploy a Node app on ECS with GitHub Actions pipeline.', techStack: ['Docker', 'AWS'] }
+            {
+                title: 'Realtime chat product',
+                tag: 'Web',
+                color: TECH_TAG_COLORS.Web,
+                description: 'WebSocket-backed messaging app with presence, typing, and offline queueing.',
+                techStack: ['React', 'Node.js', 'Redis']
+            },
+            {
+                title: 'Marketplace MVP',
+                tag: 'Web',
+                color: TECH_TAG_COLORS.Web,
+                description: 'Two-sided commerce flow with Stripe payments and admin dashboard.',
+                techStack: ['React', 'TypeScript', 'Postgres']
+            },
+            {
+                title: 'CI/CD on AWS',
+                tag: 'Cloud',
+                color: TECH_TAG_COLORS.Cloud,
+                description: 'Containerise + deploy a Node app on ECS with GitHub Actions pipeline.',
+                techStack: ['Docker', 'AWS']
+            }
         ]
     }
     return base[slug] ?? base['business-analytics']
@@ -223,12 +338,36 @@ export const PROJECTS_FOR_PROGRAM = (slug: string): IndustryProject[] => {
 export const CASE_STUDIES_FOR_PROGRAM = (slug: string): CaseStudy[] => {
     const base: Record<string, CaseStudy[]> = {
         'business-analytics': [
-            { company: 'Razorpay', problem: 'Merchant churn jumped 8% Q-on-Q in tier-2 cities.', approach: 'Joined funnel + support data; ran a logistic-regression to score risk.', outcomeMetric: '−5.2% churn', outcomeDetail: 'Within 2 quarters of the recommendation roll-out.' },
-            { company: 'Swiggy', problem: 'Restaurant cancellations were inflating refund cost.', approach: 'Built a "cancellation risk" model + a counter-offer for at-risk orders.', outcomeMetric: '+₹4.6Cr/yr', outcomeDetail: 'Saved refund + reorder margin.' }
+            {
+                company: 'Razorpay',
+                problem: 'Merchant churn jumped 8% Q-on-Q in tier-2 cities.',
+                approach: 'Joined funnel + support data; ran a logistic-regression to score risk.',
+                outcomeMetric: '−5.2% churn',
+                outcomeDetail: 'Within 2 quarters of the recommendation roll-out.'
+            },
+            {
+                company: 'Swiggy',
+                problem: 'Restaurant cancellations were inflating refund cost.',
+                approach: 'Built a "cancellation risk" model + a counter-offer for at-risk orders.',
+                outcomeMetric: '+₹4.6Cr/yr',
+                outcomeDetail: 'Saved refund + reorder margin.'
+            }
         ],
         'data-science-ai': [
-            { company: 'Adobe', problem: 'Image moderation queue grew 3× without proportionate headcount.', approach: 'Fine-tuned a CLIP variant on labelled data + active-learning loop.', outcomeMetric: '92% auto-cleared', outcomeDetail: 'Human reviewers focus only on the residual 8%.' },
-            { company: 'Netflix', problem: 'Recommendation CTR plateaued; cold-start cost watch-time per session.', approach: 'Two-tower retrieval + diversity re-ranker, trained on dwell signals not clicks.', outcomeMetric: '+11% watch-time', outcomeDetail: 'Per session, holding catalogue + thumbnail strategy constant.' }
+            {
+                company: 'Adobe',
+                problem: 'Image moderation queue grew 3× without proportionate headcount.',
+                approach: 'Fine-tuned a CLIP variant on labelled data + active-learning loop.',
+                outcomeMetric: '92% auto-cleared',
+                outcomeDetail: 'Human reviewers focus only on the residual 8%.'
+            },
+            {
+                company: 'Netflix',
+                problem: 'Recommendation CTR plateaued; cold-start cost watch-time per session.',
+                approach: 'Two-tower retrieval + diversity re-ranker, trained on dwell signals not clicks.',
+                outcomeMetric: '+11% watch-time',
+                outcomeDetail: 'Per session, holding catalogue + thumbnail strategy constant.'
+            }
         ]
     }
     return base[slug] ?? base['business-analytics']
@@ -246,7 +385,7 @@ export const CERTIFICATIONS_FOR_PROGRAM = (slug: string): Certification[] => {
             { name: 'IBM AI Engineering', description: 'Stack badge across PyTorch, TensorFlow, and ML deployment.' },
             { name: 'NSDC Skill Certification', description: 'Government-recognised certificate of completion.' }
         ],
-        'cybersecurity': [
+        cybersecurity: [
             { name: 'IBM SkillsBuild', description: 'Cybersecurity fundamentals + capstone badge.' },
             { name: 'CompTIA Security+ ready', description: 'Curriculum aligned to CompTIA Security+ exam objectives.' },
             { name: 'NSDC Skill Certification', description: 'Government-recognised certificate of completion.' }
@@ -296,7 +435,7 @@ export const ARMORCODE_NODES_FOR_PROGRAM = (slug: string): ArmorCodeNode[] => {
             { id: 'pg', label: 'Postgres', glyph: 'PG', color: '#336791', x: 0.94, y: 0.78, tooltip: 'Indexes, transactions, migrations' },
             { id: 'aws', label: 'AWS', glyph: 'A', color: '#ff9900', x: 0.5, y: 0.08, tooltip: 'EC2, S3, ECS, CI/CD pipelines' }
         ],
-        'cybersecurity': [
+        cybersecurity: [
             { id: 'sp', label: 'Splunk', glyph: 'S', color: '#65a637', x: 0.1, y: 0.2, tooltip: 'SIEM queries, alerting, threat hunting' },
             { id: 'kl', label: 'Kali', glyph: 'K', color: '#557c94', x: 0.9, y: 0.2, tooltip: 'Pentest distro + offensive toolkits' },
             { id: 'wz', label: 'Wazuh', glyph: 'W', color: '#0066b1', x: 0.06, y: 0.78, tooltip: 'Open-source SIEM + endpoint detection' },
@@ -354,10 +493,30 @@ export const HOME_ROADMAP_STEPS: RoadmapStep[] = [
 ]
 
 export const HOME_ADVANTAGE_ITEMS: AdvantageItem[] = [
-    { title: 'Live mentor cohorts', description: 'Small batches with practitioners who actually hire — not lecture-style videos.', icon: <Users size={20} /> },
-    { title: 'Portfolio-grade projects', description: 'Capstones reviewed by working PMs and hiring managers — built on real datasets.', icon: <Layers size={20} /> },
+    {
+        title: 'Live mentor cohorts',
+        description: 'Small batches with practitioners who actually hire — not lecture-style videos.',
+        icon: <Users size={20} />
+    },
+    {
+        title: 'Portfolio-grade projects',
+        description: 'Capstones reviewed by working PMs and hiring managers — built on real datasets.',
+        icon: <Layers size={20} />
+    },
     { title: 'Career compass', description: 'Resume reviews, LinkedIn polish, mock interviews, and direct referrals.', icon: <Compass size={20} /> },
-    { title: 'Industry certifications', description: 'Stack badges from Microsoft, IBM, NSDC, and J.P. Morgan to your CV.', icon: <Award size={20} /> },
-    { title: 'Lifetime community', description: 'Stay in the alumni Slack — referrals, jobs, and meet-ups long after you graduate.', icon: <MessagesSquare size={20} /> },
-    { title: 'Placement guarantee', description: 'Continued support until you land an offer at or above the target salary.', icon: <Rocket size={20} /> }
+    {
+        title: 'Industry certifications',
+        description: 'Stack badges from Microsoft, IBM, NSDC, and J.P. Morgan to your CV.',
+        icon: <Award size={20} />
+    },
+    {
+        title: 'Lifetime community',
+        description: 'Stay in the alumni Slack — referrals, jobs, and meet-ups long after you graduate.',
+        icon: <MessagesSquare size={20} />
+    },
+    {
+        title: 'Placement guarantee',
+        description: 'Continued support until you land an offer at or above the target salary.',
+        icon: <Rocket size={20} />
+    }
 ]

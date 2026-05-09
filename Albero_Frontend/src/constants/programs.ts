@@ -77,8 +77,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹35,000', features: ['Lifetime access', 'Recorded sessions', 'Community support', 'Project reviews'] },
-            { plan: 'Mentor-Led', price: '₹65,000', emi: '₹6,500/mo', recommended: true, features: ['Everything in Self-Paced', 'Live classes', '1:1 mentorship', 'Resume & LinkedIn', 'Mock interviews'] },
-            { plan: 'Career Pro', price: '₹95,000', emi: '₹9,500/mo', features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach', 'Salary negotiation prep'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹65,000',
+                emi: '₹6,500/mo',
+                recommended: true,
+                features: ['Everything in Self-Paced', 'Live classes', '1:1 mentorship', 'Resume & LinkedIn', 'Mock interviews']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹95,000',
+                emi: '₹9,500/mo',
+                features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach', 'Salary negotiation prep']
+            }
         ]
     },
     {
@@ -123,8 +134,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹40,000', features: ['Lifetime access', 'Recorded sessions', 'Community support'] },
-            { plan: 'Mentor-Led', price: '₹75,000', emi: '₹7,500/mo', recommended: true, features: ['Live classes', '1:1 mentorship', 'Resume & LinkedIn', 'Mock interviews'] },
-            { plan: 'Career Pro', price: '₹1,15,000', emi: '₹11,500/mo', features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹75,000',
+                emi: '₹7,500/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 mentorship', 'Resume & LinkedIn', 'Mock interviews']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹1,15,000',
+                emi: '₹11,500/mo',
+                features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach']
+            }
         ]
     },
     {
@@ -170,8 +192,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹65,000', features: ['Lifetime access', 'Recorded sessions', 'Community support'] },
-            { plan: 'Mentor-Led', price: '₹1,25,000', emi: '₹12,500/mo', recommended: true, features: ['Live classes', '1:1 mentorship', 'Capstone reviews', 'Mock interviews'] },
-            { plan: 'AI Pro', price: '₹1,85,000', emi: '₹18,500/mo', features: ['Everything in Mentor-Led', 'Cloud + GPU credits', 'Hiring partner access', 'Career coach'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹1,25,000',
+                emi: '₹12,500/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 mentorship', 'Capstone reviews', 'Mock interviews']
+            },
+            {
+                plan: 'AI Pro',
+                price: '₹1,85,000',
+                emi: '₹18,500/mo',
+                features: ['Everything in Mentor-Led', 'Cloud + GPU credits', 'Hiring partner access', 'Career coach']
+            }
         ]
     },
     {
@@ -217,8 +250,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹45,000', features: ['Lifetime access', 'Recorded sessions', 'Community support'] },
-            { plan: 'Mentor-Led', price: '₹95,000', emi: '₹9,500/mo', recommended: true, features: ['Live classes', '1:1 mentorship', 'Code reviews', 'Mock interviews'] },
-            { plan: 'Career Pro', price: '₹1,45,000', emi: '₹14,500/mo', features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹95,000',
+                emi: '₹9,500/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 mentorship', 'Code reviews', 'Mock interviews']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹1,45,000',
+                emi: '₹14,500/mo',
+                features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach']
+            }
         ]
     },
     {
@@ -264,8 +308,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹50,000', features: ['Lifetime access', 'Recorded sessions', 'Community support', 'IBM Cloud credits'] },
-            { plan: 'Mentor-Led', price: '₹85,000', emi: '₹8,500/mo', recommended: true, features: ['Live classes', '1:1 mentorship', 'Capstone reviews', 'IBM SkillsBuild badge', 'Mock interviews'] },
-            { plan: 'Career Pro', price: '₹1,25,000', emi: '₹12,500/mo', features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach', 'System-design prep'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹85,000',
+                emi: '₹8,500/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 mentorship', 'Capstone reviews', 'IBM SkillsBuild badge', 'Mock interviews']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹1,25,000',
+                emi: '₹12,500/mo',
+                features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach', 'System-design prep']
+            }
         ]
     },
     {
@@ -311,8 +366,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹40,000', features: ['Lifetime access', 'Recorded sessions', 'Community support', 'Cyber-range access'] },
-            { plan: 'Mentor-Led', price: '₹70,000', emi: '₹7,000/mo', recommended: true, features: ['Live classes', '1:1 mentorship', 'CTF reviews', 'Mock interviews'] },
-            { plan: 'Career Pro', price: '₹1,05,000', emi: '₹10,500/mo', features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach', 'Cert exam vouchers (CEH/SecurityX)'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹70,000',
+                emi: '₹7,000/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 mentorship', 'CTF reviews', 'Mock interviews']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹1,05,000',
+                emi: '₹10,500/mo',
+                features: ['Everything in Mentor-Led', 'Job referrals', 'Dedicated career coach', 'Cert exam vouchers (CEH/SecurityX)']
+            }
         ]
     },
     {
@@ -358,8 +424,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹45,000', features: ['Lifetime access', 'Recorded sessions', 'Modelling templates', 'Community support'] },
-            { plan: 'Mentor-Led', price: '₹80,000', emi: '₹8,000/mo', recommended: true, features: ['Live classes', '1:1 modelling reviews', 'Pitchbook portfolio', 'IB mock interviews'] },
-            { plan: 'Career Pro', price: '₹1,20,000', emi: '₹12,000/mo', features: ['Everything in Mentor-Led', 'IB referrals', 'Dedicated career coach', 'Bulge-bracket interview prep'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹80,000',
+                emi: '₹8,000/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 modelling reviews', 'Pitchbook portfolio', 'IB mock interviews']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹1,20,000',
+                emi: '₹12,000/mo',
+                features: ['Everything in Mentor-Led', 'IB referrals', 'Dedicated career coach', 'Bulge-bracket interview prep']
+            }
         ]
     },
     {
@@ -405,8 +482,19 @@ export const programs: ProgramData[] = [
         ],
         fees: [
             { plan: 'Self-Paced', price: '₹30,000', features: ['Lifetime access', 'Recorded sessions', 'Community support'] },
-            { plan: 'Mentor-Led', price: '₹60,000', emi: '₹6,000/mo', recommended: true, features: ['Live classes', '1:1 mentorship', 'A/B testing capstone', 'Microsoft exam voucher'] },
-            { plan: 'Career Pro', price: '₹90,000', emi: '₹9,000/mo', features: ['Everything in Mentor-Led', 'PM/analyst referrals', 'Dedicated career coach'] }
+            {
+                plan: 'Mentor-Led',
+                price: '₹60,000',
+                emi: '₹6,000/mo',
+                recommended: true,
+                features: ['Live classes', '1:1 mentorship', 'A/B testing capstone', 'Microsoft exam voucher']
+            },
+            {
+                plan: 'Career Pro',
+                price: '₹90,000',
+                emi: '₹9,000/mo',
+                features: ['Everything in Mentor-Led', 'PM/analyst referrals', 'Dedicated career coach']
+            }
         ]
     }
 ]

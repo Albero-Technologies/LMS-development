@@ -35,7 +35,10 @@ export default function PrivacyPolicy() {
             </Section>
 
             <Section title="3. Cookies & Analytics">
-                <p>We use cookies and analytics tools (e.g., Google Analytics, Meta Pixel) to understand how learners use our platform. You can disable cookies in your browser; some platform features may not work without them.</p>
+                <p>
+                    We use cookies and analytics tools (e.g., Google Analytics, Meta Pixel) to understand how learners use our platform. You can
+                    disable cookies in your browser; some platform features may not work without them.
+                </p>
             </Section>
 
             <Section title="4. How We Share Information">
@@ -50,7 +53,10 @@ export default function PrivacyPolicy() {
             </Section>
 
             <Section title="5. Data Security">
-                <p>We use industry-standard encryption, access controls, and monitoring to protect your data. No system is 100% secure, but we work hard to safeguard yours and notify you in the event of a material breach.</p>
+                <p>
+                    We use industry-standard encryption, access controls, and monitoring to protect your data. No system is 100% secure, but we work
+                    hard to safeguard yours and notify you in the event of a material breach.
+                </p>
             </Section>
 
             <Section title="6. Your Rights & Choices">
@@ -66,7 +72,10 @@ export default function PrivacyPolicy() {
             </Section>
 
             <Section title="7. Data Retention">
-                <p>We keep your data for as long as your account is active or as needed to deliver services, comply with legal obligations, resolve disputes, and enforce agreements.</p>
+                <p>
+                    We keep your data for as long as your account is active or as needed to deliver services, comply with legal obligations, resolve
+                    disputes, and enforce agreements.
+                </p>
             </Section>
 
             <Section title="8. Children & Minors">

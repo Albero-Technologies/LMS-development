@@ -170,8 +170,7 @@ export default function PricingPage() {
             <section
                 className="relative overflow-hidden"
                 style={{
-                    background:
-                        'radial-gradient(ellipse at 65% 50%, #0d2740 0%, #061026 60%, #04081a 100%)',
+                    background: 'radial-gradient(ellipse at 65% 50%, #0d2740 0%, #061026 60%, #04081a 100%)',
                     color: '#f8f6ee'
                 }}>
                 {/* Grid backdrop */}
@@ -237,21 +236,32 @@ export default function PricingPage() {
                         <p
                             className="text-[16px] md:text-[17px] leading-relaxed max-w-[560px] mb-6"
                             style={{ color: 'rgba(248,246,238,0.78)' }}>
-                            Honest, upfront pricing for every Albero Academy programme. No hidden fees, 0% EMI for up to 18 months,
-                            and a 7-day refund guarantee — backed by end-to-end placement support.
+                            Honest, upfront pricing for every Albero Academy programme. No hidden fees, 0% EMI for up to 18 months, and a 7-day refund
+                            guarantee — backed by end-to-end placement support.
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-8 text-[13.5px]" style={{ color: 'rgba(248,246,238,0.7)' }}>
+                        <div
+                            className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-8 text-[13.5px]"
+                            style={{ color: 'rgba(248,246,238,0.7)' }}>
                             <span className="inline-flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#34d399' }} />
+                                <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ background: '#34d399' }}
+                                />
                                 0% EMI up to 18 months
                             </span>
                             <span className="inline-flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#34d399' }} />
+                                <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ background: '#34d399' }}
+                                />
                                 7-day refund guarantee
                             </span>
                             <span className="inline-flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#34d399' }} />
+                                <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ background: '#34d399' }}
+                                />
                                 ₹5,000 seat block
                             </span>
                         </div>
@@ -397,10 +407,14 @@ export default function PricingPage() {
                                 <Sparkles size={11} /> Strategic partner pricing
                             </span>
                             <div className="hidden md:block leading-tight">
-                                <div className="font-display text-[16px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                <div
+                                    className="font-display text-[16px] font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}>
                                     Every flagship programme includes IBM + Microsoft credentials
                                 </div>
-                                <div className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                                <div
+                                    className="text-[12px] mt-0.5"
+                                    style={{ color: 'var(--text-tertiary)' }}>
                                     Exam vouchers, cloud credits, and co-branded badges — all included in the price.
                                 </div>
                             </div>
@@ -410,27 +424,82 @@ export default function PricingPage() {
                                 className="inline-flex items-center gap-2 px-3 py-2 rounded-xl"
                                 style={{ background: 'var(--surface-2)', border: '1px solid rgba(5,48,173,0.20)' }}>
                                 <span style={{ color: '#0530AD' }}>
-                                    <svg viewBox="0 0 64 28" width={32} height={14} aria-label="IBM" role="img">
+                                    <svg
+                                        viewBox="0 0 64 28"
+                                        width={32}
+                                        height={14}
+                                        aria-label="IBM"
+                                        role="img">
                                         {Array.from({ length: 8 }).map((_, i) => (
-                                            <rect key={i} x={i * 8} y="2" width="6" height="3.2" fill="currentColor" />
+                                            <rect
+                                                key={i}
+                                                x={i * 8}
+                                                y="2"
+                                                width="6"
+                                                height="3.2"
+                                                fill="currentColor"
+                                            />
                                         ))}
-                                        <text x="0" y="22" fontFamily="Inter, system-ui, sans-serif" fontWeight={800} fontSize="14" letterSpacing="2" fill="currentColor">
+                                        <text
+                                            x="0"
+                                            y="22"
+                                            fontFamily="Inter, system-ui, sans-serif"
+                                            fontWeight={800}
+                                            fontSize="14"
+                                            letterSpacing="2"
+                                            fill="currentColor">
                                             IBM
                                         </text>
                                     </svg>
                                 </span>
-                                <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>SkillsBuild</span>
+                                <span
+                                    className="text-[11px] font-semibold"
+                                    style={{ color: 'var(--text-secondary)' }}>
+                                    SkillsBuild
+                                </span>
                             </span>
                             <span
                                 className="inline-flex items-center gap-2 px-3 py-2 rounded-xl"
                                 style={{ background: 'var(--surface-2)', border: '1px solid rgba(0,120,212,0.20)' }}>
-                                <svg viewBox="0 0 24 24" width={14} height={14} aria-hidden="true">
-                                    <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-                                    <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-                                    <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-                                    <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width={14}
+                                    height={14}
+                                    aria-hidden="true">
+                                    <rect
+                                        x="1"
+                                        y="1"
+                                        width="10"
+                                        height="10"
+                                        fill="#F25022"
+                                    />
+                                    <rect
+                                        x="13"
+                                        y="1"
+                                        width="10"
+                                        height="10"
+                                        fill="#7FBA00"
+                                    />
+                                    <rect
+                                        x="1"
+                                        y="13"
+                                        width="10"
+                                        height="10"
+                                        fill="#00A4EF"
+                                    />
+                                    <rect
+                                        x="13"
+                                        y="13"
+                                        width="10"
+                                        height="10"
+                                        fill="#FFB900"
+                                    />
                                 </svg>
-                                <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Microsoft Certified</span>
+                                <span
+                                    className="text-[11px] font-semibold"
+                                    style={{ color: 'var(--text-secondary)' }}>
+                                    Microsoft Certified
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -453,7 +522,9 @@ export default function PricingPage() {
                             className="font-display text-[40px] md:text-[58px] leading-[0.96] tracking-[-0.02em] font-medium"
                             style={{ color: 'var(--text-primary)' }}>
                             Pick the programme that{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 fits your goals.
                             </span>
                         </h2>
@@ -494,15 +565,14 @@ export default function PricingPage() {
                             className="absolute -top-32 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none"
                             style={{ background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)', opacity: 0.32, filter: 'blur(50px)' }}
                         />
-                        <h3
-                            className="font-display text-[28px] md:text-[42px] leading-tight tracking-[-0.02em] font-medium relative z-[1]">
+                        <h3 className="font-display text-[28px] md:text-[42px] leading-tight tracking-[-0.02em] font-medium relative z-[1]">
                             Not sure which programme fits you?
                         </h3>
                         <p
                             className="mt-3 text-[15.5px] max-w-[560px] mx-auto relative z-[1]"
                             style={{ color: 'rgba(255,255,255,0.78)' }}>
-                            A senior counsellor will map your background and goals to the right track —
-                            and tell you honestly if Albero isn't right for you.
+                            A senior counsellor will map your background and goals to the right track — and tell you honestly if Albero isn't right
+                            for you.
                         </p>
                         <button
                             onClick={() => navigate('/contact')}
@@ -522,15 +592,7 @@ export default function PricingPage() {
 
 // ── Program card ─────────────────────────────────────────────────────────────
 
-function ProgramCard({
-    p,
-    onView,
-    onReserve
-}: {
-    p: Program
-    onView: () => void
-    onReserve: () => void
-}) {
+function ProgramCard({ p, onView, onReserve }: { p: Program; onView: () => void; onReserve: () => void }) {
     const Icon = p.Icon
     return (
         <motion.div
@@ -563,7 +625,10 @@ function ProgramCard({
                     <div
                         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-[0.16em] uppercase"
                         style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.92)' }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#a7f3d0' }} />
+                        <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: '#a7f3d0' }}
+                        />
                         Program
                     </div>
                     <div
@@ -586,11 +651,29 @@ function ProgramCard({
                                 className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9.5px] font-bold tracking-tight"
                                 title="IBM SkillsBuild Badge"
                                 style={{ background: '#fff', color: '#0530AD' }}>
-                                <svg viewBox="0 0 64 28" width={22} height={9} aria-hidden="true">
+                                <svg
+                                    viewBox="0 0 64 28"
+                                    width={22}
+                                    height={9}
+                                    aria-hidden="true">
                                     {Array.from({ length: 8 }).map((_, i) => (
-                                        <rect key={i} x={i * 8} y="2" width="6" height="3.2" fill="currentColor" />
+                                        <rect
+                                            key={i}
+                                            x={i * 8}
+                                            y="2"
+                                            width="6"
+                                            height="3.2"
+                                            fill="currentColor"
+                                        />
                                     ))}
-                                    <text x="0" y="22" fontFamily="Inter, system-ui, sans-serif" fontWeight={800} fontSize="14" letterSpacing="2" fill="currentColor">
+                                    <text
+                                        x="0"
+                                        y="22"
+                                        fontFamily="Inter, system-ui, sans-serif"
+                                        fontWeight={800}
+                                        fontSize="14"
+                                        letterSpacing="2"
+                                        fill="currentColor">
                                         IBM
                                     </text>
                                 </svg>
@@ -602,11 +685,39 @@ function ProgramCard({
                                 className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9.5px] font-bold tracking-tight"
                                 title="Microsoft Certified pathway"
                                 style={{ background: '#fff', color: '#0078D4' }}>
-                                <svg viewBox="0 0 24 24" width={10} height={10} aria-hidden="true">
-                                    <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-                                    <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-                                    <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-                                    <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width={10}
+                                    height={10}
+                                    aria-hidden="true">
+                                    <rect
+                                        x="1"
+                                        y="1"
+                                        width="10"
+                                        height="10"
+                                        fill="#F25022"
+                                    />
+                                    <rect
+                                        x="13"
+                                        y="1"
+                                        width="10"
+                                        height="10"
+                                        fill="#7FBA00"
+                                    />
+                                    <rect
+                                        x="1"
+                                        y="13"
+                                        width="10"
+                                        height="10"
+                                        fill="#00A4EF"
+                                    />
+                                    <rect
+                                        x="13"
+                                        y="13"
+                                        width="10"
+                                        height="10"
+                                        fill="#FFB900"
+                                    />
                                 </svg>
                                 Microsoft
                             </span>
@@ -639,7 +750,9 @@ function ProgramCard({
                             border: '1px solid rgba(13,79,60,0.18)'
                         }}>
                         <span className="text-[16px]">🎓</span>
-                        <span className="text-[12px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                        <span
+                            className="text-[12px] font-semibold leading-tight"
+                            style={{ color: 'var(--text-primary)' }}>
                             {p.cert === 'both'
                                 ? 'Includes IBM badge + Microsoft exam voucher'
                                 : p.cert === 'ibm'
@@ -658,18 +771,35 @@ function ProgramCard({
                 </h4>
 
                 <ul className="space-y-2.5 mb-5">
-                    <li className="flex items-center gap-2.5 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
-                        <Clock size={15} style={{ color: 'var(--brand)' }} />
+                    <li
+                        className="flex items-center gap-2.5 text-[13.5px]"
+                        style={{ color: 'var(--text-secondary)' }}>
+                        <Clock
+                            size={15}
+                            style={{ color: 'var(--brand)' }}
+                        />
                         Duration: {p.duration}
                     </li>
                     {p.features.map((f, j) => (
-                        <li key={j} className="flex items-center gap-2.5 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
+                        <li
+                            key={j}
+                            className="flex items-center gap-2.5 text-[13.5px]"
+                            style={{ color: 'var(--text-secondary)' }}>
                             {j === 0 ? (
-                                <Briefcase size={15} style={{ color: 'var(--brand)' }} />
+                                <Briefcase
+                                    size={15}
+                                    style={{ color: 'var(--brand)' }}
+                                />
                             ) : j === 1 ? (
-                                <Users size={15} style={{ color: 'var(--brand)' }} />
+                                <Users
+                                    size={15}
+                                    style={{ color: 'var(--brand)' }}
+                                />
                             ) : (
-                                <CheckCircle2 size={15} style={{ color: 'var(--brand)' }} />
+                                <CheckCircle2
+                                    size={15}
+                                    style={{ color: 'var(--brand)' }}
+                                />
                             )}
                             {f}
                         </li>
@@ -756,10 +886,14 @@ function ChipFloat({
                 <Icon size={16} />
             </span>
             <div className="leading-tight">
-                <div className="font-display text-[15px] font-semibold tracking-tight" style={{ color: '#f8f6ee' }}>
+                <div
+                    className="font-display text-[15px] font-semibold tracking-tight"
+                    style={{ color: '#f8f6ee' }}>
                     {label}
                 </div>
-                <div className="text-[11px]" style={{ color: 'rgba(248,246,238,0.6)' }}>
+                <div
+                    className="text-[11px]"
+                    style={{ color: 'rgba(248,246,238,0.6)' }}>
                     {sub}
                 </div>
             </div>

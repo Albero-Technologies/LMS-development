@@ -21,21 +21,21 @@
 
 # Redirect HTTP to HTTPS
 [[redirects]]
-  from = "http://albero.in/*"
-  to = "https://albero.in/:splat"
+  from = "http://alberoacademy.com/*"
+  to = "https://alberoacademy.com/:splat"
   status = 301
   force = true
 
 [[redirects]]
-  from = "http://www.albero.in/*"
-  to = "https://www.albero.in/:splat"
+  from = "http://www.alberoacademy.com/*"
+  to = "https://www.alberoacademy.com/:splat"
   status = 301
   force = true
 
 # Redirect non-www to www
 [[redirects]]
-  from = "https://albero.in/*"
-  to = "https://www.albero.in/:splat"
+  from = "https://alberoacademy.com/*"
+  to = "https://www.alberoacademy.com/:splat"
   status = 301
   force = true
 

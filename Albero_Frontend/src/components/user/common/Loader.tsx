@@ -18,9 +18,23 @@ export default function Loader() {
                     color: 'var(--text-on-inverse)',
                     animation: 'alb-leaf-grow 0.9s cubic-bezier(0.4,0,0.2,1) 0.05s both, alb-leaf-grow 3.6s ease-in-out 1s infinite'
                 }}>
-                <svg viewBox="0 0 24 24" width="32" height="32" fill="none">
-                    <path d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-                    <path d="M12 8 L12 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <svg
+                    viewBox="0 0 24 24"
+                    width="32"
+                    height="32"
+                    fill="none">
+                    <path
+                        d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M12 8 L12 21"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                    />
                 </svg>
             </div>
 
@@ -47,7 +61,9 @@ export default function Loader() {
                         Albero
                     </span>
                 </span>
-                <span className="ml-1 text-[12px] tracking-[0.32em] uppercase font-medium align-middle" style={{ color: 'var(--text-tertiary)' }}>
+                <span
+                    className="ml-1 text-[12px] tracking-[0.32em] uppercase font-medium align-middle"
+                    style={{ color: 'var(--text-tertiary)' }}>
                     ACADEMY
                 </span>
             </div>

@@ -31,8 +31,15 @@ export const CareerRoadmap = ({
 }: Props) => {
     if (steps.length === 0) return null
     return (
-        <SectionShell tone={tone} spacing="normal">
-            <SectionHeading eyebrow="The Journey" title={heading} accent={accent} description={description} />
+        <SectionShell
+            tone={tone}
+            spacing="normal">
+            <SectionHeading
+                eyebrow="The Journey"
+                title={heading}
+                accent={accent}
+                description={description}
+            />
             <div className="relative">
                 {/* Desktop dashed connector — sits behind the numbered circles. */}
                 <div
@@ -46,7 +53,12 @@ export const CareerRoadmap = ({
                 />
                 <ol className="relative grid md:grid-cols-4 gap-8 md:gap-6">
                     {steps.map((step, i) => (
-                        <RoadmapStepCard key={step.title} step={step} index={i + 1} delayMs={i * 80} />
+                        <RoadmapStepCard
+                            key={step.title}
+                            step={step}
+                            index={i + 1}
+                            delayMs={i * 80}
+                        />
                     ))}
                 </ol>
             </div>
@@ -78,17 +90,24 @@ const RoadmapStepCard = ({ step, index, delayMs }: { step: RoadmapStep; index: n
             </div>
 
             <div className="flex-1 min-w-0">
-                <h3 className="font-display text-[18px] font-semibold mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                    className="font-display text-[18px] font-semibold mb-1.5"
+                    style={{ color: 'var(--text-primary)' }}>
                     {step.title}
                 </h3>
-                <p className="text-[13.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                    className="text-[13.5px] leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}>
                     {step.description}
                 </p>
             </div>
 
             {/* Mobile-only arrow connector between steps */}
             {index < 4 && (
-                <div className="md:hidden absolute left-[28px] top-[60px] bottom-0 w-0.5" style={{ background: 'var(--hairline)' }} />
+                <div
+                    className="md:hidden absolute left-[28px] top-[60px] bottom-0 w-0.5"
+                    style={{ background: 'var(--hairline)' }}
+                />
             )}
         </li>
     )

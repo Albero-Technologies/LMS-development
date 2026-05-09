@@ -125,19 +125,40 @@ const Footer: React.FC<FooterProps> = ({ copyrightText }) => {
                                 <span
                                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg"
                                     style={{ background: '#1e40af' }}>
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" style={{ color: '#fff' }}>
-                                        <path d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-                                        <path d="M12 8 L12 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        width="20"
+                                        height="20"
+                                        fill="none"
+                                        style={{ color: '#fff' }}>
+                                        <path
+                                            d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z"
+                                            stroke="currentColor"
+                                            strokeWidth="1.6"
+                                            strokeLinejoin="round"
+                                        />
+                                        <path
+                                            d="M12 8 L12 21"
+                                            stroke="currentColor"
+                                            strokeWidth="1.6"
+                                            strokeLinecap="round"
+                                        />
                                     </svg>
                                 </span>
-                                <span className="font-display text-[24px] font-semibold tracking-tight" style={{ color: '#ffffff' }}>
+                                <span
+                                    className="font-display text-[24px] font-semibold tracking-tight"
+                                    style={{ color: '#ffffff' }}>
                                     Albero Academy
                                 </span>
                             </div>
-                            <h3 className="font-display text-[18px] font-semibold mb-3 leading-tight" style={{ color: '#ffffff' }}>
+                            <h3
+                                className="font-display text-[18px] font-semibold mb-3 leading-tight"
+                                style={{ color: '#ffffff' }}>
                                 Empowering ambitions with real-world learning
                             </h3>
-                            <p className="text-[14px] leading-relaxed mb-6 max-w-[280px]" style={{ color: '#94a3b8' }}>
+                            <p
+                                className="text-[14px] leading-relaxed mb-6 max-w-[280px]"
+                                style={{ color: '#94a3b8' }}>
                                 Delivering industry-relevant programs designed for career transformation.
                             </p>
                             <div className="flex items-center gap-2.5">
@@ -152,17 +173,37 @@ const Footer: React.FC<FooterProps> = ({ copyrightText }) => {
                                         href={href}
                                         aria-label={Icon.displayName ?? 'social'}
                                         className="w-10 h-10 rounded-xl inline-flex items-center justify-center transition-colors"
-                                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', color: '#cbd5e1' }}>
+                                        style={{
+                                            background: 'rgba(255,255,255,0.06)',
+                                            border: '1px solid rgba(255,255,255,0.10)',
+                                            color: '#cbd5e1'
+                                        }}>
                                         <Icon size={16} />
                                     </a>
                                 ))}
                             </div>
                         </div>
 
-                        <FooterColumn title="Explore Albero" links={exploreLinks} onItemClick={handleClick} />
-                        <FooterColumn title="Resources" links={resourceLinks} onItemClick={handleClick} />
-                        <FooterColumn title="Company" links={companyLinks} onItemClick={handleClick} />
-                        <FooterColumn title="Legal" links={legalLinks} onItemClick={handleClick} />
+                        <FooterColumn
+                            title="Explore Albero"
+                            links={exploreLinks}
+                            onItemClick={handleClick}
+                        />
+                        <FooterColumn
+                            title="Resources"
+                            links={resourceLinks}
+                            onItemClick={handleClick}
+                        />
+                        <FooterColumn
+                            title="Company"
+                            links={companyLinks}
+                            onItemClick={handleClick}
+                        />
+                        <FooterColumn
+                            title="Legal"
+                            links={legalLinks}
+                            onItemClick={handleClick}
+                        />
                     </div>
 
                     {/* Case Studies row */}
@@ -200,10 +241,10 @@ const Footer: React.FC<FooterProps> = ({ copyrightText }) => {
                     <div
                         className="mt-12 pt-6 border-t text-center"
                         style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-                        <p className="text-[13px]" style={{ color: '#94a3b8' }}>
-                            Albero Zetta Edutech Private Limited{' '}
-                            <span style={{ color: 'rgba(255,255,255,0.18)' }}>|</span>{' '}
-                            ©{copyrightText}
+                        <p
+                            className="text-[13px]"
+                            style={{ color: '#94a3b8' }}>
+                            Albero Zetta Edutech Private Limited <span style={{ color: 'rgba(255,255,255,0.18)' }}>|</span> ©{copyrightText}
                         </p>
                     </div>
                 </div>

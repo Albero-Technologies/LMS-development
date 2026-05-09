@@ -41,16 +41,29 @@ export const MentorStrip = ({
 }: Props) => {
     if (mentors.length === 0) return null
     return (
-        <SectionShell tone={tone} spacing="normal">
-            <SectionHeading eyebrow="Mentors & Instructors" title={heading} accent={accent} description={description} />
+        <SectionShell
+            tone={tone}
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Mentors & Instructors"
+                title={heading}
+                accent={accent}
+                description={description}
+            />
             {stats && stats.length > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-10">
                     {stats.map((s) => (
-                        <div key={s.label} className="text-center">
-                            <div className="font-display text-[22px] font-semibold leading-none" style={{ color: 'var(--brand)' }}>
+                        <div
+                            key={s.label}
+                            className="text-center">
+                            <div
+                                className="font-display text-[22px] font-semibold leading-none"
+                                style={{ color: 'var(--brand)' }}>
                                 {s.value}
                             </div>
-                            <div className="mt-1 text-[10px] uppercase tracking-[0.16em] font-bold" style={{ color: 'var(--text-tertiary)' }}>
+                            <div
+                                className="mt-1 text-[10px] uppercase tracking-[0.16em] font-bold"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 {s.label}
                             </div>
                         </div>
@@ -59,7 +72,10 @@ export const MentorStrip = ({
             )}
             <div className="flex md:grid md:grid-cols-4 gap-5 overflow-x-auto md:overflow-visible scrollbar-hide snap-x snap-mandatory pb-2">
                 {mentors.map((m) => (
-                    <MentorCard key={m.id} mentor={m} />
+                    <MentorCard
+                        key={m.id}
+                        mentor={m}
+                    />
                 ))}
             </div>
         </SectionShell>
@@ -81,7 +97,9 @@ const MentorCard = ({ mentor }: { mentor: Mentor }) => {
                 border: '1px solid var(--hairline)',
                 boxShadow: 'var(--card-shadow-soft)'
             }}>
-            <div className="relative aspect-square overflow-hidden" style={{ background: 'var(--gradient-aurora)' }}>
+            <div
+                className="relative aspect-square overflow-hidden"
+                style={{ background: 'var(--gradient-aurora)' }}>
                 {/* Always render the initials tile underneath; the photo
                     overlay hides it via display:none on load error so a
                     rate-limited Unsplash URL doesn't show as a broken image. */}
@@ -103,25 +121,39 @@ const MentorCard = ({ mentor }: { mentor: Mentor }) => {
                     <div
                         className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white flex items-center justify-center"
                         style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                        <img src={mentor.companyLogoUrl} alt={mentor.company} className="w-5 h-5 object-contain" />
+                        <img
+                            src={mentor.companyLogoUrl}
+                            alt={mentor.company}
+                            className="w-5 h-5 object-contain"
+                        />
                     </div>
                 )}
             </div>
             <div className="p-4">
-                <h3 className="font-display text-[15.5px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                    className="font-display text-[15.5px] font-semibold leading-tight"
+                    style={{ color: 'var(--text-primary)' }}>
                     {mentor.name}
                 </h3>
-                <p className="mt-0.5 text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                <p
+                    className="mt-0.5 text-[12.5px]"
+                    style={{ color: 'var(--text-tertiary)' }}>
                     {mentor.role} · {mentor.company}
                 </p>
                 {mentor.bio && (
-                    <p className="mt-2 text-[12.5px] leading-relaxed line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+                    <p
+                        className="mt-2 text-[12.5px] leading-relaxed line-clamp-2"
+                        style={{ color: 'var(--text-secondary)' }}>
                         {mentor.bio}
                     </p>
                 )}
-                <div className="mt-3 pt-3 flex items-center justify-between border-t" style={{ borderColor: 'var(--hairline)' }}>
+                <div
+                    className="mt-3 pt-3 flex items-center justify-between border-t"
+                    style={{ borderColor: 'var(--hairline)' }}>
                     {mentor.yearsExperience && (
-                        <span className="text-[11px] font-semibold" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="text-[11px] font-semibold"
+                            style={{ color: 'var(--brand)' }}>
                             {mentor.yearsExperience}+ yrs
                         </span>
                     )}

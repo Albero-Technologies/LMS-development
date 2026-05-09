@@ -63,7 +63,9 @@ export const AlumniCompanyWall = ({
     const row1 = items.filter((_, i) => i % 2 === 0)
     const row2 = items.filter((_, i) => i % 2 === 1)
     return (
-        <SectionShell tone={tone} spacing="normal">
+        <SectionShell
+            tone={tone}
+            spacing="normal">
             <SectionHeading
                 eyebrow="Hiring Partners"
                 title={heading}
@@ -74,10 +76,18 @@ export const AlumniCompanyWall = ({
             {stats && stats.length > 0 && <StatsStrip stats={stats} />}
 
             <div className="space-y-4 mt-8">
-                <Ticker items={row1.length ? row1 : items} direction="left" durationSeconds={28} />
+                <Ticker
+                    items={row1.length ? row1 : items}
+                    direction="left"
+                    durationSeconds={28}
+                />
                 {row2.length > 0 && (
                     <div className="hidden md:block">
-                        <Ticker items={row2} direction="right" durationSeconds={32} />
+                        <Ticker
+                            items={row2}
+                            direction="right"
+                            durationSeconds={32}
+                        />
                     </div>
                 )}
             </div>
@@ -99,7 +109,11 @@ const StatsStrip = ({ stats }: { stats: AlumniWallStat[] }) => {
                 transform: visible ? 'translateY(0)' : 'translateY(12px)'
             }}>
             {stats.map((s, i) => (
-                <StatTile key={s.label} stat={s} delayMs={i * 90} />
+                <StatTile
+                    key={s.label}
+                    stat={s}
+                    delayMs={i * 90}
+                />
             ))}
         </div>
     )
@@ -128,10 +142,14 @@ const StatTile = ({ stat, delayMs }: { stat: AlumniWallStat; delayMs: number }) 
                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                 <Icon size={18} />
             </div>
-            <div className="font-display text-[24px] md:text-[28px] font-semibold leading-none" style={{ color: 'var(--text-primary)' }}>
+            <div
+                className="font-display text-[24px] md:text-[28px] font-semibold leading-none"
+                style={{ color: 'var(--text-primary)' }}>
                 {stat.value}
             </div>
-            <div className="mt-1.5 text-[11.5px] uppercase tracking-[0.14em] font-bold" style={{ color: 'var(--text-tertiary)' }}>
+            <div
+                className="mt-1.5 text-[11.5px] uppercase tracking-[0.14em] font-bold"
+                style={{ color: 'var(--text-tertiary)' }}>
                 {stat.label}
             </div>
         </div>
@@ -173,7 +191,10 @@ const CompanyCard = ({ company }: { company: AlumniCompany }) => {
                 it on top of the monogram so a successful image hides the
                 fallback. Image-on-error swap keeps a polished look. */}
             <div className="relative ml-1 shrink-0">
-                <CompanyMark name={company.name} size={44} />
+                <CompanyMark
+                    name={company.name}
+                    size={44}
+                />
                 {company.logoUrl && (
                     <img
                         src={company.logoUrl}
@@ -189,7 +210,9 @@ const CompanyCard = ({ company }: { company: AlumniCompany }) => {
             </div>
 
             <div className="flex flex-col min-w-0">
-                <span className="font-display text-[15px] font-semibold tracking-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                <span
+                    className="font-display text-[15px] font-semibold tracking-tight whitespace-nowrap"
+                    style={{ color: 'var(--text-primary)' }}>
                     {company.name}
                 </span>
                 {sector && (

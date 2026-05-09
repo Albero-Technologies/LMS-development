@@ -26,9 +26,9 @@ interface ProgramOption {
 
 const PROGRAMS: ProgramOption[] = [
     { key: 'business-analytics', label: 'Business Analytics', meta: '6 mo · Live', Icon: BarChart3 },
-    { key: 'data-analytics',     label: 'Data Analytics',     meta: '5 mo · Live', Icon: Database },
-    { key: 'ai-ml',              label: 'AI / ML & GenAI',    meta: '9 mo · Flagship', Icon: Brain },
-    { key: 'full-stack',         label: 'Full-Stack Dev',     meta: '7 mo · MERN', Icon: Code2 }
+    { key: 'data-analytics', label: 'Data Analytics', meta: '5 mo · Live', Icon: Database },
+    { key: 'ai-ml', label: 'AI / ML & GenAI', meta: '9 mo · Flagship', Icon: Brain },
+    { key: 'full-stack', label: 'Full-Stack Dev', meta: '7 mo · MERN', Icon: Code2 }
 ]
 
 interface Props {
@@ -87,7 +87,7 @@ export const CurriculumDownloadModal = ({ open, onClose }: Props) => {
             if (picked.pdfUrl) {
                 window.open(picked.pdfUrl, '_blank', 'noopener,noreferrer')
             }
-            toast.success("Curriculum sent — check your inbox.")
+            toast.success('Curriculum sent — check your inbox.')
             setSuccess({ programKey: picked.key, pdfUrl: picked.pdfUrl })
         } catch (err) {
             toast.error(err instanceof Error ? err.message : 'Could not send the curriculum right now.')
@@ -133,7 +133,11 @@ export const CurriculumDownloadModal = ({ open, onClose }: Props) => {
                         />
 
                         {success ? (
-                            <SuccessPanel onClose={onClose} pdfUrl={success.pdfUrl} program={pickedProgram} />
+                            <SuccessPanel
+                                onClose={onClose}
+                                pdfUrl={success.pdfUrl}
+                                program={pickedProgram}
+                            />
                         ) : (
                             <FormPanel
                                 onClose={onClose}
@@ -171,7 +175,8 @@ const FormPanel = ({
 }) => (
     <>
         <div className="flex items-center justify-between px-6 pt-6">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10.5px] font-bold tracking-[0.18em] uppercase"
+            <div
+                className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10.5px] font-bold tracking-[0.18em] uppercase"
                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                 <FileText size={11} /> Free Curriculum
             </div>
@@ -191,12 +196,16 @@ const FormPanel = ({
                 style={{ color: 'var(--text-primary)' }}>
                 Get the full <span className="alb-gradient-text italic font-medium">curriculum.</span>
             </h3>
-            <p className="mt-1.5 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
+            <p
+                className="mt-1.5 text-[13.5px]"
+                style={{ color: 'var(--text-secondary)' }}>
                 Pick a track. We'll email a detailed PDF — every module, every project, every tool.
             </p>
         </div>
 
-        <form onSubmit={onSubmit} className="px-6 pb-6 pt-3 space-y-4">
+        <form
+            onSubmit={onSubmit}
+            className="px-6 pb-6 pt-3 space-y-4">
             {/* Program picker */}
             <div className="grid grid-cols-2 gap-2">
                 {PROGRAMS.map((p) => {
@@ -223,7 +232,11 @@ const FormPanel = ({
                                 </span>
                                 <div className="min-w-0">
                                     <div className="text-[12.5px] font-semibold leading-tight">{p.label}</div>
-                                    <div className="mt-0.5 text-[10.5px]" style={{ color: 'var(--text-tertiary)' }}>{p.meta}</div>
+                                    <div
+                                        className="mt-0.5 text-[10.5px]"
+                                        style={{ color: 'var(--text-tertiary)' }}>
+                                        {p.meta}
+                                    </div>
                                 </div>
                             </div>
                         </button>
@@ -268,14 +281,22 @@ const FormPanel = ({
                 {submitting ? 'Sending…' : 'Send me the curriculum'}
             </button>
 
-            <div className="flex items-center justify-center gap-4 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+            <div
+                className="flex items-center justify-center gap-4 text-[11px]"
+                style={{ color: 'var(--text-tertiary)' }}>
                 <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 size={11} style={{ color: 'var(--brand)' }} />
+                    <CheckCircle2
+                        size={11}
+                        style={{ color: 'var(--brand)' }}
+                    />
                     No spam, ever
                 </span>
                 <span style={{ color: 'var(--hairline)' }}>·</span>
                 <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 size={11} style={{ color: 'var(--brand)' }} />
+                    <CheckCircle2
+                        size={11}
+                        style={{ color: 'var(--brand)' }}
+                    />
                     Unsubscribe in one click
                 </span>
             </div>
@@ -283,25 +304,21 @@ const FormPanel = ({
     </>
 )
 
-const SuccessPanel = ({
-    onClose,
-    pdfUrl,
-    program
-}: {
-    onClose: () => void
-    pdfUrl?: string
-    program: ProgramOption
-}) => (
+const SuccessPanel = ({ onClose, pdfUrl, program }: { onClose: () => void; pdfUrl?: string; program: ProgramOption }) => (
     <div className="px-6 pt-8 pb-7 text-center">
         <div
             className="mx-auto mb-4 w-14 h-14 rounded-full inline-flex items-center justify-center"
             style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
             <CheckCircle2 size={26} />
         </div>
-        <h3 className="font-display text-[22px] md:text-[24px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+        <h3
+            className="font-display text-[22px] md:text-[24px] font-semibold leading-tight"
+            style={{ color: 'var(--text-primary)' }}>
             Curriculum on its way.
         </h3>
-        <p className="mt-2 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
+        <p
+            className="mt-2 text-[13.5px]"
+            style={{ color: 'var(--text-secondary)' }}>
             We've emailed the {program.label} curriculum. A counsellor will follow up only if you ask.
         </p>
         <div className="mt-5 flex flex-col gap-2.5">
@@ -350,7 +367,10 @@ const ModalField = ({
     <label
         className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors focus-within:border-[var(--brand)]"
         style={{ background: 'var(--surface-2)', border: '1px solid var(--hairline)' }}>
-        <Icon size={16} style={{ color: 'var(--text-tertiary)' }} />
+        <Icon
+            size={16}
+            style={{ color: 'var(--text-tertiary)' }}
+        />
         <input
             type={type}
             value={value}

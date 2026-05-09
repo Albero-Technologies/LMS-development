@@ -25,7 +25,8 @@ const posts = [
     {
         slug: 'apache-kafka-real-time-pipelines',
         title: 'Apache Kafka: Building Real-Time Data Streaming Pipelines',
-        description: 'A beginner-friendly guide to Apache Kafka — covering core concepts like topics, partitions, producers, consumers, and how to build your first real-time streaming pipeline.',
+        description:
+            'A beginner-friendly guide to Apache Kafka — covering core concepts like topics, partitions, producers, consumers, and how to build your first real-time streaming pipeline.',
         tags: ['ApacheKafka', 'DataEngineering', 'Streaming'],
         meta: '1 May 2026 · 9 min read',
         accent: 'orange' as const,
@@ -34,7 +35,8 @@ const posts = [
     {
         slug: 'mastering-data-visualization',
         title: 'Mastering Data Visualization: Charts, Mistakes & Storytelling',
-        description: 'Master the principles of effective data visualization — learn which chart types to use, common mistakes to avoid, and how to turn raw data into compelling visual narratives.',
+        description:
+            'Master the principles of effective data visualization — learn which chart types to use, common mistakes to avoid, and how to turn raw data into compelling visual narratives.',
         tags: ['DataVisualization', 'DataScience', 'Charts'],
         meta: '8 Apr 2026 · 7 min read',
         accent: 'emerald' as const,
@@ -43,7 +45,8 @@ const posts = [
     {
         slug: 'computer-vision-2026',
         title: 'Computer Vision in 2026: Real-World Applications Transforming Industries',
-        description: 'Explore how computer vision is being used in manufacturing, healthcare, agriculture, retail, and autonomous vehicles — with real case studies and the technology behind them.',
+        description:
+            'Explore how computer vision is being used in manufacturing, healthcare, agriculture, retail, and autonomous vehicles — with real case studies and the technology behind them.',
         tags: ['ComputerVision', 'AI', 'DeepLearning'],
         meta: '2 Apr 2026 · 8 min read',
         accent: 'rose' as const,
@@ -52,7 +55,8 @@ const posts = [
     {
         slug: 'large-language-models-explained',
         title: 'Large Language Models Explained: How AI Understands Text',
-        description: 'A clear, non-technical explanation of how large language models like GPT and Claude work — covering transformers, training, fine-tuning, and real-world applications in 2026.',
+        description:
+            'A clear, non-technical explanation of how large language models like GPT and Claude work — covering transformers, training, fine-tuning, and real-world applications in 2026.',
         tags: ['LLM', 'AI', 'MachineLearning'],
         meta: '28 Mar 2026 · 8 min read',
         accent: 'amber' as const,
@@ -61,7 +65,8 @@ const posts = [
     {
         slug: 'git-branching-strategies',
         title: 'Git Branching Strategies That Actually Work for Teams',
-        description: 'A practical comparison of Git Flow, GitHub Flow, and Trunk-Based Development — with real-world examples to help you pick the right strategy for your team and ship faster.',
+        description:
+            'A practical comparison of Git Flow, GitHub Flow, and Trunk-Based Development — with real-world examples to help you pick the right strategy for your team and ship faster.',
         tags: ['Git', 'DevOps', 'Engineering'],
         meta: '20 Mar 2026 · 6 min read',
         accent: 'purple' as const,
@@ -70,7 +75,8 @@ const posts = [
     {
         slug: 'investment-banking-analyst-day',
         title: 'Investment Banking: A Day in the Life of an Analyst',
-        description: 'What does a typical day in IB really look like? Hours, deal flow, pitch books, modeling, mentorship, and the unwritten rules every aspiring analyst should know.',
+        description:
+            'What does a typical day in IB really look like? Hours, deal flow, pitch books, modeling, mentorship, and the unwritten rules every aspiring analyst should know.',
         tags: ['InvestmentBanking', 'Career', 'Finance'],
         meta: '15 Mar 2026 · 10 min read',
         accent: 'amber' as const,
@@ -79,7 +85,8 @@ const posts = [
     {
         slug: 'cracking-pm-interview',
         title: 'Cracking the Product Manager Interview at MAANG',
-        description: 'A structured framework for PM interview prep — strategy questions, behavioral rounds, technical depth, and the case studies that get candidates hired at top tech firms.',
+        description:
+            'A structured framework for PM interview prep — strategy questions, behavioral rounds, technical depth, and the case studies that get candidates hired at top tech firms.',
         tags: ['ProductManagement', 'Interviews', 'Career'],
         meta: '10 Mar 2026 · 12 min read',
         accent: 'blue' as const,
@@ -190,7 +197,9 @@ export default function Blogs() {
                                         {featured.category}
                                     </span>
                                     <span style={{ color: 'var(--text-tertiary)' }}>·</span>
-                                    <span className="text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                    <span
+                                        className="text-[12.5px]"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         Meritshot
                                     </span>
                                 </div>
@@ -206,7 +215,9 @@ export default function Blogs() {
                                     {featured.description}
                                 </p>
 
-                                <div className="flex items-center flex-wrap gap-3 text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                <div
+                                    className="flex items-center flex-wrap gap-3 text-[12.5px]"
+                                    style={{ color: 'var(--text-tertiary)' }}>
                                     <span className="inline-flex items-center gap-1.5">
                                         <Clock size={12} /> {featured.meta}
                                     </span>
@@ -223,7 +234,10 @@ export default function Blogs() {
                                     background: 'linear-gradient(135deg,#0ea5e9,#3b82f6)',
                                     color: '#fff'
                                 }}>
-                                <featured.Icon size={56} className="opacity-80" />
+                                <featured.Icon
+                                    size={56}
+                                    className="opacity-80"
+                                />
                             </div>
                         </div>
 
@@ -348,7 +362,11 @@ export default function Blogs() {
                                     style={{ background: 'var(--accent)', color: '#fff' }}>
                                     {newsletterStatus === 'loading' ? (
                                         <>
-                                            <Loader2 size={13} className="animate-spin" /> Subscribing…
+                                            <Loader2
+                                                size={13}
+                                                className="animate-spin"
+                                            />{' '}
+                                            Subscribing…
                                         </>
                                     ) : (
                                         'Subscribe'

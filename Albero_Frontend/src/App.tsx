@@ -51,11 +51,7 @@ function DashboardRedirect() {
     useEffect(() => {
         window.location.replace(dashboardLoginUrl())
     }, [])
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] text-sm text-white/70">
-            Redirecting to the dashboard…
-        </div>
-    )
+    return <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] text-sm text-white/70">Redirecting to the dashboard…</div>
 }
 
 function PublicLayout() {

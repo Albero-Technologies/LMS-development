@@ -1,27 +1,26 @@
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import {
-    Sparkles,
-    BadgeCheck,
-    Cloud,
-    GraduationCap,
-    Users,
-    Target,
-    ArrowUpRight,
-    Cpu,
-    Database,
-    BarChart3,
-    Brain,
-    Server
-} from 'lucide-react'
+import { Sparkles, BadgeCheck, Cloud, GraduationCap, Users, Target, ArrowUpRight, Cpu, Database, BarChart3, Brain, Server } from 'lucide-react'
 
 // ─── Brand marks (kept inline, no external assets) ───────────────────────────
 
 function IBMMark({ size = 32 }: { size?: number }) {
     return (
-        <svg viewBox="0 0 64 28" width={size * (64 / 28)} height={size} aria-label="IBM" role="img">
+        <svg
+            viewBox="0 0 64 28"
+            width={size * (64 / 28)}
+            height={size}
+            aria-label="IBM"
+            role="img">
             {Array.from({ length: 8 }).map((_, i) => (
-                <rect key={i} x={i * 8} y="2" width="6" height="3.2" fill="currentColor" />
+                <rect
+                    key={i}
+                    x={i * 8}
+                    y="2"
+                    width="6"
+                    height="3.2"
+                    fill="currentColor"
+                />
             ))}
             <text
                 x="0"
@@ -39,20 +38,63 @@ function IBMMark({ size = 32 }: { size?: number }) {
 
 function MicrosoftLogo({ size = 28 }: { size?: number }) {
     return (
-        <svg viewBox="0 0 24 24" width={size} height={size} aria-label="Microsoft" role="img">
-            <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-            <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-            <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-            <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+        <svg
+            viewBox="0 0 24 24"
+            width={size}
+            height={size}
+            aria-label="Microsoft"
+            role="img">
+            <rect
+                x="1"
+                y="1"
+                width="10"
+                height="10"
+                fill="#F25022"
+            />
+            <rect
+                x="13"
+                y="1"
+                width="10"
+                height="10"
+                fill="#7FBA00"
+            />
+            <rect
+                x="1"
+                y="13"
+                width="10"
+                height="10"
+                fill="#00A4EF"
+            />
+            <rect
+                x="13"
+                y="13"
+                width="10"
+                height="10"
+                fill="#FFB900"
+            />
         </svg>
     )
 }
 
 function AlberoLogo({ size = 28 }: { size?: number }) {
     return (
-        <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
-            <path d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-            <path d="M12 8 L12 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <svg
+            viewBox="0 0 24 24"
+            width={size}
+            height={size}
+            fill="none">
+            <path
+                d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M12 8 L12 21"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+            />
         </svg>
     )
 }
@@ -115,12 +157,15 @@ export default function Collaboration() {
                         className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
                         style={{ color: 'var(--text-primary)' }}>
                         Built with{' '}
-                        <span className="font-semibold" style={{ color: '#0530AD' }}>
+                        <span
+                            className="font-semibold"
+                            style={{ color: '#0530AD' }}>
                             IBM
                         </span>
-                        .{' '}
-                        <span className="italic font-light">Backed by</span>{' '}
-                        <span className="font-semibold" style={{ color: '#0078D4' }}>
+                        . <span className="italic font-light">Backed by</span>{' '}
+                        <span
+                            className="font-semibold"
+                            style={{ color: '#0078D4' }}>
                             Microsoft
                         </span>
                         .
@@ -128,22 +173,27 @@ export default function Collaboration() {
                     <p
                         className="mt-5 text-[16px] md:text-[17px] leading-relaxed"
                         style={{ color: 'var(--text-secondary)' }}>
-                        We don't just teach to a syllabus — we co-design our curriculum with the same teams who hire on it.
-                        Every flagship cohort earns a co-branded credential plus the cloud credits to prove it on real work.
+                        We don't just teach to a syllabus — we co-design our curriculum with the same teams who hire on it. Every flagship cohort
+                        earns a co-branded credential plus the cloud credits to prove it on real work.
                     </p>
 
                     {/* Combined logo lockup */}
-                    <div className="mt-8 inline-flex items-center gap-3 px-5 py-3 rounded-full"
-                         style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow)' }}>
+                    <div
+                        className="mt-8 inline-flex items-center gap-3 px-5 py-3 rounded-full"
+                        style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow)' }}>
                         <span style={{ color: '#0530AD' }}>
                             <IBMMark size={26} />
                         </span>
                         <span style={{ color: 'var(--text-tertiary)' }}>×</span>
                         <MicrosoftLogo size={22} />
                         <span style={{ color: 'var(--text-tertiary)' }}>×</span>
-                        <span className="inline-flex items-center gap-2" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="inline-flex items-center gap-2"
+                            style={{ color: 'var(--brand)' }}>
                             <AlberoLogo size={22} />
-                            <span className="font-display text-[15px] font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                            <span
+                                className="font-display text-[15px] font-semibold tracking-tight"
+                                style={{ color: 'var(--text-primary)' }}>
                                 Albero
                             </span>
                         </span>
@@ -236,8 +286,14 @@ export default function Collaboration() {
                         { Icon: Users, label: 'IBM + Microsoft mentor circle' },
                         { Icon: Target, label: 'Hiring-team approved syllabus' }
                     ].map(({ Icon, label }) => (
-                        <span key={label} className="inline-flex items-center gap-2 text-[13px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                            <Icon size={15} style={{ color: 'var(--brand)' }} />
+                        <span
+                            key={label}
+                            className="inline-flex items-center gap-2 text-[13px] font-semibold"
+                            style={{ color: 'var(--text-secondary)' }}>
+                            <Icon
+                                size={15}
+                                style={{ color: 'var(--brand)' }}
+                            />
                             {label}
                         </span>
                     ))}
@@ -334,15 +390,27 @@ function PartnerPanel({
 
             <div className="p-6 md:p-8">
                 {/* WHY */}
-                <Block label={why.title} accent={accent} accentSoft={accentSoft} number="01">
-                    <p className="text-[14px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                <Block
+                    label={why.title}
+                    accent={accent}
+                    accentSoft={accentSoft}
+                    number="01">
+                    <p
+                        className="text-[14px] leading-relaxed"
+                        style={{ color: 'var(--text-secondary)' }}>
                         {why.body}
                     </p>
                 </Block>
 
                 {/* WHO */}
-                <Block label={who.title} accent={accent} accentSoft={accentSoft} number="02">
-                    <p className="text-[14px] leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
+                <Block
+                    label={who.title}
+                    accent={accent}
+                    accentSoft={accentSoft}
+                    number="02">
+                    <p
+                        className="text-[14px] leading-relaxed mb-4"
+                        style={{ color: 'var(--text-secondary)' }}>
                         {who.body}
                     </p>
                     <div className="space-y-2">
@@ -359,10 +427,14 @@ function PartnerPanel({
                                         <Icon size={16} />
                                     </span>
                                     <div className="flex-1 min-w-0 leading-tight">
-                                        <div className="font-display text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                        <div
+                                            className="font-display text-[14px] font-semibold"
+                                            style={{ color: 'var(--text-primary)' }}>
                                             {p.name}
                                         </div>
-                                        <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                                        <div
+                                            className="text-[11px]"
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             {p.label}
                                         </div>
                                     </div>
@@ -378,10 +450,17 @@ function PartnerPanel({
                 </Block>
 
                 {/* HOW */}
-                <Block label={how.title} accent={accent} accentSoft={accentSoft} number="03">
+                <Block
+                    label={how.title}
+                    accent={accent}
+                    accentSoft={accentSoft}
+                    number="03">
                     <ol className="space-y-2.5">
                         {how.steps.map((s, i) => (
-                            <li key={i} className="flex items-start gap-3 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
+                            <li
+                                key={i}
+                                className="flex items-start gap-3 text-[13.5px]"
+                                style={{ color: 'var(--text-secondary)' }}>
                                 <span
                                     className="w-5 h-5 rounded-full inline-flex items-center justify-center text-[10.5px] font-bold flex-shrink-0 mt-0.5"
                                     style={{ background: accent, color: '#fff' }}>
@@ -404,7 +483,9 @@ function PartnerPanel({
                                 style={{ color: accent }}>
                                 {s.v}
                             </div>
-                            <div className="text-[10.5px] tracking-[0.14em] uppercase mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                            <div
+                                className="text-[10.5px] tracking-[0.14em] uppercase mt-1.5"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 {s.l}
                             </div>
                         </div>

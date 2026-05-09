@@ -64,8 +64,13 @@ export default function CertificationPath() {
 
                             <div className="relative z-[1]">
                                 <div className="inline-flex items-center gap-2 mb-5">
-                                    <span className="inline-block w-10 h-[2px] rounded-full" style={{ background: '#34d399' }} />
-                                    <span className="text-[10.5px] tracking-[0.28em] uppercase font-bold" style={{ color: '#34d399' }}>
+                                    <span
+                                        className="inline-block w-10 h-[2px] rounded-full"
+                                        style={{ background: '#34d399' }}
+                                    />
+                                    <span
+                                        className="text-[10.5px] tracking-[0.28em] uppercase font-bold"
+                                        style={{ color: '#34d399' }}>
                                         Your shortcut to a job
                                     </span>
                                 </div>
@@ -80,7 +85,9 @@ export default function CertificationPath() {
                                         wordBreak: 'break-word'
                                     }}>
                                     Graduate with a credential{' '}
-                                    <span className="italic font-light" style={{ color: '#a7f3d0' }}>
+                                    <span
+                                        className="italic font-light"
+                                        style={{ color: '#a7f3d0' }}>
                                         recruiters already filter on.
                                     </span>
                                 </h2>
@@ -88,9 +95,9 @@ export default function CertificationPath() {
                                 <p
                                     className="mt-5 text-[14.5px] leading-relaxed max-w-[440px]"
                                     style={{ color: 'rgba(248,246,238,0.75)' }}>
-                                    Every flagship cohort earns a co-branded credential from{' '}
-                                    <strong style={{ color: '#fff' }}>IBM</strong> and{' '}
-                                    <strong style={{ color: '#fff' }}>Microsoft</strong> — the same badges that recruiters at the top 200 hiring teams use as a first-pass filter.
+                                    Every flagship cohort earns a co-branded credential from <strong style={{ color: '#fff' }}>IBM</strong> and{' '}
+                                    <strong style={{ color: '#fff' }}>Microsoft</strong> — the same badges that recruiters at the top 200 hiring teams
+                                    use as a first-pass filter.
                                 </p>
 
                                 {/* Mini logos */}
@@ -100,16 +107,36 @@ export default function CertificationPath() {
                                         className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
                                         style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
                                         <span style={{ color: '#7aa1ff' }}>
-                                            <svg viewBox="0 0 64 28" width="38" height="18" aria-label="IBM">
+                                            <svg
+                                                viewBox="0 0 64 28"
+                                                width="38"
+                                                height="18"
+                                                aria-label="IBM">
                                                 {Array.from({ length: 8 }).map((_, i) => (
-                                                    <rect key={i} x={i * 8} y="2" width="6" height="3.2" fill="currentColor" />
+                                                    <rect
+                                                        key={i}
+                                                        x={i * 8}
+                                                        y="2"
+                                                        width="6"
+                                                        height="3.2"
+                                                        fill="currentColor"
+                                                    />
                                                 ))}
-                                                <text x="0" y="22" fontFamily="Inter, system-ui, sans-serif" fontWeight={800} fontSize="14" letterSpacing="2" fill="currentColor">
+                                                <text
+                                                    x="0"
+                                                    y="22"
+                                                    fontFamily="Inter, system-ui, sans-serif"
+                                                    fontWeight={800}
+                                                    fontSize="14"
+                                                    letterSpacing="2"
+                                                    fill="currentColor">
                                                     IBM
                                                 </text>
                                             </svg>
                                         </span>
-                                        <span className="text-[12px] font-semibold" style={{ color: '#f8f6ee' }}>
+                                        <span
+                                            className="text-[12px] font-semibold"
+                                            style={{ color: '#f8f6ee' }}>
                                             SkillsBuild Badge
                                         </span>
                                     </div>
@@ -117,13 +144,43 @@ export default function CertificationPath() {
                                     <div
                                         className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
                                         style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                                            <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-                                            <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-                                            <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-                                            <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            width="16"
+                                            height="16"
+                                            aria-hidden="true">
+                                            <rect
+                                                x="1"
+                                                y="1"
+                                                width="10"
+                                                height="10"
+                                                fill="#F25022"
+                                            />
+                                            <rect
+                                                x="13"
+                                                y="1"
+                                                width="10"
+                                                height="10"
+                                                fill="#7FBA00"
+                                            />
+                                            <rect
+                                                x="1"
+                                                y="13"
+                                                width="10"
+                                                height="10"
+                                                fill="#00A4EF"
+                                            />
+                                            <rect
+                                                x="13"
+                                                y="13"
+                                                width="10"
+                                                height="10"
+                                                fill="#FFB900"
+                                            />
                                         </svg>
-                                        <span className="text-[12px] font-semibold" style={{ color: '#f8f6ee' }}>
+                                        <span
+                                            className="text-[12px] font-semibold"
+                                            style={{ color: '#f8f6ee' }}>
                                             Microsoft Certified
                                         </span>
                                     </div>
@@ -149,7 +206,9 @@ export default function CertificationPath() {
                                 className="font-display text-[26px] md:text-[30px] leading-tight tracking-[-0.02em] font-semibold"
                                 style={{ color: 'var(--text-primary)' }}>
                                 3 steps from joining to getting{' '}
-                                <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                                <span
+                                    className="italic font-light"
+                                    style={{ color: 'var(--brand)' }}>
                                     industry-certified.
                                 </span>
                             </h3>
@@ -168,9 +227,7 @@ export default function CertificationPath() {
                                     n="02"
                                     title="Pass the in-cohort skills assessment"
                                     body="An IBM or Microsoft mentor reviews your capstone, runs the assessment, and signs off on your project — the same way they'd hire you internally."
-                                    badges={[
-                                        { label: 'Mentor-signed', color: '#0d4f3c' }
-                                    ]}
+                                    badges={[{ label: 'Mentor-signed', color: '#0d4f3c' }]}
                                 />
                                 <Step
                                     n="03"
@@ -196,14 +253,20 @@ export default function CertificationPath() {
                                     <ScanLine size={18} />
                                 </span>
                                 <div className="leading-tight">
-                                    <div className="text-[12px] font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="text-[12px] font-semibold tracking-tight"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         Every cert is verifiable
                                     </div>
-                                    <div className="text-[11.5px] mt-0.5 font-mono" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[11.5px] mt-0.5 font-mono"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         albero.academy/verify/<span style={{ color: 'var(--brand)' }}>ALB-2025-XXXX</span>
                                     </div>
                                 </div>
-                                <span className="ml-auto inline-flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: 'var(--brand)' }}>
+                                <span
+                                    className="ml-auto inline-flex items-center gap-1.5 text-[12px] font-semibold"
+                                    style={{ color: 'var(--brand)' }}>
                                     <GraduationCap size={13} /> Public Credly profile
                                 </span>
                             </div>
@@ -215,17 +278,7 @@ export default function CertificationPath() {
     )
 }
 
-function Step({
-    n,
-    title,
-    body,
-    badges
-}: {
-    n: string
-    title: string
-    body: string
-    badges: { label: string; color: string }[]
-}) {
+function Step({ n, title, body, badges }: { n: string; title: string; body: string; badges: { label: string; color: string }[] }) {
     return (
         <li className="flex items-start gap-4">
             <span
@@ -234,10 +287,14 @@ function Step({
                 {n}
             </span>
             <div className="flex-1 min-w-0">
-                <h4 className="font-display text-[15.5px] font-semibold leading-tight mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                <h4
+                    className="font-display text-[15.5px] font-semibold leading-tight mb-1.5"
+                    style={{ color: 'var(--text-primary)' }}>
                     {title}
                 </h4>
-                <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                    className="text-[13px] leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}>
                     {body}
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-2.5">
@@ -246,7 +303,10 @@ function Step({
                             key={b.label}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-semibold"
                             style={{ background: 'var(--surface-2)', border: `1px solid ${b.color}33`, color: b.color }}>
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: b.color }} />
+                            <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ background: b.color }}
+                            />
                             {b.label}
                         </span>
                     ))}

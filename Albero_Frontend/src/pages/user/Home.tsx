@@ -113,7 +113,10 @@ export default function Home() {
             <FAQSection />
             <FinalCTA />
 
-            <StructuredData page="home" isHomePage />
+            <StructuredData
+                page="home"
+                isHomePage
+            />
         </div>
     )
 }

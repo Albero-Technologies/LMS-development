@@ -80,7 +80,10 @@ export const CurriculumAccordion = ({
     if (sections.length === 0) return null
 
     return (
-        <SectionShell tone={tone} id="curriculum" spacing="normal">
+        <SectionShell
+            tone={tone}
+            id="curriculum"
+            spacing="normal">
             <div className="flex flex-wrap items-end justify-between gap-4 mb-8 md:mb-10">
                 <SectionHeading
                     eyebrow="Curriculum"
@@ -177,10 +180,14 @@ const AccordionRow = ({
                     {String(index + 1).padStart(2, '0')}
                 </span>
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-display text-[16px] md:text-[18px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                    <h3
+                        className="font-display text-[16px] md:text-[18px] font-semibold leading-tight"
+                        style={{ color: 'var(--text-primary)' }}>
                         {section.title}
                     </h3>
-                    <p className="text-[12.5px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                    <p
+                        className="text-[12.5px] mt-0.5"
+                        style={{ color: 'var(--text-tertiary)' }}>
                         {section.lessons.length} lesson{section.lessons.length === 1 ? '' : 's'}
                         {totalMinutes > 0 ? ` · ${formatDuration(totalMinutes)}` : ''}
                     </p>
@@ -203,9 +210,15 @@ const AccordionRow = ({
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.32, ease: 'easeOut' }}
                         style={{ overflow: 'hidden' }}>
-                        <ul className="divide-y px-5 md:px-6 pb-4" style={{ borderColor: 'var(--hairline)' }}>
+                        <ul
+                            className="divide-y px-5 md:px-6 pb-4"
+                            style={{ borderColor: 'var(--hairline)' }}>
                             {section.lessons.map((lesson, li) => (
-                                <LessonRow key={`${lesson.title}-${li}`} lesson={lesson} programSlug={programSlug} />
+                                <LessonRow
+                                    key={`${lesson.title}-${li}`}
+                                    lesson={lesson}
+                                    programSlug={programSlug}
+                                />
                             ))}
                         </ul>
                     </motion.div>
@@ -225,7 +238,9 @@ const LessonRow = ({ lesson, programSlug }: { lesson: CurriculumLesson; programS
                 className="shrink-0"
                 style={{ color: lesson.isFreePreview ? 'var(--brand)' : 'var(--text-tertiary)' }}
             />
-            <span className="flex-1 min-w-0 text-[13.5px] truncate" style={{ color: 'var(--text-secondary)' }}>
+            <span
+                className="flex-1 min-w-0 text-[13.5px] truncate"
+                style={{ color: 'var(--text-secondary)' }}>
                 {lesson.title}
             </span>
             {lesson.isFreePreview && (
@@ -236,12 +251,20 @@ const LessonRow = ({ lesson, programSlug }: { lesson: CurriculumLesson; programS
                 </span>
             )}
             {lesson.durationMinutes && lesson.durationMinutes > 0 && (
-                <span className="text-[12px] font-mono shrink-0" style={{ color: 'var(--text-tertiary)' }}>
+                <span
+                    className="text-[12px] font-mono shrink-0"
+                    style={{ color: 'var(--text-tertiary)' }}>
                     {formatDuration(lesson.durationMinutes)}
                 </span>
             )}
             {/* Hidden anchor — the curriculum-share landing path navigates here. */}
-            {previewUrl && <span id={`preview-${encodeURIComponent(lesson.title)}`} className="hidden" aria-hidden="true" />}
+            {previewUrl && (
+                <span
+                    id={`preview-${encodeURIComponent(lesson.title)}`}
+                    className="hidden"
+                    aria-hidden="true"
+                />
+            )}
         </li>
     )
 }
@@ -293,7 +316,7 @@ const SyllabusDownloadModal = ({ open, onClose, programSlug, syllabusPdfUrl }: M
             if (syllabusPdfUrl) {
                 window.open(syllabusPdfUrl, '_blank', 'noopener,noreferrer')
             }
-            toast.success("Syllabus on its way to your inbox.")
+            toast.success('Syllabus on its way to your inbox.')
             onClose()
         } catch (err) {
             toast.error(err instanceof Error ? err.message : 'Could not send the syllabus right now.')
@@ -325,25 +348,54 @@ const SyllabusDownloadModal = ({ open, onClose, programSlug, syllabusPdfUrl }: M
                             boxShadow: 'var(--card-shadow-hover)'
                         }}>
                         <div className="flex items-center justify-between px-6 pt-5">
-                            <div className="text-[11px] tracking-[0.2em] uppercase font-bold" style={{ color: 'var(--brand)' }}>
+                            <div
+                                className="text-[11px] tracking-[0.2em] uppercase font-bold"
+                                style={{ color: 'var(--brand)' }}>
                                 Free syllabus
                             </div>
-                            <button onClick={onClose} aria-label="Close" className="p-1 rounded-full" style={{ color: 'var(--text-tertiary)' }}>
+                            <button
+                                onClick={onClose}
+                                aria-label="Close"
+                                className="p-1 rounded-full"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 <X size={18} />
                             </button>
                         </div>
                         <div className="px-6 pt-1 pb-5">
-                            <h3 className="font-display text-[20px] md:text-[22px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                            <h3
+                                className="font-display text-[20px] md:text-[22px] font-semibold leading-tight"
+                                style={{ color: 'var(--text-primary)' }}>
                                 Download the full syllabus
                             </h3>
-                            <p className="mt-1 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
+                            <p
+                                className="mt-1 text-[13px]"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 We'll email it now — and a counsellor will follow up only if you ask.
                             </p>
                         </div>
-                        <form onSubmit={submit} className="px-6 pb-6 space-y-3">
-                            <ModalField icon={User} placeholder="Full name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-                            <ModalField icon={Mail} type="email" placeholder="Email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
-                            <ModalField icon={Phone} type="tel" placeholder="Phone (with country code)" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+                        <form
+                            onSubmit={submit}
+                            className="px-6 pb-6 space-y-3">
+                            <ModalField
+                                icon={User}
+                                placeholder="Full name"
+                                value={form.name}
+                                onChange={(v) => setForm({ ...form, name: v })}
+                            />
+                            <ModalField
+                                icon={Mail}
+                                type="email"
+                                placeholder="Email"
+                                value={form.email}
+                                onChange={(v) => setForm({ ...form, email: v })}
+                            />
+                            <ModalField
+                                icon={Phone}
+                                type="tel"
+                                placeholder="Phone (with country code)"
+                                value={form.phone}
+                                onChange={(v) => setForm({ ...form, phone: v })}
+                            />
                             <button
                                 type="submit"
                                 disabled={submitting}
@@ -356,7 +408,9 @@ const SyllabusDownloadModal = ({ open, onClose, programSlug, syllabusPdfUrl }: M
                                 }}>
                                 <Download size={15} /> {submitting ? 'Sending…' : 'Send me the syllabus'}
                             </button>
-                            <p className="text-[11px] text-center" style={{ color: 'var(--text-tertiary)' }}>
+                            <p
+                                className="text-[11px] text-center"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 We'll never spam. Unsubscribe in one click.
                             </p>
                         </form>
@@ -380,8 +434,13 @@ const ModalField = ({
     value: string
     onChange: (v: string) => void
 }) => (
-    <label className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--hairline)' }}>
-        <Icon size={16} style={{ color: 'var(--text-tertiary)' }} />
+    <label
+        className="flex items-center gap-3 px-4 py-3 rounded-xl"
+        style={{ background: 'var(--surface-2)', border: '1px solid var(--hairline)' }}>
+        <Icon
+            size={16}
+            style={{ color: 'var(--text-tertiary)' }}
+        />
         <input
             type={type}
             value={value}

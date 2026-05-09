@@ -1,5 +1,19 @@
 import { useMemo, useState } from 'react'
-import { Award, BadgeCheck, ArrowRight, Brain, Cog, Compass, Handshake, Sparkles, Target, Trophy, TrendingUp, Wrench, type LucideIcon } from 'lucide-react'
+import {
+    Award,
+    BadgeCheck,
+    ArrowRight,
+    Brain,
+    Cog,
+    Compass,
+    Handshake,
+    Sparkles,
+    Target,
+    Trophy,
+    TrendingUp,
+    Wrench,
+    type LucideIcon
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { SectionShell, SectionHeading, GradientIcon } from './primitives'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
@@ -24,7 +38,7 @@ export const AdvantageGrid = ({
             The Albero <span className="alb-gradient-text italic font-medium">advantage.</span>
         </>
     ),
-    description = "What you actually get when you sign up — beyond the lecture videos."
+    description = 'What you actually get when you sign up — beyond the lecture videos.'
 }: {
     items: AdvantageItem[]
     heading?: React.ReactNode
@@ -32,11 +46,21 @@ export const AdvantageGrid = ({
 }) => {
     if (items.length === 0) return null
     return (
-        <SectionShell tone="white" spacing="normal">
-            <SectionHeading eyebrow="Why us" title={heading} description={description} />
+        <SectionShell
+            tone="white"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Why us"
+                title={heading}
+                description={description}
+            />
             <div className="grid md:grid-cols-3 gap-5">
                 {items.map((item, i) => (
-                    <AdvantageCard key={item.title} item={item} delayMs={i * 80} />
+                    <AdvantageCard
+                        key={item.title}
+                        item={item}
+                        delayMs={i * 80}
+                    />
                 ))}
             </div>
         </SectionShell>
@@ -58,10 +82,14 @@ const AdvantageCard = ({ item, delayMs }: { item: AdvantageItem; delayMs: number
                 transitionDelay: `${delayMs}ms`
             }}>
             <GradientIcon size={48}>{item.icon ?? <Sparkles size={20} />}</GradientIcon>
-            <h3 className="font-display text-[18px] font-semibold mt-4" style={{ color: 'var(--text-primary)' }}>
+            <h3
+                className="font-display text-[18px] font-semibold mt-4"
+                style={{ color: 'var(--text-primary)' }}>
                 {item.title}
             </h3>
-            <p className="mt-2 text-[14px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            <p
+                className="mt-2 text-[14px] leading-relaxed"
+                style={{ color: 'var(--text-secondary)' }}>
                 {item.description}
             </p>
         </div>
@@ -93,11 +121,11 @@ interface CategoryMeta {
 }
 
 const CATEGORY_META: Record<string, CategoryMeta> = {
-    Tools:           { Icon: Wrench, color: '#14785f' },     // emerald — anchors the brand
-    Concepts:        { Icon: Brain, color: '#7c3aed' },      // violet — "thinking"
-    'Soft skills':   { Icon: Handshake, color: '#b86a18' },  // amber — "people"
-    Foundations:     { Icon: Compass, color: '#0891b2' },    // cyan — "direction"
-    'System design': { Icon: Cog, color: '#dc2626' }         // red — "engineering"
+    Tools: { Icon: Wrench, color: '#14785f' }, // emerald — anchors the brand
+    Concepts: { Icon: Brain, color: '#7c3aed' }, // violet — "thinking"
+    'Soft skills': { Icon: Handshake, color: '#b86a18' }, // amber — "people"
+    Foundations: { Icon: Compass, color: '#0891b2' }, // cyan — "direction"
+    'System design': { Icon: Cog, color: '#dc2626' } // red — "engineering"
 }
 
 const FALLBACK_META: CategoryMeta = { Icon: Sparkles, color: '#14785f' }
@@ -121,7 +149,9 @@ export const WhatYoullLearn = ({
     const current = categories[active]!
     const currentMeta = metaFor(current.category)
     return (
-        <section className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8" style={{ background: 'var(--section-soft)' }}>
+        <section
+            className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8"
+            style={{ background: 'var(--section-soft)' }}>
             {/* Decorative orbs — colour-shifted to track the active tab so
                 the section feels reactive instead of static decoration. */}
             <div
@@ -150,7 +180,11 @@ export const WhatYoullLearn = ({
             />
 
             <div className="relative max-w-5xl mx-auto">
-                <SectionHeading eyebrow="Outcomes" title={heading} description={description} />
+                <SectionHeading
+                    eyebrow="Outcomes"
+                    title={heading}
+                    description={description}
+                />
 
                 {/* Tab row — Lucide icon in a tinted chip, label, count
                     badge. Active tab fills with the category's own colour
@@ -169,9 +203,7 @@ export const WhatYoullLearn = ({
                                 onClick={() => setActive(i)}
                                 className="group inline-flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full text-[13.5px] font-semibold transition-all"
                                 style={{
-                                    background: isActive
-                                        ? `linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)`
-                                        : 'var(--surface)',
+                                    background: isActive ? `linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)` : 'var(--surface)',
                                     color: isActive ? '#fff' : 'var(--text-primary)',
                                     border: `1px solid ${isActive ? 'transparent' : 'var(--hairline)'}`,
                                     boxShadow: isActive
@@ -186,7 +218,10 @@ export const WhatYoullLearn = ({
                                         background: isActive ? 'rgba(255,255,255,0.22)' : `${meta.color}14`,
                                         color: isActive ? '#fff' : meta.color
                                     }}>
-                                    <Icon size={14} strokeWidth={2.4} />
+                                    <Icon
+                                        size={14}
+                                        strokeWidth={2.4}
+                                    />
                                 </span>
                                 <span>{c.category}</span>
                                 <span
@@ -204,7 +239,9 @@ export const WhatYoullLearn = ({
 
                 {/* Skill cards grid — keyed by `current.category` so React
                     remounts on tab change and replays the entrance animation. */}
-                <div key={current.category} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                <div
+                    key={current.category}
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                     {current.items.map((item, i) => (
                         <SkillCard
                             key={`${current.category}-${item}`}
@@ -216,7 +253,9 @@ export const WhatYoullLearn = ({
                     ))}
                 </div>
 
-                <p className="mt-10 text-center text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                <p
+                    className="mt-10 text-center text-[12.5px]"
+                    style={{ color: 'var(--text-tertiary)' }}>
                     {current.items.length} {current.category.toLowerCase()} you'll touch — and many more reviewed in 1:1 mentor sessions.
                 </p>
             </div>
@@ -224,17 +263,7 @@ export const WhatYoullLearn = ({
     )
 }
 
-const SkillCard = ({
-    label,
-    index,
-    categoryLabel,
-    meta
-}: {
-    label: string
-    index: number
-    categoryLabel: string
-    meta: CategoryMeta
-}) => {
+const SkillCard = ({ label, index, categoryLabel, meta }: { label: string; index: number; categoryLabel: string; meta: CategoryMeta }) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.15)
     const Icon = meta.Icon
     return (
@@ -270,7 +299,10 @@ const SkillCard = ({
                 <span
                     className="inline-flex items-center justify-center w-9 h-9 rounded-lg shrink-0"
                     style={{ background: `${meta.color}14`, color: meta.color }}>
-                    <Icon size={16} strokeWidth={2.2} />
+                    <Icon
+                        size={16}
+                        strokeWidth={2.2}
+                    />
                 </span>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -285,7 +317,9 @@ const SkillCard = ({
                             {categoryLabel}
                         </span>
                     </div>
-                    <div className="mt-1 text-[14px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
+                    <div
+                        className="mt-1 text-[14px] font-semibold leading-snug"
+                        style={{ color: 'var(--text-primary)' }}>
                         {label}
                     </div>
                 </div>
@@ -322,11 +356,21 @@ export const IndustryProjects = ({
 }) => {
     if (projects.length === 0) return null
     return (
-        <SectionShell tone="white" spacing="normal">
-            <SectionHeading eyebrow="Real-world projects" title={heading} description={description} />
+        <SectionShell
+            tone="white"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Real-world projects"
+                title={heading}
+                description={description}
+            />
             <div className="flex md:grid md:grid-cols-3 gap-5 overflow-x-auto md:overflow-visible scrollbar-hide snap-x snap-mandatory pb-2">
                 {projects.map((p, i) => (
-                    <ProjectCard key={p.title} project={p} delayMs={i * 80} />
+                    <ProjectCard
+                        key={p.title}
+                        project={p}
+                        delayMs={i * 80}
+                    />
                 ))}
             </div>
         </SectionShell>
@@ -353,10 +397,14 @@ const ProjectCard = ({ project, delayMs }: { project: IndustryProject; delayMs: 
                 style={{ background: `${color}1f`, color }}>
                 {project.tag}
             </span>
-            <h3 className="font-display text-[17px] font-semibold mt-3" style={{ color: 'var(--text-primary)' }}>
+            <h3
+                className="font-display text-[17px] font-semibold mt-3"
+                style={{ color: 'var(--text-primary)' }}>
                 {project.title}
             </h3>
-            <p className="mt-1.5 text-[13.5px] leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+            <p
+                className="mt-1.5 text-[13.5px] leading-relaxed line-clamp-3"
+                style={{ color: 'var(--text-secondary)' }}>
                 {project.description}
             </p>
             {project.techStack && project.techStack.length > 0 && (
@@ -392,7 +440,12 @@ export interface CaseStudy {
 // company has a published case study in the constants library we link
 // directly to its detail page; otherwise we fall back to the hub so the
 // CTA is never a dead-end.
-const slugForCompany = (company: string): string => company.toLowerCase().replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+const slugForCompany = (company: string): string =>
+    company
+        .toLowerCase()
+        .replace(/'/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
 const caseStudyHrefFor = (company: string): string => {
     const slug = slugForCompany(company)
     return findCaseStudy(slug) ? `/resources/case-studies/${slug}` : '/resources/case-studies'
@@ -413,11 +466,21 @@ export const CaseStudies = ({
 }) => {
     if (cases.length === 0) return null
     return (
-        <SectionShell tone="soft" spacing="normal">
-            <SectionHeading eyebrow="Case studies" title={heading} description={description} />
+        <SectionShell
+            tone="soft"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Case studies"
+                title={heading}
+                description={description}
+            />
             <div className="grid md:grid-cols-2 gap-5">
                 {cases.map((c, i) => (
-                    <CaseStudyCard key={c.company + i} study={c} delayMs={i * 100} />
+                    <CaseStudyCard
+                        key={c.company + i}
+                        study={c}
+                        delayMs={i * 100}
+                    />
                 ))}
             </div>
         </SectionShell>
@@ -462,20 +525,33 @@ const CaseStudyCard = ({ study, delayMs }: { study: CaseStudy; delayMs: number }
                             <div
                                 className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-white"
                                 style={{ border: '1px solid var(--hairline)' }}>
-                                <img src={study.companyLogoUrl} alt={study.company} className="w-7 h-7 object-contain" loading="lazy" />
+                                <img
+                                    src={study.companyLogoUrl}
+                                    alt={study.company}
+                                    className="w-7 h-7 object-contain"
+                                    loading="lazy"
+                                />
                             </div>
                         ) : (
-                            <CompanyMark name={study.company} size={48} />
+                            <CompanyMark
+                                name={study.company}
+                                size={48}
+                            />
                         )}
                         <div className="min-w-0">
-                            <h3 className="font-display text-[18px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                            <h3
+                                className="font-display text-[18px] font-semibold leading-tight"
+                                style={{ color: 'var(--text-primary)' }}>
                                 {study.company}
                             </h3>
                             {sector && (
                                 <span
                                     className="mt-1 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[9.5px] font-bold tracking-[0.12em] uppercase"
                                     style={{ color, background: `${color}14` }}>
-                                    <span className="inline-block w-1 h-1 rounded-full" style={{ background: color }} />
+                                    <span
+                                        className="inline-block w-1 h-1 rounded-full"
+                                        style={{ background: color }}
+                                    />
                                     {sector}
                                 </span>
                             )}
@@ -492,8 +568,16 @@ const CaseStudyCard = ({ study, delayMs }: { study: CaseStudy; delayMs: number }
 
                 {/* Problem + Approach as label-on-top rows. Same shape as
                     before, dialled visually so the body reads as a story. */}
-                <CaseRow label="Problem" body={study.problem} accent={color} />
-                <CaseRow label="Approach" body={study.approach} accent={color} />
+                <CaseRow
+                    label="Problem"
+                    body={study.problem}
+                    accent={color}
+                />
+                <CaseRow
+                    label="Approach"
+                    body={study.approach}
+                    accent={color}
+                />
 
                 {/* Outcome callout — visual headline, brand-coloured tile. */}
                 <div
@@ -505,14 +589,20 @@ const CaseStudyCard = ({ study, delayMs }: { study: CaseStudy; delayMs: number }
                         <Sparkles size={16} />
                     </span>
                     <div className="min-w-0">
-                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] mb-0.5" style={{ color }}>
+                        <div
+                            className="text-[10px] font-bold uppercase tracking-[0.16em] mb-0.5"
+                            style={{ color }}>
                             Outcome
                         </div>
-                        <div className="font-display text-[20px] md:text-[22px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                        <div
+                            className="font-display text-[20px] md:text-[22px] font-semibold leading-tight"
+                            style={{ color: 'var(--text-primary)' }}>
                             {study.outcomeMetric}
                         </div>
                         {study.outcomeDetail && (
-                            <p className="mt-1 text-[12.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                            <p
+                                className="mt-1 text-[12.5px] leading-relaxed"
+                                style={{ color: 'var(--text-secondary)' }}>
                                 {study.outcomeDetail}
                             </p>
                         )}
@@ -538,7 +628,11 @@ const CaseStudyCard = ({ study, delayMs }: { study: CaseStudy; delayMs: number }
                         e.currentTarget.style.background = 'var(--surface-2)'
                         e.currentTarget.style.borderColor = `${color}33`
                     }}>
-                    See full case study <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                    See full case study{' '}
+                    <ArrowRight
+                        size={14}
+                        className="transition-transform group-hover:translate-x-0.5"
+                    />
                 </Link>
             </div>
         </article>
@@ -550,10 +644,15 @@ const CaseRow = ({ label, body, accent }: { label: string; body: string; accent:
         <div
             className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] mb-1.5"
             style={{ color: 'var(--text-tertiary)' }}>
-            <span className="inline-block w-1 h-1 rounded-full" style={{ background: accent }} />
+            <span
+                className="inline-block w-1 h-1 rounded-full"
+                style={{ background: accent }}
+            />
             {label}
         </div>
-        <p className="text-[13.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+        <p
+            className="text-[13.5px] leading-relaxed"
+            style={{ color: 'var(--text-secondary)' }}>
             {body}
         </p>
     </div>
@@ -576,7 +675,7 @@ export const Certifications = ({
             Industry-recognised <span className="alb-gradient-text italic font-medium">certifications.</span>
         </>
     ),
-    description = "Stack badges that signal credibility — Microsoft, IBM, NSDC, J.P. Morgan."
+    description = 'Stack badges that signal credibility — Microsoft, IBM, NSDC, J.P. Morgan.'
 }: {
     certifications: Certification[]
     heading?: React.ReactNode
@@ -584,11 +683,21 @@ export const Certifications = ({
 }) => {
     if (certifications.length === 0) return null
     return (
-        <SectionShell tone="white" spacing="normal">
-            <SectionHeading eyebrow="Certifications" title={heading} description={description} />
+        <SectionShell
+            tone="white"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Certifications"
+                title={heading}
+                description={description}
+            />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {certifications.map((c, i) => (
-                    <CertCard key={c.name} cert={c} delayMs={i * 60} />
+                    <CertCard
+                        key={c.name}
+                        cert={c}
+                        delayMs={i * 60}
+                    />
                 ))}
             </div>
         </SectionShell>
@@ -613,16 +722,28 @@ const CertCard = ({ cert, delayMs }: { cert: Certification; delayMs: number }) =
                 className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
                 style={{ background: 'var(--section-soft)', border: '1px solid var(--hairline)' }}>
                 {cert.logoUrl ? (
-                    <img src={cert.logoUrl} alt={cert.name} className="max-w-9 max-h-9 object-contain" loading="lazy" />
+                    <img
+                        src={cert.logoUrl}
+                        alt={cert.name}
+                        className="max-w-9 max-h-9 object-contain"
+                        loading="lazy"
+                    />
                 ) : (
-                    <BadgeCheck size={18} style={{ color: 'var(--brand)' }} />
+                    <BadgeCheck
+                        size={18}
+                        style={{ color: 'var(--brand)' }}
+                    />
                 )}
             </div>
             <div className="min-w-0">
-                <h3 className="font-display text-[15.5px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                    className="font-display text-[15.5px] font-semibold"
+                    style={{ color: 'var(--text-primary)' }}>
                     {cert.name}
                 </h3>
-                <p className="mt-0.5 text-[12.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                    className="mt-0.5 text-[12.5px] leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}>
                     {cert.description}
                 </p>
             </div>
@@ -655,11 +776,21 @@ export const CareerOutcomes = ({
 }) => {
     if (outcomes.length === 0) return null
     return (
-        <SectionShell tone="soft" spacing="normal">
-            <SectionHeading eyebrow="Career outcomes" title={heading} description={description} />
+        <SectionShell
+            tone="soft"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Career outcomes"
+                title={heading}
+                description={description}
+            />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {outcomes.map((o, i) => (
-                    <OutcomeCard key={o.role} outcome={o} delayMs={i * 80} />
+                    <OutcomeCard
+                        key={o.role}
+                        outcome={o}
+                        delayMs={i * 80}
+                    />
                 ))}
             </div>
         </SectionShell>
@@ -680,12 +811,19 @@ const OutcomeCard = ({ outcome, delayMs }: { outcome: CareerOutcome; delayMs: nu
                 transform: visible ? 'translateY(0)' : 'translateY(20px)',
                 transitionDelay: `${delayMs}ms`
             }}>
-            <Trophy size={20} style={{ color: 'var(--brand)' }} />
-            <h3 className="font-display text-[17px] font-semibold mt-3" style={{ color: 'var(--text-primary)' }}>
+            <Trophy
+                size={20}
+                style={{ color: 'var(--brand)' }}
+            />
+            <h3
+                className="font-display text-[17px] font-semibold mt-3"
+                style={{ color: 'var(--text-primary)' }}>
                 {outcome.role}
             </h3>
             {outcome.salary && (
-                <div className="mt-1.5 inline-flex items-center gap-1.5 text-[14px] font-semibold" style={{ color: 'var(--brand)' }}>
+                <div
+                    className="mt-1.5 inline-flex items-center gap-1.5 text-[14px] font-semibold"
+                    style={{ color: 'var(--brand)' }}>
                     <Target size={13} /> {outcome.salary}
                 </div>
             )}
@@ -723,7 +861,7 @@ interface FinalCTAProps {
 }
 
 export const FinalCTABanner = ({
-    heading = "Ready to transform your",
+    heading = 'Ready to transform your',
     accent = 'career?',
     description,
     primaryLabel,
@@ -735,24 +873,28 @@ export const FinalCTABanner = ({
     nextBatchDate
 }: FinalCTAProps) => {
     return (
-        <section className="px-5 md:px-8 py-20 md:py-24" style={{ background: 'var(--gradient-aurora)', color: '#fff' }}>
+        <section
+            className="px-5 md:px-8 py-20 md:py-24"
+            style={{ background: 'var(--gradient-aurora)', color: '#fff' }}>
             <div className="max-w-4xl mx-auto text-center">
                 {nextBatchDate && (
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11.5px] font-semibold mb-6"
-                         style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)' }}>
+                    <div
+                        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11.5px] font-semibold mb-6"
+                        style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)' }}>
                         <Award size={13} /> Next batch starts {nextBatchDate}
                     </div>
                 )}
                 <h2
                     className="font-display tracking-[-0.02em] leading-[1.05] font-semibold"
                     style={{ fontSize: 'clamp(28px, 5.4vw, 52px)' }}>
-                    {heading} <span className="italic font-medium" style={{ color: '#a7f3d0' }}>{accent}</span>
+                    {heading}{' '}
+                    <span
+                        className="italic font-medium"
+                        style={{ color: '#a7f3d0' }}>
+                        {accent}
+                    </span>
                 </h2>
-                {description && (
-                    <p className="mt-4 text-[15px] md:text-[17px] leading-relaxed text-white/85 max-w-2xl mx-auto">
-                        {description}
-                    </p>
-                )}
+                {description && <p className="mt-4 text-[15px] md:text-[17px] leading-relaxed text-white/85 max-w-2xl mx-auto">{description}</p>}
                 <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                     <CTAButton
                         label={primaryLabel}
@@ -774,19 +916,27 @@ export const FinalCTABanner = ({
 }
 
 const CTAButton = ({ label, href, onClick, primary }: { label: string; href?: string; onClick?: () => void; primary?: boolean }) => {
-    const className = 'inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-[14.5px] transition-all hover:translate-y-[-2px] active:scale-[0.98]'
+    const className =
+        'inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-[14.5px] transition-all hover:translate-y-[-2px] active:scale-[0.98]'
     const style: React.CSSProperties = primary
         ? { background: '#fff', color: '#0a0f1e', boxShadow: '0 12px 32px rgba(0,0,0,0.25)' }
         : { background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }
     if (href) {
         return (
-            <a href={href} className={className} style={style}>
+            <a
+                href={href}
+                className={className}
+                style={style}>
                 {label} <ArrowRight size={15} />
             </a>
         )
     }
     return (
-        <button type="button" onClick={onClick} className={className} style={style}>
+        <button
+            type="button"
+            onClick={onClick}
+            className={className}
+            style={style}>
             {label} <ArrowRight size={15} />
         </button>
     )
@@ -817,11 +967,22 @@ export const FaqAccordion = ({
     const [openIndex, setOpenIndex] = useState<number>(0)
     if (items.length === 0) return null
     return (
-        <SectionShell tone="white" spacing="normal">
-            <SectionHeading eyebrow="FAQs" title={heading} description={description} />
+        <SectionShell
+            tone="white"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="FAQs"
+                title={heading}
+                description={description}
+            />
             <ul className="space-y-3 max-w-3xl mx-auto">
                 {items.map((item, i) => (
-                    <FaqRow key={`${item.question}-${i}`} item={item} open={openIndex === i} onToggle={() => setOpenIndex((c) => (c === i ? -1 : i))} />
+                    <FaqRow
+                        key={`${item.question}-${i}`}
+                        item={item}
+                        open={openIndex === i}
+                        onToggle={() => setOpenIndex((c) => (c === i ? -1 : i))}
+                    />
                 ))}
             </ul>
         </SectionShell>
@@ -844,7 +1005,9 @@ const FaqRow = ({ item, open, onToggle }: { item: FaqItem; open: boolean; onTogg
                 aria-expanded={open}
                 className="w-full flex items-start gap-4 px-5 md:px-6 py-4 text-left"
                 style={{ minHeight: 56 }}>
-                <span className="flex-1 font-display text-[15.5px] md:text-[16.5px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <span
+                    className="flex-1 font-display text-[15.5px] md:text-[16.5px] font-semibold leading-tight"
+                    style={{ color: 'var(--text-primary)' }}>
                     {item.question}
                 </span>
                 <span
@@ -857,8 +1020,12 @@ const FaqRow = ({ item, open, onToggle }: { item: FaqItem; open: boolean; onTogg
                     <span className="text-[16px] leading-none">+</span>
                 </span>
             </button>
-            <div className="alb-accordion-body" data-open={open ? 'true' : 'false'}>
-                <p className="px-5 md:px-6 pb-5 text-[14px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            <div
+                className="alb-accordion-body"
+                data-open={open ? 'true' : 'false'}>
+                <p
+                    className="px-5 md:px-6 pb-5 text-[14px] leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}>
                     {item.answer}
                 </p>
             </div>

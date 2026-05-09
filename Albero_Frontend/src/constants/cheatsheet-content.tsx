@@ -32,7 +32,8 @@ const python: CheatSheet = {
     slug: 'python',
     title: 'Python Cheat Sheet',
     tagline: 'Syntax · Pandas · One-liners',
-    description: 'Python syntax, list/dict/set operations, comprehensions, f-strings, file I/O and the pandas one-liners you will reach for daily — on a single page.',
+    description:
+        'Python syntax, list/dict/set operations, comprehensions, f-strings, file I/O and the pandas one-liners you will reach for daily — on a single page.',
     pages: 2,
     accentGradient: 'linear-gradient(135deg,#3b82f6,#facc15)',
     iconKey: 'python',
@@ -41,21 +42,37 @@ const python: CheatSheet = {
         {
             title: 'Variables & data types',
             items: [
-                { label: 'Common scalars', language: 'python', code: 'x = 42         # int\nrate = 1.18    # float\nname = "Aanya" # str\nflag = True    # bool\nempty = None   # NoneType' },
-                { label: 'Type conversion', language: 'python', code: 'int("12") + 1     # 13\nfloat("87.5")     # 87.5\nstr(2026)         # "2026"\nbool(0)           # False' }
+                {
+                    label: 'Common scalars',
+                    language: 'python',
+                    code: 'x = 42         # int\nrate = 1.18    # float\nname = "Aanya" # str\nflag = True    # bool\nempty = None   # NoneType'
+                },
+                {
+                    label: 'Type conversion',
+                    language: 'python',
+                    code: 'int("12") + 1     # 13\nfloat("87.5")     # 87.5\nstr(2026)         # "2026"\nbool(0)           # False'
+                }
             ]
         },
         {
             title: 'Strings & f-strings',
             items: [
-                { label: 'Slicing & methods', language: 'python', code: 's = "Albero Academy"\ns[:6]         # "Albero"\ns.lower()     # "albero academy"\ns.replace("a", "@")\ns.split(" ")  # ["Albero", "Academy"]' },
+                {
+                    label: 'Slicing & methods',
+                    language: 'python',
+                    code: 's = "Albero Academy"\ns[:6]         # "Albero"\ns.lower()     # "albero academy"\ns.replace("a", "@")\ns.split(" ")  # ["Albero", "Academy"]'
+                },
                 { label: 'f-string formatting', language: 'python', code: 'price = 199.5\nf"₹{price:,.2f}"   # ₹199.50\nf"{price * 1.18:.0f}" # 235' }
             ]
         },
         {
             title: 'Lists, dicts, sets',
             items: [
-                { label: 'List comprehensions', language: 'python', code: '[n * n for n in range(5)]\n# [0, 1, 4, 9, 16]\n\n[w for w in words if len(w) > 3]' },
+                {
+                    label: 'List comprehensions',
+                    language: 'python',
+                    code: '[n * n for n in range(5)]\n# [0, 1, 4, 9, 16]\n\n[w for w in words if len(w) > 3]'
+                },
                 { label: 'Dict comprehensions', language: 'python', code: '{x: x**2 for x in range(4)}\n# {0: 0, 1: 1, 2: 4, 3: 9}' },
                 { label: 'Set ops', language: 'python', code: 'a | b   # union\na & b   # intersection\na - b   # difference' }
             ]
@@ -63,14 +80,26 @@ const python: CheatSheet = {
         {
             title: 'Control flow',
             items: [
-                { label: 'if / elif / else', language: 'python', code: 'if score >= 90:\n    grade = "A+"\nelif score >= 75:\n    grade = "A"\nelse:\n    grade = "B"' },
-                { label: 'for + enumerate + zip', language: 'python', code: 'for i, v in enumerate(items):\n    print(i, v)\n\nfor a, b in zip(xs, ys):\n    print(a, b)' }
+                {
+                    label: 'if / elif / else',
+                    language: 'python',
+                    code: 'if score >= 90:\n    grade = "A+"\nelif score >= 75:\n    grade = "A"\nelse:\n    grade = "B"'
+                },
+                {
+                    label: 'for + enumerate + zip',
+                    language: 'python',
+                    code: 'for i, v in enumerate(items):\n    print(i, v)\n\nfor a, b in zip(xs, ys):\n    print(a, b)'
+                }
             ]
         },
         {
             title: 'Functions',
             items: [
-                { label: 'Defaults & *args / **kwargs', language: 'python', code: 'def gst(amount, rate=0.18):\n    return amount * (1 + rate)\n\ndef log(*args, **kw):\n    print(args, kw)' },
+                {
+                    label: 'Defaults & *args / **kwargs',
+                    language: 'python',
+                    code: 'def gst(amount, rate=0.18):\n    return amount * (1 + rate)\n\ndef log(*args, **kw):\n    print(args, kw)'
+                },
                 { label: 'Lambda + map / filter', language: 'python', code: 'list(map(lambda x: x * 2, nums))\nlist(filter(lambda x: x > 0, nums))' }
             ]
         },
@@ -78,15 +107,27 @@ const python: CheatSheet = {
             title: 'File I/O',
             items: [
                 { label: 'Read file', language: 'python', code: 'with open("data.csv") as f:\n    text = f.read()' },
-                { label: 'Write JSON', language: 'python', code: 'import json\nwith open("out.json", "w") as f:\n    json.dump(payload, f, indent=2)' }
+                {
+                    label: 'Write JSON',
+                    language: 'python',
+                    code: 'import json\nwith open("out.json", "w") as f:\n    json.dump(payload, f, indent=2)'
+                }
             ]
         },
         {
             title: 'Pandas one-liners',
             items: [
-                { label: 'Read & inspect', language: 'python', code: 'import pandas as pd\ndf = pd.read_csv("sales.csv")\ndf.head()\ndf.info()\ndf.describe()' },
+                {
+                    label: 'Read & inspect',
+                    language: 'python',
+                    code: 'import pandas as pd\ndf = pd.read_csv("sales.csv")\ndf.head()\ndf.info()\ndf.describe()'
+                },
                 { label: 'Filter & group', language: 'python', code: 'df[df["region"] == "North"]\ndf.groupby("region")["revenue"].sum()' },
-                { label: 'Apply & transform', language: 'python', code: 'df["margin"] = df["revenue"] - df["cost"]\ndf["bucket"] = df["amount"].apply(\n    lambda x: "high" if x > 1000 else "low"\n)' }
+                {
+                    label: 'Apply & transform',
+                    language: 'python',
+                    code: 'df["margin"] = df["revenue"] - df["cost"]\ndf["bucket"] = df["amount"].apply(\n    lambda x: "high" if x > 1000 else "low"\n)'
+                }
             ]
         }
     ]
@@ -107,42 +148,78 @@ const sql: CheatSheet = {
         {
             title: 'SELECT basics',
             items: [
-                { label: 'Filtering & sorting', language: 'sql', code: 'SELECT name, salary\nFROM employees\nWHERE department = \'Engineering\'\nORDER BY salary DESC\nLIMIT 10;' },
-                { label: 'Aggregates', language: 'sql', code: 'SELECT department,\n       AVG(salary) AS avg_salary,\n       COUNT(*)    AS headcount\nFROM employees\nGROUP BY department\nHAVING COUNT(*) >= 5;' }
+                {
+                    label: 'Filtering & sorting',
+                    language: 'sql',
+                    code: "SELECT name, salary\nFROM employees\nWHERE department = 'Engineering'\nORDER BY salary DESC\nLIMIT 10;"
+                },
+                {
+                    label: 'Aggregates',
+                    language: 'sql',
+                    code: 'SELECT department,\n       AVG(salary) AS avg_salary,\n       COUNT(*)    AS headcount\nFROM employees\nGROUP BY department\nHAVING COUNT(*) >= 5;'
+                }
             ]
         },
         {
             title: 'JOINs',
             items: [
                 { label: 'INNER JOIN', language: 'sql', code: 'SELECT o.id, c.name\nFROM orders o\nINNER JOIN customers c ON o.customer_id = c.id;' },
-                { label: 'LEFT JOIN with NULL filter', language: 'sql', code: 'SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.id IS NULL;  -- customers with no orders' }
+                {
+                    label: 'LEFT JOIN with NULL filter',
+                    language: 'sql',
+                    code: 'SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.id IS NULL;  -- customers with no orders'
+                }
             ]
         },
         {
             title: 'CTEs',
             items: [
-                { label: 'Single CTE', language: 'sql', code: 'WITH top_products AS (\n    SELECT product_id, SUM(quantity) AS qty\n    FROM order_items\n    GROUP BY product_id\n    ORDER BY qty DESC\n    LIMIT 10\n)\nSELECT * FROM top_products;' }
+                {
+                    label: 'Single CTE',
+                    language: 'sql',
+                    code: 'WITH top_products AS (\n    SELECT product_id, SUM(quantity) AS qty\n    FROM order_items\n    GROUP BY product_id\n    ORDER BY qty DESC\n    LIMIT 10\n)\nSELECT * FROM top_products;'
+                }
             ]
         },
         {
             title: 'Window functions',
             items: [
-                { label: 'Running total', language: 'sql', code: 'SELECT order_date,\n       amount,\n       SUM(amount) OVER (\n           ORDER BY order_date\n       ) AS running_total\nFROM orders;' },
-                { label: 'Rank within group', language: 'sql', code: 'SELECT name, salary,\n       RANK() OVER (\n           PARTITION BY department\n           ORDER BY salary DESC\n       ) AS rk\nFROM employees;' },
-                { label: 'LEAD / LAG', language: 'sql', code: 'SELECT user_id, login_at,\n       LAG(login_at) OVER (\n           PARTITION BY user_id\n           ORDER BY login_at\n       ) AS prev_login\nFROM logins;' }
+                {
+                    label: 'Running total',
+                    language: 'sql',
+                    code: 'SELECT order_date,\n       amount,\n       SUM(amount) OVER (\n           ORDER BY order_date\n       ) AS running_total\nFROM orders;'
+                },
+                {
+                    label: 'Rank within group',
+                    language: 'sql',
+                    code: 'SELECT name, salary,\n       RANK() OVER (\n           PARTITION BY department\n           ORDER BY salary DESC\n       ) AS rk\nFROM employees;'
+                },
+                {
+                    label: 'LEAD / LAG',
+                    language: 'sql',
+                    code: 'SELECT user_id, login_at,\n       LAG(login_at) OVER (\n           PARTITION BY user_id\n           ORDER BY login_at\n       ) AS prev_login\nFROM logins;'
+                }
             ]
         },
         {
             title: 'Indexes & performance',
             items: [
-                { label: 'Create / use index', language: 'sql', code: 'CREATE INDEX idx_orders_user\nON orders(user_id);\n\n-- queries that filter on user_id will use it automatically' },
+                {
+                    label: 'Create / use index',
+                    language: 'sql',
+                    code: 'CREATE INDEX idx_orders_user\nON orders(user_id);\n\n-- queries that filter on user_id will use it automatically'
+                },
                 { label: 'EXPLAIN', language: 'sql', code: 'EXPLAIN ANALYZE\nSELECT * FROM orders\nWHERE user_id = 42;' }
             ]
         },
         {
             title: 'Interview classics',
             items: [
-                { label: '2nd highest salary', language: 'sql', code: 'SELECT MAX(salary) AS second_highest\nFROM employees\nWHERE salary < (SELECT MAX(salary) FROM employees);' },
+                {
+                    label: '2nd highest salary',
+                    language: 'sql',
+                    code: 'SELECT MAX(salary) AS second_highest\nFROM employees\nWHERE salary < (SELECT MAX(salary) FROM employees);'
+                },
                 { label: 'Find duplicates', language: 'sql', code: 'SELECT email, COUNT(*) c\nFROM users\nGROUP BY email\nHAVING COUNT(*) > 1;' }
             ]
         }
@@ -164,7 +241,11 @@ const dax: CheatSheet = {
         {
             title: 'Aggregations',
             items: [
-                { label: 'Sum / count / distinct', language: 'text', code: 'Total Sales = SUM(Sales[Amount])\nOrders = COUNTROWS(Sales)\nCustomers = DISTINCTCOUNT(Sales[CustomerKey])' }
+                {
+                    label: 'Sum / count / distinct',
+                    language: 'text',
+                    code: 'Total Sales = SUM(Sales[Amount])\nOrders = COUNTROWS(Sales)\nCustomers = DISTINCTCOUNT(Sales[CustomerKey])'
+                }
             ]
         },
         {
@@ -177,20 +258,36 @@ const dax: CheatSheet = {
         {
             title: 'Time intelligence',
             items: [
-                { label: 'YTD / MTD / QTD', language: 'text', code: 'Sales YTD = TOTALYTD([Total Sales], Date[Date])\nSales MTD = TOTALMTD([Total Sales], Date[Date])\nSales QTD = TOTALQTD([Total Sales], Date[Date])' },
-                { label: 'YoY %', language: 'text', code: 'Sales LY =\nCALCULATE([Total Sales], SAMEPERIODLASTYEAR(Date[Date]))\n\nYoY % = DIVIDE([Total Sales] - [Sales LY], [Sales LY])' }
+                {
+                    label: 'YTD / MTD / QTD',
+                    language: 'text',
+                    code: 'Sales YTD = TOTALYTD([Total Sales], Date[Date])\nSales MTD = TOTALMTD([Total Sales], Date[Date])\nSales QTD = TOTALQTD([Total Sales], Date[Date])'
+                },
+                {
+                    label: 'YoY %',
+                    language: 'text',
+                    code: 'Sales LY =\nCALCULATE([Total Sales], SAMEPERIODLASTYEAR(Date[Date]))\n\nYoY % = DIVIDE([Total Sales] - [Sales LY], [Sales LY])'
+                }
             ]
         },
         {
             title: 'Iterators',
             items: [
-                { label: 'SUMX / AVERAGEX', language: 'text', code: 'Revenue =\nSUMX(Sales, Sales[Quantity] * Sales[Price])\n\nAvg Order Value =\nAVERAGEX(Orders, Orders[Total])' }
+                {
+                    label: 'SUMX / AVERAGEX',
+                    language: 'text',
+                    code: 'Revenue =\nSUMX(Sales, Sales[Quantity] * Sales[Price])\n\nAvg Order Value =\nAVERAGEX(Orders, Orders[Total])'
+                }
             ]
         },
         {
             title: 'Variables (always use these)',
             items: [
-                { label: 'VAR / RETURN', language: 'text', code: 'Profit Margin =\nVAR Rev = [Total Sales]\nVAR Cost = [Total Cost]\nRETURN\n    DIVIDE(Rev - Cost, Rev)' }
+                {
+                    label: 'VAR / RETURN',
+                    language: 'text',
+                    code: 'Profit Margin =\nVAR Rev = [Total Sales]\nVAR Cost = [Total Cost]\nRETURN\n    DIVIDE(Rev - Cost, Rev)'
+                }
             ]
         }
     ]
@@ -211,7 +308,11 @@ const excel: CheatSheet = {
         {
             title: 'Lookups',
             items: [
-                { label: 'XLOOKUP (modern)', language: 'text', code: '=XLOOKUP(\n  lookup_value,\n  lookup_array,\n  return_array,\n  "Not found"\n)' },
+                {
+                    label: 'XLOOKUP (modern)',
+                    language: 'text',
+                    code: '=XLOOKUP(\n  lookup_value,\n  lookup_array,\n  return_array,\n  "Not found"\n)'
+                },
                 { label: 'INDEX/MATCH (legacy)', language: 'text', code: '=INDEX(C:C, MATCH(A2, B:B, 0))' }
             ]
         },
@@ -225,14 +326,26 @@ const excel: CheatSheet = {
         {
             title: 'Dynamic arrays',
             items: [
-                { label: 'FILTER / UNIQUE / SORT', language: 'text', code: '=FILTER(A2:C100, B2:B100>1000)\n=UNIQUE(D2:D100)\n=SORT(A2:C100, 3, -1)  // sort by col 3 desc' }
+                {
+                    label: 'FILTER / UNIQUE / SORT',
+                    language: 'text',
+                    code: '=FILTER(A2:C100, B2:B100>1000)\n=UNIQUE(D2:D100)\n=SORT(A2:C100, 3, -1)  // sort by col 3 desc'
+                }
             ]
         },
         {
             title: 'Top shortcuts',
             items: [
-                { label: 'Selection & navigation', language: 'text', code: 'Ctrl + Shift + L     toggle filters\nCtrl + Shift + Arrow extend selection to edge\nCtrl + Home / End    top-left / bottom-right\nF2                   edit cell\nAlt + =              quick AutoSum' },
-                { label: 'Pivot & format', language: 'text', code: 'Alt + N + V          new pivot table\nCtrl + T             format as table\nCtrl + Shift + $     currency format\nCtrl + Shift + %     percentage format' }
+                {
+                    label: 'Selection & navigation',
+                    language: 'text',
+                    code: 'Ctrl + Shift + L     toggle filters\nCtrl + Shift + Arrow extend selection to edge\nCtrl + Home / End    top-left / bottom-right\nF2                   edit cell\nAlt + =              quick AutoSum'
+                },
+                {
+                    label: 'Pivot & format',
+                    language: 'text',
+                    code: 'Alt + N + V          new pivot table\nCtrl + T             format as table\nCtrl + Shift + $     currency format\nCtrl + Shift + %     percentage format'
+                }
             ]
         }
     ]
@@ -253,28 +366,52 @@ const statistics: CheatSheet = {
         {
             title: 'Descriptive stats',
             items: [
-                { label: 'Mean / median / mode', language: 'text', code: 'Mean       μ = (Σ xᵢ) / n\nMedian     middle value (sorted)\nMode       most frequent value' },
+                {
+                    label: 'Mean / median / mode',
+                    language: 'text',
+                    code: 'Mean       μ = (Σ xᵢ) / n\nMedian     middle value (sorted)\nMode       most frequent value'
+                },
                 { label: 'Variance & SD', language: 'text', code: 'Variance   σ² = (Σ (xᵢ - μ)²) / n\nStd dev    σ  = √σ²\nIQR        Q3 - Q1' }
             ]
         },
         {
             title: 'Distributions',
             items: [
-                { label: 'Common ones', language: 'text', code: 'Normal       symmetric, bell-shaped, ~68/95/99.7 rule\nUniform      every outcome equally likely\nBinomial     fixed n trials, success / fail\nPoisson      events per fixed interval' }
+                {
+                    label: 'Common ones',
+                    language: 'text',
+                    code: 'Normal       symmetric, bell-shaped, ~68/95/99.7 rule\nUniform      every outcome equally likely\nBinomial     fixed n trials, success / fail\nPoisson      events per fixed interval'
+                }
             ]
         },
         {
             title: 'Hypothesis testing',
             items: [
-                { label: 'p-values', language: 'text', code: 'H₀  null hypothesis\nH₁  alternative\nα = 0.05 (typical threshold)\np < α  →  reject H₀\np ≥ α  →  fail to reject H₀' },
-                { label: 'Test selector', language: 'text', code: 'one-sample  →  t-test\ntwo-sample  →  independent t-test\npaired      →  paired t-test\nproportions →  z-test / chi-squared\n>2 groups   →  ANOVA' }
+                {
+                    label: 'p-values',
+                    language: 'text',
+                    code: 'H₀  null hypothesis\nH₁  alternative\nα = 0.05 (typical threshold)\np < α  →  reject H₀\np ≥ α  →  fail to reject H₀'
+                },
+                {
+                    label: 'Test selector',
+                    language: 'text',
+                    code: 'one-sample  →  t-test\ntwo-sample  →  independent t-test\npaired      →  paired t-test\nproportions →  z-test / chi-squared\n>2 groups   →  ANOVA'
+                }
             ]
         },
         {
             title: 'Regression',
             items: [
-                { label: 'Linear regression', language: 'text', code: 'y = β₀ + β₁ x + ε\n\nR²    proportion of variance explained\nRMSE  √(mean(yᵢ - ŷᵢ)²)\nMAE   mean(|yᵢ - ŷᵢ|)' },
-                { label: 'Watch outs', language: 'text', code: 'Multicollinearity → VIF > 5\nHeteroscedasticity → residuals plot\nOverfitting → train vs test gap' }
+                {
+                    label: 'Linear regression',
+                    language: 'text',
+                    code: 'y = β₀ + β₁ x + ε\n\nR²    proportion of variance explained\nRMSE  √(mean(yᵢ - ŷᵢ)²)\nMAE   mean(|yᵢ - ŷᵢ|)'
+                },
+                {
+                    label: 'Watch outs',
+                    language: 'text',
+                    code: 'Multicollinearity → VIF > 5\nHeteroscedasticity → residuals plot\nOverfitting → train vs test gap'
+                }
             ]
         }
     ]
@@ -302,14 +439,16 @@ const tableau: CheatSheet = {
         {
             title: 'LOD expressions',
             items: [
-                { label: 'FIXED / INCLUDE / EXCLUDE', language: 'text', code: '{ FIXED [Region] : SUM([Sales]) }\n{ INCLUDE [Sub-Category] : AVG([Profit]) }\n{ EXCLUDE [Order Date] : SUM([Sales]) }' }
+                {
+                    label: 'FIXED / INCLUDE / EXCLUDE',
+                    language: 'text',
+                    code: '{ FIXED [Region] : SUM([Sales]) }\n{ INCLUDE [Sub-Category] : AVG([Profit]) }\n{ EXCLUDE [Order Date] : SUM([Sales]) }'
+                }
             ]
         },
         {
             title: 'Table calculations',
-            items: [
-                { label: 'Running / pct of total', language: 'text', code: 'RUNNING_SUM(SUM([Sales]))\nSUM([Sales]) / TOTAL(SUM([Sales]))' }
-            ]
+            items: [{ label: 'Running / pct of total', language: 'text', code: 'RUNNING_SUM(SUM([Sales]))\nSUM([Sales]) / TOTAL(SUM([Sales]))' }]
         }
     ]
 }
@@ -327,20 +466,32 @@ const ml: CheatSheet = {
         {
             title: 'Algorithm selector',
             items: [
-                { label: 'By problem type', language: 'text', code: 'Regression   → Linear Reg, Random Forest, XGBoost\nClassification → Logistic Reg, RF, XGBoost, SVM\nClustering   → KMeans, DBSCAN, Hierarchical\nAnomaly      → Isolation Forest, One-class SVM\nNLP          → Transformers (BERT, GPT family)' }
+                {
+                    label: 'By problem type',
+                    language: 'text',
+                    code: 'Regression   → Linear Reg, Random Forest, XGBoost\nClassification → Logistic Reg, RF, XGBoost, SVM\nClustering   → KMeans, DBSCAN, Hierarchical\nAnomaly      → Isolation Forest, One-class SVM\nNLP          → Transformers (BERT, GPT family)'
+                }
             ]
         },
         {
             title: 'Evaluation metrics',
             items: [
-                { label: 'Classification', language: 'text', code: 'Accuracy   = (TP + TN) / total\nPrecision  = TP / (TP + FP)\nRecall     = TP / (TP + FN)\nF1         = 2 * P * R / (P + R)\nROC-AUC    classifier vs random' },
+                {
+                    label: 'Classification',
+                    language: 'text',
+                    code: 'Accuracy   = (TP + TN) / total\nPrecision  = TP / (TP + FP)\nRecall     = TP / (TP + FN)\nF1         = 2 * P * R / (P + R)\nROC-AUC    classifier vs random'
+                },
                 { label: 'Regression', language: 'text', code: 'MAE   mean(|y - ŷ|)\nMSE   mean((y - ŷ)²)\nRMSE  √MSE\nR²    1 - SS_res / SS_tot' }
             ]
         },
         {
             title: 'Sklearn pipeline',
             items: [
-                { label: 'End-to-end pipeline', language: 'python', code: 'from sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\n\npipe = Pipeline([\n    ("scaler", StandardScaler()),\n    ("clf",    LogisticRegression())\n])\n\npipe.fit(X_train, y_train)\npipe.score(X_test, y_test)' }
+                {
+                    label: 'End-to-end pipeline',
+                    language: 'python',
+                    code: 'from sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\n\npipe = Pipeline([\n    ("scaler", StandardScaler()),\n    ("clf",    LogisticRegression())\n])\n\npipe.fit(X_train, y_train)\npipe.score(X_test, y_test)'
+                }
             ]
         }
     ]
@@ -359,26 +510,46 @@ const genai: CheatSheet = {
         {
             title: 'Core concepts',
             items: [
-                { label: 'Glossary', language: 'text', code: 'Token       smallest unit of text the model sees\nEmbedding   vector representation of a token\nContext     all tokens the model attends to\nTransformer self-attention based architecture\nRAG         retrieval-augmented generation' }
+                {
+                    label: 'Glossary',
+                    language: 'text',
+                    code: 'Token       smallest unit of text the model sees\nEmbedding   vector representation of a token\nContext     all tokens the model attends to\nTransformer self-attention based architecture\nRAG         retrieval-augmented generation'
+                }
             ]
         },
         {
             title: 'Prompting patterns',
             items: [
-                { label: 'Zero / few / chain-of-thought', language: 'text', code: 'Zero-shot   plain instruction\nFew-shot    instruction + 3-5 examples\nCoT         "let\'s think step by step"\nReAct       reason + act loop with tool calls' }
+                {
+                    label: 'Zero / few / chain-of-thought',
+                    language: 'text',
+                    code: 'Zero-shot   plain instruction\nFew-shot    instruction + 3-5 examples\nCoT         "let\'s think step by step"\nReAct       reason + act loop with tool calls'
+                }
             ]
         },
         {
             title: 'Build a RAG pipeline',
             items: [
-                { label: 'High-level flow', language: 'text', code: '1. Chunk the docs (~500 tokens, overlap)\n2. Embed each chunk (OpenAI / Cohere / local)\n3. Store in a vector DB (Pinecone / pgvector / Chroma)\n4. At query: embed → top-k retrieve → stuff into prompt\n5. Send to LLM, return cited answer' },
-                { label: 'Minimal code', language: 'python', code: 'from openai import OpenAI\nclient = OpenAI()\n\nemb = client.embeddings.create(\n    model="text-embedding-3-small",\n    input=chunks\n).data\n\n# similarity search → top_k → prompt\nresponse = client.chat.completions.create(\n    model="gpt-4o",\n    messages=[\n        {"role": "system", "content": SYSTEM},\n        {"role": "user", "content": question + "\\n\\n" + context}\n    ]\n)' }
+                {
+                    label: 'High-level flow',
+                    language: 'text',
+                    code: '1. Chunk the docs (~500 tokens, overlap)\n2. Embed each chunk (OpenAI / Cohere / local)\n3. Store in a vector DB (Pinecone / pgvector / Chroma)\n4. At query: embed → top-k retrieve → stuff into prompt\n5. Send to LLM, return cited answer'
+                },
+                {
+                    label: 'Minimal code',
+                    language: 'python',
+                    code: 'from openai import OpenAI\nclient = OpenAI()\n\nemb = client.embeddings.create(\n    model="text-embedding-3-small",\n    input=chunks\n).data\n\n# similarity search → top_k → prompt\nresponse = client.chat.completions.create(\n    model="gpt-4o",\n    messages=[\n        {"role": "system", "content": SYSTEM},\n        {"role": "user", "content": question + "\\n\\n" + context}\n    ]\n)'
+                }
             ]
         },
         {
             title: 'Fine-tuning vs context',
             items: [
-                { label: 'When to use which', language: 'text', code: 'Use context (RAG) when:\n  - Knowledge changes often\n  - Need cited sources\n  - Small / medium domain\n\nFine-tune when:\n  - Style / format must be consistent\n  - Heavy traffic + cost-sensitive\n  - Need to teach a new task pattern' }
+                {
+                    label: 'When to use which',
+                    language: 'text',
+                    code: 'Use context (RAG) when:\n  - Knowledge changes often\n  - Need cited sources\n  - Small / medium domain\n\nFine-tune when:\n  - Style / format must be consistent\n  - Heavy traffic + cost-sensitive\n  - Need to teach a new task pattern'
+                }
             ]
         }
     ]

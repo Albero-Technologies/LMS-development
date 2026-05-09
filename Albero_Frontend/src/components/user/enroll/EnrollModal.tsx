@@ -197,7 +197,9 @@ export default function EnrollModal({
                         style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow-hover)' }}>
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-6">
-                            <div className="text-[11px] tracking-[0.2em] uppercase font-bold" style={{ color: 'var(--brand)' }}>
+                            <div
+                                className="text-[11px] tracking-[0.2em] uppercase font-bold"
+                                style={{ color: 'var(--brand)' }}>
                                 {paymentType === 'REGISTRATION' ? 'Reserve your seat in' : 'Enroll in'}
                             </div>
                             <button
@@ -209,18 +211,37 @@ export default function EnrollModal({
                             </button>
                         </div>
                         <div className="px-6 pt-1 pb-2">
-                            <h3 className="font-display text-[22px] md:text-[26px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                            <h3
+                                className="font-display text-[22px] md:text-[26px] font-semibold leading-tight"
+                                style={{ color: 'var(--text-primary)' }}>
                                 {courseTitle}
                             </h3>
                             {tierLabel && phase.kind === 'form' && (
-                                <p className="mt-1 text-[12.5px] font-semibold" style={{ color: 'var(--brand)' }}>
+                                <p
+                                    className="mt-1 text-[12.5px] font-semibold"
+                                    style={{ color: 'var(--brand)' }}>
                                     {tierLabel}
-                                    {tierPriceMinor ? <span className="font-medium" style={{ color: 'var(--text-tertiary)' }}> · {fmtINR(tierPriceMinor)}</span> : null}
+                                    {tierPriceMinor ? (
+                                        <span
+                                            className="font-medium"
+                                            style={{ color: 'var(--text-tertiary)' }}>
+                                            {' '}
+                                            · {fmtINR(tierPriceMinor)}
+                                        </span>
+                                    ) : null}
                                 </p>
                             )}
                             {displayPrice && phase.kind === 'form' && !tierLabel && (
-                                <p className="mt-1 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
-                                    From <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>{displayPrice}</span> · GST applicable at checkout
+                                <p
+                                    className="mt-1 text-[13px]"
+                                    style={{ color: 'var(--text-tertiary)' }}>
+                                    From{' '}
+                                    <span
+                                        className="font-semibold"
+                                        style={{ color: 'var(--text-secondary)' }}>
+                                        {displayPrice}
+                                    </span>{' '}
+                                    · GST applicable at checkout
                                 </p>
                             )}
 
@@ -305,8 +326,11 @@ export default function EnrollModal({
                                               : 'Pay securely & enroll'}
                                     </button>
 
-                                    <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
-                                        We'll redirect you to Razorpay for payment. Cancel anytime — we'll have a counsellor reach out for a free demo instead.
+                                    <p
+                                        className="text-[11px] mt-2 leading-relaxed"
+                                        style={{ color: 'var(--text-tertiary)' }}>
+                                        We'll redirect you to Razorpay for payment. Cancel anytime — we'll have a counsellor reach out for a free demo
+                                        instead.
                                     </p>
                                 </form>
                             )}
@@ -318,7 +342,9 @@ export default function EnrollModal({
                                         size={36}
                                         style={{ color: 'var(--brand)' }}
                                     />
-                                    <p className="mt-3 text-[14px]" style={{ color: 'var(--text-secondary)' }}>
+                                    <p
+                                        className="mt-3 text-[14px]"
+                                        style={{ color: 'var(--text-secondary)' }}>
                                         {phase.kind === 'initializing' ? 'Setting up your secure checkout…' : 'Confirming your payment…'}
                                     </p>
                                 </Centered>
@@ -360,8 +386,7 @@ export default function EnrollModal({
                                     <p
                                         className="mt-2 text-[13.5px] leading-relaxed"
                                         style={{ color: 'var(--text-secondary)' }}>
-                                        We've emailed your login credentials to <strong>{phase.email}</strong>. Sign in to start
-                                        learning.
+                                        We've emailed your login credentials to <strong>{phase.email}</strong>. Sign in to start learning.
                                     </p>
 
                                     <div
@@ -369,7 +394,9 @@ export default function EnrollModal({
                                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
                                         <div className="flex items-center justify-between text-[13px]">
                                             <span style={{ color: 'var(--text-tertiary)' }}>Paid today</span>
-                                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                            <span
+                                                className="font-semibold"
+                                                style={{ color: 'var(--text-primary)' }}>
                                                 {fmtINR(phase.amountPaidMinor)}
                                             </span>
                                         </div>
@@ -377,12 +404,16 @@ export default function EnrollModal({
                                             <>
                                                 <div className="flex items-center justify-between text-[13px] mt-2">
                                                     <span style={{ color: 'var(--text-tertiary)' }}>Balance due</span>
-                                                    <span className="font-semibold" style={{ color: 'var(--accent)' }}>
+                                                    <span
+                                                        className="font-semibold"
+                                                        style={{ color: 'var(--accent)' }}>
                                                         {fmtINR(phase.balanceDueMinor)}
                                                     </span>
                                                 </div>
                                                 {phase.balanceInvoiceNumber && (
-                                                    <p className="mt-2 text-[11.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                                    <p
+                                                        className="mt-2 text-[11.5px]"
+                                                        style={{ color: 'var(--text-tertiary)' }}>
                                                         A counsellor will reach out to collect the balance · Invoice {phase.balanceInvoiceNumber}
                                                     </p>
                                                 )}

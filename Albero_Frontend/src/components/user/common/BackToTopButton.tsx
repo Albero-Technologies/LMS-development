@@ -83,7 +83,10 @@ export default function BackToTopButton() {
                         style={{ transition: 'stroke-dashoffset 0.18s linear' }}
                     />
                 </svg>
-                <ArrowUp size={18} className="relative z-[1]" />
+                <ArrowUp
+                    size={18}
+                    className="relative z-[1]"
+                />
             </button>
         </div>
     )

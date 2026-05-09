@@ -52,8 +52,7 @@ export default function CaseStudies() {
         // If a constants entry exists for this brand/slug, use its slug as
         // the link target — keeps the detail page resolvable + reuses the
         // hand-written cover gradient + sector for visual consistency.
-        const match =
-            constantsByKey.get(`slug:${norm(it.slug)}`) ?? constantsByKey.get(`brand:${norm(brand)}`)
+        const match = constantsByKey.get(`slug:${norm(it.slug)}`) ?? constantsByKey.get(`brand:${norm(brand)}`)
         return {
             slug: match?.slug ?? it.slug,
             brand: match?.brand ?? brand,
@@ -82,10 +81,7 @@ export default function CaseStudies() {
         cmsKeys.add(`slug:${norm(c.slug)}`)
         cmsKeys.add(`brand:${norm(c.brand)}`)
     })
-    const all = [
-        ...cmsCases,
-        ...fallback.filter((c) => !cmsKeys.has(`slug:${norm(c.slug)}`) && !cmsKeys.has(`brand:${norm(c.brand)}`))
-    ]
+    const all = [...cmsCases, ...fallback.filter((c) => !cmsKeys.has(`slug:${norm(c.slug)}`) && !cmsKeys.has(`brand:${norm(c.brand)}`))]
     const featured = all.filter((c) => c.badge).slice(0, 3)
     const everything = all
 
@@ -144,14 +140,17 @@ export default function CaseStudies() {
                         style={{ color: 'var(--text-primary)' }}>
                         Explore by brand
                     </h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                        Click any brand to read the full case study.
-                    </p>
+                    <p style={{ color: 'var(--text-secondary)' }}>Click any brand to read the full case study.</p>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
                     {everything.map((c, i) => (
-                        <BrandTile key={c.slug} entry={c} index={i} onClick={() => navigate(`/resources/case-studies/${c.slug}`)} />
+                        <BrandTile
+                            key={c.slug}
+                            entry={c}
+                            index={i}
+                            onClick={() => navigate(`/resources/case-studies/${c.slug}`)}
+                        />
                     ))}
                 </div>
             </div>
@@ -184,7 +183,11 @@ export default function CaseStudies() {
                     <div
                         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-4 text-[12px] font-bold tracking-[0.2em] uppercase"
                         style={{ background: 'rgba(52,211,153,0.14)', border: '1px solid rgba(52,211,153,0.3)', color: 'rgba(245,243,234,0.92)' }}>
-                        <Award size={13} style={{ color: '#34d399' }} /> Mentor Recommendations
+                        <Award
+                            size={13}
+                            style={{ color: '#34d399' }}
+                        />{' '}
+                        Mentor Recommendations
                     </div>
                     <h2
                         className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em] mb-3"
@@ -198,7 +201,12 @@ export default function CaseStudies() {
 
                 <div className="grid md:grid-cols-3 gap-5">
                     {featured.map((f, i) => (
-                        <FeaturedCaseCard key={f.slug} entry={f} index={i} onClick={() => navigate(`/resources/case-studies/${f.slug}`)} />
+                        <FeaturedCaseCard
+                            key={f.slug}
+                            entry={f}
+                            index={i}
+                            onClick={() => navigate(`/resources/case-studies/${f.slug}`)}
+                        />
                     ))}
                 </div>
             </div>
@@ -219,7 +227,12 @@ export default function CaseStudies() {
                 </div>
                 <div className="space-y-4">
                     {everything.map((s, i) => (
-                        <CaseStudyListRow key={s.slug} entry={s} index={i} onClick={() => navigate(`/resources/case-studies/${s.slug}`)} />
+                        <CaseStudyListRow
+                            key={s.slug}
+                            entry={s}
+                            index={i}
+                            onClick={() => navigate(`/resources/case-studies/${s.slug}`)}
+                        />
                     ))}
                 </div>
             </div>
@@ -264,14 +277,24 @@ const BrandTile = ({ entry, index, onClick }: { entry: CaseStudyEntry; index: nu
                 style={{ background: `linear-gradient(90deg, ${color}, ${color}99)` }}
             />
             <div className="flex items-center gap-3">
-                <CompanyMark name={entry.brand} size={48} />
+                <CompanyMark
+                    name={entry.brand}
+                    size={48}
+                />
                 <div className="min-w-0 flex-1">
-                    <div className="font-display text-[16px] md:text-[17px] font-semibold leading-tight truncate" style={{ color: 'var(--text-primary)' }}>
+                    <div
+                        className="font-display text-[16px] md:text-[17px] font-semibold leading-tight truncate"
+                        style={{ color: 'var(--text-primary)' }}>
                         {entry.brand}
                     </div>
                     {(sector ?? entry.sector) && (
-                        <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[9.5px] font-bold tracking-[0.12em] uppercase" style={{ color, background: `${color}14` }}>
-                            <span className="inline-block w-1 h-1 rounded-full" style={{ background: color }} />
+                        <div
+                            className="mt-1 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[9.5px] font-bold tracking-[0.12em] uppercase"
+                            style={{ color, background: `${color}14` }}>
+                            <span
+                                className="inline-block w-1 h-1 rounded-full"
+                                style={{ background: color }}
+                            />
                             {sector ?? entry.sector}
                         </div>
                     )}
@@ -321,7 +344,10 @@ const FeaturedCaseCard = ({ entry, index, onClick }: { entry: CaseStudyEntry; in
             <div
                 className="relative aspect-video flex items-center justify-center"
                 style={{ background: `linear-gradient(135deg, ${color}33 0%, transparent 70%), rgba(0,0,0,0.4)` }}>
-                <CompanyMark name={entry.brand} size={88} />
+                <CompanyMark
+                    name={entry.brand}
+                    size={88}
+                />
                 {entry.badge && (
                     <span
                         className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase"
@@ -331,7 +357,9 @@ const FeaturedCaseCard = ({ entry, index, onClick }: { entry: CaseStudyEntry; in
                 )}
             </div>
             <div className="p-5">
-                <h3 className="font-display text-[19px] font-semibold mb-2 leading-tight" style={{ color: '#f5f3ea' }}>
+                <h3
+                    className="font-display text-[19px] font-semibold mb-2 leading-tight"
+                    style={{ color: '#f5f3ea' }}>
                     {entry.brand} Case Study
                 </h3>
                 <div className="flex flex-wrap gap-1.5 mb-3">
@@ -339,26 +367,42 @@ const FeaturedCaseCard = ({ entry, index, onClick }: { entry: CaseStudyEntry; in
                         <span
                             key={j}
                             className="px-2.5 py-0.5 rounded-full text-[11px]"
-                            style={{ background: 'rgba(52,211,153,0.10)', color: 'rgba(245,243,234,0.85)', border: '1px solid rgba(52,211,153,0.22)' }}>
+                            style={{
+                                background: 'rgba(52,211,153,0.10)',
+                                color: 'rgba(245,243,234,0.85)',
+                                border: '1px solid rgba(52,211,153,0.22)'
+                            }}>
                             {t}
                         </span>
                     ))}
                 </div>
-                <p className="text-[13.5px] leading-relaxed mb-4 line-clamp-3" style={{ color: 'rgba(245,243,234,0.72)' }}>
+                <p
+                    className="text-[13.5px] leading-relaxed mb-4 line-clamp-3"
+                    style={{ color: 'rgba(245,243,234,0.72)' }}>
                     {entry.description}
                 </p>
-                <div className="flex items-center justify-between gap-2 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                <div
+                    className="flex items-center justify-between gap-2 pt-3 border-t"
+                    style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
                     <div className="flex items-center gap-2">
                         <div
                             className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold"
                             style={{ background: 'rgba(52,211,153,0.20)', color: '#34d399' }}>
-                            {entry.author.name.split(' ').map((p) => p[0]).join('').slice(0, 2)}
+                            {entry.author.name
+                                .split(' ')
+                                .map((p) => p[0])
+                                .join('')
+                                .slice(0, 2)}
                         </div>
-                        <span className="text-[12.5px]" style={{ color: 'rgba(245,243,234,0.7)' }}>
+                        <span
+                            className="text-[12.5px]"
+                            style={{ color: 'rgba(245,243,234,0.7)' }}>
                             {entry.author.name}
                         </span>
                     </div>
-                    <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: 'rgba(245,243,234,0.6)' }}>
+                    <span
+                        className="inline-flex items-center gap-1 text-[11.5px] font-semibold"
+                        style={{ color: 'rgba(245,243,234,0.6)' }}>
                         <Clock size={11} /> {entry.readMin} min
                     </span>
                 </div>
@@ -392,24 +436,37 @@ const CaseStudyListRow = ({ entry, index, onClick }: { entry: CaseStudyEntry; in
                 e.currentTarget.style.boxShadow = 'var(--card-shadow-soft)'
                 e.currentTarget.style.transform = 'none'
             }}>
-            <CompanyMark name={entry.brand} size={56} />
+            <CompanyMark
+                name={entry.brand}
+                size={56}
+            />
             <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[10px] font-bold tracking-[0.16em] uppercase" style={{ color }}>
+                    <span
+                        className="text-[10px] font-bold tracking-[0.16em] uppercase"
+                        style={{ color }}>
                         {sector ?? entry.sector}
                     </span>
                     <span style={{ color: 'var(--hairline)' }}>·</span>
-                    <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                    <span
+                        className="text-[11px]"
+                        style={{ color: 'var(--text-tertiary)' }}>
                         {entry.author.name}
                     </span>
                 </div>
-                <h3 className="font-display text-[19px] md:text-[22px] font-semibold leading-tight mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                    className="font-display text-[19px] md:text-[22px] font-semibold leading-tight mb-1.5"
+                    style={{ color: 'var(--text-primary)' }}>
                     {entry.title}
                 </h3>
-                <p className="text-[13.5px] leading-relaxed mb-2 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                    className="text-[13.5px] leading-relaxed mb-2 line-clamp-2"
+                    style={{ color: 'var(--text-secondary)' }}>
                     {entry.description}
                 </p>
-                <div className="flex flex-wrap items-center gap-2.5 text-[11.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                <div
+                    className="flex flex-wrap items-center gap-2.5 text-[11.5px]"
+                    style={{ color: 'var(--text-tertiary)' }}>
                     {entry.date && <span>{entry.date}</span>}
                     {entry.date && <span>·</span>}
                     <span className="inline-flex items-center gap-1">
@@ -430,7 +487,10 @@ const CaseStudyListRow = ({ entry, index, onClick }: { entry: CaseStudyEntry; in
             <div
                 className="hidden sm:flex w-11 h-11 rounded-full items-center justify-center transition-all"
                 style={{ background: `${color}14`, color }}>
-                <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight
+                    size={17}
+                    className="transition-transform group-hover:translate-x-0.5"
+                />
             </div>
         </motion.button>
     )

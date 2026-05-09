@@ -21,7 +21,10 @@ export default function ExaminationPolicy() {
             </Section>
 
             <Section title="2. Assessment Structure">
-                <p>Each program may include a combination of assignments & case studies, projects (individual / capstone), quizzes & module assessments, and a final evaluation.</p>
+                <p>
+                    Each program may include a combination of assignments & case studies, projects (individual / capstone), quizzes & module
+                    assessments, and a final evaluation.
+                </p>
                 <p>Typical weightage:</p>
                 <Bullets items={['Continuous Assessments: 40–60%', 'Projects & Practical Work: 30–50%', 'Final Evaluation: 10–20%']} />
                 <p>Exact structure may vary by program and will be shared at enrollment.</p>
@@ -82,9 +85,18 @@ export default function ExaminationPolicy() {
             </Section>
 
             <Section title="8. Certification Criteria">
-                <p>To receive certification, you must successfully meet minimum grading criteria, complete all required assignments and projects, and demonstrate practical understanding of the subject.</p>
+                <p>
+                    To receive certification, you must successfully meet minimum grading criteria, complete all required assignments and projects, and
+                    demonstrate practical understanding of the subject.
+                </p>
                 <p>Types of certifications include:</p>
-                <Bullets items={['Program Completion Certificate', 'Industry / Partner Certification (if applicable)', 'Merit-based or Distinction Certificates']} />
+                <Bullets
+                    items={[
+                        'Program Completion Certificate',
+                        'Industry / Partner Certification (if applicable)',
+                        'Merit-based or Distinction Certificates'
+                    ]}
+                />
             </Section>
 
             <Section title="9. Certificate Issuance Timeline">
@@ -108,7 +120,10 @@ export default function ExaminationPolicy() {
             </Section>
 
             <Section title="11. Re-evaluation & Appeals">
-                <p>You may request re-evaluation within 7 days of result declaration. Requests must include valid justification. Re-evaluation decisions are final.</p>
+                <p>
+                    You may request re-evaluation within 7 days of result declaration. Requests must include valid justification. Re-evaluation
+                    decisions are final.
+                </p>
             </Section>
         </PolicyLayout>
     )

@@ -91,7 +91,10 @@ export default function InterviewGuides() {
                             onClick={() => navigate(`/resources/interview-guides/${g.slug}`)}
                             className="px-4 py-2 rounded-full inline-flex items-center gap-2 text-[13.5px] transition-colors"
                             style={{ background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}>
-                            <Icon size={14} style={{ color: 'var(--brand)' }} />
+                            <Icon
+                                size={14}
+                                style={{ color: 'var(--brand)' }}
+                            />
                             {g.title.replace('Fundamentals of ', '')}
                         </motion.button>
                     )
@@ -213,11 +216,16 @@ export default function InterviewGuides() {
                                     border: '1px solid var(--line)',
                                     boxShadow: 'var(--card-shadow)'
                                 }}>
-                                <div className="h-32 flex items-center justify-center relative" style={{ background: g.accentGradient }}>
+                                <div
+                                    className="h-32 flex items-center justify-center relative"
+                                    style={{ background: g.accentGradient }}>
                                     <span className="font-display text-3xl md:text-4xl font-semibold text-white drop-shadow">
                                         {g.title.replace('Fundamentals of ', '')}
                                     </span>
-                                    <Icon className="absolute right-5 bottom-5 text-white/30" size={48} />
+                                    <Icon
+                                        className="absolute right-5 bottom-5 text-white/30"
+                                        size={48}
+                                    />
                                 </div>
                                 <div className="p-5">
                                     <h3

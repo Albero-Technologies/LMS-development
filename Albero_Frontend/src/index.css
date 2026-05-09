@@ -44,16 +44,16 @@
     /* Floating action buttons — back-to-top (left) */
     --btt-bg: #ffffff;
     --btt-fg: #0d4f3c;
-    --btt-border: rgba(10, 14, 31, 0.10);
+    --btt-border: rgba(10, 14, 31, 0.1);
     --btt-shadow: 0 1px 0 rgba(10, 14, 31, 0.04), 0 12px 32px rgba(10, 14, 31, 0.18);
     --btt-ring: #0d4f3c;
-    --btt-track: rgba(10, 14, 31, 0.10);
+    --btt-track: rgba(10, 14, 31, 0.1);
 
     /* Floating action buttons — WhatsApp (right) */
     --wa-bg: #25d366;
     --wa-fg: #ffffff;
-    --wa-border: rgba(255, 255, 255, 0.30);
-    --wa-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 14px 32px rgba(37, 211, 102, 0.40);
+    --wa-border: rgba(255, 255, 255, 0.3);
+    --wa-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 14px 32px rgba(37, 211, 102, 0.4);
     --wa-tooltip-bg: #0a0e1f;
     --wa-tooltip-fg: #ffffff;
 
@@ -78,7 +78,7 @@
     --text-muted: #5b6079;
     --text-on-inverse: #0a0e1f;
 
-    --line: rgba(255, 255, 255, 0.10);
+    --line: rgba(255, 255, 255, 0.1);
     --line-strong: rgba(255, 255, 255, 0.18);
     --line-soft: rgba(255, 255, 255, 0.06);
 
@@ -98,12 +98,12 @@
     --btt-border: rgba(255, 255, 255, 0.14);
     --btt-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 14px 36px rgba(0, 0, 0, 0.55);
     --btt-ring: #34d399;
-    --btt-track: rgba(255, 255, 255, 0.10);
+    --btt-track: rgba(255, 255, 255, 0.1);
 
     --wa-bg: linear-gradient(140deg, #25d366, #128c7e);
     --wa-fg: #ffffff;
-    --wa-border: rgba(255, 255, 255, 0.20);
-    --wa-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 18px 40px rgba(37, 211, 102, 0.30), 0 0 0 1px rgba(52, 211, 153, 0.20);
+    --wa-border: rgba(255, 255, 255, 0.2);
+    --wa-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 18px 40px rgba(37, 211, 102, 0.3), 0 0 0 1px rgba(52, 211, 153, 0.2);
     --wa-tooltip-bg: #f5f3ea;
     --wa-tooltip-fg: #0a0e1f;
 
@@ -172,7 +172,9 @@ body {
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.4s ease, color 0.4s ease;
+    transition:
+        background-color 0.4s ease,
+        color 0.4s ease;
 }
 
 /* ── Custom cursor ─────────────────────────────────────────────────────────
@@ -183,7 +185,9 @@ body {
 html,
 body,
 [data-stage='dark'] {
-    cursor: url('./assets/images/cursor/light/arrow.png') 0 0, auto;
+    cursor:
+        url('./assets/images/cursor/light/arrow.png') 0 0,
+        auto;
 }
 
 a,
@@ -191,12 +195,16 @@ button,
 [role='button'],
 [onclick],
 .cursor-hand {
-    cursor: url('./assets/images/cursor/light/hand.png') 0 0, pointer;
+    cursor:
+        url('./assets/images/cursor/light/hand.png') 0 0,
+        pointer;
 }
 
 [data-theme='dark'] html,
 [data-theme='dark'] body {
-    cursor: url('./assets/images/cursor/dark/arrow.png') 0 0, auto;
+    cursor:
+        url('./assets/images/cursor/dark/arrow.png') 0 0,
+        auto;
 }
 
 [data-theme='dark'] a,
@@ -204,14 +212,18 @@ button,
 [data-theme='dark'] [role='button'],
 [data-theme='dark'] [onclick],
 [data-theme='dark'] .cursor-hand {
-    cursor: url('./assets/images/cursor/dark/hand.png') 0 0, pointer;
+    cursor:
+        url('./assets/images/cursor/dark/hand.png') 0 0,
+        pointer;
 }
 
 /* "no" cursor for disabled controls */
 :disabled,
 [aria-disabled='true'],
 .cursor-not-allowed {
-    cursor: url('./assets/images/cursor/light/no.png') 0 0, not-allowed !important;
+    cursor:
+        url('./assets/images/cursor/light/no.png') 0 0,
+        not-allowed !important;
 }
 
 /* Lenis: prevent overscroll glitching on body */
@@ -232,7 +244,9 @@ html.lenis body {
 /* Display headings — editorial serif */
 .font-display {
     font-family: var(--font-display);
-    font-feature-settings: 'ss01' on, 'ss02' on;
+    font-feature-settings:
+        'ss01' on,
+        'ss02' on;
 }
 .font-mono {
     font-family: var(--font-mono);
@@ -276,7 +290,7 @@ html.lenis body {
     --text-secondary: #c9cbd6;
     --text-tertiary: #8e92a4;
     --text-muted: #5b6079;
-    --line: rgba(255, 255, 255, 0.10);
+    --line: rgba(255, 255, 255, 0.1);
     --line-strong: rgba(255, 255, 255, 0.18);
     --line-soft: rgba(255, 255, 255, 0.06);
     --brand: #34d399;
@@ -301,8 +315,12 @@ html.lenis body {
 
 /* Marquee animation reusable */
 @keyframes alb-marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
 /* Hide scrollbar utility — used in horizontal carousels */
@@ -326,7 +344,11 @@ html.lenis body {
     box-shadow: var(--card-shadow);
     /* Animate only the cheap properties. Transform is owned by GSAP
        wobble and must NOT be transitioned (it would fight the tween). */
-    transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease, border-color 160ms ease;
+    transition:
+        background-color 160ms ease,
+        color 160ms ease,
+        opacity 160ms ease,
+        border-color 160ms ease;
     will-change: transform;
     cursor: pointer;
 }
@@ -357,19 +379,38 @@ html.lenis body {
 
 /* ── Stairs-climb section ── */
 @keyframes alb-stair-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(184, 106, 24, 0.0); }
-    50% { box-shadow: 0 0 0 12px rgba(184, 106, 24, 0.18); }
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(184, 106, 24, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 12px rgba(184, 106, 24, 0.18);
+    }
 }
 
 @keyframes alb-stair-bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
 }
 
 @keyframes alb-trophy-shine {
-    0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
-    50% { transform: scale(1.18) rotate(6deg); opacity: 1; }
-    100% { transform: scale(1) rotate(0); opacity: 1; }
+    0% {
+        transform: scale(0.6) rotate(-10deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.18) rotate(6deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -422,13 +463,21 @@ html.lenis body {
    3× the source list so a translate of -33.333% loops seamlessly. Pause on
    hover via animation-play-state. */
 @keyframes alb-ticker-left {
-    0% { transform: translate3d(0, 0, 0); }
-    100% { transform: translate3d(-33.333%, 0, 0); }
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(-33.333%, 0, 0);
+    }
 }
 
 @keyframes alb-ticker-right {
-    0% { transform: translate3d(-33.333%, 0, 0); }
-    100% { transform: translate3d(0, 0, 0); }
+    0% {
+        transform: translate3d(-33.333%, 0, 0);
+    }
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
 }
 
 .alb-ticker-track {
@@ -451,9 +500,18 @@ html.lenis body {
 
 /* Salary-jump arrow — cubic bezier overshoot when the card scrolls in. */
 @keyframes alb-arrow-pop {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .alb-arrow-pop[data-visible='true'] {
@@ -463,9 +521,18 @@ html.lenis body {
 /* Concentric expanding hub pulse — used by the canvas hero AND any
    static "central icon" mock that wants the same heartbeat vibe. */
 @keyframes alb-hub-pulse {
-    0% { transform: scale(0.85); opacity: 0.55; }
-    80% { transform: scale(1.6); opacity: 0; }
-    100% { transform: scale(1.6); opacity: 0; }
+    0% {
+        transform: scale(0.85);
+        opacity: 0.55;
+    }
+    80% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
 }
 
 .alb-hub-pulse {
@@ -479,8 +546,7 @@ html.lenis body {
     background:
         radial-gradient(60% 50% at 20% 20%, rgba(13, 79, 60, 0.32) 0%, transparent 60%),
         radial-gradient(60% 50% at 80% 30%, rgba(20, 120, 95, 0.22) 0%, transparent 60%),
-        radial-gradient(60% 50% at 50% 90%, rgba(52, 211, 153, 0.18) 0%, transparent 60%),
-        var(--section-deep);
+        radial-gradient(60% 50% at 50% 90%, rgba(52, 211, 153, 0.18) 0%, transparent 60%), var(--section-deep);
 }
 
 /* Frosted glass cards — for nodes that float over the aurora mesh or
@@ -539,7 +605,9 @@ html.lenis body {
 .alb-accordion-body {
     overflow: hidden;
     max-height: 0;
-    transition: max-height 0.4s ease, padding 0.4s ease;
+    transition:
+        max-height 0.4s ease,
+        padding 0.4s ease;
 }
 
 .alb-accordion-body[data-open='true'] {
@@ -566,7 +634,9 @@ html.lenis body {
 }
 
 @supports not (background: color-mix(in srgb, white 50%, transparent)) {
-    .alb-sticky-nav { background: var(--surface); }
+    .alb-sticky-nav {
+        background: var(--surface);
+    }
 }
 
 /* Reduced motion — kill anything beyond a 0.01s transition. */
@@ -580,4 +650,3 @@ html.lenis body {
         transition: none !important;
     }
 }
-

@@ -119,7 +119,7 @@ export const ArmorCodeHero = ({ nodes, hubLabel = 'Studio', hubGlyph = '✦', he
         particlesRef.current = nodes.flatMap((n, idx) =>
             Array.from({ length: PARTICLES_PER_NODE }).map((_, k) => ({
                 nodeId: n.id,
-                t: ((idx * 0.18 + k * (1 / PARTICLES_PER_NODE)) % 1 + 1) % 1,
+                t: (((idx * 0.18 + k * (1 / PARTICLES_PER_NODE)) % 1) + 1) % 1,
                 speed: 0.0014 + Math.random() * 0.0014,
                 radius: 1.6 + Math.random() * 1.6
             }))
@@ -145,7 +145,7 @@ export const ArmorCodeHero = ({ nodes, hubLabel = 'Studio', hubGlyph = '✦', he
         const blobs = [
             { x: 0.18, y: 0.28, r: 0.38, color: 'rgba(13, 79, 60, 0.18)', phase: 0 },
             { x: 0.82, y: 0.38, r: 0.32, color: 'rgba(52, 211, 153, 0.16)', phase: 1.6 },
-            { x: 0.5, y: 0.85, r: 0.40, color: 'rgba(20, 120, 95, 0.14)', phase: 3.2 }
+            { x: 0.5, y: 0.85, r: 0.4, color: 'rgba(20, 120, 95, 0.14)', phase: 3.2 }
         ]
 
         const computeBezier = (node: ArmorCodeNode, hubX: number, hubY: number) => {
@@ -396,8 +396,14 @@ export const ArmorCodeHero = ({ nodes, hubLabel = 'Studio', hubGlyph = '✦', he
     }, [nodes, hubLabel, hubGlyph, height])
 
     return (
-        <div ref={containerRef} className={`relative w-full ${className ?? ''}`} style={{ height }}>
-            <canvas ref={canvasRef} className="absolute inset-0" />
+        <div
+            ref={containerRef}
+            className={`relative w-full ${className ?? ''}`}
+            style={{ height }}>
+            <canvas
+                ref={canvasRef}
+                className="absolute inset-0"
+            />
         </div>
     )
 }

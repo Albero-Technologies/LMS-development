@@ -1,7 +1,21 @@
 import { useParams, Link, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
-import { ArrowLeft, ArrowRight, ChevronRight, Code2, Database, BarChart3, FileSpreadsheet, Calculator, PieChart, Brain, Sparkles, Download, FileText } from 'lucide-react'
+import {
+    ArrowLeft,
+    ArrowRight,
+    ChevronRight,
+    Code2,
+    Database,
+    BarChart3,
+    FileSpreadsheet,
+    Calculator,
+    PieChart,
+    Brain,
+    Sparkles,
+    Download,
+    FileText
+} from 'lucide-react'
 import CodeBlock from '@/components/ui/code-block'
 import { findSheet, listSheets } from '@/constants/cheatsheet-content'
 
@@ -26,7 +40,13 @@ export default function CheatSheetDetail() {
         window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     }, [location.pathname])
 
-    if (!sheet) return <Navigate to="/resources/cheatsheet" replace />
+    if (!sheet)
+        return (
+            <Navigate
+                to="/resources/cheatsheet"
+                replace
+            />
+        )
 
     const Icon = iconMap[sheet.iconKey]
     const related = all.filter((s) => s.slug !== sheet.slug).slice(0, 4)
@@ -43,8 +63,12 @@ export default function CheatSheetDetail() {
                     style={{ background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)', filter: 'blur(50px)' }}
                 />
                 <div className="max-w-[1180px] mx-auto relative z-[1]">
-                    <nav className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap" style={{ color: 'var(--text-tertiary)' }}>
-                        <Link to="/resources/cheatsheet" className="hover:underline">
+                    <nav
+                        className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap"
+                        style={{ color: 'var(--text-tertiary)' }}>
+                        <Link
+                            to="/resources/cheatsheet"
+                            className="hover:underline">
                             CheatSheets
                         </Link>
                         <ChevronRight size={12} />
@@ -52,7 +76,10 @@ export default function CheatSheetDetail() {
                     </nav>
 
                     <div className="grid lg:grid-cols-[1.4fr_1fr] gap-10 items-start">
-                        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}>
                             <div
                                 className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-md mb-5"
                                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
@@ -69,7 +96,9 @@ export default function CheatSheetDetail() {
                                 style={{ color: 'var(--brand)' }}>
                                 {sheet.tagline}
                             </p>
-                            <p className="text-[15.5px] leading-relaxed max-w-[620px] mb-8" style={{ color: 'var(--text-secondary)' }}>
+                            <p
+                                className="text-[15.5px] leading-relaxed max-w-[620px] mb-8"
+                                style={{ color: 'var(--text-secondary)' }}>
                                 {sheet.description}
                             </p>
 
@@ -108,7 +137,10 @@ export default function CheatSheetDetail() {
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-bold tracking-wider uppercase bg-white/15 border border-white/20">
                                     <FileText size={12} /> PDF
                                 </div>
-                                <Icon size={28} className="text-white/40" />
+                                <Icon
+                                    size={28}
+                                    className="text-white/40"
+                                />
                             </div>
                             <div className="relative z-[1]">
                                 <span
@@ -193,7 +225,9 @@ export default function CheatSheetDetail() {
                                                 />
                                             </div>
                                         ) : (
-                                            <div className="p-5 text-[14px]" style={{ color: 'var(--text-secondary)' }}>
+                                            <div
+                                                className="p-5 text-[14px]"
+                                                style={{ color: 'var(--text-secondary)' }}>
                                                 {item.note}
                                             </div>
                                         )}
@@ -214,7 +248,9 @@ export default function CheatSheetDetail() {
 
             {/* Related */}
             {related.length > 0 && (
-                <section className="px-5 md:px-8 pb-24" style={{ background: 'var(--page-bg-soft)' }}>
+                <section
+                    className="px-5 md:px-8 pb-24"
+                    style={{ background: 'var(--page-bg-soft)' }}>
                     <div className="max-w-[1180px] mx-auto pt-16">
                         <div className="flex items-end justify-between mb-8">
                             <h2
@@ -242,10 +278,11 @@ export default function CheatSheetDetail() {
                                         <div
                                             className="aspect-[4/3] flex items-end justify-between p-5"
                                             style={{ background: s.accentGradient, color: '#fff' }}>
-                                            <span className="font-display font-semibold text-[20px] tracking-tight">
-                                                {s.title.split(' ')[0]}
-                                            </span>
-                                            <RelIcon size={28} className="text-white/40" />
+                                            <span className="font-display font-semibold text-[20px] tracking-tight">{s.title.split(' ')[0]}</span>
+                                            <RelIcon
+                                                size={28}
+                                                className="text-white/40"
+                                            />
                                         </div>
                                         <div className="p-5">
                                             <h3
@@ -253,7 +290,9 @@ export default function CheatSheetDetail() {
                                                 style={{ color: 'var(--text-primary)' }}>
                                                 {s.title}
                                             </h3>
-                                            <p className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+                                            <p
+                                                className="text-[12px]"
+                                                style={{ color: 'var(--text-tertiary)' }}>
                                                 PDF · {s.pages} {s.pages > 1 ? 'pages' : 'page'}
                                             </p>
                                         </div>

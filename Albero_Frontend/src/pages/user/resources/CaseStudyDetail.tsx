@@ -32,7 +32,13 @@ export default function CaseStudyDetail() {
         return () => observer.disconnect()
     }, [slug, study])
 
-    if (!study) return <Navigate to="/resources/case-studies" replace />
+    if (!study)
+        return (
+            <Navigate
+                to="/resources/case-studies"
+                replace
+            />
+        )
 
     const related = all.filter((c) => c.slug !== study.slug && c.sector === study.sector).slice(0, 3)
     const initials = study.author.name
@@ -56,7 +62,9 @@ export default function CaseStudyDetail() {
                     <nav
                         className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap"
                         style={{ color: 'var(--text-tertiary)' }}>
-                        <Link to="/resources/case-studies" className="hover:underline">
+                        <Link
+                            to="/resources/case-studies"
+                            className="hover:underline">
                             Case Studies
                         </Link>
                         <ChevronRight size={12} />
@@ -65,7 +73,10 @@ export default function CaseStudyDetail() {
                         <span style={{ color: 'var(--text-primary)' }}>{study.brand}</span>
                     </nav>
 
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}>
                         <div className="flex items-center gap-2 mb-5 flex-wrap">
                             {study.badge && (
                                 <span
@@ -92,7 +103,9 @@ export default function CaseStudyDetail() {
                             {study.description}
                         </p>
 
-                        <div className="flex items-center justify-between flex-wrap gap-4 pb-7 border-b" style={{ borderColor: 'var(--line)' }}>
+                        <div
+                            className="flex items-center justify-between flex-wrap gap-4 pb-7 border-b"
+                            style={{ borderColor: 'var(--line)' }}>
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-10 h-10 rounded-full inline-flex items-center justify-center font-semibold text-[12px]"
@@ -100,10 +113,14 @@ export default function CaseStudyDetail() {
                                     {initials}
                                 </div>
                                 <div className="leading-tight">
-                                    <div className="text-[13.5px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="text-[13.5px] font-semibold"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {study.author.name}
                                     </div>
-                                    <div className="text-[11.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[11.5px]"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {study.author.role}
                                     </div>
                                 </div>
@@ -122,7 +139,11 @@ export default function CaseStudyDetail() {
                                         <span
                                             key={i}
                                             className="px-2 py-0.5 rounded-md"
-                                            style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--line)' }}>
+                                            style={{
+                                                background: 'var(--surface-2)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--line)'
+                                            }}>
                                             #{t}
                                         </span>
                                     ))}
@@ -161,11 +182,35 @@ export default function CaseStudyDetail() {
                             Brand snapshot
                         </div>
                         <div className="space-y-3">
-                            <FactRow icon={Building2} label="Sector" value={study.sector} />
-                            <FactRow icon={Calendar} label="Founded" value={study.founded} />
-                            <FactRow icon={MapPin} label="HQ" value={study.headquarters} />
-                            {study.revenue && <FactRow icon={TrendingUp} label="Revenue" value={study.revenue} />}
-                            {study.employees && <FactRow icon={Users} label="Employees" value={study.employees} />}
+                            <FactRow
+                                icon={Building2}
+                                label="Sector"
+                                value={study.sector}
+                            />
+                            <FactRow
+                                icon={Calendar}
+                                label="Founded"
+                                value={study.founded}
+                            />
+                            <FactRow
+                                icon={MapPin}
+                                label="HQ"
+                                value={study.headquarters}
+                            />
+                            {study.revenue && (
+                                <FactRow
+                                    icon={TrendingUp}
+                                    label="Revenue"
+                                    value={study.revenue}
+                                />
+                            )}
+                            {study.employees && (
+                                <FactRow
+                                    icon={Users}
+                                    label="Employees"
+                                    value={study.employees}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -242,7 +287,9 @@ export default function CaseStudyDetail() {
 
             {/* Related */}
             {related.length > 0 && (
-                <section className="px-5 md:px-8 pb-24" style={{ background: 'var(--page-bg-soft)' }}>
+                <section
+                    className="px-5 md:px-8 pb-24"
+                    style={{ background: 'var(--page-bg-soft)' }}>
                     <div className="max-w-[1180px] mx-auto pt-16">
                         <div className="flex items-end justify-between mb-8">
                             <h2
@@ -283,7 +330,9 @@ export default function CaseStudyDetail() {
                                             style={{ color: 'var(--text-primary)' }}>
                                             {c.title}
                                         </h3>
-                                        <div className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+                                        <div
+                                            className="text-[12px]"
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             {c.date} · {c.readMin} min read
                                         </div>
                                     </div>
@@ -306,14 +355,29 @@ export default function CaseStudyDetail() {
     )
 }
 
-function FactRow({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>; label: string; value: string }) {
+function FactRow({
+    icon: Icon,
+    label,
+    value
+}: {
+    icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>
+    label: string
+    value: string
+}) {
     return (
         <div className="flex items-center justify-between gap-3 text-[13.5px]">
-            <span className="inline-flex items-center gap-2" style={{ color: 'var(--text-tertiary)' }}>
-                <Icon size={13} style={{ color: 'var(--brand)' }} />
+            <span
+                className="inline-flex items-center gap-2"
+                style={{ color: 'var(--text-tertiary)' }}>
+                <Icon
+                    size={13}
+                    style={{ color: 'var(--brand)' }}
+                />
                 {label}
             </span>
-            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <span
+                className="font-semibold"
+                style={{ color: 'var(--text-primary)' }}>
                 {value}
             </span>
         </div>

@@ -36,7 +36,10 @@ const padBy: Record<NonNullable<SectionShellProps['spacing']>, string> = {
 export const SectionShell = ({ tone = 'white', maxWidth = 1180, spacing = 'normal', id, className, children }: SectionShellProps) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>()
     return (
-        <section id={id} className={`relative ${padBy[spacing]} px-5 md:px-8 ${className ?? ''}`} style={toneBg[tone]}>
+        <section
+            id={id}
+            className={`relative ${padBy[spacing]} px-5 md:px-8 ${className ?? ''}`}
+            style={toneBg[tone]}>
             <div
                 ref={ref}
                 className={`mx-auto transition-all duration-[600ms] ease-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
@@ -97,9 +100,18 @@ export const WaveDivider = ({ from = 'white', to = 'soft' }: { from?: Tone; to?:
     const fromColor = from === 'deep' ? '#0a0f1e' : from === 'soft' ? 'var(--section-soft)' : 'var(--surface)'
     const toColor = to === 'deep' ? '#0a0f1e' : to === 'soft' ? 'var(--section-soft)' : 'var(--surface)'
     return (
-        <div aria-hidden="true" className="relative" style={{ background: fromColor }}>
-            <svg className="block w-full h-[60px] md:h-[80px]" viewBox="0 0 1200 80" preserveAspectRatio="none">
-                <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z" fill={toColor} />
+        <div
+            aria-hidden="true"
+            className="relative"
+            style={{ background: fromColor }}>
+            <svg
+                className="block w-full h-[60px] md:h-[80px]"
+                viewBox="0 0 1200 80"
+                preserveAspectRatio="none">
+                <path
+                    d="M0,40 C200,80 400,0 600,40 C800,80 1000,0 1200,40 L1200,80 L0,80 Z"
+                    fill={toColor}
+                />
             </svg>
         </div>
     )

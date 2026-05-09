@@ -53,15 +53,17 @@ export default function ThreeSection() {
                                 lineHeight: 1.02
                             }}>
                             Learning that{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 ships.
                             </span>
                         </h2>
                         <p
                             className="mt-5 text-[15.5px] leading-relaxed max-w-[520px]"
                             style={{ color: 'var(--text-secondary)' }}>
-                            Every cohort is built around production-grade work — capstones reviewed by IBM and Microsoft mentors,
-                            referrals into 180+ hiring partners, and a placement sprint that runs until you have an offer in hand.
+                            Every cohort is built around production-grade work — capstones reviewed by IBM and Microsoft mentors, referrals into 180+
+                            hiring partners, and a placement sprint that runs until you have an offer in hand.
                         </p>
 
                         <ul className="mt-7 grid sm:grid-cols-3 gap-3">
@@ -79,10 +81,14 @@ export default function ThreeSection() {
                                         style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                                         <Icon size={16} />
                                     </div>
-                                    <div className="font-display text-[14px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display text-[14px] font-semibold leading-tight"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {label}
                                     </div>
-                                    <div className="text-[11.5px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[11.5px] mt-0.5"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {sub}
                                     </div>
                                 </li>
@@ -121,8 +127,7 @@ export default function ThreeSection() {
                         transition={{ duration: 0.6 }}
                         className="relative rounded-[28px] overflow-hidden w-full max-w-full"
                         style={{
-                            background:
-                                'linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%)',
+                            background: 'linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%)',
                             border: '1px solid var(--line)',
                             boxShadow: 'var(--card-shadow-hover)',
                             // Aspect-ratio plus minHeight overflowed on narrow phones
@@ -137,9 +142,18 @@ export default function ThreeSection() {
                             className="absolute top-0 left-0 right-0 z-[2] px-4 py-2.5 flex items-center justify-between"
                             style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--line)' }}>
                             <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full" style={{ background: '#ef4444' }} />
-                                <span className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
-                                <span className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} />
+                                <span
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ background: '#ef4444' }}
+                                />
+                                <span
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ background: '#f59e0b' }}
+                                />
+                                <span
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ background: '#10b981' }}
+                                />
                             </div>
                             <span
                                 className="font-mono text-[10.5px] tracking-tight"
@@ -179,10 +193,14 @@ export default function ThreeSection() {
                                 border: '1px solid var(--line)'
                             }}>
                             <div className="leading-tight">
-                                <div className="text-[10.5px] tracking-[0.16em] uppercase font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                                <div
+                                    className="text-[10.5px] tracking-[0.16em] uppercase font-semibold"
+                                    style={{ color: 'var(--text-secondary)' }}>
                                     Knowledge graph
                                 </div>
-                                <div className="font-display text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                <div
+                                    className="font-display text-[14px] font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}>
                                     You · 8 skills · 14 hiring partners — live
                                 </div>
                             </div>

@@ -33,7 +33,7 @@ const faqs = [
     },
     {
         q: 'What if I miss a live session?',
-        a: "Recordings are posted within 12 hours, with searchable transcripts and code links. You can also drop questions in the cohort Slack — mentors and TAs respond on the same day."
+        a: 'Recordings are posted within 12 hours, with searchable transcripts and code links. You can also drop questions in the cohort Slack — mentors and TAs respond on the same day.'
     },
     {
         q: 'Is there an EMI option? What about refunds?',
@@ -41,7 +41,7 @@ const faqs = [
     },
     {
         q: 'Will I get an industry-recognised certificate?',
-        a: "Yes — three of them, depending on your track. (1) A verifiable Albero certificate signed by your mentor and a hiring partner. (2) For data tracks: an IBM SkillsBuild badge on Credly. (3) For BI/analytics tracks: a Microsoft Certified pathway with a free exam voucher. Every credential has a unique ID employers can verify on our platform."
+        a: 'Yes — three of them, depending on your track. (1) A verifiable Albero certificate signed by your mentor and a hiring partner. (2) For data tracks: an IBM SkillsBuild badge on Credly. (3) For BI/analytics tracks: a Microsoft Certified pathway with a free exam voucher. Every credential has a unique ID employers can verify on our platform.'
     }
 ]
 
@@ -64,7 +64,9 @@ export default function FAQSection() {
                             className="font-display text-[40px] md:text-[54px] leading-[0.98] tracking-[-0.02em] font-medium"
                             style={{ color: 'var(--text-primary)' }}>
                             Still on the{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 fence?
                             </span>
                         </h2>
@@ -72,7 +74,10 @@ export default function FAQSection() {
                             className="mt-4 text-[15px] leading-relaxed"
                             style={{ color: 'var(--text-secondary)' }}>
                             We've collected the seven questions every prospective learner asks before enrolling. Don't see yours? Email{' '}
-                            <a href="mailto:support@alberoacademy.com" style={{ color: 'var(--brand)' }} className="underline">
+                            <a
+                                href="mailto:support@alberoacademy.com"
+                                style={{ color: 'var(--brand)' }}
+                                className="underline">
                                 support@alberoacademy.com
                             </a>{' '}
                             — we reply within 4 hours.

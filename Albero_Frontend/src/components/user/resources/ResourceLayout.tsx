@@ -11,15 +11,7 @@ interface ResourceLayoutProps {
     children: ReactNode
 }
 
-export default function ResourceLayout({
-    eyebrow,
-    title,
-    highlight,
-    description,
-    icon: Icon,
-    stats,
-    children
-}: ResourceLayoutProps) {
+export default function ResourceLayout({ eyebrow, title, highlight, description, icon: Icon, stats, children }: ResourceLayoutProps) {
     return (
         <div
             className="min-h-screen relative overflow-hidden"
@@ -74,7 +66,10 @@ export default function ResourceLayout({
                         <div
                             className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-7 text-[12px] font-semibold tracking-tight"
                             style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
-                            <Icon size={13} style={{ color: 'var(--brand)' }} />
+                            <Icon
+                                size={13}
+                                style={{ color: 'var(--brand)' }}
+                            />
                             {eyebrow}
                         </div>
 
@@ -85,7 +80,9 @@ export default function ResourceLayout({
                             {highlight && (
                                 <>
                                     <br />
-                                    <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                                    <span
+                                        className="italic font-light"
+                                        style={{ color: 'var(--brand)' }}>
                                         {highlight}
                                     </span>
                                 </>

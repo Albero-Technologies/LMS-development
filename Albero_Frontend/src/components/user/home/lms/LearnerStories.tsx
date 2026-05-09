@@ -5,8 +5,7 @@ const stories = [
     {
         before: 'Hospitality · 0 years in tech',
         after: 'Data Analyst · Razorpay',
-        quote:
-            'I came in barely knowing what an SQL JOIN was. Seven months later I had three offers. The mentor 1:1s and project reviews were the unlock — they made the work feel real.',
+        quote: 'I came in barely knowing what an SQL JOIN was. Seven months later I had three offers. The mentor 1:1s and project reviews were the unlock — they made the work feel real.',
         name: 'Aanya Kapoor',
         program: 'Data Analytics',
         salary: '₹12 LPA',
@@ -15,8 +14,7 @@ const stories = [
     {
         before: 'B.Com graduate · No coding background',
         after: 'Business Analyst · Deloitte',
-        quote:
-            'The case-study driven curriculum is different from anything I tried online. I could speak the language of the business in my interviews because I had practised it weekly.',
+        quote: 'The case-study driven curriculum is different from anything I tried online. I could speak the language of the business in my interviews because I had practised it weekly.',
         name: 'Vikram Iyer',
         program: 'Business Analytics',
         salary: '₹9 LPA',
@@ -25,8 +23,7 @@ const stories = [
     {
         before: 'Service-co engineer · Stuck',
         after: 'AI Engineer · Adobe',
-        quote:
-            'I built and shipped two LLM-powered apps during the program. The capstone reviewer at Albero literally referred me. That referral is what got my profile read.',
+        quote: 'I built and shipped two LLM-powered apps during the program. The capstone reviewer at Albero literally referred me. That referral is what got my profile read.',
         name: 'Shreya Bansal',
         program: 'Data Science with AI',
         salary: '₹26 LPA',
@@ -50,7 +47,9 @@ export default function LearnerStories() {
                         className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
                         style={{ color: 'var(--text-primary)' }}>
                         Real career changes,{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
                             measured in offers.
                         </span>
                     </h2>
@@ -80,7 +79,9 @@ export default function LearnerStories() {
                                         style={{ color: 'var(--text-tertiary)' }}>
                                         Before
                                     </span>
-                                    <span className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
+                                    <span
+                                        className="text-[13px]"
+                                        style={{ color: 'var(--text-secondary)' }}>
                                         {s.before}
                                     </span>
                                 </div>
@@ -90,7 +91,9 @@ export default function LearnerStories() {
                                         style={{ color: 'var(--brand)' }}>
                                         After
                                     </span>
-                                    <span className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    <span
+                                        className="text-[13px] font-semibold"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {s.after}
                                     </span>
                                 </div>

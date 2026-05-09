@@ -113,7 +113,13 @@ export default function ProgramPage() {
         }
     }, [fallback, overlay])
 
-    if (!program) return <Navigate to="/" replace />
+    if (!program)
+        return (
+            <Navigate
+                to="/"
+                replace
+            />
+        )
 
     const Icon = program.icon
     const displayPrice = program.fees[0]?.price
@@ -151,11 +157,15 @@ export default function ProgramPage() {
     }))
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+        <div
+            className="min-h-screen relative overflow-hidden"
+            style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
             {/* ──────────────────────────────────────────────────────────
                 1. HERO — title + counsellor side card + ArmorCode canvas
             ────────────────────────────────────────────────────────── */}
-            <section id="overview" className="relative pt-[140px] pb-16 px-5 md:px-8">
+            <section
+                id="overview"
+                className="relative pt-[140px] pb-16 px-5 md:px-8">
                 <div
                     aria-hidden="true"
                     className="absolute pointer-events-none rounded-full"
@@ -169,11 +179,17 @@ export default function ProgramPage() {
                     }}
                 />
                 <div className="max-w-6xl mx-auto relative z-[1] grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-start">
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}>
                         <div
                             className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-6 text-[12px] font-semibold tracking-tight"
                             style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
-                            <Icon size={14} style={{ color: 'var(--brand)' }} />
+                            <Icon
+                                size={14}
+                                style={{ color: 'var(--brand)' }}
+                            />
                             {program.badge}
                         </div>
 
@@ -185,17 +201,30 @@ export default function ProgramPage() {
                             <span className="italic font-light alb-gradient-text">{program.highlight}</span>
                         </h1>
 
-                        <p className="text-[17px] font-medium mb-3" style={{ color: 'var(--brand)' }}>
+                        <p
+                            className="text-[17px] font-medium mb-3"
+                            style={{ color: 'var(--brand)' }}>
                             {program.subtitle}
                         </p>
-                        <p className="text-[15px] leading-relaxed max-w-xl mb-8" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="text-[15px] leading-relaxed max-w-xl mb-8"
+                            style={{ color: 'var(--text-secondary)' }}>
                             {program.description}
                         </p>
 
                         <div className="flex flex-wrap gap-3 mb-8">
-                            <Pill icon={Clock} label={program.duration} />
-                            <Pill icon={Users} label={program.mode} />
-                            <Pill icon={GraduationCap} label={program.level} />
+                            <Pill
+                                icon={Clock}
+                                label={program.duration}
+                            />
+                            <Pill
+                                icon={Users}
+                                label={program.mode}
+                            />
+                            <Pill
+                                icon={GraduationCap}
+                                label={program.level}
+                            />
                         </div>
 
                         <div className="flex flex-wrap gap-3">
@@ -219,11 +248,13 @@ export default function ProgramPage() {
                                 }}>
                                 Pay Full Fee {selectedTier?.price ? `· ${selectedTier.price}` : ''}
                             </button>
-                            <a href="/pricing" className="px-6 py-3 rounded-full font-semibold transition-colors" style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line-strong)' }}>
+                            <a
+                                href="/pricing"
+                                className="px-6 py-3 rounded-full font-semibold transition-colors"
+                                style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line-strong)' }}>
                                 See Pricing
                             </a>
                         </div>
-
                     </motion.div>
 
                     {/* Counsellor side card */}
@@ -237,13 +268,19 @@ export default function ProgramPage() {
                             border: '1px solid var(--line)',
                             boxShadow: 'var(--card-shadow-hover)'
                         }}>
-                        <div className="flex items-center gap-2 mb-3 text-[13px] font-semibold" style={{ color: 'var(--accent)' }}>
+                        <div
+                            className="flex items-center gap-2 mb-3 text-[13px] font-semibold"
+                            style={{ color: 'var(--accent)' }}>
                             <Sparkles size={16} /> {program.enrollDate}
                         </div>
-                        <h3 className="font-display text-[20px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                        <h3
+                            className="font-display text-[20px] font-semibold mb-1"
+                            style={{ color: 'var(--text-primary)' }}>
                             Talk to a Counsellor
                         </h3>
-                        <p className="text-[14px] mb-5" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="text-[14px] mb-5"
+                            style={{ color: 'var(--text-secondary)' }}>
                             Quick 15-min call — get program details, eligibility, and fee structure.
                         </p>
 
@@ -268,13 +305,19 @@ export default function ProgramPage() {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--line)' }}>
+                        <div
+                            className="grid grid-cols-2 gap-3 mt-6 pt-6 border-t"
+                            style={{ borderColor: 'var(--line)' }}>
                             {program.stats.map((s, i) => (
                                 <div key={i}>
-                                    <div className="font-display text-[22px] font-semibold leading-none" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display text-[22px] font-semibold leading-none"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {s.v}
                                     </div>
-                                    <div className="text-[10px] tracking-[0.16em] uppercase mt-1.5 font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[10px] tracking-[0.16em] uppercase mt-1.5 font-semibold"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {s.l}
                                     </div>
                                 </div>
@@ -303,7 +346,25 @@ export default function ProgramPage() {
             {/* ──────────────────────────────────────────────────────────
                 3. THE ADVANTAGE / WHY US
             ────────────────────────────────────────────────────────── */}
-            <AdvantageGrid items={DEFAULT_ADVANTAGE.map((a, i) => ({ ...a, icon: [<Briefcase key="b" size={20} />, <Award key="a" size={20} />, <Compass key="c" size={20} />][i] }))} />
+            <AdvantageGrid
+                items={DEFAULT_ADVANTAGE.map((a, i) => ({
+                    ...a,
+                    icon: [
+                        <Briefcase
+                            key="b"
+                            size={20}
+                        />,
+                        <Award
+                            key="a"
+                            size={20}
+                        />,
+                        <Compass
+                            key="c"
+                            size={20}
+                        />
+                    ][i]
+                }))}
+            />
 
             {/* ──────────────────────────────────────────────────────────
                 4. WHAT YOU'LL LEARN — tabbed pill grid
@@ -317,7 +378,11 @@ export default function ProgramPage() {
                     section. Replaces the small embedded canvas that used
                     to live inside the hero block.
             ────────────────────────────────────────────────────────── */}
-            <TechMeshSection nodes={armorNodes} hubLabel={program.title.split(' ')[0]} hubGlyph="✦" />
+            <TechMeshSection
+                nodes={armorNodes}
+                hubLabel={program.title.split(' ')[0]}
+                hubGlyph="✦"
+            />
 
             {/* ──────────────────────────────────────────────────────────
                 5. CURRICULUM — accordion + share + PDF
@@ -426,12 +491,21 @@ export default function ProgramPage() {
     )
 }
 
-function Pill({ icon: Icon, label }: { icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>; label: string }) {
+function Pill({
+    icon: Icon,
+    label
+}: {
+    icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>
+    label: string
+}) {
     return (
         <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13.5px]"
             style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
-            <Icon size={14} style={{ color: 'var(--brand)' }} />
+            <Icon
+                size={14}
+                style={{ color: 'var(--brand)' }}
+            />
             {label}
         </div>
     )

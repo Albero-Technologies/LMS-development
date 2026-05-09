@@ -62,7 +62,9 @@ export default function SoftSkills() {
             {/* Audiences */}
             <div className="mb-14">
                 <div className="text-center mb-7">
-                    <span className="text-[11px] font-semibold tracking-[0.22em] uppercase" style={{ color: 'var(--text-tertiary)' }}>
+                    <span
+                        className="text-[11px] font-semibold tracking-[0.22em] uppercase"
+                        style={{ color: 'var(--text-tertiary)' }}>
                         Perfect for
                     </span>
                 </div>
@@ -76,10 +78,14 @@ export default function SoftSkills() {
                             transition={{ delay: i * 0.08 }}
                             className="px-6 py-3 rounded-full"
                             style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}>
-                            <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            <div
+                                className="text-[14px] font-semibold"
+                                style={{ color: 'var(--text-primary)' }}>
                                 {a.label}
                             </div>
-                            <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                            <div
+                                className="text-[11px] mt-0.5"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 {a.sub}
                             </div>
                         </motion.div>
@@ -127,9 +133,15 @@ export default function SoftSkills() {
                                         Free
                                     </span>
                                     <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <PlayCircle size={32} style={{ color: '#0a0e1f' }} />
+                                        <PlayCircle
+                                            size={32}
+                                            style={{ color: '#0a0e1f' }}
+                                        />
                                     </div>
-                                    <TIcon size={36} className="absolute top-4 right-4 text-white/30" />
+                                    <TIcon
+                                        size={36}
+                                        className="absolute top-4 right-4 text-white/30"
+                                    />
                                     <span
                                         className="absolute bottom-4 left-4 right-4 font-display text-[26px] md:text-[34px] font-extrabold tracking-tight text-center italic"
                                         style={{ color: 'rgba(255,255,255,0.92)', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
@@ -142,7 +154,9 @@ export default function SoftSkills() {
                                         style={{ color: 'var(--text-primary)' }}>
                                         {t.title}
                                     </h3>
-                                    <p className="text-[14px] mb-3" style={{ color: 'var(--text-secondary)' }}>
+                                    <p
+                                        className="text-[14px] mb-3"
+                                        style={{ color: 'var(--text-secondary)' }}>
                                         {t.tagline}
                                     </p>
                                     <div
@@ -205,10 +219,15 @@ export default function SoftSkills() {
                                 <div
                                     className="flex items-center justify-between pt-3 border-t"
                                     style={{ borderColor: 'var(--line)' }}>
-                                    <span className="text-[11.5px] inline-flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                                    <span
+                                        className="text-[11.5px] inline-flex items-center gap-1.5"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         <Clock size={11} /> {s.duration}
                                     </span>
-                                    <ArrowUpRight size={14} style={{ color: 'var(--brand)' }} />
+                                    <ArrowUpRight
+                                        size={14}
+                                        style={{ color: 'var(--brand)' }}
+                                    />
                                 </div>
                             </motion.button>
                         )

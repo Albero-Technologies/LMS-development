@@ -24,7 +24,9 @@ export function ThemeToggle({ size = 'md', className = '' }: ThemeToggleProps) {
                 border: '1px solid var(--line)',
                 color: 'var(--text-primary)'
             }}>
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence
+                mode="wait"
+                initial={false}>
                 <motion.span
                     key={theme}
                     initial={{ y: -8, opacity: 0, rotate: -45 }}

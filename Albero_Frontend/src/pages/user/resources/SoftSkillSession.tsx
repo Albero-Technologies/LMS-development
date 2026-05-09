@@ -32,7 +32,13 @@ export default function SoftSkillSessionPage() {
         return () => observer.disconnect()
     }, [slug, session])
 
-    if (!session) return <Navigate to="/resources/soft-skills" replace />
+    if (!session)
+        return (
+            <Navigate
+                to="/resources/soft-skills"
+                replace
+            />
+        )
 
     const Icon = session.Icon
     const related = all.filter((s) => s.slug !== session.slug).slice(0, 3)
@@ -49,15 +55,22 @@ export default function SoftSkillSessionPage() {
                     style={{ background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)', filter: 'blur(50px)' }}
                 />
                 <div className="max-w-[1180px] mx-auto relative z-[1]">
-                    <nav className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap" style={{ color: 'var(--text-tertiary)' }}>
-                        <Link to="/resources/soft-skills" className="hover:underline">
+                    <nav
+                        className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap"
+                        style={{ color: 'var(--text-tertiary)' }}>
+                        <Link
+                            to="/resources/soft-skills"
+                            className="hover:underline">
                             Soft Skills
                         </Link>
                         <ChevronRight size={12} />
                         <span style={{ color: 'var(--text-primary)' }}>{session.title}</span>
                     </nav>
 
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}>
                         <div className="flex items-center gap-2 mb-5 flex-wrap">
                             <span
                                 className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-md"
@@ -81,7 +94,9 @@ export default function SoftSkillSessionPage() {
                             style={{ color: 'var(--brand)' }}>
                             {session.tagline}
                         </p>
-                        <p className="text-[16px] leading-relaxed max-w-[760px] mb-8" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="text-[16px] leading-relaxed max-w-[760px] mb-8"
+                            style={{ color: 'var(--text-secondary)' }}>
                             {session.description}
                         </p>
 
@@ -119,7 +134,10 @@ export default function SoftSkillSessionPage() {
                             Free
                         </span>
                         <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xl">
-                            <PlayCircle size={40} style={{ color: '#0a0e1f' }} />
+                            <PlayCircle
+                                size={40}
+                                style={{ color: '#0a0e1f' }}
+                            />
                         </div>
                         <div
                             className="absolute bottom-5 left-5 right-5 font-display text-[28px] md:text-[40px] font-extrabold tracking-tight text-center italic"
@@ -203,7 +221,9 @@ export default function SoftSkillSessionPage() {
 
             {/* Related */}
             {related.length > 0 && (
-                <section className="px-5 md:px-8 pb-24" style={{ background: 'var(--page-bg-soft)' }}>
+                <section
+                    className="px-5 md:px-8 pb-24"
+                    style={{ background: 'var(--page-bg-soft)' }}>
                     <div className="max-w-[1180px] mx-auto pt-16">
                         <div className="flex items-end justify-between mb-8">
                             <h2
@@ -232,7 +252,10 @@ export default function SoftSkillSessionPage() {
                                             className="aspect-video flex items-center justify-center relative"
                                             style={{ background: s.coverGradient }}>
                                             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-                                                <PlayCircle size={22} style={{ color: '#0a0e1f' }} />
+                                                <PlayCircle
+                                                    size={22}
+                                                    style={{ color: '#0a0e1f' }}
+                                                />
                                             </div>
                                             <RelIcon
                                                 size={36}
@@ -250,7 +273,9 @@ export default function SoftSkillSessionPage() {
                                                 style={{ color: 'var(--text-secondary)' }}>
                                                 {s.tagline}
                                             </p>
-                                            <div className="text-[11.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                            <div
+                                                className="text-[11.5px]"
+                                                style={{ color: 'var(--text-tertiary)' }}>
                                                 {s.duration} · {s.level}
                                             </div>
                                         </div>

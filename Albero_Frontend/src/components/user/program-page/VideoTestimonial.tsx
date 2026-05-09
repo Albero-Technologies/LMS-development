@@ -31,8 +31,15 @@ export const VideoTestimonial = ({
     const [playing, setPlaying] = useState(false)
     const poster = posterUrl ?? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
     return (
-        <SectionShell tone="white" spacing="normal">
-            <SectionHeading eyebrow="Hear it from them" title={heading} accent={accent} description={description} />
+        <SectionShell
+            tone="white"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Hear it from them"
+                title={heading}
+                accent={accent}
+                description={description}
+            />
             <div
                 className="relative max-w-4xl mx-auto rounded-3xl overflow-hidden"
                 style={{
@@ -55,7 +62,12 @@ export const VideoTestimonial = ({
                             onClick={() => setPlaying(true)}
                             aria-label="Play student testimonial video"
                             className="absolute inset-0 group">
-                            <img src={poster} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                            <img
+                                src={poster}
+                                alt=""
+                                className="absolute inset-0 w-full h-full object-cover"
+                                loading="lazy"
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                             <div
                                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
@@ -63,13 +75,19 @@ export const VideoTestimonial = ({
                                     background: 'var(--gradient-aurora)',
                                     boxShadow: '0 14px 38px rgba(91,63,214,0.45)'
                                 }}>
-                                <Play size={28} fill="#fff" stroke="#fff" />
+                                <Play
+                                    size={28}
+                                    fill="#fff"
+                                    stroke="#fff"
+                                />
                             </div>
                         </button>
                     )}
                 </div>
                 {caption && (
-                    <div className="px-5 md:px-6 py-4 text-center text-[12.5px] md:text-[13.5px]" style={{ color: 'rgba(245,243,234,0.85)' }}>
+                    <div
+                        className="px-5 md:px-6 py-4 text-center text-[12.5px] md:text-[13.5px]"
+                        style={{ color: 'rgba(245,243,234,0.85)' }}>
                         {caption}
                     </div>
                 )}
