@@ -317,6 +317,261 @@ const discord: CaseStudyEntry = {
     )
 }
 
+// ─── Razorpay ─────────────────────────────────────────────────────────────────
+
+const razorpay: CaseStudyEntry = {
+    slug: 'razorpay',
+    brand: 'Razorpay',
+    title: 'Razorpay — Payment Infrastructure for India and the Developer-First Wedge',
+    description:
+        'How Razorpay shipped a developer-first checkout, then layered neo-banking, payouts, and capital on top — the API-first playbook for fintech.',
+    sector: 'Fintech / Payments',
+    founded: '2014',
+    headquarters: 'Bengaluru, India',
+    revenue: '$120M',
+    employees: '3,000+',
+    coverGradient: 'linear-gradient(135deg,#3395FF,#2563eb)',
+    badge: 'Editor Pick',
+    tags: ['Fintech', 'Developer-First', 'API'],
+    author: { name: 'Albero curriculum', role: 'Editorial' },
+    readMin: 13,
+    date: '09 May 2026',
+    keyFacts: [
+        { label: 'Businesses served', value: '10M+' },
+        { label: 'TPV (annual)', value: '$90B+' },
+        { label: 'Products shipped', value: '40+' },
+        { label: 'Valuation', value: '$7.5B' }
+    ],
+    toc: [
+        { id: 'origin', label: 'Origin story' },
+        { id: 'wedge', label: 'The developer-first wedge' },
+        { id: 'expansion', label: 'From checkout to neo-bank' },
+        { id: 'moats', label: 'Where the moats are' },
+        { id: 'lessons', label: 'Lessons for builders' }
+    ],
+    content: (
+        <>
+            <P>
+                Razorpay started as a payment gateway in 2014 — a market that was already crowded with PayU, CCAvenue, and Citrus. A decade later it
+                processes more than $90B in annual TPV, banks 10M+ Indian businesses, and ships products that touch every corner of B2B money
+                movement. The story is a clinic in how a developer-first wedge becomes a multi-product platform.
+            </P>
+
+            <H2 id="origin">Origin story</H2>
+            <P>
+                Founders Harshil Mathur and Shashank Kumar met at IIT Roorkee. Their first attempt at a startup — a crowdfunding platform for social
+                causes — kept dying on the same problem: the existing payment gateways were a nightmare to integrate. Two-week onboardings, PDF
+                contracts, and APIs that returned XML in 2014. The pivot was obvious: build the gateway they wanted as developers.
+            </P>
+            <P>
+                YC accepted them in 2015 — the first Indian fintech in YC. The early product was a single, well-documented REST API + a hosted
+                checkout that took ~30 minutes to integrate. That's it. No PDF contract, no relationship manager required.
+            </P>
+
+            <H2 id="wedge">The developer-first wedge</H2>
+            <P>
+                Razorpay's first three years can be summarised in one sentence: <Strong>they competed on integration time, not pricing</Strong>.
+                Every legacy gateway charged ~2% MDR and so did Razorpay — the wedge was that startups could go live in an afternoon instead of a
+                month.
+            </P>
+            <UL>
+                <LI>
+                    <Strong>Self-serve KYC</Strong> with an online dashboard, not an account manager. Salesforce-grade pipelines compressed into a 10-
+                    minute form.
+                </LI>
+                <LI>
+                    <Strong>Public API + SDKs</Strong> for every major language. Documentation that rivalled Stripe's, in a market where
+                    documentation was an afterthought.
+                </LI>
+                <LI>
+                    <Strong>Webhook-first design</Strong> meant developers could build idempotent systems. Legacy gateways had no webhooks at all.
+                </LI>
+            </UL>
+
+            <Callout kind="info">
+                The "Stripe of India" framing was wrong in one important way: Stripe's market in 2014 was developed-economy SMBs paying USD; Razorpay's
+                was Indian SMBs navigating UPI, NEFT, IMPS, NACH, and 11+ payment methods at once. The complexity Razorpay abstracted away was 5×
+                higher than Stripe's.
+            </Callout>
+
+            <H2 id="expansion">From checkout to neo-bank</H2>
+            <P>
+                Once Razorpay had a million businesses on the gateway, it had a unique data asset: the cash flow of small Indian businesses. Every
+                product after 2018 was a bet that this distribution + this data could be re-used to sell adjacent fintech:
+            </P>
+            <UL>
+                <LI>
+                    <Strong>RazorpayX</Strong> (2018) — neo-banking. Vendor payouts, automated reconciliation, expense cards. The bet: gateway
+                    customers were already losing 4 hours a week on manual bank ops.
+                </LI>
+                <LI>
+                    <Strong>Razorpay Capital</Strong> (2019) — working-capital loans underwritten on gateway-level cash-flow data. Underwriting
+                    accuracy beats banks by 30%+ because Razorpay sees the order book in real time.
+                </LI>
+                <LI>
+                    <Strong>Razorpay Payroll</Strong> (2020) — salary disbursal + compliance. Same playbook: piggy-back on the gateway distribution.
+                </LI>
+                <LI>
+                    <Strong>International expansion</Strong> (2022+) — Curlec acquisition in Malaysia, then a license in Singapore. The product
+                    pattern travels; the regulatory work doesn't.
+                </LI>
+            </UL>
+
+            <H2 id="moats">Where the moats are</H2>
+            <P>
+                Three durable advantages compound:
+            </P>
+            <UL>
+                <LI>
+                    <Strong>Switching cost</Strong> — once a business runs payouts, payroll, and reconciliation through RazorpayX, the gateway becomes
+                    sticky by association.
+                </LI>
+                <LI>
+                    <Strong>Data flywheel</Strong> — every transaction sharpens fraud scoring, underwriting, and merchant onboarding. Newer entrants
+                    can match the API but not the data.
+                </LI>
+                <LI>
+                    <Strong>Regulatory access</Strong> — payment-aggregator licence, NBFC arm, banking partnerships. Each took 18+ months to secure
+                    and is non-trivial to replicate.
+                </LI>
+            </UL>
+
+            <H2 id="lessons">Lessons for builders</H2>
+            <Takeaways
+                items={[
+                    "Don't fight on price when you can fight on time-to-integration. Developers will switch for documentation.",
+                    'A wedge product is just permission to ship the next ten products into a captive customer base.',
+                    "Data assets compound — every new product makes the others smarter. Stripe knows this; PayPal didn't.",
+                    'Regulatory work is a moat in fintech. Treat licences as product roadmap, not back-office overhead.',
+                    "The API-first playbook is a 10-year game. Razorpay's compounding really started in year 6."
+                ]}
+            />
+        </>
+    )
+}
+
+// ─── Flipkart ─────────────────────────────────────────────────────────────────
+
+const flipkart: CaseStudyEntry = {
+    slug: 'flipkart',
+    brand: 'Flipkart',
+    title: 'Flipkart — Building Indian E-Commerce From Books to a $35B Marketplace',
+    description:
+        'How Flipkart cracked Indian e-commerce — cash-on-delivery, Big Billion Days, supply-chain control, and the Walmart bet that re-shaped the market.',
+    sector: 'E-commerce / Marketplace',
+    founded: '2007',
+    headquarters: 'Bengaluru, India',
+    revenue: '$11B GMV',
+    employees: '40,000+',
+    coverGradient: 'linear-gradient(135deg,#2874F0,#1d4ed8)',
+    badge: 'Editor Pick',
+    tags: ['Marketplace', 'Operations', 'Logistics'],
+    author: { name: 'Albero curriculum', role: 'Editorial' },
+    readMin: 14,
+    date: '09 May 2026',
+    keyFacts: [
+        { label: 'Registered customers', value: '500M+' },
+        { label: 'Sellers', value: '1.5M+' },
+        { label: 'Pin codes served', value: '20,000+' },
+        { label: 'Big Billion Days GMV', value: '$1.4B' }
+    ],
+    toc: [
+        { id: 'origin', label: 'Origin story' },
+        { id: 'cod', label: 'Cash-on-delivery: the unlock' },
+        { id: 'bbd', label: 'Big Billion Days' },
+        { id: 'logistics', label: 'Owning the supply chain' },
+        { id: 'walmart', label: 'The Walmart deal' },
+        { id: 'lessons', label: 'Lessons for builders' }
+    ],
+    content: (
+        <>
+            <P>
+                Flipkart is the case study every Indian operator references when they talk about building a market from scratch. The founders started
+                with one product (books), one customer base (English-reading metro buyers), and one delivery option (a courier slip and a prayer).
+                Sixteen years later they sit on 500M+ customer accounts and the largest e-commerce sale in Asia. The lessons are about market
+                creation, not market capture.
+            </P>
+
+            <H2 id="origin">Origin story</H2>
+            <P>
+                Sachin Bansal and Binny Bansal (no relation) left Amazon Bangalore in 2007 to start Flipkart. The first office was an apartment; the
+                first product was a single-page site that took book orders and forwarded them to a distributor. Their early growth hack was the
+                cleanest in retail history — they bought the books themselves at the local market and delivered them by hand the same day.
+            </P>
+            <P>
+                That bootstrap year mattered. Flipkart's earliest customers weren't just buying books; they were buying <Strong>delivery
+                certainty</Strong> in a country where Amazon was still sceptical and Indian e-commerce was synonymous with broken shipments.
+            </P>
+
+            <H2 id="cod">Cash-on-delivery: the unlock</H2>
+            <P>
+                In 2010 less than 7% of Indians had a credit card. Existing online retailers required prepayment, which meant the addressable market
+                was effectively zero. Flipkart launched <Strong>cash-on-delivery</Strong> as a default — pay only when the parcel arrives.
+            </P>
+            <UL>
+                <LI>It eliminated the trust barrier (you didn't pay until you held the product).</LI>
+                <LI>It unlocked tier-2 and tier-3 cities almost overnight.</LI>
+                <LI>It forced Flipkart to build a logistics arm (Ekart) because no third-party courier could collect cash reliably.</LI>
+            </UL>
+            <Callout kind="warning">
+                COD also became a structural cost. Returns and "fake orders" pushed COD margins ~3% below prepaid orders for years. Flipkart only
+                began closing that gap when it shifted to UPI-on-delivery in 2019.
+            </Callout>
+
+            <H2 id="bbd">Big Billion Days</H2>
+            <P>
+                In 2014 Flipkart ran the first <Strong>Big Billion Days</Strong> sale, modelled after Singles' Day in China. The first edition broke
+                — servers crashed, prices showed wrong, customers rage-tweeted for a week. Flipkart's apology letter from Sachin became one of the
+                most-read corporate communications of the year.
+            </P>
+            <P>
+                The event itself was a strategic win regardless. Big Billion Days established e-commerce as a cultural moment in India. By 2023 it
+                generated $1.4B+ in GMV in five days — bigger than the annual revenue of most listed Indian retailers.
+            </P>
+
+            <H2 id="logistics">Owning the supply chain</H2>
+            <P>
+                Flipkart's bet — eventually copied by Amazon India — was that <Strong>supply chain</Strong>, not catalogue, was the moat in Indian
+                e-commerce.
+            </P>
+            <UL>
+                <LI>
+                    <Strong>Ekart</Strong> — the captive logistics arm. Today the largest e-commerce delivery network in India, even ahead of India
+                    Post by parcel volume.
+                </LI>
+                <LI>
+                    <Strong>Fulfilment centres</Strong> — 50+ warehouses, with hyperlocal "kirana" partnerships in 20,000+ pin codes.
+                </LI>
+                <LI>
+                    <Strong>Same-day in metros</Strong> — possible because Flipkart owns the last-mile, not because of any algorithmic miracle.
+                </LI>
+            </UL>
+
+            <H2 id="walmart">The Walmart deal</H2>
+            <P>
+                In 2018 Walmart acquired 77% of Flipkart for $16B — at the time the largest e-commerce acquisition in history. The deal was not
+                primarily about Walmart entering India retail (FDI rules made that thorny). It was about:
+            </P>
+            <UL>
+                <LI>Locking in a hedge against Amazon in the world's last large open e-commerce market.</LI>
+                <LI>Importing Walmart's grocery and supply-chain expertise into Flipkart's flywheel.</LI>
+                <LI>Setting up PhonePe (Flipkart-incubated) as an independent fintech worth $12B+ on its own.</LI>
+            </UL>
+
+            <H2 id="lessons">Lessons for builders</H2>
+            <Takeaways
+                items={[
+                    "Solve the trust problem before the catalogue problem. COD wasn't elegant — it just unlocked the market.",
+                    'Own the parts of the supply chain your competitors treat as commodities. Logistics is the moat in physical goods.',
+                    "A botched product launch can still be a strategic win if it establishes a category. Big Billion Days' first year was a disaster that minted a behaviour.",
+                    'The right exit is sometimes the one that resets the cap-table for the next decade. Walmart bought time, capital, and a global distribution map.',
+                    'Adjacent fintech (PhonePe) often becomes more valuable than the original commerce engine — plan for the second product on day one.'
+                ]}
+            />
+        </>
+    )
+}
+
 // ─── Stub list ────────────────────────────────────────────────────────────────
 
 const stubBrands: Omit<CaseStudyEntry, 'content' | 'toc'>[] = [
@@ -328,13 +583,17 @@ const stubBrands: Omit<CaseStudyEntry, 'content' | 'toc'>[] = [
     { slug: 'tesla', brand: 'Tesla', title: 'Tesla — Vertical Integration, Software-First Cars, and a Brand Built on a CEO', description: 'How Tesla turned an EV niche into the most valuable automaker, built its own factories, and made software the differentiator.', sector: 'EV / Energy', founded: '2003', headquarters: 'Austin, USA', revenue: '$96B', employees: '140,000+', coverGradient: 'linear-gradient(135deg,#991b1b,#7f1d1d)', tags: ['Vertical Integration', 'Brand', 'Disruption'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 15, date: '23 Mar 2026', keyFacts: [{ label: 'Vehicles delivered', value: '1.8M / yr' }, { label: 'Supercharger stalls', value: '60,000+' }, { label: 'Marketing spend', value: '$0' }, { label: 'Market cap', value: '$800B' }] },
     { slug: 'nike', brand: 'Nike', title: 'Nike — Brand-Led Athletics, Endorsement Economics, and the DTC Pivot', description: 'Just Do It, Air Jordan, and the long arc from manufacturer to brand-first DTC athletic powerhouse.', sector: 'Apparel / Athletics', founded: '1964', headquarters: 'Beaverton, USA', revenue: '$51B', employees: '79,000+', coverGradient: 'linear-gradient(135deg,#0a0a0a,#262626)', tags: ['Brand', 'DTC', 'Endorsements'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 13, date: '23 Mar 2026', keyFacts: [{ label: 'DTC revenue', value: '44%' }, { label: 'Retail stores', value: '1,000+' }, { label: 'Endorsements', value: '$1.5B / yr' }, { label: 'Athletes signed', value: '2,000+' }] },
     { slug: 'pinterest', brand: 'Pinterest', title: 'Pinterest — Visual Discovery as a $2.8B Advertising Engine', description: "From idea-bookmarking app to one of the highest-intent ad platforms — Pinterest's category creation and slow-burn monetisation.", sector: 'Social / Discovery', founded: '2010', headquarters: 'San Francisco, USA', revenue: '$3B', employees: '3,800+', coverGradient: 'linear-gradient(135deg,#dc2626,#ef4444)', tags: ['Business Model', 'Advertising', 'Discovery'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 16, date: '23 Mar 2026', keyFacts: [{ label: 'MAUs', value: '498M' }, { label: 'Pins saved', value: '300B+' }, { label: 'ARPU (US)', value: '$8.5' }, { label: 'Shopping conversion', value: '+88%' }] },
-    { slug: 'mcdonalds', brand: "McDonald's", title: "McDonald's — How a Burger Stand Became the World's Largest Real-Estate Company", description: "The supply chain, franchise model, and (yes) real-estate strategy that built the world's most recognisable food brand.", sector: 'Quick-Service Restaurants', founded: '1940', headquarters: 'Chicago, USA', revenue: '$25B (corp)', employees: '150,000+', coverGradient: 'linear-gradient(135deg,#fbbf24,#dc2626)', tags: ['Franchise', 'Real Estate', 'Operations'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 14, date: '23 Mar 2026', keyFacts: [{ label: 'Restaurants', value: '40,000+' }, { label: 'Daily customers', value: '69M' }, { label: 'Franchised', value: '93%' }, { label: 'Real estate value', value: '$45B' }] }
+    { slug: 'mcdonalds', brand: "McDonald's", title: "McDonald's — How a Burger Stand Became the World's Largest Real-Estate Company", description: "The supply chain, franchise model, and (yes) real-estate strategy that built the world's most recognisable food brand.", sector: 'Quick-Service Restaurants', founded: '1940', headquarters: 'Chicago, USA', revenue: '$25B (corp)', employees: '150,000+', coverGradient: 'linear-gradient(135deg,#fbbf24,#dc2626)', tags: ['Franchise', 'Real Estate', 'Operations'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 14, date: '23 Mar 2026', keyFacts: [{ label: 'Restaurants', value: '40,000+' }, { label: 'Daily customers', value: '69M' }, { label: 'Franchised', value: '93%' }, { label: 'Real estate value', value: '$45B' }] },
+    { slug: 'swiggy', brand: 'Swiggy', title: 'Swiggy — Hyperlocal Delivery, Dark Stores, and the Three-App Strategy', description: 'How Swiggy went from food delivery to Instamart, Genie, and Dineout — the hyperlocal flywheel and the cancellation-cost lesson it learned the hard way.', sector: 'Food Delivery / Quick Commerce', founded: '2014', headquarters: 'Bengaluru, India', revenue: '$1.3B', employees: '6,000+', coverGradient: 'linear-gradient(135deg,#FC8019,#f97316)', tags: ['Marketplace', 'Operations', 'Hyperlocal'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 12, date: '09 May 2026', keyFacts: [{ label: 'Cities', value: '600+' }, { label: 'Delivery partners', value: '350,000+' }, { label: 'Restaurant partners', value: '200,000+' }, { label: 'Orders / day', value: '2M+' }] },
+    { slug: 'adobe', brand: 'Adobe', title: 'Adobe — Subscription Bet, Creative Cloud, and the AI Re-Boot', description: 'The licence-to-subscription pivot that doubled valuations, the Figma deal that didn\'t happen, and how Firefly is reshaping Adobe again.', sector: 'Creative SaaS', founded: '1982', headquarters: 'San Jose, USA', revenue: '$22B', employees: '30,000+', coverGradient: 'linear-gradient(135deg,#FA0F00,#dc2626)', tags: ['SaaS', 'Subscription', 'AI'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 15, date: '09 May 2026', keyFacts: [{ label: 'Creative Cloud subs', value: '33M+' }, { label: 'Annual recurring rev', value: '$19B' }, { label: 'Margin (operating)', value: '36%' }, { label: 'Market cap', value: '$240B' }] }
 ]
 
 const allCaseStudies: CaseStudyEntry[] = [
     starbucks,
     zara,
     discord,
+    razorpay,
+    flipkart,
     ...stubBrands.map((s) => ({
         ...s,
         toc: [],

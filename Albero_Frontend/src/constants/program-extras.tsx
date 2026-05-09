@@ -228,7 +228,7 @@ export const CASE_STUDIES_FOR_PROGRAM = (slug: string): CaseStudy[] => {
         ],
         'data-science-ai': [
             { company: 'Adobe', problem: 'Image moderation queue grew 3× without proportionate headcount.', approach: 'Fine-tuned a CLIP variant on labelled data + active-learning loop.', outcomeMetric: '92% auto-cleared', outcomeDetail: 'Human reviewers focus only on the residual 8%.' },
-            { company: 'CRED', problem: 'Fraud signals scattered across 12 microservices.', approach: 'Unified feature store + lightweight tree ensemble for real-time scoring.', outcomeMetric: '−68% false positives', outcomeDetail: 'At the same recall as the legacy rules engine.' }
+            { company: 'Netflix', problem: 'Recommendation CTR plateaued; cold-start cost watch-time per session.', approach: 'Two-tower retrieval + diversity re-ranker, trained on dwell signals not clicks.', outcomeMetric: '+11% watch-time', outcomeDetail: 'Per session, holding catalogue + thumbnail strategy constant.' }
         ]
     }
     return base[slug] ?? base['business-analytics']

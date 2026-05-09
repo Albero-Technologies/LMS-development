@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Award, BadgeCheck, ArrowRight, Briefcase, Sparkles, Target, Trophy } from 'lucide-react'
+import { Award, BadgeCheck, ArrowRight, Brain, Cog, Compass, Handshake, Sparkles, Target, Trophy, TrendingUp, Wrench, type LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { SectionShell, SectionHeading, GradientIcon } from './primitives'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { CompanyMark } from './CompanyMark'
+import { resolveCompanyMark } from './company-marks'
+import { findCaseStudy } from '@/constants/case-study-content'
 
 // ──────────────────────────────────────────────────────────────────────
 // Three-column "Why Us" / Advantage grid
@@ -74,20 +78,30 @@ export interface SkillCategory {
 }
 
 // Premium revamp — Outcomes section reads as a curated skill catalogue
-// instead of a tabbed pill cloud. Pieces:
-//   - Eyebrow chip with pulsing brand dot (matches the Industry Tools chip)
-//   - Tabs are larger card-style buttons with a count badge per category
-//   - Active tab gets a brand-gradient fill + glow
-//   - Skills render as glass cards (icon + label + numbered chip) in a
-//     responsive grid — replaces the old text-only pill cloud
-//   - Soft tinted background + brand gradient orbs for depth
-const SKILL_TAB_ICONS: Record<string, string> = {
-    Tools: '🛠',
-    Concepts: '🧠',
-    'Soft skills': '🤝',
-    Foundations: '🎯',
-    'System design': '⚙️'
+// instead of a tabbed pill cloud. Lucide SVG icons replace the previous
+// emoji glyphs (which rendered inconsistently across OS/browser fonts).
+//
+// Per-category meta carries:
+//   - The Lucide icon (vector — looks identical on every device)
+//   - A brand-aligned tone used for the active tab fill, the icon chip
+//     tint, and the skill-card accent. Each category has its own colour
+//     so the section reads as a multi-track catalogue at a glance.
+
+interface CategoryMeta {
+    Icon: LucideIcon
+    color: string
 }
+
+const CATEGORY_META: Record<string, CategoryMeta> = {
+    Tools:           { Icon: Wrench, color: '#14785f' },     // emerald — anchors the brand
+    Concepts:        { Icon: Brain, color: '#7c3aed' },      // violet — "thinking"
+    'Soft skills':   { Icon: Handshake, color: '#b86a18' },  // amber — "people"
+    Foundations:     { Icon: Compass, color: '#0891b2' },    // cyan — "direction"
+    'System design': { Icon: Cog, color: '#dc2626' }         // red — "engineering"
+}
+
+const FALLBACK_META: CategoryMeta = { Icon: Sparkles, color: '#14785f' }
+const metaFor = (category: string): CategoryMeta => CATEGORY_META[category] ?? FALLBACK_META
 
 export const WhatYoullLearn = ({
     categories,
@@ -104,19 +118,21 @@ export const WhatYoullLearn = ({
 }) => {
     const [active, setActive] = useState(0)
     if (categories.length === 0) return null
-    const current = categories[active]
+    const current = categories[active]!
+    const currentMeta = metaFor(current.category)
     return (
         <section className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8" style={{ background: 'var(--section-soft)' }}>
-            {/* Two soft brand-tinted orbs for depth — pure decoration. */}
+            {/* Decorative orbs — colour-shifted to track the active tab so
+                the section feels reactive instead of static decoration. */}
             <div
                 aria-hidden="true"
-                className="absolute pointer-events-none rounded-full"
+                className="absolute pointer-events-none rounded-full transition-[background] duration-700"
                 style={{
                     top: -120,
                     left: '8%',
                     width: 320,
                     height: 320,
-                    background: 'radial-gradient(circle, rgba(13,79,60,0.12) 0%, transparent 70%)',
+                    background: `radial-gradient(circle, ${currentMeta.color}22 0%, transparent 70%)`,
                     filter: 'blur(60px)'
                 }}
             />
@@ -128,7 +144,7 @@ export const WhatYoullLearn = ({
                     right: '4%',
                     width: 380,
                     height: 380,
-                    background: 'radial-gradient(circle, rgba(184,106,24,0.1) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(13,79,60,0.10) 0%, transparent 70%)',
                     filter: 'blur(70px)'
                 }}
             />
@@ -136,25 +152,41 @@ export const WhatYoullLearn = ({
             <div className="relative max-w-5xl mx-auto">
                 <SectionHeading eyebrow="Outcomes" title={heading} description={description} />
 
-                {/* Premium tab pill row — bigger, with icons + per-tab counts. */}
+                {/* Tab row — Lucide icon in a tinted chip, label, count
+                    badge. Active tab fills with the category's own colour
+                    so each tab feels like its own track, not a shared
+                    brand wash. */}
                 <div className="flex items-center justify-center gap-2 md:gap-3 mb-10 flex-wrap">
                     {categories.map((c, i) => {
                         const isActive = i === active
+                        const meta = metaFor(c.category)
+                        const Icon = meta.Icon
                         return (
                             <button
                                 key={c.category}
                                 type="button"
+                                aria-pressed={isActive}
                                 onClick={() => setActive(i)}
-                                className="group inline-flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-full text-[13.5px] font-semibold transition-all"
+                                className="group inline-flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full text-[13.5px] font-semibold transition-all"
                                 style={{
-                                    background: isActive ? 'var(--gradient-aurora)' : 'var(--surface)',
+                                    background: isActive
+                                        ? `linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)`
+                                        : 'var(--surface)',
                                     color: isActive ? '#fff' : 'var(--text-primary)',
                                     border: `1px solid ${isActive ? 'transparent' : 'var(--hairline)'}`,
-                                    boxShadow: isActive ? 'var(--glow-brand)' : 'var(--card-shadow-soft)',
+                                    boxShadow: isActive
+                                        ? `0 8px 22px ${meta.color}40, inset 0 1px 0 rgba(255,255,255,0.18)`
+                                        : 'var(--card-shadow-soft)',
                                     transform: isActive ? 'translateY(-1px)' : 'none'
                                 }}>
-                                <span aria-hidden="true" className="text-base leading-none">
-                                    {SKILL_TAB_ICONS[c.category] ?? '✦'}
+                                <span
+                                    aria-hidden="true"
+                                    className="inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors"
+                                    style={{
+                                        background: isActive ? 'rgba(255,255,255,0.22)' : `${meta.color}14`,
+                                        color: isActive ? '#fff' : meta.color
+                                    }}>
+                                    <Icon size={14} strokeWidth={2.4} />
                                 </span>
                                 <span>{c.category}</span>
                                 <span
@@ -174,12 +206,16 @@ export const WhatYoullLearn = ({
                     remounts on tab change and replays the entrance animation. */}
                 <div key={current.category} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                     {current.items.map((item, i) => (
-                        <SkillCard key={`${current.category}-${item}`} label={item} index={i} categoryLabel={current.category} />
+                        <SkillCard
+                            key={`${current.category}-${item}`}
+                            label={item}
+                            index={i}
+                            categoryLabel={current.category}
+                            meta={currentMeta}
+                        />
                     ))}
                 </div>
 
-                {/* Footer caption — gives the section a clean close + a tiny
-                    callout that the catalogue is curated, not exhaustive. */}
                 <p className="mt-10 text-center text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
                     {current.items.length} {current.category.toLowerCase()} you'll touch — and many more reviewed in 1:1 mentor sessions.
                 </p>
@@ -188,12 +224,23 @@ export const WhatYoullLearn = ({
     )
 }
 
-const SkillCard = ({ label, index, categoryLabel }: { label: string; index: number; categoryLabel: string }) => {
+const SkillCard = ({
+    label,
+    index,
+    categoryLabel,
+    meta
+}: {
+    label: string
+    index: number
+    categoryLabel: string
+    meta: CategoryMeta
+}) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.15)
+    const Icon = meta.Icon
     return (
         <div
             ref={ref}
-            className="group relative rounded-2xl px-4 py-4 transition-all duration-[500ms] ease-out hover:translate-y-[-3px]"
+            className="group relative rounded-2xl px-4 py-4 transition-all duration-[500ms] ease-out hover:translate-y-[-3px] overflow-hidden"
             style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--hairline)',
@@ -201,26 +248,45 @@ const SkillCard = ({ label, index, categoryLabel }: { label: string; index: numb
                 opacity: visible ? 1 : 0,
                 transform: visible ? 'translateY(0)' : 'translateY(12px)',
                 transitionDelay: `${Math.min(index * 50, 250)}ms`
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = `${meta.color}66`
+                e.currentTarget.style.boxShadow = `var(--card-shadow-hover), 0 0 0 4px ${meta.color}1a`
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--hairline)'
+                e.currentTarget.style.boxShadow = 'var(--card-shadow-soft)'
             }}>
-            {/* Subtle gradient ribbon along the top — appears on hover for
-                a tactile "card lights up" effect. */}
+            {/* Category-coloured ribbon along the top — solid, always
+                visible, anchors the card to its track at a glance. */}
             <span
                 aria-hidden="true"
-                className="absolute inset-x-0 top-0 h-[2px] rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ background: 'var(--gradient-aurora)' }}
+                className="absolute inset-x-0 top-0 h-[2px]"
+                style={{ background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)` }}
             />
             <div className="flex items-start gap-3">
+                {/* Category SVG icon chip — replaces the previous emoji
+                    badge so the card reads cleanly across every OS. */}
                 <span
-                    className="inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-lg text-[10.5px] font-bold tracking-wide font-mono shrink-0"
-                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                    {String(index + 1).padStart(2, '0')}
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg shrink-0"
+                    style={{ background: `${meta.color}14`, color: meta.color }}>
+                    <Icon size={16} strokeWidth={2.2} />
                 </span>
-                <div className="min-w-0">
-                    <div className="text-[13.5px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
-                        {label}
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                        <span
+                            className="font-mono text-[10px] font-bold tracking-wide"
+                            style={{ color: 'var(--text-tertiary)' }}>
+                            {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <span
+                            className="text-[9.5px] uppercase tracking-[0.14em] font-bold"
+                            style={{ color: meta.color }}>
+                            {categoryLabel}
+                        </span>
                     </div>
-                    <div className="mt-0.5 text-[10.5px] uppercase tracking-[0.14em] font-bold" style={{ color: 'var(--text-tertiary)' }}>
-                        {categoryLabel}
+                    <div className="mt-1 text-[14px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
+                        {label}
                     </div>
                 </div>
             </div>
@@ -322,6 +388,16 @@ export interface CaseStudy {
     outcomeDetail?: string
 }
 
+// Resolve a case-study deep-link from a free-text company name. When the
+// company has a published case study in the constants library we link
+// directly to its detail page; otherwise we fall back to the hub so the
+// CTA is never a dead-end.
+const slugForCompany = (company: string): string => company.toLowerCase().replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+const caseStudyHrefFor = (company: string): string => {
+    const slug = slugForCompany(company)
+    return findCaseStudy(slug) ? `/resources/case-studies/${slug}` : '/resources/case-studies'
+}
+
 export const CaseStudies = ({
     cases,
     heading = (
@@ -350,10 +426,12 @@ export const CaseStudies = ({
 
 const CaseStudyCard = ({ study, delayMs }: { study: CaseStudy; delayMs: number }) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.2)
+    const { color, sector } = resolveCompanyMark(study.company)
+    const href = caseStudyHrefFor(study.company)
     return (
         <article
             ref={ref}
-            className="rounded-2xl p-6 transition-all duration-[600ms] ease-out hover:translate-y-[-4px]"
+            className="group relative rounded-2xl overflow-hidden transition-all duration-[600ms] ease-out hover:translate-y-[-4px]"
             style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--hairline)',
@@ -361,43 +439,118 @@ const CaseStudyCard = ({ study, delayMs }: { study: CaseStudy; delayMs: number }
                 opacity: visible ? 1 : 0,
                 transform: visible ? 'translateY(0)' : 'translateY(20px)',
                 transitionDelay: `${delayMs}ms`
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = `${color}66`
+                e.currentTarget.style.boxShadow = `var(--card-shadow-hover), 0 0 0 4px ${color}1a`
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--hairline)'
+                e.currentTarget.style.boxShadow = 'var(--card-shadow-soft)'
             }}>
-            <header className="flex items-center gap-3 mb-4">
+            {/* Brand-coloured ribbon — anchors each card to the company. */}
+            <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-[3px]"
+                style={{ background: `linear-gradient(90deg, ${color}, ${color}99)` }}
+            />
+
+            <div className="p-6 md:p-7">
+                <header className="flex items-center justify-between gap-3 mb-5">
+                    <div className="flex items-center gap-3 min-w-0">
+                        {study.companyLogoUrl ? (
+                            <div
+                                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-white"
+                                style={{ border: '1px solid var(--hairline)' }}>
+                                <img src={study.companyLogoUrl} alt={study.company} className="w-7 h-7 object-contain" loading="lazy" />
+                            </div>
+                        ) : (
+                            <CompanyMark name={study.company} size={48} />
+                        )}
+                        <div className="min-w-0">
+                            <h3 className="font-display text-[18px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                                {study.company}
+                            </h3>
+                            {sector && (
+                                <span
+                                    className="mt-1 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[9.5px] font-bold tracking-[0.12em] uppercase"
+                                    style={{ color, background: `${color}14` }}>
+                                    <span className="inline-block w-1 h-1 rounded-full" style={{ background: color }} />
+                                    {sector}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    {/* Outcome chip up top — the metric is the headline and
+                        deserves to read at-a-glance, not buried at the bottom. */}
+                    <span
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap"
+                        style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                        <TrendingUp size={11} /> {study.outcomeMetric}
+                    </span>
+                </header>
+
+                {/* Problem + Approach as label-on-top rows. Same shape as
+                    before, dialled visually so the body reads as a story. */}
+                <CaseRow label="Problem" body={study.problem} accent={color} />
+                <CaseRow label="Approach" body={study.approach} accent={color} />
+
+                {/* Outcome callout — visual headline, brand-coloured tile. */}
                 <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: 'var(--section-soft)', border: '1px solid var(--hairline)' }}>
-                    {study.companyLogoUrl ? (
-                        <img src={study.companyLogoUrl} alt={study.company} className="max-w-7 max-h-7 object-contain" loading="lazy" />
-                    ) : (
-                        <Briefcase size={16} style={{ color: 'var(--brand)' }} />
-                    )}
+                    className="mt-5 rounded-xl p-4 flex items-start gap-3"
+                    style={{ background: `${color}0d`, border: `1px solid ${color}33` }}>
+                    <span
+                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: `${color}1f`, color }}>
+                        <Sparkles size={16} />
+                    </span>
+                    <div className="min-w-0">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] mb-0.5" style={{ color }}>
+                            Outcome
+                        </div>
+                        <div className="font-display text-[20px] md:text-[22px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                            {study.outcomeMetric}
+                        </div>
+                        {study.outcomeDetail && (
+                            <p className="mt-1 text-[12.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                {study.outcomeDetail}
+                            </p>
+                        )}
+                    </div>
                 </div>
-                <span className="font-display text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {study.company}
-                </span>
-            </header>
-            <CaseRow label="Problem" body={study.problem} />
-            <CaseRow label="Approach" body={study.approach} />
-            <div className="mt-5 pt-5 border-t" style={{ borderColor: 'var(--hairline)' }}>
-                <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] mb-1" style={{ color: 'var(--brand)' }}>
-                    Outcome
-                </div>
-                <div className="font-display text-[22px] font-semibold leading-none" style={{ color: 'var(--text-primary)' }}>
-                    {study.outcomeMetric}
-                </div>
-                {study.outcomeDetail && (
-                    <p className="mt-1.5 text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
-                        {study.outcomeDetail}
-                    </p>
-                )}
+
+                {/* See more — deep-links to the case-study detail page when
+                    one exists; otherwise opens the hub so the CTA never
+                    dead-ends. */}
+                <Link
+                    to={href}
+                    className="mt-5 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-semibold w-full transition-all hover:translate-y-[-1px]"
+                    style={{
+                        background: 'var(--surface-2)',
+                        color,
+                        border: `1px solid ${color}33`
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = `${color}14`
+                        e.currentTarget.style.borderColor = `${color}66`
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--surface-2)'
+                        e.currentTarget.style.borderColor = `${color}33`
+                    }}>
+                    See full case study <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
             </div>
         </article>
     )
 }
 
-const CaseRow = ({ label, body }: { label: string; body: string }) => (
-    <div className="mt-3 first:mt-0">
-        <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] mb-1" style={{ color: 'var(--text-tertiary)' }}>
+const CaseRow = ({ label, body, accent }: { label: string; body: string; accent: string }) => (
+    <div className="mt-4 first:mt-0">
+        <div
+            className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] mb-1.5"
+            style={{ color: 'var(--text-tertiary)' }}>
+            <span className="inline-block w-1 h-1 rounded-full" style={{ background: accent }} />
             {label}
         </div>
         <p className="text-[13.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
