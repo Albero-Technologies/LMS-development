@@ -23,13 +23,9 @@ import StructuredData from '@/components/user/common/StructuredData'
 // existing components so the redesign doesn't lose any of the content
 // the marketing team has already authored.
 import { StatsBar } from '@/components/user/program-page/StatsBar'
-import { CareerRoadmap } from '@/components/user/program-page/CareerRoadmap'
 import { SuccessStories } from '@/components/user/program-page/SuccessStories'
-import { ProgramExplorer } from '@/components/user/program-page/ProgramExplorer'
-import { AlumniCompanyWall } from '@/components/user/program-page/AlumniCompanyWall'
 import { VideoTestimonial } from '@/components/user/program-page/VideoTestimonial'
-import { ALUMNI_COMPANIES, FEATURED_SUCCESS_STORIES, HOME_ROADMAP_STEPS } from '@/constants/program-extras'
-import { programs as PROGRAMS } from '@/constants/programs'
+import { FEATURED_SUCCESS_STORIES } from '@/constants/program-extras'
 
 export default function Home() {
     return (
@@ -66,23 +62,6 @@ export default function Home() {
 
             <ProgramsShowcase />
 
-            {/* Interactive program selector — Meritshot-style left rail +
-                right detail panel. Mobile collapses to a vertical accordion. */}
-            <ProgramExplorer
-                programs={PROGRAMS.slice(0, 6).map((p) => ({
-                    slug: p.slug,
-                    title: p.title,
-                    duration: p.duration,
-                    badge: p.badge,
-                    bullets: p.highlights.slice(0, 3),
-                    techTags: p.tools.slice(0, 6),
-                    priceLabel: p.fees.find((t) => t.recommended)?.price ?? p.fees[0]?.price
-                }))}
-            />
-
-            {/* Career roadmap — the 4-step process every student walks. */}
-            <CareerRoadmap steps={HOME_ROADMAP_STEPS} />
-
             <InteractiveSkillsGrid />
             <LearningExperience />
             <StaircaseClimb />
@@ -90,10 +69,6 @@ export default function Home() {
             <ThreeSection />
             <Outcomes />
             <CertificationPath />
-
-            {/* Auto-scrolling alumni-logo wall — same Ticker component the
-                program-page tool strip uses, configured for company logos. */}
-            <AlumniCompanyWall companies={ALUMNI_COMPANIES} />
 
             <HiringPartners />
             <Collaboration />

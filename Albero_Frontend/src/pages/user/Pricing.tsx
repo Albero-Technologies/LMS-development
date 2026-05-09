@@ -471,7 +471,7 @@ export default function PricingPage() {
                                 key={p.fullName + i}
                                 p={p}
                                 onView={() => navigate(`/programs/${p.slug}`)}
-                                onReserve={() => navigate('/contact')}
+                                onReserve={() => navigate(`/programs/${p.slug}`)}
                             />
                         ))}
                     </div>
