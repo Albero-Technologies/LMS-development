@@ -27,8 +27,18 @@ export type Enrollment = {
         title: string
         slug: string
         thumbnailUrl: string | null
+        price?: number
+        currency?: string
+        gstPercent?: number
     } | null
     batch: { id: string; name: string; code: string; startDate: string | null } | null
+    // Computed by the backend so the student-side balance banner has a
+    // figure to show even when no DUE invoice was generated yet (e.g.
+    // legacy registration-fee enrolments). All values in paise.
+    coursePriceMinor?: number
+    paidAmountMinor?: number
+    pendingAmountMinor?: number
+    impliedBalanceMinor?: number
 }
 
 export type StartEnrollmentInput = {

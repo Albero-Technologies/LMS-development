@@ -443,13 +443,46 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
 }
 
 export const listMyEnrollments = async (tenantId: string, userId: string) => {
-    return db.client.enrollment.findMany({
+    // Fetch enrolments + the data we need to compute "what does the student
+    // still owe?" — even when no DUE invoice has been written yet (e.g.
+    // legacy registration-fee enrolments that pre-date the balance-invoice
+    // creation in public-purchase). Each row exposes:
+    //   coursePriceMinor   — authoritative full course fee
+    //   paidAmountMinor    — sum of PAID invoices for this enrolment
+    //   pendingAmountMinor — sum of DUE/DRAFT invoices for this enrolment
+    //   impliedBalanceMinor — coursePriceMinor − paidAmountMinor − GST(reg fee).
+    //                          Used by the student dashboard banner when
+    //                          pendingAmountMinor is 0 but the enrolment is
+    //                          still on DEMO tier (i.e. balance invoice
+    //                          hasn't been generated yet).
+    const rows = await db.client.enrollment.findMany({
         where: { tenantId, userId },
         include: {
-            course: { select: { id: true, title: true, slug: true, thumbnailUrl: true } },
-            batch: { select: { id: true, name: true, code: true, startDate: true } }
+            course: { select: { id: true, title: true, slug: true, thumbnailUrl: true, price: true, currency: true, gstPercent: true } },
+            batch: { select: { id: true, name: true, code: true, startDate: true } },
+            invoices: { select: { totalAmount: true, amount: true, status: true } }
         },
         orderBy: { createdAt: 'desc' }
+    })
+
+    return rows.map((e) => {
+        const paidAmountMinor = e.invoices.filter((i) => i.status === 'PAID').reduce((n, i) => n + i.totalAmount, 0)
+        const pendingAmountMinor = e.invoices.filter((i) => i.status === 'DUE' || i.status === 'DRAFT').reduce((n, i) => n + i.totalAmount, 0)
+        const coursePriceMinor = e.course?.price ?? 0
+        // Net the registration fee actually paid against the course list price
+        // — `price` is exclusive of GST in this codebase, so we use the
+        // pre-GST `amount` slice of the paid invoices for the comparison.
+        const paidPrincipalMinor = e.invoices.filter((i) => i.status === 'PAID').reduce((n, i) => n + i.amount, 0)
+        const remainingPrincipal = Math.max(0, coursePriceMinor - paidPrincipalMinor)
+        const gstPct = e.course?.gstPercent ?? 18
+        const impliedBalanceMinor = remainingPrincipal + Math.round((remainingPrincipal * gstPct) / 100)
+        return {
+            ...e,
+            coursePriceMinor,
+            paidAmountMinor,
+            pendingAmountMinor,
+            impliedBalanceMinor
+        }
     })
 }
 

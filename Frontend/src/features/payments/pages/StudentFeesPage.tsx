@@ -102,9 +102,9 @@ export const StudentFeesPage = () => {
     const outstandingTotal = overdueTotal + buckets.due.reduce((n, i) => n + i.totalAmount, 0)
     const outstandingCount = buckets.overdue.length + buckets.due.length
 
-    // Match each DEMO enrolment with its outstanding balance invoice (the
-    // one created at registration-fee time). Used to render a per-course
-    // "you've reserved your seat" banner with a direct Pay-now button.
+    // Match each DEMO enrolment with its outstanding balance — either an
+    // existing DUE invoice or, when none exists yet, the implied balance
+    // the backend computed from `course.price - paid principal`.
     // Computed before the early-return branches so React's hook ordering
     // stays stable across renders.
     const demoEnrolments = useMemo(() => {
@@ -115,9 +115,21 @@ export const StudentFeesPage = () => {
                 const balance = invoices.find(
                     (inv) => inv.status === 'DUE' && inv.enrollment?.course?.id === e.course?.id
                 )
-                return { enrollment: e, balanceInvoice: balance ?? null }
+                // Implied balance falls back to course.price - paid when no
+                // DUE invoice exists yet (legacy registration-paid rows
+                // pre-dating the balance-invoice migration). The student
+                // still owes the money — we just don't have an invoice id
+                // to point Razorpay at, so the "Pay balance" button routes
+                // them back through the public-purchase FULL flow instead.
+                const impliedBalanceMinor = balance ? balance.totalAmount : (e.impliedBalanceMinor ?? 0)
+                return { enrollment: e, balanceInvoice: balance ?? null, impliedBalanceMinor }
             })
     }, [enrollmentsQuery.data, invoices])
+
+    // Total outstanding from DEMO enrolments — used to suppress the green
+    // "all paid up" hero when the student technically has 0 DUE invoices
+    // but is still on a DEMO tier owing the balance.
+    const demoBalanceTotal = demoEnrolments.reduce((n, d) => n + d.impliedBalanceMinor, 0)
 
     const handlePay = (invoice: Invoice) => {
         setPayingId(invoice.id)
@@ -169,11 +181,13 @@ export const StudentFeesPage = () => {
 
             {demoEnrolments.length > 0 && (
                 <div className="space-y-3 mb-6">
-                    {demoEnrolments.map(({ enrollment, balanceInvoice }) => (
+                    {demoEnrolments.map(({ enrollment, balanceInvoice, impliedBalanceMinor }) => (
                         <DemoBalanceBanner
                             key={enrollment.id}
                             courseTitle={enrollment.course?.title ?? 'your course'}
+                            courseSlug={enrollment.course?.slug ?? null}
                             balanceInvoice={balanceInvoice}
+                            impliedBalanceMinor={impliedBalanceMinor}
                             isPaying={!!balanceInvoice && payingId === balanceInvoice.id}
                             onPay={() => balanceInvoice && handlePay(balanceInvoice)}
                         />
@@ -181,12 +195,16 @@ export const StudentFeesPage = () => {
                 </div>
             )}
 
+            {/* Hide the green "you're all paid up" hero whenever any DEMO
+                enrolment still owes the balance — the orange banner above
+                already tells the student what they need to do, and showing
+                both would contradict itself. */}
             <OutstandingHero
                 overdueTotal={overdueTotal}
                 outstandingTotal={outstandingTotal}
                 overdueCount={buckets.overdue.length}
                 outstandingCount={outstandingCount}
-                allDemo={demoEnrolments.length > 0 && demoEnrolments.every((d) => d.balanceInvoice)}
+                allDemo={demoEnrolments.length > 0 || demoBalanceTotal > 0}
             />
 
             {outstandingCount > 0 && (
@@ -294,9 +312,10 @@ const OutstandingHero = ({
     outstandingCount: number
     allDemo?: boolean
 }) => {
-    // Hide the "all paid up" / outstanding hero when every outstanding row is
-    // already represented by a demo banner above — duplicating the same
-    // amount in two places confuses students.
+    // Hide the "all paid up" / outstanding hero whenever any DEMO enrolment
+    // still owes the balance — the orange demo banner above already tells
+    // the student exactly what they need to do, and the green "you're all
+    // paid up" message would directly contradict it.
     if (allDemo) return null
     if (outstandingCount === 0) {
         return (
@@ -396,53 +415,85 @@ const InvoiceRow = ({ inv, isPaying, onPay }: { inv: Invoice; isPaying: boolean;
 }
 
 // "You've reserved your seat — pay the balance to unlock all lessons."
-// Renders one card per DEMO enrolment with the matching DUE invoice.
-// Falls back to a plain reminder when the balance invoice hasn't been
-// generated yet (legacy enrolments created before the migration).
+// Renders one card per DEMO enrolment with either the matching DUE
+// invoice (preferred) or the backend-computed implied balance from
+// course.price - paid principal (fallback for legacy registration-paid
+// rows that pre-date the balance-invoice migration). Either way the
+// student sees the actual amount due — never a placeholder "shortly".
 const DemoBalanceBanner = ({
     courseTitle,
+    courseSlug,
     balanceInvoice,
+    impliedBalanceMinor,
     isPaying,
     onPay
 }: {
     courseTitle: string
+    courseSlug: string | null
     balanceInvoice: Invoice | null
+    impliedBalanceMinor: number
     isPaying: boolean
     onPay: () => void
 }) => {
+    const balanceShown = balanceInvoice ? balanceInvoice.totalAmount : impliedBalanceMinor
+    const hasBalance = balanceShown > 0
     return (
-        <Card className="!p-5 flex flex-col sm:flex-row sm:items-center gap-4 border-[var(--color-warn,#f59e0b)]/40 bg-[var(--color-warn-soft,rgba(245,158,11,0.08))]">
-            <div className="w-10 h-10 rounded-md bg-[var(--color-warn,#f59e0b)] text-white flex items-center justify-center shrink-0">
+        <Card
+            className="!p-5 flex flex-col sm:flex-row sm:items-center gap-4 relative overflow-hidden"
+            style={{
+                background: 'var(--color-warn-soft,rgba(245,158,11,0.08))',
+                border: '1px solid rgba(245,158,11,0.4)'
+            }}>
+            <span aria-hidden className="absolute inset-y-0 left-0 w-1" style={{ background: 'var(--color-warn,#f59e0b)' }} />
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1" style={{ background: 'var(--color-warn,#f59e0b)', color: '#fff' }}>
                 <Lock size={18} />
             </div>
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                     <Badge tone="warn">Demo access</Badge>
-                    <span className="text-xs text-fg-muted font-mono">{balanceInvoice?.number ?? 'balance pending'}</span>
+                    <span className="text-xs text-fg-muted font-mono">
+                        {balanceInvoice ? balanceInvoice.number : hasBalance ? 'balance due' : 'awaiting invoice'}
+                    </span>
                 </div>
-                <div className="mt-1 text-sm font-medium text-fg">
+                <div className="mt-1.5 text-sm font-medium text-fg">
                     You've reserved your seat in <strong>{courseTitle}</strong>.
                 </div>
                 <p className="mt-1 text-xs text-fg-soft">
-                    {balanceInvoice
-                        ? `Pay the remaining ${fmtINR(balanceInvoice.totalAmount)} to unlock every lesson, quiz, and assignment.`
+                    {hasBalance
+                        ? `Pay the remaining ${fmtINR(balanceShown)} to unlock every lesson, quiz, and assignment.`
                         : 'A counsellor will share your full-fee invoice shortly.'}
                 </p>
             </div>
-            {balanceInvoice && (
+            {hasBalance && (
                 <div className="flex items-center gap-3 shrink-0">
                     <div className="text-right">
-                        <div className="font-mono text-lg font-semibold text-fg">{fmtINR(balanceInvoice.totalAmount)}</div>
-                        <div className="text-[11px] text-fg-muted">incl. {balanceInvoice.gstPercent}% GST</div>
+                        <div className="font-mono text-lg font-semibold text-fg">{fmtINR(balanceShown)}</div>
+                        <div className="text-[11px] text-fg-muted">
+                            {balanceInvoice ? `incl. ${balanceInvoice.gstPercent}% GST` : 'incl. GST'}
+                        </div>
                     </div>
-                    <Button
-                        size="sm"
-                        leftIcon={<CreditCard size={13} />}
-                        rightIcon={<ArrowRight size={12} />}
-                        loading={isPaying}
-                        onClick={onPay}>
-                        Pay balance
-                    </Button>
+                    {balanceInvoice ? (
+                        <Button
+                            size="sm"
+                            leftIcon={<CreditCard size={13} />}
+                            rightIcon={<ArrowRight size={12} />}
+                            loading={isPaying}
+                            onClick={onPay}>
+                            Pay balance
+                        </Button>
+                    ) : (
+                        // Legacy path — no invoice. Send the student back to
+                        // the public program page where they can complete the
+                        // FULL fee through the normal Razorpay flow.
+                        <a href={courseSlug ? `/programs/${courseSlug}#pricing` : '/contact'} target="_blank" rel="noreferrer">
+                            <Button
+                                size="sm"
+                                leftIcon={<CreditCard size={13} />}
+                                rightIcon={<ArrowRight size={12} />}>
+                                Pay balance
+                            </Button>
+                        </a>
+                    )}
                 </div>
             )}
         </Card>

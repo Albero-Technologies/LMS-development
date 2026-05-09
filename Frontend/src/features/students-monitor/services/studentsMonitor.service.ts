@@ -2,10 +2,11 @@ import { api } from '@shared/libs/api'
 
 type Envelope<T> = { success: boolean; message: string; data: T }
 
-export const STUDENT_CATEGORIES = ['ACTIVE', 'INACTIVE', 'FEES_PAID', 'FEES_PENDING', 'FOLLOW_UP', 'DEAD'] as const
+export const STUDENT_CATEGORIES = ['DEMO', 'ACTIVE', 'INACTIVE', 'FEES_PAID', 'FEES_PENDING', 'FOLLOW_UP', 'DEAD'] as const
 export type StudentCategory = (typeof STUDENT_CATEGORIES)[number]
 
 export const CATEGORY_LABELS: Record<StudentCategory, string> = {
+    DEMO: 'Demo',
     ACTIVE: 'Active',
     INACTIVE: 'Inactive',
     FEES_PAID: 'Fees paid',
@@ -16,6 +17,7 @@ export const CATEGORY_LABELS: Record<StudentCategory, string> = {
 
 // Tones map to Shared Badge component values: brand / ok / warn / danger / purple / default.
 export const CATEGORY_TONE: Record<StudentCategory, 'brand' | 'ok' | 'warn' | 'danger' | 'purple' | 'default'> = {
+    DEMO: 'warn',
     ACTIVE: 'brand',
     INACTIVE: 'default',
     FEES_PAID: 'ok',
@@ -37,7 +39,7 @@ export interface MonitorStudent {
     tenant: { id: string; name: string; slug: string }
     counsellor: { id: string; name: string; email: string } | null
     trainer: { id: string; name: string; email: string } | null
-    enrollments: { id: string; status: string; progressPct: number; course: { id: string; title: string } | null }[]
+    enrollments: { id: string; status: string; progressPct: number; accessTier: 'DEMO' | 'FULL'; course: { id: string; title: string } | null }[]
     payments: { totalPaid: number; pendingAmount: number; paidCount: number; pendingCount: number }
     primaryCategory: StudentCategory
     flags: Record<StudentCategory, boolean>

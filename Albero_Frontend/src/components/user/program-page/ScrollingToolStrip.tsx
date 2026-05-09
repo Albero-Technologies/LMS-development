@@ -1,9 +1,12 @@
-import { Sparkles } from 'lucide-react'
 import { SectionShell, SectionHeading } from './primitives'
 import { Ticker, type TickerItem } from './Ticker'
+import { ToolIcon } from './ToolIcon'
 
 export interface ToolStripItem {
     name: string
+    /** Optional override icon URL — when omitted, the ToolIcon registry
+     *  picks a brand-coloured Lucide glyph for the tool name. Avoids
+     *  the broken-image fallback when a third-party CDN slug 404s. */
     iconUrl?: string
 }
 
@@ -20,8 +23,8 @@ interface Props {
 
 // Two-row scrolling tool ticker. Row 1 scrolls left → right, row 2 scrolls
 // right → left for visual depth. Mobile collapses to a single row (CSS
-// hides the second row at < md). Per-pill content is intentionally simple
-// so the design language matches the rest of the program page.
+// hides the second row at < md). Pill design is intentionally calm — the
+// strip is meant to add texture, not steal focus from the section above.
 export const ScrollingToolStrip = ({ tools, heading, description, tone = 'soft' }: Props) => {
     if (tools.length === 0) return null
 
@@ -58,25 +61,23 @@ export const ScrollingToolStrip = ({ tools, heading, description, tone = 'soft' 
 
 const ToolPill = ({ tool }: { tool: ToolStripItem }) => (
     <div
-        className="inline-flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full"
+        className="inline-flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 rounded-full transition-all hover:translate-y-[-2px] hover:shadow-md"
         style={{
             background: 'var(--surface)',
             border: '1px solid var(--hairline)',
             boxShadow: 'var(--card-shadow-soft)',
             color: 'var(--text-primary)'
         }}>
-        <div
-            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-            style={{
-                background: 'var(--section-soft)',
-                border: '1px solid var(--hairline)'
-            }}>
-            {tool.iconUrl ? (
+        {tool.iconUrl ? (
+            // Backwards-compat for callers that pass a CMS-uploaded asset.
+            <div
+                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--hairline)' }}>
                 <img src={tool.iconUrl} alt="" className="w-4 h-4 object-contain" loading="lazy" width={16} height={16} />
-            ) : (
-                <Sparkles size={12} style={{ color: 'var(--brand)' }} />
-            )}
-        </div>
+            </div>
+        ) : (
+            <ToolIcon name={tool.name} />
+        )}
         <span className="text-[13.5px] md:text-[14px] font-semibold whitespace-nowrap">{tool.name}</span>
     </div>
 )

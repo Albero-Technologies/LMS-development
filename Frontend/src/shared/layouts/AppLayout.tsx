@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { Brand } from '@shared/components/Brand'
 import { ScrollToTop } from '@shared/components/ScrollToTop'
+import { DemoCountdownStrip } from '@features/dashboards/components/DemoCountdownStrip'
 import { ThemeToggle } from '@shared/components/ThemeToggle'
 import { NotificationBell } from '@features/notifications/components/NotificationBell'
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteShortcut } from '@shared/components/CommandPalette'
@@ -270,6 +271,11 @@ const AppLayoutBody = () => {
     return (
         <div className="min-h-screen bg-surface-2 text-fg">
             <ScrollToTop />
+            {/* Sticky DEMO countdown — only renders for STUDENT users with
+                an active DEMO enrolment. Sits above the entire app shell so
+                the countdown is always visible regardless of which dashboard
+                the student opens. */}
+            <DemoCountdownStrip />
             <div className="flex">
                 {/* Sidebar */}
                 <aside

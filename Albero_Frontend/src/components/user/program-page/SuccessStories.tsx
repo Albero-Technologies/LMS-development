@@ -166,14 +166,26 @@ const StoryCard = ({ story, delayMs = 0 }: { story: SuccessStory; delayMs?: numb
                 transform: visible ? 'translateY(0)' : 'translateY(20px)',
                 transitionDelay: `${delayMs}ms`
             }}>
-            {/* Photo / initials hero */}
+            {/* Photo / initials hero. The initials tile is always rendered
+                so a broken external photo (rate-limited Unsplash, dead CMS
+                asset, etc.) still leaves a polished gradient + monogram
+                instead of a broken-image square. */}
             <div className="relative aspect-[4/3] overflow-hidden" style={{ background: 'var(--gradient-aurora)' }}>
-                {story.photoUrl ? (
-                    <img src={story.photoUrl} alt={story.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="font-display text-[64px] font-semibold text-white/95">{initials}</span>
-                    </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="font-display text-[64px] font-semibold text-white/95">{initials}</span>
+                </div>
+                {story.photoUrl && (
+                    <img
+                        src={story.photoUrl}
+                        alt={story.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                            // Hide the failed <img> so the initials tile
+                            // underneath shows through cleanly.
+                            ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                        }}
+                    />
                 )}
                 {/* Bottom gradient overlay so the badge always reads */}
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />

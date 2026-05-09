@@ -8,7 +8,7 @@ import { z } from 'zod'
 // own. Trainer scope drops in via the assigned trainer on the enrolled
 // course.
 
-export const STUDENT_CATEGORIES = ['ACTIVE', 'INACTIVE', 'FEES_PAID', 'FEES_PENDING', 'FOLLOW_UP', 'DEAD'] as const
+export const STUDENT_CATEGORIES = ['DEMO', 'ACTIVE', 'INACTIVE', 'FEES_PAID', 'FEES_PENDING', 'FOLLOW_UP', 'DEAD'] as const
 export type StudentCategory = (typeof STUDENT_CATEGORIES)[number]
 
 export const listStudentsSchema = z.object({

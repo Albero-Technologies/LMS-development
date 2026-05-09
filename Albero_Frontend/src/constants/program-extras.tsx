@@ -16,75 +16,13 @@ import type { ArmorCodeNode } from '@/components/user/program-page/ArmorCodeHero
 import { Award, Compass, Layers, MessagesSquare, Rocket, Users } from 'lucide-react'
 
 // ──────────────────────────────────────────────────────────────────────
-// Tool icons map — keyed by lowercase tool name. Falls back to a sparkle
-// glyph in the pill component when an icon isn't found.
+// Tool ticker data — names only. The ToolIcon component resolves each
+// name to a brand-coloured Lucide glyph via its internal registry, so
+// callers don't need to maintain icon URLs.
 // ──────────────────────────────────────────────────────────────────────
 
-const I = (slug: string): string => `https://cdn.simpleicons.org/${slug}/0d4f3c`
-export const TOOL_ICON_MAP: Record<string, string> = {
-    excel: I('microsoftexcel'),
-    sql: I('mysql'),
-    'power bi': I('powerbi'),
-    tableau: I('tableau'),
-    python: I('python'),
-    'google sheets': I('googlesheets'),
-    'looker studio': I('looker'),
-    pandas: I('pandas'),
-    git: I('git'),
-    react: I('react'),
-    'node.js': I('nodedotjs'),
-    express: I('express'),
-    mongodb: I('mongodb'),
-    postgres: I('postgresql'),
-    redis: I('redis'),
-    docker: I('docker'),
-    aws: I('amazonaws'),
-    azure: I('microsoftazure'),
-    'scikit-learn': I('scikitlearn'),
-    pytorch: I('pytorch'),
-    tensorflow: I('tensorflow'),
-    huggingface: I('huggingface'),
-    'hugging face': I('huggingface'),
-    openai: I('openai'),
-    langchain: I('langchain'),
-    spark: I('apachespark'),
-    airflow: I('apacheairflow'),
-    dbt: I('dbt'),
-    snowflake: I('snowflake'),
-    kafka: I('apachekafka'),
-    terraform: I('terraform'),
-    splunk: I('splunk'),
-    wireshark: I('wireshark'),
-    'kali linux': I('kalilinux'),
-    'burp suite': I('burpsuite'),
-    metasploit: I('metasploit'),
-    nmap: I('nmap'),
-    typescript: I('typescript'),
-    javascript: I('javascript'),
-    html: I('html5'),
-    css: I('css3'),
-    'html/css': I('html5'),
-    graphql: I('graphql'),
-    bloomberg: I('bloomberg'),
-    capiq: I('thomsonreuters'),
-    factset: I('factset'),
-    pitchbook: I('pitchbook'),
-    powerpoint: I('microsoftpowerpoint'),
-    mixpanel: I('mixpanel'),
-    amplitude: I('amplitude'),
-    ga4: I('googleanalytics'),
-    looker: I('looker'),
-    linux: I('linux'),
-    networking: '',
-    wazuh: '',
-    statistics: ''
-}
-
 export const toolsForProgram = (toolNames: string[]): ToolStripItem[] =>
-    toolNames.map((name) => ({
-        name,
-        iconUrl: TOOL_ICON_MAP[name.toLowerCase()] || undefined
-    }))
+    toolNames.map((name) => ({ name }))
 
 // ──────────────────────────────────────────────────────────────────────
 // Shared sample mentors — used by every program until per-program CMS

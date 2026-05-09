@@ -433,6 +433,7 @@ export default function ProgramsShowcase() {
 
                         {/* Scrollable list — hover to preview, click to navigate */}
                         <div
+                            data-lenis-prevent="true"
                             className="space-y-2 overflow-y-auto pr-1"
                             onMouseLeave={handleListLeave}
                             style={{

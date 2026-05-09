@@ -105,7 +105,9 @@ export const WaveDivider = ({ from = 'white', to = 'soft' }: { from?: Tone; to?:
     )
 }
 
-/** Gradient-icon container — 48×48 rounded square with the brand aurora. */
+/** Gradient-icon container — 48×48 rounded square with the brand aurora.
+ *  Drop-shadow uses the same hue as the gradient so the icon looks like
+ *  it casts a brand-coloured glow, not a generic grey box-shadow. */
 export const GradientIcon = ({ children, size = 48 }: { children: ReactNode; size?: number }) => (
     <div
         className="rounded-xl flex items-center justify-center text-white shrink-0"
@@ -113,7 +115,7 @@ export const GradientIcon = ({ children, size = 48 }: { children: ReactNode; siz
             width: size,
             height: size,
             background: 'var(--gradient-aurora)',
-            boxShadow: '0 6px 18px rgba(91, 63, 214, 0.28)'
+            boxShadow: 'var(--glow-brand)'
         }}>
         {children}
     </div>

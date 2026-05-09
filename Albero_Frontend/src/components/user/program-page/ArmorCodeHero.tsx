@@ -147,11 +147,11 @@ export const ArmorCodeHero = ({
             const hubY = heightCss / 2
             ctx.clearRect(0, 0, widthCss, heightCss)
 
-            // 1. Background dots
+            // 1. Background dots — brand emerald, low alpha so they whisper.
             for (const d of dots) {
                 ctx.beginPath()
                 ctx.arc(d.x * widthCss, d.y * heightCss, d.r, 0, Math.PI * 2)
-                ctx.fillStyle = `rgba(91, 63, 214, ${d.alpha * 0.35})`
+                ctx.fillStyle = `rgba(20, 120, 95, ${d.alpha * 0.4})`
                 ctx.fill()
             }
 
@@ -194,7 +194,7 @@ export const ArmorCodeHero = ({
                 const a = (1 - t) * 0.5
                 ctx.beginPath()
                 ctx.arc(hubX, hubY, r, 0, Math.PI * 2)
-                ctx.strokeStyle = `rgba(91, 63, 214, ${a})`
+                ctx.strokeStyle = `rgba(13, 79, 60, ${a})`
                 ctx.lineWidth = 1.4
                 ctx.stroke()
             }
@@ -234,11 +234,13 @@ export const ArmorCodeHero = ({
                 ctx.fillText(node.label, sx, sy + bob + 40)
             }
 
-            // 5. Central hub — gradient-filled circle
+            // 5. Central hub — gradient-filled circle in the brand emerald
+            // chord (deep emerald → mid emerald → mint), matching the
+            // GradientIcon utility + the rest of the marketing site.
             const grad = ctx.createLinearGradient(hubX - 32, hubY - 32, hubX + 32, hubY + 32)
-            grad.addColorStop(0, '#5b3fd6')
-            grad.addColorStop(0.5, '#14785f')
-            grad.addColorStop(1, '#0ea47a')
+            grad.addColorStop(0, '#0d4f3c')
+            grad.addColorStop(0.55, '#14785f')
+            grad.addColorStop(1, '#34d399')
             ctx.beginPath()
             ctx.arc(hubX, hubY, 32, 0, Math.PI * 2)
             ctx.fillStyle = grad

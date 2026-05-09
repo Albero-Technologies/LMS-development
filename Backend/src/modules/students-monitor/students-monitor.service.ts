@@ -1,4 +1,4 @@
-import { EnrollmentStatus, EnquiryStage, InvoiceStatus, type Prisma, Role, UserStatus } from '@prisma/client'
+import { EnrollmentAccessTier, EnrollmentStatus, EnquiryStage, InvoiceStatus, type Prisma, Role, UserStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
@@ -70,6 +70,13 @@ const isMonitorRole = (role: Role): boolean =>
 // tenant scan from O(all-students) to O(category-students).
 const applyCategoryWhere = (where: Prisma.UserWhereInput, category: StudentCategory, inactivityCutoff: Date): void => {
     switch (category) {
+        case 'DEMO':
+            // Any active enrolment whose access tier is DEMO. The JS pass
+            // re-checks balance state so we still flag implied-balance rows.
+            where.enrollments = {
+                some: { accessTier: EnrollmentAccessTier.DEMO, deletedAt: null }
+            }
+            return
         case 'DEAD':
             where.status = UserStatus.SUSPENDED
             return
@@ -124,7 +131,7 @@ interface StudentRow {
     tenant: { id: string; name: string; slug: string }
     counsellor: { id: string; name: string; email: string } | null
     trainer: { id: string; name: string; email: string } | null
-    enrollments: { id: string; status: string; progressPct: number; course: { id: string; title: string } | null }[]
+    enrollments: { id: string; status: string; progressPct: number; accessTier: EnrollmentAccessTier; course: { id: string; title: string } | null }[]
     payments: { totalPaid: number; pendingAmount: number; paidCount: number; pendingCount: number }
     primaryCategory: StudentCategory
     flags: Record<StudentCategory, boolean>
@@ -170,7 +177,10 @@ const computeFlags = (
         !allEnrolmentsCompleted &&
         (enrollments.length === 0 || (!recentLogin && enrollments.some((e) => e.progressPct < 30)) || enquiryStage === EnquiryStage.NEW || enquiryStage === EnquiryStage.DEMO_SCHEDULED)
 
-    return { ACTIVE: active, INACTIVE: inactive, FEES_PAID: feesPaid, FEES_PENDING: feesPending, FOLLOW_UP: followUp, DEAD: dead }
+    // DEMO is set by the caller from the enrolment.accessTier check —
+    // false here because computeFlags doesn't see the access tier. The
+    // caller spreads the result and overrides DEMO before persisting.
+    return { ACTIVE: active, INACTIVE: inactive, FEES_PAID: feesPaid, FEES_PENDING: feesPending, FOLLOW_UP: followUp, DEAD: dead, DEMO: false }
 }
 
 interface StudentAggregate {
@@ -189,9 +199,11 @@ interface StudentAggregate {
         id: string
         status: EnrollmentStatus
         progressPct: number
-        course: { id: string; title: string; trainerId: string | null; trainer: { id: string; firstName: string; lastName: string; email: string } | null } | null
+        accessTier: EnrollmentAccessTier
+        course: { id: string; title: string; price: number; gstPercent: number; trainerId: string | null; trainer: { id: string; firstName: string; lastName: string; email: string } | null } | null
+        invoices: { amount: number; totalAmount: number; status: InvoiceStatus }[]
     }[]
-    invoices: { totalAmount: number; status: InvoiceStatus }[]
+    invoices: { amount: number; totalAmount: number; status: InvoiceStatus }[]
     counsellor: { id: string; firstName: string; lastName: string; email: string } | null
     enquiryStage: EnquiryStage | null
 }
@@ -265,18 +277,22 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
                     id: true,
                     status: true,
                     progressPct: true,
+                    accessTier: true,
                     course: {
                         select: {
                             id: true,
                             title: true,
+                            price: true,
+                            gstPercent: true,
                             trainerId: true,
                             trainer: { select: { id: true, firstName: true, lastName: true, email: true } }
                         }
-                    }
+                    },
+                    invoices: { select: { amount: true, totalAmount: true, status: true } }
                 }
             },
             invoices: {
-                select: { totalAmount: true, status: true }
+                select: { totalAmount: true, amount: true, status: true }
             }
         },
         orderBy: { createdAt: 'desc' },
@@ -322,11 +338,32 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
 
     const rows: StudentRow[] = aggregates.map((agg) => {
         const totalPaid = agg.invoices.filter((i) => i.status === InvoiceStatus.PAID).reduce((n, i) => n + i.totalAmount, 0)
-        const pendingAmount = agg.invoices.filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT).reduce((n, i) => n + i.totalAmount, 0)
+        const pendingFromInvoices = agg.invoices.filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT).reduce((n, i) => n + i.totalAmount, 0)
         const paidCount = agg.invoices.filter((i) => i.status === InvoiceStatus.PAID).length
         const pendingCount = agg.invoices.filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT).length
+
+        // Compute the implied balance for any DEMO enrolments — covers the
+        // case where the registration fee was paid but no DUE balance
+        // invoice was generated yet (legacy rows pre-dating the
+        // public-purchase migration). Admin/SA/counsellor dashboards use
+        // this to nudge students to settle the full fee even when there's
+        // no formal invoice to point at.
+        const demoBalanceImplied = agg.enrollments.reduce((sum, en) => {
+            if (en.accessTier !== EnrollmentAccessTier.DEMO || !en.course) return sum
+            const paidPrincipal = (en.invoices ?? []).filter((i) => i.status === InvoiceStatus.PAID).reduce((n, i) => n + i.amount, 0)
+            const remainingPrincipal = Math.max(0, en.course.price - paidPrincipal)
+            const gst = en.course.gstPercent ?? 18
+            return sum + remainingPrincipal + Math.round((remainingPrincipal * gst) / 100)
+        }, 0)
+        const pendingAmount = pendingFromInvoices > 0 ? pendingFromInvoices : demoBalanceImplied
+
         const payments = { totalPaid, pendingAmount, paidCount, pendingCount }
         const flags = computeFlags(agg.user, payments, agg.enrollments, agg.enquiryStage)
+        // Demo students always trip the DEMO flag, regardless of whether
+        // their balance invoice has been written yet — the UI uses this to
+        // colour the pill + drive the new DEMO chip filter.
+        const isDemoEnrolled = agg.enrollments.some((e) => e.accessTier === EnrollmentAccessTier.DEMO)
+        const allFlags = { ...flags, DEMO: isDemoEnrolled }
         const trainerCandidate = agg.enrollments.find((e) => e.course?.trainer)?.course?.trainer ?? null
 
         return {
@@ -344,11 +381,12 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
                 id: e.id,
                 status: e.status,
                 progressPct: e.progressPct,
+                accessTier: e.accessTier,
                 course: e.course ? { id: e.course.id, title: e.course.title } : null
             })),
             payments,
-            primaryCategory: resolveCategory(flags),
-            flags
+            primaryCategory: isDemoEnrolled && pendingAmount > 0 ? 'DEMO' : resolveCategory(flags),
+            flags: allFlags
         }
     })
 
@@ -411,7 +449,12 @@ const computeCategoryTotals = async (baseWhere: Prisma.UserWhereInput, inactivit
         db.client.user.count({
             where: { ...safeWhere, OR: [...(safeWhere.OR ?? []), { enrollments: { none: { deletedAt: null } } }, { enrollments: { some: { progressPct: { lt: 30 } } } }] }
         }),
-        db.client.user.count({ where: { ...safeWhere, status: UserStatus.SUSPENDED } })
+        db.client.user.count({ where: { ...safeWhere, status: UserStatus.SUSPENDED } }),
+        // DEMO — registration paid but full fee outstanding. Cheap to count
+        // because Enrollment.accessTier is indexed (see migration 20260509160000).
+        db.client.user.count({
+            where: { ...safeWhere, enrollments: { some: { accessTier: EnrollmentAccessTier.DEMO, deletedAt: null } } }
+        })
     ])
     return {
         ACTIVE: counts[0],
@@ -419,7 +462,8 @@ const computeCategoryTotals = async (baseWhere: Prisma.UserWhereInput, inactivit
         FEES_PAID: counts[2],
         FEES_PENDING: counts[3],
         FOLLOW_UP: counts[4],
-        DEAD: counts[5]
+        DEAD: counts[5],
+        DEMO: counts[6]
     }
 }
 

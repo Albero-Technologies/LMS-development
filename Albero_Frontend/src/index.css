@@ -384,18 +384,23 @@ html.lenis body {
 ─────────────────────────────────────────────────────────────────────────── */
 
 :root {
-    /* ArmorCode-inspired brand gradient — used on accent words, gradient-icon
-       containers, primary CTAs on dark sections. The mid-stop is the bridge
-       between Albero's emerald and ArmorCode's violet so the new sections
-       blend with the existing palette. */
-    --gradient-aurora: linear-gradient(135deg, #5b3fd6 0%, #14785f 50%, #0ea47a 100%);
+    /* Brand-emerald gradients — derived from Albero's existing palette so
+       every new section blends with the rest of the marketing site. The
+       "aurora" name is a hold-over from the ArmorCode reference; under the
+       hood every variant uses the deep emerald → mid emerald → mint chord
+       so the page never reads as "two different brands fighting". */
+    --gradient-aurora: linear-gradient(135deg, #0d4f3c 0%, #14785f 50%, #34d399 100%);
     --gradient-brand: linear-gradient(135deg, #0d4f3c 0%, #14785f 60%, #34d399 100%);
     --gradient-accent: linear-gradient(135deg, #b86a18 0%, #fbbf24 100%);
+    /* Soft glow used by hero halos + GradientIcon shadows. Same hue as the
+       gradient so shadows look like they belong to the element above. */
+    --glow-brand: 0 8px 24px rgba(13, 79, 60, 0.28);
 
     /* Section backgrounds — alternating tones the redesign uses to avoid the
-       "wall of white" look. Pure white / very-light blue / deep navy. */
-    --section-soft: #f4f6fa;
-    --section-deep: #0a0f1e;
+       "wall of white" look. Pure white / warm cream (matches Albero's existing
+       --surface-2) / deep navy for the dark stats bars. */
+    --section-soft: var(--surface-2);
+    --section-deep: #0a1410;
 
     /* Card defaults — soft shadow, hairline border. Hover state overrides
        lift + shadow inline on each component. */
@@ -410,6 +415,7 @@ html.lenis body {
     --hairline: rgba(255, 255, 255, 0.08);
     --card-shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.35);
     --card-shadow-hover: 0 14px 36px rgba(0, 0, 0, 0.5);
+    --glow-brand: 0 8px 24px rgba(52, 211, 153, 0.28);
 }
 
 /* Tool / alumni ticker — pure-CSS infinite scroll, no JS. The track holds
@@ -454,10 +460,8 @@ html.lenis body {
     animation: alb-arrow-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-/* ArmorCode-style hub pulse — concentric expanding rings around the
-   central canvas node. Used by the standalone ArmorCodeHero canvas
-   render path AND any static "central icon" mock-up that wants the
-   same vibe. */
+/* Concentric expanding hub pulse — used by the canvas hero AND any
+   static "central icon" mock that wants the same heartbeat vibe. */
 @keyframes alb-hub-pulse {
     0% { transform: scale(0.85); opacity: 0.55; }
     80% { transform: scale(1.6); opacity: 0; }
@@ -468,13 +472,14 @@ html.lenis body {
     animation: alb-hub-pulse 2.4s ease-out infinite;
 }
 
-/* Aurora mesh background — sits behind dark hero sections to add depth
-   without the full neon. Three subtle radial gradients layered. */
+/* Aurora mesh — three layered radial gradients in the brand emerald
+   chord. Sits behind dark hero sections to add depth without overpowering
+   the foreground typography. */
 .alb-aurora-mesh {
     background:
-        radial-gradient(60% 50% at 20% 20%, rgba(91, 63, 214, 0.18) 0%, transparent 60%),
-        radial-gradient(60% 50% at 80% 30%, rgba(20, 120, 95, 0.16) 0%, transparent 60%),
-        radial-gradient(60% 50% at 50% 90%, rgba(14, 164, 122, 0.15) 0%, transparent 60%),
+        radial-gradient(60% 50% at 20% 20%, rgba(13, 79, 60, 0.32) 0%, transparent 60%),
+        radial-gradient(60% 50% at 80% 30%, rgba(20, 120, 95, 0.22) 0%, transparent 60%),
+        radial-gradient(60% 50% at 50% 90%, rgba(52, 211, 153, 0.18) 0%, transparent 60%),
         var(--section-deep);
 }
 

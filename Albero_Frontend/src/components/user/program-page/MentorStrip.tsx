@@ -82,12 +82,22 @@ const MentorCard = ({ mentor }: { mentor: Mentor }) => {
                 boxShadow: 'var(--card-shadow-soft)'
             }}>
             <div className="relative aspect-square overflow-hidden" style={{ background: 'var(--gradient-aurora)' }}>
-                {mentor.photoUrl ? (
-                    <img src={mentor.photoUrl} alt={mentor.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="font-display text-[64px] font-semibold text-white/95">{initials}</span>
-                    </div>
+                {/* Always render the initials tile underneath; the photo
+                    overlay hides it via display:none on load error so a
+                    rate-limited Unsplash URL doesn't show as a broken image. */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="font-display text-[64px] font-semibold text-white/95">{initials}</span>
+                </div>
+                {mentor.photoUrl && (
+                    <img
+                        src={mentor.photoUrl}
+                        alt={mentor.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                            ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                        }}
+                    />
                 )}
                 {mentor.companyLogoUrl && (
                     <div
