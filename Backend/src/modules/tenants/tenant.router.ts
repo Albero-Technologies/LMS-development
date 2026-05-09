@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import * as ctrl from './tenant.controller'
 import { validate } from '../../middleware/validate'
-import { createTenantSchema, updateTenantBrandingSchema } from './tenant.schema'
+import { createTenantSchema, requestPlanChangeSchema, updateTenantBrandingSchema } from './tenant.schema'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth, requirePolicy, requireRole } from '../../middleware/auth'
 import { Role } from '@prisma/client'
@@ -23,6 +23,13 @@ router.patch('/me', requireAuth, requirePolicy('tenant', 'write'), validate(upda
 
 // Tenant ADMIN SaaS billing (§10.2). Tenant admins can see + pay their own
 // invoices. SUPER_ADMIN is allowed too so they can preview the page.
+router.post(
+    '/me/plan-change-request',
+    requireAuth,
+    requireRole(Role.ADMIN, Role.SUPER_ADMIN),
+    validate(requestPlanChangeSchema),
+    asyncHandler(ctrl.requestPlanChange)
+)
 router.get('/me/payments', requireAuth, requireRole(Role.ADMIN, Role.SUPER_ADMIN), asyncHandler(ctrl.getMyTenantPayments))
 router.post('/me/payments/:id/pay', requireAuth, requireRole(Role.ADMIN, Role.SUPER_ADMIN), asyncHandler(ctrl.payTenantPayment))
 router.post('/me/payments/:id/verify', requireAuth, requireRole(Role.ADMIN, Role.SUPER_ADMIN), asyncHandler(ctrl.verifyTenantPayment))

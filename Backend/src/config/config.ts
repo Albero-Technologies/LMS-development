@@ -33,6 +33,11 @@ export default {
     // build absolute <loc> entries in sitemap.xml. Defaults to CORS_ORIGIN
     // so dev "just works"; set explicitly in prod (e.g. https://www.albero.in).
     PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL || process.env.CORS_ORIGIN || 'http://localhost:5173',
+    // Where the student / staff dashboard SPA is served (separate host from
+    // the marketing PUBLIC_SITE_URL). Used to build set-password and login
+    // URLs in transactional emails so students land on the dashboard, not
+    // the marketing landing page. Defaults to localhost:5174 in dev.
+    STUDENT_PORTAL_URL: process.env.STUDENT_PORTAL_URL || 'http://localhost:5174',
 
     DATABASE_URL: process.env.DATABASE_URL || '',
     REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',

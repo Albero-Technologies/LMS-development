@@ -100,3 +100,23 @@ export const changeMyPassword = async (req: Request, res: Response): Promise<voi
     await service.changePassword(req.auth.userId, req.body, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS)
 }
+
+// Pre-flight check from the set-password page. Doesn't burn the token.
+export const verifyPasswordResetToken = async (req: Request, res: Response): Promise<void> => {
+    const token = (req.params as { token?: string }).token
+    if (!token) throw AppError.badRequest('Missing token', 'TOKEN_MISSING')
+    const data = await service.verifyPasswordResetToken(token)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, data)
+}
+
+// Consume a one-time-token to set a new password. Returns a fresh JWT pair
+// so the user lands signed-in immediately on the dashboard.
+export const setPasswordWithToken = async (req: Request, res: Response): Promise<void> => {
+    const { token, newPassword } = req.body as { token: string; newPassword: string }
+    const result = await service.setPasswordWithToken(token, newPassword, req)
+    setRefreshCookie(res, result.refreshToken)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, {
+        user: result.user,
+        accessToken: result.accessToken
+    })
+}

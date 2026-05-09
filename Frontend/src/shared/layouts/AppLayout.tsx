@@ -29,8 +29,6 @@ import {
     Telescope,
     Database,
     Target,
-    Sparkles,
-    Library,
     Search,
     Mail
 } from 'lucide-react'
@@ -86,10 +84,12 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/audit-logs', label: 'Activity Logs', icon: Activity }
     ],
     ADMIN: [
-        // ADMIN sees Programs + Resources (their day-to-day content surface).
-        // The raw "Content" / CMS tab is hidden — Programs + Resources cover
-        // the same data with a focused UI; admins who want the schema editor
-        // can still hit /app/admin/cms by URL but it's not in the sidebar.
+        // Programs + Resources content tools were moved off the ADMIN sidebar
+        // on 2026-05-09 — admins manage day-to-day work here, and the public
+        // marketing CMS lives behind the SA-only website-editor / CMS tabs.
+        // The /app/admin/programs and /app/admin/resources routes still exist
+        // (and are reachable by URL or by Super Admin), they're just no
+        // longer surfaced in the ADMIN sidebar.
         { to: '/app/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/app/batches', label: 'Batches', icon: CalendarCheck },
         { to: '/app/users', label: 'Users', icon: Users },
@@ -99,8 +99,6 @@ const NAV_BY_ROLE: Record<TRole, NavItem[]> = {
         { to: '/app/counsellor/targets', label: 'Counsellor Targets', icon: Target },
         { to: '/app/courses', label: 'Courses', icon: BookOpen },
         { to: '/app/assignments', label: 'Assignments', icon: ClipboardList },
-        { to: '/app/admin/programs', label: 'Programs', icon: Sparkles },
-        { to: '/app/admin/resources', label: 'Resources', icon: Library },
         { to: '/app/admin/newsletter', label: 'Newsletter', icon: Mail },
         { to: '/app/payments', label: 'Payments', icon: CreditCard },
         { to: '/app/admin/billing', label: 'Subscription', icon: Briefcase },

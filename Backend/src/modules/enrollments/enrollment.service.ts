@@ -1,9 +1,10 @@
-import { CoursePublishState, EnrollmentStatus, InvoiceStatus, PaymentEventStatus, PaymentGateway, type Prisma } from '@prisma/client'
+import { CoursePublishState, EnrollmentStatus, InvoiceStatus, PaymentEventStatus, PaymentGateway, type Prisma, Role, UserStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { resolveRazorpay, verifyPaymentSignature, verifyWebhookSignature } from '../payments/razorpay.client'
-import { notifyQueue, NOTIFY_JOB } from '../notifications/notification.queue'
+import { notifyQueue, NOTIFY_JOB, enqueueNotification } from '../notifications/notification.queue'
+import { emitToTenant } from '../../service/socket'
 import logger from '../../util/logger'
 
 const generateInvoiceNumber = async (tenantId: string): Promise<string> => {
@@ -227,6 +228,18 @@ export const verifyPayment = async (
 }
 
 // Razorpay webhook — idempotent via (gatewayEventId) unique on PaymentEvent.
+//
+// Three event kinds are wired through the same handler:
+//   payment.captured   → invoice flips to PAID, enrolment ACTIVE, all
+//                        stakeholders notified, dashboards invalidated.
+//   payment.failed     → invoice flips to FAILED, student emailed,
+//                        counsellor + admin pinged.
+//   refund.processed   → invoice REFUNDED with audit metadata, enrolment
+//                        cancelled, refund column on Payments page updates.
+//
+// Every state change emits a `payments:updated` socket event scoped to the
+// tenant so the admin Payments page + SA tenant view + Sales Funnel
+// recompute totals without a page refresh.
 export const handleRazorpayWebhook = async (rawBody: string, signature: string) => {
     // Webhook delivery is from a single endpoint; we accept the platform secret
     // here. Tenant-specific webhook secrets are validated downstream when we
@@ -238,11 +251,73 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
     const parsed = JSON.parse(rawBody) as {
         event: string
         id: string
-        payload: { payment?: { entity: { id: string; order_id: string; amount: number; status: string; notes?: Record<string, string> } } }
+        payload: {
+            payment?: { entity: { id: string; order_id: string; amount: number; status: string; notes?: Record<string, string> } }
+            refund?: { entity: { id: string; payment_id: string; amount: number; status: string; notes?: Record<string, string> } }
+        }
     }
-    const payment = parsed.payload?.payment?.entity
+
     const eventId = parsed.id
-    if (!payment || !eventId) return { ok: true, skipped: true }
+    if (!eventId) return { ok: true, skipped: true }
+
+    // ---- refund.processed ------------------------------------------------
+    // Refunds carry a refund entity, not a payment entity. The payment_id
+    // links back to the original Invoice so we can mark it REFUNDED and
+    // surface the amount on the Payments page.
+    if (parsed.event === 'refund.processed' || parsed.event === 'refund.created' || parsed.event === 'refund.failed') {
+        const refund = parsed.payload?.refund?.entity
+        if (!refund) return { ok: true, skipped: true }
+
+        const invoice = await db.client.invoice.findFirst({ where: { gatewayPaymentId: refund.payment_id } })
+        if (!invoice) {
+            logger.warn('WEBHOOK_REFUND_INVOICE_NOT_FOUND', { meta: { paymentId: refund.payment_id } })
+            return { ok: true, skipped: true }
+        }
+
+        const alreadyProcessed = await db.client.paymentEvent.findUnique({ where: { gatewayEventId: eventId } })
+        if (alreadyProcessed) return { ok: true, duplicate: true }
+
+        await db.client.$transaction(async (tx) => {
+            await tx.paymentEvent.create({
+                data: {
+                    tenantId: invoice.tenantId,
+                    invoiceId: invoice.id,
+                    gateway: PaymentGateway.RAZORPAY,
+                    gatewayEventId: eventId,
+                    gatewayOrderId: invoice.gatewayOrderId,
+                    gatewayPaymentId: refund.payment_id,
+                    status: PaymentEventStatus.REFUNDED,
+                    amount: refund.amount,
+                    rawPayload: parsed as unknown as Prisma.InputJsonValue,
+                    signatureValid: true
+                }
+            })
+            if (parsed.event === 'refund.processed' && invoice.status !== InvoiceStatus.REFUNDED) {
+                await tx.invoice.update({
+                    where: { id: invoice.id },
+                    data: { status: InvoiceStatus.REFUNDED, refundedAt: new Date() }
+                })
+                if (invoice.enrollmentId) {
+                    await tx.enrollment.update({
+                        where: { id: invoice.enrollmentId },
+                        data: { status: EnrollmentStatus.REFUNDED }
+                    })
+                }
+            }
+        })
+
+        await fanoutPaymentSync(invoice.tenantId, {
+            kind: 'refund',
+            invoiceId: invoice.id,
+            paymentId: refund.payment_id,
+            amount: refund.amount
+        })
+        await notifyPaymentStakeholders(invoice.tenantId, invoice.userId, invoice.id, 'refund.processed', refund.amount)
+        return { ok: true, kind: 'refund' }
+    }
+
+    const payment = parsed.payload?.payment?.entity
+    if (!payment) return { ok: true, skipped: true }
 
     // Tenant SaaS invoices live in TenantPayment, not Invoice. Razorpay order
     // notes carry `kind: 'tenant_saas'` so we can route the webhook to the
@@ -258,8 +333,10 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
                 where: { id: tenantPayment.id },
                 data: { status: 'PAID', gatewayPaymentId: payment.id, paidAt: new Date() }
             })
+            await fanoutPaymentSync(tenantPayment.tenantId, { kind: 'saas', tenantPaymentId: tenantPayment.id, amount: tenantPayment.amount })
         } else if (parsed.event === 'payment.failed' && tenantPayment.status === 'PENDING') {
             await db.client.tenantPayment.update({ where: { id: tenantPayment.id }, data: { status: 'FAILED' } })
+            await fanoutPaymentSync(tenantPayment.tenantId, { kind: 'saas', tenantPaymentId: tenantPayment.id, status: 'FAILED' })
         }
         return { ok: true, kind: 'tenant_saas' }
     }
@@ -308,6 +385,17 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
         }
     })
 
+    // Fan-out — socket invalidation + per-stakeholder notifications. Both
+    // best-effort: any failure is logged but the webhook still acks 200 so
+    // Razorpay doesn't retry the already-persisted event.
+    await fanoutPaymentSync(invoice.tenantId, {
+        kind: parsed.event === 'payment.captured' ? 'captured' : 'failed',
+        invoiceId: invoice.id,
+        paymentId: payment.id,
+        amount: payment.amount
+    })
+    await notifyPaymentStakeholders(invoice.tenantId, invoice.userId, invoice.id, parsed.event, payment.amount)
+
     return { ok: true }
 }
 
@@ -337,4 +425,136 @@ export const adminListEnrollments = async (tenantId: string, query: { courseId?:
         orderBy: { createdAt: 'desc' },
         take: 200
     })
+}
+
+// ---- Webhook fan-out helpers --------------------------------------------
+
+interface PaymentSyncEvent {
+    kind: 'captured' | 'failed' | 'refund' | 'saas'
+    invoiceId?: string
+    tenantPaymentId?: string
+    paymentId?: string
+    amount?: number
+    status?: string
+}
+
+// Push a `payments:updated` socket message to the tenant room. The
+// dashboard hooks already invalidate the matching TanStack queries on
+// receipt, so the Payments page totals + Sales Funnel tiles + counsellor
+// pipeline all refresh without a page reload. Best-effort — if the socket
+// server isn't running (worker process), this is a no-op.
+const fanoutPaymentSync = (tenantId: string, event: PaymentSyncEvent): Promise<void> => {
+    try {
+        emitToTenant(tenantId, 'payments:updated', { ...event, ts: Date.now() })
+    } catch (err) {
+        logger.warn('PAYMENT_SYNC_EMIT_FAILED', { meta: { tenantId, err: (err as Error).message } })
+    }
+    return Promise.resolve()
+}
+
+// Notify the student + assigned counsellor + every tenant ADMIN/MANAGER
+// of a payment lifecycle event. Templates differ by event:
+//   payment.captured  → admin/manager/counsellor get `payment_received_admin`
+//   payment.failed    → student gets a "payment failed" mail; admin/counsellor pinged
+//   refund.processed  → student + admin notified
+const notifyPaymentStakeholders = async (
+    tenantId: string,
+    studentUserId: string,
+    invoiceId: string,
+    event: string,
+    amountMinor: number
+): Promise<void> => {
+    const [tenant, student, invoice, staff] = await Promise.all([
+        db.client.tenant.findUnique({ where: { id: tenantId }, select: { name: true } }),
+        db.client.user.findUnique({
+            where: { id: studentUserId },
+            select: { id: true, email: true, firstName: true, lastName: true }
+        }),
+        db.client.invoice.findUnique({
+            where: { id: invoiceId },
+            select: { number: true, enrollmentId: true, totalAmount: true }
+        }),
+        db.client.user.findMany({
+            where: { tenantId, role: { in: [Role.ADMIN, Role.COUNSELLING_MANAGER] }, status: UserStatus.ACTIVE, deletedAt: null },
+            select: { id: true }
+        })
+    ])
+    if (!student || !invoice) return
+
+    const enrollment = invoice.enrollmentId
+        ? await db.client.enrollment.findUnique({
+              where: { id: invoice.enrollmentId },
+              select: {
+                  counsellorId: true,
+                  course: { select: { title: true } }
+              }
+          })
+        : null
+
+    const studentName = `${student.firstName} ${student.lastName}`.trim() || student.email
+    const courseTitle = enrollment?.course?.title ?? ''
+    const amountDisplay = `₹${(amountMinor / 100).toLocaleString('en-IN')}`
+
+    const stakeholderIds = new Set<string>(staff.map((s) => s.id))
+    if (enrollment?.counsellorId) stakeholderIds.add(enrollment.counsellorId)
+
+    if (event === 'payment.captured') {
+        for (const recipientId of stakeholderIds) {
+            await enqueueNotification({
+                tenantId,
+                userId: recipientId,
+                template: 'payment_received_admin',
+                data: { studentName, courseTitle, amountDisplay, method: 'ONLINE', invoiceNumber: invoice.number }
+            })
+        }
+        return
+    }
+
+    if (event === 'payment.failed') {
+        // Student first — they need to see the bounce immediately.
+        await enqueueNotification({
+            tenantId,
+            userId: student.id,
+            template: 'payment',
+            data: {
+                invoiceNumber: invoice.number,
+                amount: amountDisplay,
+                currency: 'INR',
+                failed: true,
+                tenantName: tenant?.name ?? ''
+            }
+        })
+        for (const recipientId of stakeholderIds) {
+            await enqueueNotification({
+                tenantId,
+                userId: recipientId,
+                template: 'payment_received_admin',
+                data: { studentName, courseTitle, amountDisplay, method: 'ONLINE · FAILED', invoiceNumber: invoice.number }
+            })
+        }
+        return
+    }
+
+    if (event === 'refund.processed') {
+        await enqueueNotification({
+            tenantId,
+            userId: student.id,
+            template: 'payment',
+            data: {
+                invoiceNumber: invoice.number,
+                amount: amountDisplay,
+                currency: 'INR',
+                refunded: true,
+                tenantName: tenant?.name ?? ''
+            }
+        })
+        for (const recipientId of stakeholderIds) {
+            await enqueueNotification({
+                tenantId,
+                userId: recipientId,
+                template: 'payment_received_admin',
+                data: { studentName, courseTitle, amountDisplay, method: 'REFUND', invoiceNumber: invoice.number }
+            })
+        }
+    }
 }

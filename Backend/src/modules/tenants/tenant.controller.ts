@@ -59,11 +59,29 @@ export const getTenantDetail = async (req: Request, res: Response): Promise<void
     httpResponse(req, res, 200, responseMessage.SUCCESS, detail)
 }
 
-// SUPER_ADMIN — update branding/settings of any tenant (Phase B).
+// SUPER_ADMIN — update branding/settings of any tenant (Phase B). Includes
+// plan + seat-limit override toggles (gated inside the service via
+// `allowPlanChange: true`). The tenant-self PATCH /tenants/me uses the same
+// schema but never gets the SA-only flag, so plan + seatLimitOverride are
+// silently dropped from non-SA writes.
 export const updateTenantById = async (req: Request, res: Response): Promise<void> => {
-    const tenant = await service.updateBranding(req.params.id, req.body)
-    await writeAudit({ action: 'tenant.update', entityType: 'Tenant', entityId: tenant.id, tenantId: tenant.id }, req)
+    const tenant = await service.updateBranding(req.params.id, req.body, { allowPlanChange: true })
+    await writeAudit({ action: 'tenant.update', entityType: 'Tenant', entityId: tenant.id, tenantId: tenant.id, metadata: { plan: tenant.plan } }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
+}
+
+// Tenant ADMIN — submit a plan-change request. Doesn't actually flip the
+// plan; that's an SA-only action. Notifies every SUPER_ADMIN so they can
+// review and issue the corresponding invoice.
+export const requestPlanChange = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const body = req.body as { targetPlan: string; note?: string }
+    const result = await service.requestPlanChange(req.auth.tenantId, req.auth.userId, body.targetPlan, body.note)
+    await writeAudit(
+        { action: 'tenant.plan_change_requested', entityType: 'Tenant', entityId: req.auth.tenantId, tenantId: req.auth.tenantId, metadata: { targetPlan: body.targetPlan } },
+        req
+    )
+    httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }
 
 // SUPER_ADMIN — send a billing reminder to a tenant (§4.2). The body shape is

@@ -208,6 +208,15 @@ enum NotificationStatus {
   READ
 }
 
+// Outbound email status. Distinct from NotificationStatus so we can record
+// soft-skips (no SMTP configured, recipient on the fake-domain block list,
+// tenant has no contact email) without polluting the bell-icon stream.
+enum EmailDeliveryStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
 // ---------- Core tables ----------
 
 model Tenant {
@@ -247,9 +256,63 @@ model Tenant {
   assignments           Assignment[]
   assignmentSubmissions AssignmentSubmission[]
   paymentRequests       PaymentRequest[]
+  emailLogs             EmailLog[]
 
   @@index([slug])
   @@map("tenants")
+}
+
+// One-time-use token issued after a public Razorpay checkout completes.
+// The student receives a "set your new password" link in the welcome
+// email — clicking it lands on /student/set-password?token=… in the
+// Frontend, which calls /auth/password/reset with the token to flip the
+// account's password and invalidate the row. Also reusable for forgot-
+// password flows. Single-use: `usedAt` flips on first redemption and the
+// row is rejected on every subsequent call.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  // Hashed (sha-256) so a leak of the row doesn't leak the URL.
+  tokenHash String    @unique
+  // Free-form purpose tag — `enrollment_welcome`, `forgot_password`, etc.
+  // Lets us audit-log + analytics-segment redemptions later.
+  purpose   String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+// Outbound email telemetry — one row per attempt regardless of outcome.
+// Used by the admin "email troubleshooting" panel and the dev console to
+// trace delivery failures. Distinct from Notification (which is the bell-
+// inbox model the user sees) — every Notification with EMAIL channel
+// produces one EmailLog, but transactional / system mails may write only
+// here without a corresponding Notification row.
+model EmailLog {
+  id          String              @id @default(uuid())
+  tenantId    String?
+  userId      String? // recipient when known
+  toEmail     String
+  fromEmail   String
+  replyTo     String?
+  subject     String
+  template    String?
+  status      EmailDeliveryStatus
+  errorReason String?
+  messageId   String? // SMTP-returned message id when delivery succeeded
+  createdAt   DateTime            @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([toEmail])
+  @@map("email_logs")
 }
 
 // SaaS-billing records: each row is an invoice the platform issues to the
@@ -340,6 +403,7 @@ model User {
   paymentRequestsRequested   PaymentRequest[]       @relation("PaymentRequestRequester")
   paymentRequestsForMe       PaymentRequest[]       @relation("PaymentRequestStudent")
   paymentRequestsReviewed    PaymentRequest[]       @relation("PaymentRequestReviewer")
+  passwordResetTokens        PasswordResetToken[]
 
   @@unique([tenantId, email])
   @@index([tenantId, role])

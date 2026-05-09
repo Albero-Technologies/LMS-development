@@ -46,30 +46,49 @@ export const render = ({ template, data, tenantName }: TRenderInput): TRendered 
         case 'enrollment_credentials': {
             // Sent right after a public Razorpay checkout. The user paid as an
             // anonymous prospect; we created their student account on the fly,
-            // so this email carries their first-time login credentials.
+            // so this email carries their first-time login credentials AND a
+            // one-time "set your new password" link. The set-password URL is
+            // the recommended path — the temp password is a fallback if the
+            // link expires or the email gets forwarded to someone else.
+            const firstName = String(data.firstName ?? 'there')
             const courseTitle = String(data.courseTitle ?? 'the course')
             const email = String(data.email ?? '')
             const tempPassword = String(data.tempPassword ?? '')
             const loginUrl = String(data.loginUrl ?? config.SERVER_URL)
-            const firstName = String(data.firstName ?? 'there')
+            const setPasswordUrl = String(data.setPasswordUrl ?? '')
+            const tenantName = String(data.tenantName || brand)
+            const brandColor = String(data.brandColor ?? '#0d4f3c')
+            const brandLogo = data.brandLogo ? String(data.brandLogo) : null
+
+            const text =
+                `Hi ${firstName},\n\n` +
+                `Payment received and your seat in ${courseTitle} is confirmed.\n\n` +
+                `Set your password: ${setPasswordUrl || loginUrl}\n\n` +
+                `Or sign in with these credentials:\n` +
+                `  Email: ${email}\n` +
+                `  Temporary password: ${tempPassword}\n` +
+                `  Sign-in URL: ${loginUrl}\n\n` +
+                `This temporary password expires once you set a new one.\n\n` +
+                `Next steps:\n` +
+                `  1. Set your new password from the link above\n` +
+                `  2. Open your student portal and meet your cohort\n` +
+                `  3. Watch for batch start-date confirmation\n\n` +
+                `— Team ${tenantName}`
+
             return {
-                subject: `Welcome to ${brand} — your ${courseTitle} access is ready`,
-                text:
-                    `Hi ${firstName},\n\n` +
-                    `Payment received and your seat in ${courseTitle} is confirmed. We've created your student portal account:\n\n` +
-                    `Email: ${email}\n` +
-                    `Temporary password: ${tempPassword}\n\n` +
-                    `Sign in: ${loginUrl}\n\n` +
-                    `Please change your password the first time you log in.\n\n— ${brand}`,
-                html: `<p>Hi <strong>${firstName}</strong>,</p>
-<p>Payment received and your seat in <strong>${courseTitle}</strong> is confirmed. We've created your student portal account.</p>
-<p><strong>Sign in:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
-<table cellpadding="6" style="border-collapse:collapse;border:1px solid #e5e7eb;background:#f9fafb;border-radius:6px">
-  <tr><td><strong>Email</strong></td><td><code>${email}</code></td></tr>
-  <tr><td><strong>Temporary password</strong></td><td><code>${tempPassword}</code></td></tr>
-</table>
-<p>Please change your password the first time you log in.</p>
-<p>— ${brand}</p>`
+                subject: `Welcome to ${tenantName} — your login details inside 🎓`,
+                text,
+                html: renderEnrollmentCredentialsHtml({
+                    firstName,
+                    courseTitle,
+                    email,
+                    tempPassword,
+                    loginUrl,
+                    setPasswordUrl,
+                    tenantName,
+                    brandColor,
+                    brandLogo
+                })
             }
         }
 
@@ -236,3 +255,130 @@ ${data.invoiceNumber ? `<p>Invoice: <code>${String(data.invoiceNumber)}</code></
             }
     }
 }
+
+// HTML escape — Gmail clients are forgiving but variable interpolation
+// (firstName, courseTitle, …) can come from user input on the public
+// purchase form. Escape everything before substituting into the template.
+const esc = (raw: string): string =>
+    raw
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+
+// Branded enrollment-welcome HTML email. Inline CSS only (Gmail strips
+// <style> blocks), max-width 600px, white card on light grey background,
+// tenant brand colour banner. Sections in order:
+//   1. Logo + brand banner
+//   2. Personalised greeting with course title
+//   3. Set-password CTA button (primary action)
+//   4. Credentials box (email + temp password) — fallback path
+//   5. Next-steps checklist
+//   6. Footer
+const renderEnrollmentCredentialsHtml = (input: {
+    firstName: string
+    courseTitle: string
+    email: string
+    tempPassword: string
+    loginUrl: string
+    setPasswordUrl: string
+    tenantName: string
+    brandColor: string
+    brandLogo: string | null
+}): string => {
+    const c = input.brandColor || '#0d4f3c'
+    const logoHtml = input.brandLogo
+        ? `<img src="${esc(input.brandLogo)}" alt="${esc(input.tenantName)}" width="120" height="40" style="display:block;border:0;outline:none;text-decoration:none;max-height:40px;width:auto;" />`
+        : `<div style="font-family:Georgia,serif;font-size:22px;font-weight:600;color:#ffffff;letter-spacing:-0.01em;">${esc(input.tenantName)}</div>`
+
+    const ctaUrl = input.setPasswordUrl || input.loginUrl
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Welcome to ${esc(input.tenantName)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f5f9;padding:24px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(15,23,42,0.06);">
+      <!-- Banner -->
+      <tr>
+        <td style="background:${c};padding:28px 32px;">
+          ${logoHtml}
+        </td>
+      </tr>
+      <!-- Body -->
+      <tr><td style="padding:32px 32px 12px;">
+        <p style="margin:0 0 12px;font-size:14px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Enrolment confirmed</p>
+        <h1 style="margin:0 0 14px;font-size:24px;line-height:1.25;color:#0f172a;font-weight:700;">
+          Hi ${esc(input.firstName)}, you're in.
+        </h1>
+        <p style="margin:0 0 18px;font-size:15px;line-height:1.55;color:#334155;">
+          Your seat in <strong style="color:${c};">${esc(input.courseTitle)}</strong> is confirmed and your student account is ready.
+          Set your new password from the button below — it takes ten seconds.
+        </p>
+      </td></tr>
+      <!-- CTA -->
+      <tr><td style="padding:0 32px 24px;" align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="border-radius:999px;background:${c};">
+            <a href="${esc(ctaUrl)}" style="display:inline-block;padding:13px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:999px;font-family:inherit;">
+              Set your new password →
+            </a>
+          </td></tr>
+        </table>
+      </td></tr>
+      <!-- Credentials fallback -->
+      <tr><td style="padding:0 32px 24px;">
+        <p style="margin:0 0 10px;font-size:13px;color:#64748b;">
+          Or sign in with the temporary credentials below — this password expires once you set a new one.
+        </p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+          <tr><td style="padding:14px 16px;border-bottom:1px solid #e2e8f0;">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Email</div>
+            <code style="display:block;font-family:'SF Mono','Menlo','Consolas',monospace;font-size:14px;color:#0f172a;margin-top:4px;word-break:break-all;">${esc(input.email)}</code>
+          </td></tr>
+          <tr><td style="padding:14px 16px;border-bottom:1px solid #e2e8f0;">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Temporary password</div>
+            <code style="display:block;font-family:'SF Mono','Menlo','Consolas',monospace;font-size:14px;color:#0f172a;margin-top:4px;word-break:break-all;">${esc(input.tempPassword)}</code>
+          </td></tr>
+          <tr><td style="padding:14px 16px;">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Sign-in URL</div>
+            <a href="${esc(input.loginUrl)}" style="display:block;font-family:'SF Mono','Menlo','Consolas',monospace;font-size:13px;color:${c};margin-top:4px;word-break:break-all;text-decoration:none;">${esc(input.loginUrl)}</a>
+          </td></tr>
+        </table>
+      </td></tr>
+      <!-- Next steps -->
+      <tr><td style="padding:0 32px 24px;">
+        <h2 style="margin:0 0 14px;font-size:16px;font-weight:700;color:#0f172a;">Your first steps</h2>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="padding:8px 0;font-size:14px;color:#334155;line-height:1.5;">
+            <span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${c};color:#ffffff;font-size:12px;text-align:center;line-height:22px;font-weight:700;margin-right:10px;vertical-align:middle;">1</span>
+            Set your new password using the button above.
+          </td></tr>
+          <tr><td style="padding:8px 0;font-size:14px;color:#334155;line-height:1.5;">
+            <span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${c};color:#ffffff;font-size:12px;text-align:center;line-height:22px;font-weight:700;margin-right:10px;vertical-align:middle;">2</span>
+            Open your student dashboard — your course materials are waiting.
+          </td></tr>
+          <tr><td style="padding:8px 0;font-size:14px;color:#334155;line-height:1.5;">
+            <span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${c};color:#ffffff;font-size:12px;text-align:center;line-height:22px;font-weight:700;margin-right:10px;vertical-align:middle;">3</span>
+            Watch your inbox for the batch start-date and onboarding call invite.
+          </td></tr>
+        </table>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+        <p style="margin:0 0 6px;font-size:12px;color:#64748b;">Sent by <strong style="color:#334155;">${esc(input.tenantName)}</strong>. Reply to this email and a counsellor will get back to you.</p>
+        <p style="margin:0;font-size:11px;color:#94a3b8;">If you didn't expect this email, you can safely ignore it.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`
+}
+

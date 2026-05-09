@@ -454,13 +454,78 @@ export const listMyTenantPayments = async (tenantId: string) => {
     })
 }
 
-export const updateBranding = async (tenantId: string, input: TUpdateTenantBrandingInput) => {
+export const updateBranding = async (tenantId: string, input: TUpdateTenantBrandingInput, options: { allowPlanChange?: boolean } = {}) => {
     const data: Prisma.TenantUpdateInput = {}
     if (input.name !== undefined) data.name = input.name
     if (input.brandingLogo !== undefined) data.brandingLogo = input.brandingLogo
     if (input.brandingColor !== undefined) data.brandingColor = input.brandingColor
     if (input.settings !== undefined) data.settings = input.settings as Prisma.InputJsonValue
 
+    // Plan + seat-limit override are SUPER_ADMIN-only — `allowPlanChange`
+    // is set by the SA-only controller and stays false for tenant self-edits.
+    if (options.allowPlanChange) {
+        if (input.plan !== undefined) data.plan = input.plan
+        if (input.seatLimitOverride !== undefined) {
+            const existing = await db.client.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } })
+            const currentSettings = (existing?.settings as Record<string, unknown> | null) ?? {}
+            const subscription = (currentSettings.subscription as Record<string, unknown> | null) ?? {}
+            const next = { ...currentSettings, subscription: { ...subscription, seatLimitOverride: input.seatLimitOverride } }
+            data.settings = next as Prisma.InputJsonValue
+        }
+    }
+
     const tenant = await db.client.tenant.update({ where: { id: tenantId }, data })
     return tenant
+}
+
+// Tenant-side "request plan change". Records the request on the tenant
+// settings blob and notifies every SUPER_ADMIN so they can issue the
+// matching invoice. The plan does NOT flip until the SA approves —
+// approval happens via the SA's PATCH /tenants/:id with `plan` set.
+export const requestPlanChange = async (tenantId: string, requesterUserId: string, targetPlan: string, note?: string) => {
+    const tenant = await db.client.tenant.findUnique({ where: { id: tenantId }, select: { id: true, name: true, settings: true, plan: true } })
+    if (!tenant) throw AppError.notFound(responseMessage.NOT_FOUND('Tenant'), 'TENANT_NOT_FOUND')
+
+    const currentSettings = (tenant.settings as Record<string, unknown> | null) ?? {}
+    const subscription = (currentSettings.subscription as Record<string, unknown> | null) ?? {}
+    const nextSettings = {
+        ...currentSettings,
+        subscription: {
+            ...subscription,
+            requestedPlan: targetPlan,
+            requestedAt: new Date().toISOString(),
+            requestedBy: requesterUserId,
+            requestNote: note ?? null
+        }
+    }
+    await db.client.tenant.update({
+        where: { id: tenantId },
+        data: { settings: nextSettings as Prisma.InputJsonValue }
+    })
+
+    // Best-effort notify every SUPER_ADMIN. Imports inline to avoid the
+    // circular dep notification → tenants → notification.
+    try {
+        const { enqueueNotification } = await import('../notifications/notification.queue')
+        const sas = await db.client.user.findMany({
+            where: { role: 'SUPER_ADMIN', deletedAt: null },
+            select: { id: true, tenantId: true }
+        })
+        for (const sa of sas) {
+            await enqueueNotification({
+                tenantId: sa.tenantId,
+                userId: sa.id,
+                template: 'billing_reminder',
+                data: {
+                    tenantName: tenant.name,
+                    note: `Tenant ${tenant.name} requested a plan change from ${tenant.plan} → ${targetPlan}.${note ? ` ${note}` : ''}`,
+                    planLabel: `${tenant.plan} → ${targetPlan}`
+                }
+            })
+        }
+    } catch {
+        /* notification failure is informational, never blocks the request */
+    }
+
+    return { ok: true, currentPlan: tenant.plan, requestedPlan: targetPlan }
 }

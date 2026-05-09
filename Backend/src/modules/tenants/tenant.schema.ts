@@ -32,8 +32,23 @@ export const updateTenantBrandingSchema = z.object({
         .regex(/^#[0-9a-fA-F]{6}$/)
         .nullable()
         .optional(),
-    settings: z.record(z.unknown()).optional()
+    settings: z.record(z.unknown()).optional(),
+    // SUPER_ADMIN-only fields. The tenant's own PATCH /tenants/me is gated
+    // on `requirePolicy('tenant', 'write')` which excludes plan + seat-limit
+    // overrides — those flow through the SA panel only. Service-layer also
+    // double-checks the actor's role before applying these.
+    plan: z.nativeEnum(TenantPlan).optional(),
+    seatLimitOverride: z.number().int().min(0).max(1_000_000).nullable().optional()
+})
+
+// Tenant-side "request plan change" — the admin picks a target plan; the
+// platform records the request, notifies SUPER_ADMINs, and issues an
+// invoice on approval. Status transitions: REQUESTED → APPROVED / REJECTED.
+export const requestPlanChangeSchema = z.object({
+    targetPlan: z.nativeEnum(TenantPlan),
+    note: z.string().trim().max(500).optional()
 })
 
 export type TCreateTenantInput = z.infer<typeof createTenantSchema>
 export type TUpdateTenantBrandingInput = z.infer<typeof updateTenantBrandingSchema>
+export type TRequestPlanChangeInput = z.infer<typeof requestPlanChangeSchema>

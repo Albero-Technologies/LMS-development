@@ -15,6 +15,7 @@ import { EnquiryPage } from '@features/enquiry/pages/EnquiryPage'
 // Auth
 import { LoginPage } from '@features/auth/pages/LoginPage'
 import { ForgotPasswordPage } from '@features/auth/pages/ForgotPasswordPage'
+import { SetPasswordPage } from '@features/auth/pages/SetPasswordPage'
 
 // Dashboards
 import { StudentDashboard } from '@features/dashboards/pages/StudentDashboard'
@@ -152,6 +153,12 @@ export const router = createBrowserRouter([
     // Auth (no public tenant registration — tenants are created by super admin).
     { path: '/login', element: <LoginPage /> },
     { path: '/forgot-password', element: <ForgotPasswordPage /> },
+    // /student/set-password?token=… — landing for the welcome-email CTA.
+    // Validates the one-time token, lets the student set a new password,
+    // and signs them in. Aliased at /set-password too in case the email
+    // template URL gets shortened.
+    { path: '/student/set-password', element: <SetPasswordPage /> },
+    { path: '/set-password', element: <SetPasswordPage /> },
 
     // Legacy /register route — redirect to enquiry so any old links don't break.
     {

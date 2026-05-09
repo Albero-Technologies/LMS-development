@@ -57,6 +57,24 @@ export const updateProfileSchema = z
     })
     .refine((v) => Object.keys(v).length > 0, { message: 'At least one field is required' })
 
+// Set-password (one-time-token) flow. Two endpoints:
+//   GET  /auth/password/set-token/:token  → verifies the token + returns the
+//        masked email so the form can show "set password for j***@gmail.com".
+//   POST /auth/password/set-with-token    → consumes the token, sets the
+//        new password, returns a fresh JWT pair so the user lands signed-in.
+// purpose strings match what we stamp on PasswordResetToken (`enrollment_welcome`,
+// `forgot_password`, …) so we can audit which flow redeemed which token.
+export const setPasswordWithTokenSchema = z.object({
+    token: z.string().min(10).max(200),
+    newPassword: z
+        .string()
+        .min(8)
+        .max(200)
+        .regex(/^(?=.*[A-Za-z])(?=.*\d).{8,}$/, 'Password must be at least 8 chars with a letter and a digit')
+})
+
+export type TSetPasswordWithTokenInput = z.infer<typeof setPasswordWithTokenSchema>
+
 export type TLoginInput = z.infer<typeof loginSchema>
 export type TRegisterInput = z.infer<typeof registerSchema>
 export type TRefreshInput = z.infer<typeof refreshSchema>

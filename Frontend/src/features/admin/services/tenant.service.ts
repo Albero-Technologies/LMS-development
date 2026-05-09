@@ -64,6 +64,15 @@ export const updateMyTenant = async (payload: UpdateTenantPayload): Promise<Tena
     return data.data
 }
 
+// Tenant ADMIN submits a plan-change request. Doesn't actually flip the
+// plan — that requires SA approval (and an issued invoice). Records the
+// request on `tenant.settings.subscription.requestedPlan` and notifies SAs.
+export type RequestPlanChangePayload = { targetPlan: 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE'; note?: string }
+export const requestPlanChangeRequest = async (payload: RequestPlanChangePayload): Promise<{ ok: boolean; currentPlan: string; requestedPlan: string }> => {
+    const { data } = await api.post<Envelope<{ ok: boolean; currentPlan: string; requestedPlan: string }>>('/tenants/me/plan-change-request', payload)
+    return data.data
+}
+
 // Read demoMode out of the settings JSON, with sensible defaults so the UI is always backed.
 export const readDemoConfig = (tenant: Tenant | undefined): DemoModeConfig => {
     const cfg = tenant?.settings?.demoMode

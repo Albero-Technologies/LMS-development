@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Palette, Monitor, Moon, Sun, User, KeyRound, Save, ArrowRight } from 'lucide-react'
+import { Palette, Monitor, Moon, Sun, User, KeyRound, Save, ArrowRight, Mail, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -10,12 +10,13 @@ import { Button } from '@shared/components/ui/Button'
 import { Badge } from '@shared/components/ui/Badge'
 import { Tabs } from '@shared/components/ui/Tabs'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { Modal } from '@shared/components/ui/Modal'
 import { cn } from '@shared/helpers/cn'
 import { useThemeStore } from '@shared/stores/themeStore'
 import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { ROLES, ROLE_LABEL } from '@shared/constants/roles'
 import { changePasswordRequest, updateMeRequest } from '@features/auth/services/auth.service'
-import { getMyTenant, updateMyTenant, type Tenant } from '@features/admin/services/tenant.service'
+import { getMyTenant, requestPlanChangeRequest, updateMyTenant, type Tenant } from '@features/admin/services/tenant.service'
 import { toApiError } from '@shared/libs/api'
 
 // Settings splits by role:
@@ -308,12 +309,135 @@ const TenantSettings = () => {
                 className="mb-6"
             />
 
-            {tab === 'profile' && <ProfilePanel />}
+            {tab === 'profile' && <TenantProfilePanel />}
             {tab === 'branding' && <BrandingPanel />}
             {tab === 'appearance' && <AppearancePanel />}
             {tab === 'plan' && <PlanPanel />}
             {tab === 'security' && <SecurityPanel />}
         </>
+    )
+}
+
+// Admin Profile tab — combines the admin's personal profile (top card)
+// with the tenant-level contact email + phone (bottom card). Contact
+// Email is the From / Reply-To address for every transactional email
+// the platform sends on behalf of this tenant — without it, the mailer
+// silently SKIPS sends and the welcome / password emails never reach
+// students. We surface a loud warning above the form when it's empty.
+const TenantProfilePanel = () => {
+    return (
+        <div className="space-y-4">
+            <ProfilePanel />
+            <TenantContactPanel />
+        </div>
+    )
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const TenantContactPanel = () => {
+    const queryClient = useQueryClient()
+    const tenantQuery = useQuery({ queryKey: ['tenant', 'me'], queryFn: getMyTenant, staleTime: 60_000 })
+    const tenant = tenantQuery.data
+
+    const [contactEmail, setContactEmail] = useState('')
+    const [contactPhone, setContactPhone] = useState('')
+
+    useEffect(() => {
+        if (!tenant) return
+        const contacts = (tenant.settings as { contacts?: { primaryEmail?: string; primaryPhone?: string } } | null)?.contacts
+        setContactEmail(contacts?.primaryEmail ?? '')
+        setContactPhone(contacts?.primaryPhone ?? '')
+    }, [tenant])
+
+    const mutation = useMutation({
+        mutationFn: () => {
+            if (!tenant) throw new Error('Tenant not loaded')
+            const settings = {
+                ...((tenant.settings as Record<string, unknown> | null) ?? {}),
+                contacts: {
+                    ...((tenant.settings as { contacts?: Record<string, unknown> } | null)?.contacts ?? {}),
+                    primaryEmail: contactEmail.trim(),
+                    primaryPhone: contactPhone.trim()
+                }
+            }
+            return updateMyTenant({ settings })
+        },
+        onSuccess: (updated) => {
+            queryClient.setQueryData(['tenant', 'me'], updated)
+            toast.success('Contact details saved')
+        },
+        onError: (err) => toast.error(toApiError(err).message || 'Could not save contact details')
+    })
+
+    const isMissing = !contactEmail.trim()
+    const isInvalid = contactEmail.trim() !== '' && !EMAIL_RE.test(contactEmail.trim())
+
+    if (tenantQuery.isLoading || !tenant) {
+        return (
+            <Card>
+                <Skeleton className="h-32" />
+            </Card>
+        )
+    }
+
+    return (
+        <Card className="space-y-4">
+            <div>
+                <h2 className="text-sm font-semibold text-fg inline-flex items-center gap-2">
+                    <Mail size={14} /> Tenant contact
+                </h2>
+                <p className="text-xs text-fg-muted mt-1">
+                    Used as the sender address for all student and staff emails. Must be a deliverable inbox.
+                </p>
+            </div>
+
+            {(isMissing || isInvalid) && (
+                <div
+                    className="rounded-md border p-3 flex items-start gap-2 text-xs"
+                    style={{
+                        background: 'var(--color-warn-soft,rgba(245,158,11,0.08))',
+                        borderColor: 'var(--color-warn,#f59e0b)',
+                        color: 'var(--color-warn,#f59e0b)'
+                    }}>
+                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                    <div>
+                        <strong>{isInvalid ? 'Contact email looks invalid.' : 'Add a valid contact email.'}</strong>{' '}
+                        Until this is set, the platform skips outbound transactional emails for {tenant.name} (welcome
+                        emails, password resets, payment notifications).
+                    </div>
+                </div>
+            )}
+
+            <Input
+                label="Contact email"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="hello@your-academy.com"
+                hint="Sender address for all outbound emails. We'll set Reply-To to this too."
+                error={isInvalid ? 'Enter a valid email address' : undefined}
+            />
+            <Input
+                label="Contact phone (optional)"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                placeholder="+91 98000 00000"
+                hint="Surfaced on your public Contact page; not used for SMS yet."
+            />
+
+            <div className="flex justify-end pt-2">
+                <Button
+                    onClick={() => {
+                        if (isInvalid) return toast.error('Enter a valid contact email')
+                        mutation.mutate()
+                    }}
+                    loading={mutation.isPending}
+                    leftIcon={<Save size={14} />}>
+                    Save contact details
+                </Button>
+            </div>
+        </Card>
     )
 }
 
@@ -401,9 +525,18 @@ const BrandingPanel = () => {
     )
 }
 
+const PLAN_OPTIONS: { value: 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE'; label: string; price: string; highlights: string[] }[] = [
+    { value: 'FREE', label: 'Free', price: '₹0 / mo', highlights: ['10 students', 'Single trainer', 'Email support'] },
+    { value: 'STARTER', label: 'Starter', price: '₹4,999 / mo', highlights: ['200 students', '3 trainers', 'Priority email'] },
+    { value: 'GROWTH', label: 'Growth', price: '₹14,999 / mo', highlights: ['2,000 students', 'Unlimited trainers', 'Counsellor team', 'Slack support'] },
+    { value: 'ENTERPRISE', label: 'Enterprise', price: 'Custom', highlights: ['10,000+ students', 'White-glove onboarding', 'Dedicated CSM', 'Custom contracts'] }
+]
+
 const PlanPanel = () => {
     const tenantQuery = useQuery({ queryKey: ['tenant', 'me'], queryFn: getMyTenant, staleTime: 60_000 })
     const tenant = tenantQuery.data
+
+    const [pickerOpen, setPickerOpen] = useState(false)
 
     if (tenantQuery.isLoading || !tenant) {
         return (
@@ -413,34 +546,135 @@ const PlanPanel = () => {
         )
     }
 
+    const requestedPlan = (tenant.settings as { subscription?: { requestedPlan?: string; requestedAt?: string } } | null)?.subscription?.requestedPlan
+
     return (
-        <Card>
-            <h2 className="text-sm font-semibold text-fg mb-4">Plan</h2>
-            <div className="space-y-2.5 text-sm max-w-md">
-                <Row
-                    label="Tenant"
-                    value={<span className="font-medium text-fg">{tenant.name}</span>}
-                />
-                <Row
-                    label="Current plan"
-                    value={<Badge tone="brand">{tenant.plan}</Badge>}
-                />
-                <Row
-                    label="Seat limit"
-                    value={<span className="font-mono">{PLAN_SEATS[tenant.plan].toLocaleString('en-IN')}</span>}
-                />
-                <Row
-                    label="Status"
-                    value={<Badge tone={tenant.status === 'ACTIVE' ? 'ok' : tenant.status === 'TRIAL' ? 'warn' : 'danger'}>{tenant.status}</Badge>}
-                />
+        <>
+            <Card>
+                <h2 className="text-sm font-semibold text-fg mb-4">Plan</h2>
+                <div className="space-y-2.5 text-sm max-w-md">
+                    <Row
+                        label="Tenant"
+                        value={<span className="font-medium text-fg">{tenant.name}</span>}
+                    />
+                    <Row
+                        label="Current plan"
+                        value={<Badge tone="brand">{tenant.plan}</Badge>}
+                    />
+                    <Row
+                        label="Seat limit"
+                        value={<span className="font-mono">{PLAN_SEATS[tenant.plan].toLocaleString('en-IN')}</span>}
+                    />
+                    <Row
+                        label="Status"
+                        value={<Badge tone={tenant.status === 'ACTIVE' ? 'ok' : tenant.status === 'TRIAL' ? 'warn' : 'danger'}>{tenant.status}</Badge>}
+                    />
+                    {requestedPlan && (
+                        <Row
+                            label="Pending change"
+                            value={<Badge tone="warn">→ {requestedPlan}</Badge>}
+                        />
+                    )}
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                    <Button onClick={() => setPickerOpen(true)} rightIcon={<ArrowRight size={14} />}>
+                        Change plan
+                    </Button>
+                    <Link to="/app/admin/billing">
+                        <Button variant="ghost" rightIcon={<ArrowRight size={14} />}>
+                            Open billing &amp; invoices
+                        </Button>
+                    </Link>
+                </div>
+                <p className="mt-3 text-xs text-fg-muted">
+                    Plan changes are reviewed by the platform team — once approved, the new pricing shows up as a Razorpay invoice on the billing page.
+                </p>
+            </Card>
+            <PlanPickerModal
+                open={pickerOpen}
+                onClose={() => setPickerOpen(false)}
+                currentPlan={tenant.plan}
+            />
+        </>
+    )
+}
+
+const PlanPickerModal = ({ open, onClose, currentPlan }: { open: boolean; onClose: () => void; currentPlan: 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE' }) => {
+    const queryClient = useQueryClient()
+    const [target, setTarget] = useState<'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE'>(currentPlan)
+    const [note, setNote] = useState('')
+
+    const mutation = useMutation({
+        mutationFn: () => requestPlanChangeRequest({ targetPlan: target, note: note.trim() || undefined }),
+        onSuccess: () => {
+            toast.success("Plan-change request sent — we'll be in touch")
+            void queryClient.invalidateQueries({ queryKey: ['tenant', 'me'] })
+            onClose()
+        },
+        onError: (err) => toast.error(toApiError(err).message || 'Could not submit request')
+    })
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Choose your plan"
+            description="Pick a target plan; the platform team reviews + issues a Razorpay invoice. Your current plan stays active until you pay."
+            size="lg"
+            footer={
+                <>
+                    <Button variant="ghost" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        loading={mutation.isPending}
+                        disabled={target === currentPlan}
+                        onClick={() => mutation.mutate()}>
+                        {target === currentPlan ? 'Already on this plan' : 'Request plan change'}
+                    </Button>
+                </>
+            }>
+            <div className="grid sm:grid-cols-2 gap-3">
+                {PLAN_OPTIONS.map((p) => {
+                    const selected = p.value === target
+                    const isCurrent = p.value === currentPlan
+                    return (
+                        <button
+                            key={p.value}
+                            type="button"
+                            onClick={() => setTarget(p.value)}
+                            className={`text-left rounded-lg border p-4 transition-all ${
+                                selected
+                                    ? 'border-[var(--color-brand-500)] ring-1 ring-[var(--color-brand-500)]/40 bg-[var(--color-brand-50,rgba(13,79,60,0.06))]'
+                                    : 'border-line hover:bg-surface-hover'
+                            }`}>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-sm font-semibold text-fg">{p.label}</span>
+                                {isCurrent && <Badge tone="brand">Current</Badge>}
+                            </div>
+                            <div className="text-lg font-bold text-fg font-mono">{p.price}</div>
+                            <ul className="mt-3 space-y-1 text-xs text-fg-soft">
+                                {p.highlights.map((h) => (
+                                    <li key={h} className="inline-flex items-start gap-1.5">
+                                        <span className="text-[var(--color-brand-500)] mt-0.5">•</span> {h}
+                                    </li>
+                                ))}
+                            </ul>
+                        </button>
+                    )
+                })}
             </div>
-            <div className="mt-5">
-                <Link to="/app/admin/billing">
-                    <Button rightIcon={<ArrowRight size={14} />}>Open billing &amp; invoices</Button>
-                </Link>
-                <p className="mt-2 text-xs text-fg-muted">Pay pending invoices and switch plans through Razorpay on the billing page.</p>
-            </div>
-        </Card>
+            <label className="block mt-4 text-xs font-medium text-fg-soft">
+                Note for the platform team (optional)
+                <textarea
+                    rows={2}
+                    className="mt-1 w-full rounded-md border bg-surface text-fg text-sm p-2"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="e.g. expecting 500 new students in October"
+                />
+            </label>
+        </Modal>
     )
 }
 

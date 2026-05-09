@@ -239,6 +239,99 @@ export const acceptInvite = async (input: TAcceptInviteInput, req: Request) => {
     return { user: sanitize(user), ...bundle }
 }
 
+// Issue a one-time password-reset token. Stored hashed (sha-256) so a
+// breach of password_reset_tokens doesn't leak the URL itself. The plaintext
+// token is the bit we email + URL-encode; we only ever match against
+// `tokenHash`. Default purpose is `enrollment_welcome` because the public
+// purchase flow is the primary caller.
+export const createPasswordResetToken = async (
+    userId: string,
+    purpose = 'enrollment_welcome',
+    ttlMinutes = 60 * 24
+): Promise<{ token: string; expiresAt: Date }> => {
+    const token = randomToken(24)
+    const tokenHash = hashToken(token)
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000)
+    await db.client.passwordResetToken.create({
+        data: { userId, tokenHash, purpose, expiresAt }
+    })
+    return { token, expiresAt }
+}
+
+const findUsableResetToken = async (token: string) => {
+    const tokenHash = hashToken(token)
+    const row = await db.client.passwordResetToken.findUnique({
+        where: { tokenHash },
+        include: { user: { select: { id: true, tenantId: true, email: true, status: true, deletedAt: true } } }
+    })
+    if (!row) throw AppError.notFound('Reset link is invalid or has expired', 'TOKEN_NOT_FOUND')
+    if (row.usedAt) throw AppError.badRequest('Reset link has already been used', 'TOKEN_USED')
+    if (row.expiresAt.getTime() < Date.now()) throw AppError.badRequest('Reset link has expired', 'TOKEN_EXPIRED')
+    if (!row.user || row.user.deletedAt) throw AppError.notFound(responseMessage.NOT_FOUND('User'), 'USER_NOT_FOUND')
+    return row
+}
+
+const maskEmail = (email: string): string => {
+    const [local, domain] = email.split('@')
+    if (!domain) return email
+    if (local.length <= 2) return `${local[0]}***@${domain}`
+    return `${local[0]}${local[1]}***${local[local.length - 1]}@${domain}`
+}
+
+// Pre-flight check from the set-password page — used to render
+// "Set password for j***@gmail.com" without leaking the full address until
+// the token is consumed. Doesn't burn the token.
+export const verifyPasswordResetToken = async (token: string) => {
+    const row = await findUsableResetToken(token)
+    return {
+        valid: true,
+        purpose: row.purpose,
+        expiresAt: row.expiresAt.toISOString(),
+        maskedEmail: maskEmail(row.user.email)
+    }
+}
+
+// Consume the token: set the new password, bump tokenVersion to invalidate
+// any stray sessions, mark the token used, and issue a fresh JWT pair so
+// the user lands signed-in. Idempotent: second call hits TOKEN_USED.
+export const setPasswordWithToken = async (
+    token: string,
+    newPassword: string,
+    req: Request
+): Promise<TTokenBundle & { user: { id: string; tenantId: string; email: string } }> => {
+    const row = await findUsableResetToken(token)
+    const passwordHash = await hashPassword(newPassword)
+
+    const updated = await db.client.$transaction(async (tx) => {
+        const user = await tx.user.update({
+            where: { id: row.userId },
+            data: {
+                passwordHash,
+                tokenVersion: { increment: 1 },
+                // Activate the account on first password set — useful for the
+                // public-purchase path which leaves the row ACTIVE already
+                // but covers any future flow that creates pending-credentials
+                // accounts.
+                status: row.user.status === UserStatus.PENDING ? UserStatus.ACTIVE : row.user.status,
+                emailVerified: true
+            },
+            select: { id: true, tenantId: true, role: true, tokenVersion: true, email: true }
+        })
+        await tx.passwordResetToken.update({
+            where: { id: row.id },
+            data: { usedAt: new Date() }
+        })
+        return user
+    })
+
+    const tokens = await issueTokens(updated, { ipAddress: req.ip, userAgent: req.headers['user-agent'] })
+    await writeAudit(
+        { action: 'auth.password_set_with_token', entityType: 'User', entityId: updated.id, tenantId: updated.tenantId, userId: updated.id, metadata: { purpose: row.purpose } },
+        req
+    )
+    return { ...tokens, user: { id: updated.id, tenantId: updated.tenantId, email: updated.email } }
+}
+
 export const changePassword = async (userId: string, input: TChangePasswordInput, req: Request) => {
     const user = await db.client.user.findUnique({ where: { id: userId }, select: { passwordHash: true, tenantId: true } })
     if (!user?.passwordHash) throw AppError.unauthorized(responseMessage.UNAUTHORIZED)

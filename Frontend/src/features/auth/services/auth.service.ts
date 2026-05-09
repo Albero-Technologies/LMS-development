@@ -41,3 +41,26 @@ export const changePasswordRequest = async (payload: ChangePasswordPayload): Pro
 export const logoutRequest = async (): Promise<void> => {
     await api.post('/auth/logout')
 }
+
+// Set-password one-time-token flow. Reached from the welcome email's
+// "Set your new password" CTA. Two calls: a GET that verifies the token
+// and returns the masked email (so the form can show "Set password for
+// j***@gmail.com"), and a POST that consumes the token + signs the user
+// in with a fresh JWT pair.
+export type VerifyResetTokenResponse = {
+    valid: boolean
+    purpose: string
+    expiresAt: string
+    maskedEmail: string
+}
+
+export const verifyResetTokenRequest = async (token: string): Promise<VerifyResetTokenResponse> => {
+    const { data } = await api.get<Envelope<VerifyResetTokenResponse>>(`/auth/password/set-token/${encodeURIComponent(token)}`)
+    return data.data
+}
+
+export type SetPasswordWithTokenPayload = { token: string; newPassword: string }
+export const setPasswordWithTokenRequest = async (payload: SetPasswordWithTokenPayload): Promise<LoginResponse> => {
+    const { data } = await api.post<Envelope<LoginResponse>>('/auth/password/set-with-token', payload)
+    return data.data
+}

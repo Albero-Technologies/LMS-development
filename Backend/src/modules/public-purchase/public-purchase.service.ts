@@ -18,6 +18,7 @@ import { hashPassword } from '../../util/password'
 import { resolveRazorpay, verifyPaymentSignature } from '../payments/razorpay.client'
 import { enqueueNotification } from '../notifications/notification.queue'
 import { pickCounsellor, pushEnquiryToSheet } from '../enquiries/enquiry.service'
+import { createPasswordResetToken } from '../auth/auth.service'
 import type { TInitPurchaseInput, TVerifyPurchaseInput, TCancelPurchaseInput } from './public-purchase.schema'
 
 // Resolve a tenant by slug for public traffic. Mirrors enquiries' resolver
@@ -277,7 +278,7 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             alreadyProcessed: true,
             courseTitle: intent.courseTitle,
             email: enquiry.email,
-            loginUrl: `${config.PUBLIC_SITE_URL}/login`,
+            loginUrl: `${config.STUDENT_PORTAL_URL}/login`,
             paymentType: intent.paymentType,
             amountPaidMinor: intent.totalAmount,
             balanceDueMinor:
@@ -411,7 +412,28 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
     // user account to exist. The enqueueNotification helper falls back to
     // inline processing so the Notification row + bell update still happen
     // even when the worker is unreachable.
-    const loginUrl = `${config.PUBLIC_SITE_URL}/login`
+    // Send students into the dashboard SPA (STUDENT_PORTAL_URL), not the
+    // marketing landing site (PUBLIC_SITE_URL). The marketing site Sign-in
+    // button already redirects there, but transactional URLs deep-link
+    // directly to skip the bounce.
+    const portal = config.STUDENT_PORTAL_URL
+    const loginUrl = `${portal}/login`
+
+    // Issue a one-time "set your new password" token. The student lands on
+    // /student/set-password?token=… in the dashboard, picks a new password,
+    // and is signed in. Defaults to 24h expiry — long enough that a delayed
+    // email (spam folder, slow inbox sync) still works the next morning.
+    const { token: resetToken } = await createPasswordResetToken(result.user.id, 'enrollment_welcome', 60 * 24)
+    const setPasswordUrl = `${portal}/student/set-password?token=${encodeURIComponent(resetToken)}`
+
+    // Tenant branding for the welcome email — pulled here so the queue job
+    // body stays self-contained (the worker doesn't have to do another
+    // tenant lookup to render the template).
+    const tenant = await db.client.tenant.findUnique({
+        where: { id: enquiry.tenantId },
+        select: { name: true, brandingColor: true, brandingLogo: true }
+    })
+
     await enqueueNotification({
         tenantId: enquiry.tenantId,
         userId: result.user.id,
@@ -421,9 +443,28 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             courseTitle: intent.courseTitle,
             email: result.user.email,
             tempPassword,
-            loginUrl
+            loginUrl,
+            setPasswordUrl,
+            tenantName: tenant?.name ?? '',
+            brandColor: tenant?.brandingColor ?? '#0d4f3c',
+            brandLogo: tenant?.brandingLogo ?? null
         }
     })
+
+    // Real-time push so the admin Payments page + Sales Funnel update
+    // without a refresh — webhook fires the same event a moment later but
+    // we don't need to wait for it.
+    try {
+        const { emitToTenant } = await import('../../service/socket')
+        emitToTenant(enquiry.tenantId, 'payments:updated', {
+            kind: 'captured',
+            invoiceId: result.invoice.id,
+            amount: intent.totalAmount,
+            ts: Date.now()
+        })
+    } catch (err) {
+        logger.warn('PURCHASE_SYNC_EMIT_FAILED', { meta: { err: (err as Error).message } })
+    }
 
     // Heads-up to admin + manager + assigned counsellor that money landed.
     // Drives the funnel "live activity" tab + email digest. Best-effort:

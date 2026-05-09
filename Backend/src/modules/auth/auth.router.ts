@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import * as ctrl from './auth.controller'
 import { validate } from '../../middleware/validate'
-import { acceptInviteSchema, changePasswordSchema, loginSchema, refreshSchema, updateProfileSchema } from './auth.schema'
+import { acceptInviteSchema, changePasswordSchema, loginSchema, refreshSchema, setPasswordWithTokenSchema, updateProfileSchema } from './auth.schema'
 import { asyncHandler } from '../../middleware/asyncHandler'
 import { requireAuth } from '../../middleware/auth'
 
@@ -25,5 +25,12 @@ router.post('/invites/accept', validate(acceptInviteSchema), asyncHandler(ctrl.a
 router.get('/me', requireAuth, asyncHandler(ctrl.me))
 router.patch('/me', requireAuth, validate(updateProfileSchema), asyncHandler(ctrl.updateMe))
 router.post('/me/password', requireAuth, validate(changePasswordSchema), asyncHandler(ctrl.changeMyPassword))
+
+// Public set-password (one-time-token) endpoints. The student lands here
+// from the welcome email's "Set your new password" CTA. The verify route
+// is used by the form to render a masked email; the consume route flips
+// the password and signs the user in.
+router.get('/password/set-token/:token', asyncHandler(ctrl.verifyPasswordResetToken))
+router.post('/password/set-with-token', validate(setPasswordWithTokenSchema), asyncHandler(ctrl.setPasswordWithToken))
 
 export default router
