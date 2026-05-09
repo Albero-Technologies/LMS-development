@@ -2,6 +2,7 @@ import { Sparkles } from 'lucide-react'
 import { Ticker, type TickerItem } from './Ticker'
 import { ToolIcon } from './ToolIcon'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { useTheme } from '@/hooks/useTheme'
 
 export interface ToolStripItem {
     name: string
@@ -39,9 +40,14 @@ export const ScrollingToolStrip = ({
     tone = 'soft'
 }: Props) => {
     const [headingRef, headingVisible] = useScrollReveal<HTMLDivElement>(0.2)
+    const { theme } = useTheme()
     if (tools.length === 0) return null
 
-    const items: TickerItem[] = tools.map((t) => ({ key: t.name, content: <ToolPill tool={t} /> }))
+    const isDarkSection = tone === 'deep' && theme === 'dark'
+    const items: TickerItem[] = tools.map((t) => ({
+        key: t.name,
+        content: <ToolPill tool={t} onDarkSection={isDarkSection} />
+    }))
     const row1 = items.filter((_, i) => i % 2 === 0)
     const row2 = items.filter((_, i) => i % 2 === 1)
 
@@ -53,21 +59,35 @@ export const ScrollingToolStrip = ({
     const resolvedHeading = heading ?? `${tools.length}+ industry tools,`
     const resolvedAccent = accent ?? 'woven into every lab.'
 
-    const isDark = tone === 'deep'
+    // `tone="deep"` only renders the dark emerald wash in dark mode. In
+    // light mode the same tone falls back to a softer brand-tinted plate
+    // so the section harmonises with the rest of the light palette.
+    const isDark = tone === 'deep' && theme === 'dark'
     const sectionStyle: React.CSSProperties = isDark
         ? {
-              // Layered radial gradients in the brand emerald chord — gives
-              // the dark surface depth without competing with the foreground.
+              // Dark mode = emerald-dominant. Brand chord at higher alpha
+              // over a deep-teal base so the section feels like an
+              // *emerald* dark section, not a generic black surface.
               background:
-                  'radial-gradient(70% 60% at 20% 0%, rgba(13,79,60,0.42) 0%, transparent 60%), ' +
-                  'radial-gradient(60% 60% at 80% 30%, rgba(20,120,95,0.32) 0%, transparent 60%), ' +
-                  'radial-gradient(80% 50% at 50% 110%, rgba(52,211,153,0.22) 0%, transparent 70%), ' +
-                  '#0a1410',
+                  'radial-gradient(75% 65% at 20% 0%, rgba(20,120,95,0.6) 0%, transparent 60%), ' +
+                  'radial-gradient(60% 60% at 80% 30%, rgba(52,211,153,0.5) 0%, transparent 60%), ' +
+                  'radial-gradient(80% 50% at 50% 110%, rgba(13,79,60,0.5) 0%, transparent 70%), ' +
+                  '#06140f',
               color: '#f5f3ea'
           }
-        : tone === 'soft'
-          ? { background: 'var(--section-soft)' }
-          : { background: 'var(--surface)' }
+        : tone === 'deep'
+          ? {
+                // Light-mode "deep" — explicit ivory base with a soft
+                // emerald hint at the edges. Always renders light, never
+                // inherits dark via a CSS variable indirection.
+                background:
+                    'radial-gradient(70% 60% at 20% 0%, rgba(20,120,95,0.07) 0%, transparent 60%), ' +
+                    'radial-gradient(60% 60% at 80% 30%, rgba(52,211,153,0.07) 0%, transparent 60%), ' +
+                    '#fbfaf3'
+            }
+          : tone === 'soft'
+            ? { background: 'var(--section-soft)' }
+            : { background: 'var(--surface)' }
 
     const eyebrowStyle: React.CSSProperties = isDark
         ? {
@@ -146,18 +166,19 @@ export const ScrollingToolStrip = ({
 
             {/* Aurora glass plate that holds the two ticker rows. The plate
                 gives the strip a "premium" frame so pills don't look like
-                they float in space. */}
+                they float in space. Emerald-tinted in dark; pure white in
+                light so the section identity matches the TechMesh card. */}
             <div
                 className="relative max-w-7xl mx-auto rounded-3xl py-7 md:py-9 overflow-hidden"
                 style={{
                     background: isDark
-                        ? 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))'
-                        : 'linear-gradient(180deg, var(--surface), rgba(255,255,255,0.4))',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'var(--hairline)'}`,
+                        ? 'linear-gradient(180deg, rgba(20,120,95,0.18) 0%, rgba(13,79,60,0.10) 100%)'
+                        : 'linear-gradient(180deg, #ffffff 0%, #fdfbf3 100%)',
+                    border: `1px solid ${isDark ? 'rgba(52,211,153,0.18)' : 'var(--hairline)'}`,
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     boxShadow: isDark
-                        ? '0 28px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)'
+                        ? '0 28px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(52,211,153,0.14)'
                         : '0 18px 40px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)'
                 }}>
                 {/* Brand stripe along the top of the plate — adds a colour
@@ -168,10 +189,10 @@ export const ScrollingToolStrip = ({
                     style={{ background: 'var(--gradient-aurora)' }}
                 />
                 <div className="space-y-4 md:space-y-5">
-                    <Ticker items={row1.length ? row1 : items} direction="left" durationSeconds={42} />
+                    <Ticker items={row1.length ? row1 : items} direction="left" durationSeconds={20} />
                     {row2.length > 0 && (
                         <div className="hidden md:block">
-                            <Ticker items={row2} direction="right" durationSeconds={48} />
+                            <Ticker items={row2} direction="right" durationSeconds={24} />
                         </div>
                     )}
                 </div>
@@ -181,30 +202,49 @@ export const ScrollingToolStrip = ({
 }
 
 // Premium pill — bigger icon halo, refined typography, hover lift + glow.
-const ToolPill = ({ tool }: { tool: ToolStripItem }) => (
-    <div
-        className="inline-flex items-center gap-3 pl-2 pr-5 py-2 rounded-full transition-all duration-300 hover:translate-y-[-3px]"
-        style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--hairline)',
-            boxShadow: 'var(--card-shadow-soft)',
-            color: 'var(--text-primary)'
-        }}
-        onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = 'var(--card-shadow-hover), 0 0 0 4px rgba(13,79,60,0.06)'
-        }}
-        onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'var(--card-shadow-soft)'
-        }}>
-        {tool.iconUrl ? (
-            <div
-                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-                style={{ background: 'var(--surface-2)', border: '1px solid var(--hairline)' }}>
-                <img src={tool.iconUrl} alt="" className="w-4 h-4 object-contain" loading="lazy" width={16} height={16} />
-            </div>
-        ) : (
-            <ToolIcon name={tool.name} />
-        )}
-        <span className="text-[13.5px] md:text-[14.5px] font-semibold whitespace-nowrap tracking-tight">{tool.name}</span>
-    </div>
-)
+// On a dark section the default --surface variable resolves to a dark
+// near-black, which makes the pills disappear into the plate. The
+// `onDarkSection` flag swaps in an emerald-tinted fill + green hairline
+// so the pills sit *on top of* the plate AND keep the section's emerald
+// identity coherent (instead of looking like neutral slate chiclets).
+const ToolPill = ({ tool, onDarkSection = false }: { tool: ToolStripItem; onDarkSection?: boolean }) => {
+    const restBg = onDarkSection
+        ? 'linear-gradient(180deg, rgba(20,120,95,0.28) 0%, rgba(13,79,60,0.18) 100%)'
+        : 'var(--surface)'
+    const restBorder = onDarkSection ? 'rgba(52,211,153,0.28)' : 'var(--hairline)'
+    const restShadow = onDarkSection
+        ? '0 6px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(52,211,153,0.14)'
+        : 'var(--card-shadow-soft)'
+    const hoverShadow = onDarkSection
+        ? '0 12px 28px rgba(0,0,0,0.5), 0 0 0 4px rgba(52,211,153,0.24)'
+        : 'var(--card-shadow-hover), 0 0 0 4px rgba(13,79,60,0.06)'
+    const iconCellBg = onDarkSection ? 'rgba(52,211,153,0.12)' : 'var(--surface-2)'
+    const iconCellBorder = onDarkSection ? 'rgba(52,211,153,0.22)' : 'var(--hairline)'
+    return (
+        <div
+            className="inline-flex items-center gap-3 pl-2 pr-5 py-2 rounded-full transition-all duration-300 hover:translate-y-[-3px]"
+            style={{
+                background: restBg,
+                border: `1px solid ${restBorder}`,
+                boxShadow: restShadow,
+                color: onDarkSection ? '#f5f3ea' : 'var(--text-primary)'
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = hoverShadow
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = restShadow
+            }}>
+            {tool.iconUrl ? (
+                <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                    style={{ background: iconCellBg, border: `1px solid ${iconCellBorder}` }}>
+                    <img src={tool.iconUrl} alt="" className="w-4 h-4 object-contain" loading="lazy" width={16} height={16} />
+                </div>
+            ) : (
+                <ToolIcon name={tool.name} />
+            )}
+            <span className="text-[13.5px] md:text-[14.5px] font-semibold whitespace-nowrap tracking-tight">{tool.name}</span>
+        </div>
+    )
+}

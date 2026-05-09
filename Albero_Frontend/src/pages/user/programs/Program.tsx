@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { CheckCircle2, Clock, Users, GraduationCap, Sparkles, ArrowRight, Tag, Wallet, Award, Briefcase, Compass } from 'lucide-react'
+import { Clock, Users, GraduationCap, Sparkles, ArrowRight, Award, Briefcase, Compass } from 'lucide-react'
 import { findProgram } from '@/constants/programs'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
 import { useCollectionItem } from '@/hooks/useContent'
@@ -71,7 +71,6 @@ const STICKY_NAV = [
     { id: 'learn', label: 'What you learn' },
     { id: 'curriculum', label: 'Curriculum' },
     { id: 'mentors', label: 'Mentors' },
-    { id: 'pricing', label: 'Pricing' },
     { id: 'faq', label: 'FAQs' }
 ]
 
@@ -220,7 +219,7 @@ export default function ProgramPage() {
                                 }}>
                                 Pay Full Fee {selectedTier?.price ? `· ${selectedTier.price}` : ''}
                             </button>
-                            <a href="#pricing" className="px-6 py-3 rounded-full font-semibold transition-colors" style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line-strong)' }}>
+                            <a href="/pricing" className="px-6 py-3 rounded-full font-semibold transition-colors" style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line-strong)' }}>
                                 See Pricing
                             </a>
                         </div>
@@ -380,136 +379,9 @@ export default function ProgramPage() {
             <AlumniCompanyWall companies={ALUMNI_COMPANIES} />
 
             {/* ──────────────────────────────────────────────────────────
-                13. PRICING — existing tier picker (kept for parity with
-                    the Razorpay flow shipped earlier)
-            ────────────────────────────────────────────────────────── */}
-            <section id="pricing" className="px-5 md:px-8 py-20 md:py-24 scroll-mt-24" style={{ background: 'var(--surface)' }}>
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-10">
-                        <div
-                            className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-4 text-[12px] font-semibold tracking-tight"
-                            style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
-                            <Tag size={14} style={{ color: 'var(--brand)' }} />
-                            Course Investment
-                        </div>
-                        <h2
-                            className="font-display tracking-[-0.02em] mb-3 font-semibold"
-                            style={{ color: 'var(--text-primary)', fontSize: 'clamp(28px, 5vw, 48px)' }}>
-                            Choose your <span className="alb-gradient-text italic font-medium">plan.</span>
-                        </h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Reserve your seat with a small registration fee, or pay the full course fee in one go.</p>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-                        {program.fees.map((tier, i) => {
-                            const isSelected = i === selectedTierIdx
-                            const recommended = !!tier.recommended
-                            return (
-                                <button
-                                    key={tier.plan}
-                                    type="button"
-                                    onClick={() => setSelectedTierIdx(i)}
-                                    className="text-left rounded-2xl p-6 transition-all relative"
-                                    style={{
-                                        background: isSelected ? 'var(--brand-soft)' : 'var(--surface)',
-                                        border: `1px solid ${isSelected ? 'var(--brand)' : 'var(--line)'}`,
-                                        boxShadow: isSelected ? 'var(--card-shadow-hover)' : 'var(--card-shadow-soft)'
-                                    }}>
-                                    {recommended && (
-                                        <div
-                                            className="absolute -top-3 left-6 text-[10px] font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-full"
-                                            style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                                            Recommended
-                                        </div>
-                                    )}
-                                    <div className="text-[11px] font-bold tracking-[0.16em] uppercase mb-2" style={{ color: 'var(--brand)' }}>
-                                        {tier.plan}
-                                    </div>
-                                    <div className="font-display text-[32px] font-semibold leading-none mb-1" style={{ color: 'var(--text-primary)' }}>
-                                        {tier.price}
-                                    </div>
-                                    {tier.emi && (
-                                        <div className="text-[12.5px] font-semibold mb-4" style={{ color: 'var(--text-tertiary)' }}>
-                                            or {tier.emi} on EMI · GST extra
-                                        </div>
-                                    )}
-                                    <ul className="space-y-2 mt-4">
-                                        {tier.features.map((f, j) => (
-                                            <li key={j} className="flex items-start gap-2 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
-                                                <CheckCircle2 size={14} className="flex-shrink-0 mt-1" style={{ color: 'var(--brand)' }} />
-                                                <span>{f}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <div
-                                        className="mt-5 inline-flex items-center gap-2 text-[12.5px] font-semibold"
-                                        style={{ color: isSelected ? 'var(--brand)' : 'var(--text-tertiary)' }}>
-                                        {isSelected ? (
-                                            <>
-                                                <CheckCircle2 size={14} /> Selected
-                                            </>
-                                        ) : (
-                                            'Tap to select'
-                                        )}
-                                    </div>
-                                </button>
-                            )
-                        })}
-                    </div>
-
-                    {selectedTier && (
-                        <div
-                            className="rounded-3xl p-6 md:p-8 grid lg:grid-cols-[1fr_auto] gap-6 items-center"
-                            style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow-soft)' }}>
-                            <div>
-                                <div
-                                    className="inline-flex items-center gap-2 py-1 px-2.5 rounded-full mb-3 text-[10.5px] font-bold tracking-[0.16em] uppercase"
-                                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                                    <Wallet size={12} />
-                                    Reserve your spot
-                                </div>
-                                <h3 className="font-display text-[22px] md:text-[26px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                                    Lock {selectedTier.plan} for ₹5,000 today
-                                </h3>
-                                <p className="text-[14px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    Pay a flat ₹5,000 registration fee to reserve your seat for the next batch ({program.enrollDate ?? 'upcoming cohort'}).
-                                </p>
-                                <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
-                                    Balance of <strong style={{ color: 'var(--text-secondary)' }}>{selectedTier.price}</strong> can be paid before the course starts — or pay the full amount now and skip the follow-up.
-                                </p>
-                            </div>
-                            <div className="flex flex-col gap-3 min-w-[260px]">
-                                <button
-                                    onClick={() => openWith('REGISTRATION', selectedTierIdx)}
-                                    className="w-full px-6 py-3 rounded-full font-semibold inline-flex items-center justify-center gap-2 transition-all hover:translate-y-[-1px]"
-                                    style={{
-                                        background: 'var(--brand)',
-                                        color: 'var(--text-on-inverse)',
-                                        boxShadow: '0 8px 22px rgba(13,79,60,0.30)'
-                                    }}>
-                                    <Wallet size={15} /> Reserve seat · ₹5,000
-                                </button>
-                                <button
-                                    onClick={() => openWith('FULL', selectedTierIdx)}
-                                    className="w-full px-6 py-3 rounded-full font-semibold inline-flex items-center justify-center gap-2 transition-all hover:translate-y-[-1px]"
-                                    style={{
-                                        background: 'var(--surface)',
-                                        color: 'var(--brand)',
-                                        border: '1px solid var(--brand)'
-                                    }}>
-                                    Pay full fee · {selectedTier.price}
-                                </button>
-                                <span className="text-[11.5px] text-center" style={{ color: 'var(--text-tertiary)' }}>
-                                    Secure payments via Razorpay · GST applicable at checkout
-                                </span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* ──────────────────────────────────────────────────────────
-                14. FAQ
+                13. FAQ — pricing tiers now live on the dedicated /pricing
+                    page; the hero CTAs (Reserve Slot / Pay Full Fee) and
+                    the FinalCTABanner still drive enrollment from here.
             ────────────────────────────────────────────────────────── */}
             <div id="faq">
                 <FaqAccordion items={faqs} />
@@ -525,7 +397,7 @@ export default function ProgramPage() {
                 primaryLabel="Book a Free 1:1 Call"
                 primaryHref="/contact"
                 secondaryLabel="See Pricing"
-                secondaryHref="#pricing"
+                secondaryHref="/pricing"
                 nextBatchDate={program.enrollDate?.replace('Next batch:', '').trim()}
             />
 

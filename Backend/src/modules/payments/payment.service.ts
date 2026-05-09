@@ -145,6 +145,104 @@ export const createOrderForInvoice = async (tenantId: string, userId: string, in
     }
 }
 
+// Pay-balance for a DEMO enrolment that has no balance invoice yet. Mirrors
+// `createOrderForInvoice` but takes an enrollmentId and lazily mints the
+// missing DUE invoice from `course.price − paidPrincipal + GST` so the
+// student can settle the balance inline (no cross-app redirect required).
+//
+// Idempotent: if a DUE invoice already exists for this enrolment we reuse it
+// and just (re-)issue a Razorpay order against it. Order creation goes
+// through `resolveRazorpay(tenantId)` so each tenant pays into its own
+// Razorpay account, with the platform key as the documented fallback.
+export const createOrderForEnrollmentBalance = async (
+    tenantId: string,
+    userId: string,
+    enrollmentId: string
+) => {
+    const enrollment = await db.client.enrollment.findFirst({
+        where: { id: enrollmentId, tenantId, userId },
+        include: {
+            course: { select: { id: true, price: true, currency: true, gstPercent: true } },
+            invoices: { select: { id: true, status: true, amount: true, totalAmount: true } }
+        }
+    })
+    if (!enrollment) throw AppError.notFound(responseMessage.NOT_FOUND('Enrollment'), 'ENROLLMENT_NOT_FOUND')
+    if (!enrollment.course) {
+        throw AppError.badRequest('Enrollment has no associated course', 'ENROLLMENT_NO_COURSE')
+    }
+
+    // Reuse the open DUE invoice when one exists — keeps a single payable
+    // record per enrolment so admin views don't fragment.
+    const existing = enrollment.invoices.find((i) => i.status === InvoiceStatus.DUE && i.totalAmount > 0)
+    if (existing) {
+        return createOrderForInvoice(tenantId, userId, existing.id)
+    }
+
+    // Compute the implied balance the same way `listMyEnrollments` does so
+    // the UI banner and the actual charge agree to the paise.
+    const coursePriceMinor = enrollment.course.price ?? 0
+    const paidPrincipalMinor = enrollment.invoices
+        .filter((i) => i.status === InvoiceStatus.PAID)
+        .reduce((n, i) => n + i.amount, 0)
+    const remainingPrincipal = Math.max(0, coursePriceMinor - paidPrincipalMinor)
+    const gstPct = enrollment.course.gstPercent ?? 18
+    const gstAmount = Math.round((remainingPrincipal * gstPct) / 100)
+    const totalAmount = remainingPrincipal + gstAmount
+    if (totalAmount <= 0) {
+        throw AppError.badRequest('No outstanding balance for this enrollment', 'BALANCE_ZERO')
+    }
+
+    // Tenant-scoped invoice number. We share the same YYYYMM-XXXX format
+    // the enrolment service uses so admin lists stay consistent.
+    const yyyymm = new Date().toISOString().slice(0, 7).replace('-', '')
+    const count = await db.client.invoice.count({
+        where: { tenantId, number: { startsWith: `${yyyymm}-` } }
+    })
+    const number = `${yyyymm}-${String(count + 1).padStart(4, '0')}`
+
+    const currency = enrollment.course.currency || 'INR'
+    const rp = await resolveRazorpay(tenantId)
+
+    const invoice = await db.client.invoice.create({
+        data: {
+            tenantId,
+            userId,
+            enrollmentId: enrollment.id,
+            number,
+            amount: remainingPrincipal,
+            currency,
+            gstPercent: gstPct,
+            gstAmount,
+            totalAmount,
+            status: InvoiceStatus.DUE,
+            gateway: PaymentGateway.RAZORPAY
+        }
+    })
+
+    const order = await rp.client.orders.create({
+        amount: totalAmount,
+        currency,
+        receipt: invoice.number,
+        notes: { tenantId, invoiceId: invoice.id, userId, enrollmentId: enrollment.id }
+    })
+
+    await db.client.invoice.update({
+        where: { id: invoice.id },
+        data: { gatewayOrderId: order.id }
+    })
+
+    return {
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.number,
+        order: {
+            id: order.id,
+            amount: Number(order.amount),
+            currency: invoice.currency,
+            keyId: rp.keyId
+        }
+    }
+}
+
 // Render a printable receipt as HTML. The browser's Print → Save as PDF
 // flow turns this into a real PDF without needing a server-side PDF
 // library. Tenant branding (color + logo + contact email) flows through

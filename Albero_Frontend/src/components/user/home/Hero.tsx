@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUpRight, Star, Play, BarChart3, Brain, Code2, Database, Download, PhoneCall } from 'lucide-react'
 import { useMagnet } from '@/hooks/useInteractive'
+import { CurriculumDownloadModal } from './CurriculumDownloadModal'
 
 interface HeroProps {
     eyebrow?: string
@@ -34,6 +36,7 @@ export function Hero({ subtitle }: HeroProps) {
     const navigate = useNavigate()
     const primaryCtaRef = useMagnet<HTMLButtonElement>({ strength: 12 })
     const secondaryCtaRef = useMagnet<HTMLButtonElement>({ strength: 8 })
+    const [curriculumOpen, setCurriculumOpen] = useState(false)
 
     return (
         <section
@@ -140,7 +143,7 @@ export function Hero({ subtitle }: HeroProps) {
                             </button>
                             <button
                                 ref={secondaryCtaRef}
-                                onClick={() => navigate('/resources/case-studies')}
+                                onClick={() => setCurriculumOpen(true)}
                                 className="px-5 py-2.5 rounded-full text-[13px] font-semibold inline-flex items-center justify-center gap-2"
                                 style={{
                                     background: 'var(--surface)',
@@ -358,6 +361,7 @@ export function Hero({ subtitle }: HeroProps) {
                     </div>
                 </div>
             </div>
+            <CurriculumDownloadModal open={curriculumOpen} onClose={() => setCurriculumOpen(false)} />
         </section>
     )
 }

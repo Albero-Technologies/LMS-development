@@ -10,7 +10,7 @@ import { Empty } from '@shared/components/ui/Empty'
 import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore, fullName } from '@shared/stores/authStore'
-import { createPaymentOrder, isOverdue, listMyInvoices, type Invoice } from '../services/payment.service'
+import { createPaymentOrder, createEnrollmentBalanceOrder, isOverdue, listMyInvoices, type Invoice } from '../services/payment.service'
 import { listMyEnrollments } from '@features/courses/services/enrollment.service'
 import { downloadInvoiceReceipt } from '../services/payment.service'
 import { openRazorpayCheckout } from '../services/razorpay'
@@ -18,11 +18,6 @@ import { openRazorpayCheckout } from '../services/razorpay'
 // Amounts come from the backend in paise (smallest currency unit).
 const fmtINR = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
 
-// Albero marketing-site root. Falls back to the dashboard origin when the
-// env var isn't wired so the link still resolves to *something* the user
-// can recognise (the catch-all 404 has a "Back to home" button).
-const PUBLIC_SITE_URL = (import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined)?.replace(/\/+$/, '') ||
-    (typeof window !== 'undefined' ? window.location.origin : '')
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 const daysFromNow = (iso: string): number => Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000)
 
@@ -56,6 +51,28 @@ export const StudentFeesPage = () => {
 
     const [payingId, setPayingId] = useState<string | null>(null)
 
+    // Shared post-payment refresh — webhook updates the invoice status, so
+    // we re-query a couple of times to surface the flip without a manual
+    // page reload. Touches both `payments` (invoice list) and
+    // `enrollments` (DEMO→FULL upgrade banner state) so every consumer of
+    // those queries — student page, admin lists, counsellor dash — stays
+    // in sync via realtime cache invalidation.
+    const refreshAfterPayment = () => {
+        void queryClient.invalidateQueries({ queryKey: ['payments'] })
+        void queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+        const tick = () => {
+            void queryClient.invalidateQueries({ queryKey: ['payments'] })
+            void queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+        }
+        setTimeout(tick, 2_000)
+        setTimeout(tick, 6_000)
+    }
+    const handlePaymentError = (err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Payment could not be completed'
+        if (msg !== 'PAYMENT_DISMISSED') toast.error(msg)
+        setPayingId(null)
+    }
+
     const payMutation = useMutation({
         mutationFn: async (invoice: Invoice) => {
             const { order, invoiceNumber } = await createPaymentOrder(invoice.id)
@@ -73,19 +90,36 @@ export const StudentFeesPage = () => {
         },
         onSuccess: () => {
             toast.success('Payment received — your enrollment will activate shortly.')
-            // Webhook updates the invoice status; refetch a couple of times so the
-            // user sees the status flip without manual refresh.
-            void queryClient.invalidateQueries({ queryKey: ['payments'] })
-            setTimeout(() => queryClient.invalidateQueries({ queryKey: ['payments'] }), 2_000)
-            setTimeout(() => queryClient.invalidateQueries({ queryKey: ['payments'] }), 6_000)
+            refreshAfterPayment()
             setPayingId(null)
         },
-        onError: (err: unknown) => {
-            const msg = err instanceof Error ? err.message : 'Payment could not be completed'
-            // The dismiss case is normal user behaviour — don't toast it as an error.
-            if (msg !== 'PAYMENT_DISMISSED') toast.error(msg)
+        onError: handlePaymentError
+    })
+
+    // Inline pay-balance for legacy DEMO enrolments that don't yet have a
+    // DUE invoice. Backend lazily mints the invoice + Razorpay order using
+    // the tenant's own creds, so a single click here moves the student
+    // from DEMO → FULL with no cross-app redirect.
+    const payEnrollmentBalanceMutation = useMutation({
+        mutationFn: async (args: { enrollmentId: string; courseTitle?: string }) => {
+            const { order, invoiceNumber } = await createEnrollmentBalanceOrder(args.enrollmentId)
+            const result = await openRazorpayCheckout({
+                keyId: order.keyId,
+                orderId: order.id,
+                amount: order.amount,
+                currency: order.currency,
+                invoiceNumber,
+                courseTitle: args.courseTitle,
+                prefill: { name: fullName(user), email: user?.email }
+            })
+            return result
+        },
+        onSuccess: () => {
+            toast.success('Payment received — your full access is unlocking now.')
+            refreshAfterPayment()
             setPayingId(null)
-        }
+        },
+        onError: handlePaymentError
     })
 
     // Memoise so the useMemo below sees a stable reference.
@@ -187,17 +221,31 @@ export const StudentFeesPage = () => {
 
             {demoEnrolments.length > 0 && (
                 <div className="space-y-3 mb-6">
-                    {demoEnrolments.map(({ enrollment, balanceInvoice, impliedBalanceMinor }) => (
-                        <DemoBalanceBanner
-                            key={enrollment.id}
-                            courseTitle={enrollment.course?.title ?? 'your course'}
-                            courseSlug={enrollment.course?.slug ?? null}
-                            balanceInvoice={balanceInvoice}
-                            impliedBalanceMinor={impliedBalanceMinor}
-                            isPaying={!!balanceInvoice && payingId === balanceInvoice.id}
-                            onPay={() => balanceInvoice && handlePay(balanceInvoice)}
-                        />
-                    ))}
+                    {demoEnrolments.map(({ enrollment, balanceInvoice, impliedBalanceMinor }) => {
+                        const isPayingThis = balanceInvoice
+                            ? payingId === balanceInvoice.id
+                            : payingId === enrollment.id
+                        return (
+                            <DemoBalanceBanner
+                                key={enrollment.id}
+                                courseTitle={enrollment.course?.title ?? 'your course'}
+                                balanceInvoice={balanceInvoice}
+                                impliedBalanceMinor={impliedBalanceMinor}
+                                isPaying={isPayingThis}
+                                onPay={() => {
+                                    if (balanceInvoice) {
+                                        handlePay(balanceInvoice)
+                                        return
+                                    }
+                                    setPayingId(enrollment.id)
+                                    payEnrollmentBalanceMutation.mutate({
+                                        enrollmentId: enrollment.id,
+                                        courseTitle: enrollment.course?.title
+                                    })
+                                }}
+                            />
+                        )
+                    })}
                 </div>
             )}
 
@@ -421,21 +469,19 @@ const InvoiceRow = ({ inv, isPaying, onPay }: { inv: Invoice; isPaying: boolean;
 }
 
 // "You've reserved your seat — pay the balance to unlock all lessons."
-// Renders one card per DEMO enrolment with either the matching DUE
-// invoice (preferred) or the backend-computed implied balance from
-// course.price - paid principal (fallback for legacy registration-paid
-// rows that pre-date the balance-invoice migration). Either way the
-// student sees the actual amount due — never a placeholder "shortly".
+// One card per DEMO enrolment. When a matching DUE invoice exists we use
+// it directly; otherwise the parent fires the lazy enrolment-balance
+// endpoint which mints + charges the invoice inline using the tenant's
+// own Razorpay credentials. Either path opens the same in-page Razorpay
+// modal — no cross-app redirect.
 const DemoBalanceBanner = ({
     courseTitle,
-    courseSlug,
     balanceInvoice,
     impliedBalanceMinor,
     isPaying,
     onPay
 }: {
     courseTitle: string
-    courseSlug: string | null
     balanceInvoice: Invoice | null
     impliedBalanceMinor: number
     isPaying: boolean
@@ -478,33 +524,14 @@ const DemoBalanceBanner = ({
                             {balanceInvoice ? `incl. ${balanceInvoice.gstPercent}% GST` : 'incl. GST'}
                         </div>
                     </div>
-                    {balanceInvoice ? (
-                        <Button
-                            size="sm"
-                            leftIcon={<CreditCard size={13} />}
-                            rightIcon={<ArrowRight size={12} />}
-                            loading={isPaying}
-                            onClick={onPay}>
-                            Pay balance
-                        </Button>
-                    ) : (
-                        // Legacy path — no invoice. Send the student to the
-                        // public marketing site's program page where the
-                        // Razorpay full-fee flow lives. The dashboard SPA
-                        // doesn't host /programs/:slug, so we cross-app jump.
-                        <a
-                            href={
-                                courseSlug
-                                    ? `${PUBLIC_SITE_URL}/programs/${courseSlug}#pricing`
-                                    : `${PUBLIC_SITE_URL}/contact`
-                            }
-                            target="_blank"
-                            rel="noreferrer">
-                            <Button size="sm" leftIcon={<CreditCard size={13} />} rightIcon={<ArrowRight size={12} />}>
-                                Pay balance
-                            </Button>
-                        </a>
-                    )}
+                    <Button
+                        size="sm"
+                        leftIcon={<CreditCard size={13} />}
+                        rightIcon={<ArrowRight size={12} />}
+                        loading={isPaying}
+                        onClick={onPay}>
+                        Pay balance
+                    </Button>
                 </div>
             )}
         </Card>

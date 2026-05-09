@@ -53,6 +53,14 @@ export const createPaymentOrder = async (invoiceId: string): Promise<RazorpayOrd
     return data.data
 }
 
+// Lazily mints (or reuses) the DUE balance invoice for a DEMO enrolment
+// and returns a Razorpay order — used by the inline "Pay balance" button
+// for legacy enrolments that pre-date the auto balance-invoice flow.
+export const createEnrollmentBalanceOrder = async (enrollmentId: string): Promise<RazorpayOrder> => {
+    const { data } = await api.post<Envelope<RazorpayOrder>>(`/payments/enrollments/${enrollmentId}/pay-balance`)
+    return data.data
+}
+
 // Convenience derived flags. Backend statuses are DRAFT|DUE|PAID|FAILED|REFUNDED.
 // "Overdue" is a UI concept = status DUE with dueAt in the past.
 export const isOverdue = (inv: Invoice): boolean => inv.status === 'DUE' && inv.dueAt !== null && new Date(inv.dueAt).getTime() < Date.now()

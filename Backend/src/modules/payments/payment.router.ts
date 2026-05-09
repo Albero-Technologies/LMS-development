@@ -12,6 +12,13 @@ router.get('/pending', requirePolicy('payment', 'read'), asyncHandler(ctrl.pendi
 router.get('/invoices', requirePolicy('payment', 'read'), asyncHandler(ctrl.invoices))
 router.get('/invoices/:invoiceId/receipt', requirePolicy('payment', 'read'), asyncHandler(ctrl.receipt))
 router.post('/:invoiceId/pay', requirePolicy('payment', 'write'), asyncHandler(ctrl.pay))
+// Lazily creates a balance invoice for legacy DEMO enrolments and returns
+// a Razorpay order using the tenant's own creds.
+router.post(
+    '/enrollments/:enrollmentId/pay-balance',
+    requirePolicy('payment', 'write'),
+    asyncHandler(ctrl.payEnrollmentBalance)
+)
 
 // Admin / trainer collections views. The controller scopes trainer requests
 // to their own courses; admin sees the full tenant.

@@ -279,7 +279,7 @@ export const ARMORCODE_NODES_FOR_PROGRAM = (slug: string): ArmorCodeNode[] => {
             { id: 'excel', label: 'Excel', glyph: 'X', color: '#107c41', x: 0.12, y: 0.22, tooltip: 'Pivot tables, Power Query, dashboards' },
             { id: 'sql', label: 'SQL', glyph: 'S', color: '#00758f', x: 0.88, y: 0.22, tooltip: 'Joins, CTEs, window functions, tuning' },
             { id: 'pbi', label: 'Power BI', glyph: 'P', color: '#f2c811', x: 0.06, y: 0.74, tooltip: 'Data modelling, DAX, story-driven reports' },
-            { id: 'tab', label: 'Tableau', glyph: 'T', color: '#e97627', x: 0.94, y: 0.74, tooltip: 'Interactive viz, calculated fields, narrative' },
+            { id: 'tab', label: 'Tableau', glyph: 'T', color: '#e97627', x: 0.94, y: 0.74, tooltip: 'Interactive viz, calculated fields' },
             { id: 'py', label: 'Python', glyph: 'Py', color: '#3776ab', x: 0.5, y: 0.08, tooltip: 'Pandas, statistical thinking, automation' }
         ],
         'data-science-ai': [

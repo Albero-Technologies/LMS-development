@@ -23,6 +23,20 @@ export const pay = async (req: Request, res: Response): Promise<void> => {
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }
 
+// Pay outstanding balance for a DEMO enrolment that doesn't yet have a
+// balance invoice. Service lazily creates a DUE invoice + Razorpay order
+// using the tenant's Razorpay credentials.
+export const payEnrollmentBalance = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const result = await service.createOrderForEnrollmentBalance(
+        req.auth.tenantId,
+        req.auth.userId,
+        req.params.enrollmentId
+    )
+    await writeAudit({ action: 'payment.order_created', entityType: 'Invoice', entityId: result.invoiceId }, req)
+    httpResponse(req, res, 200, responseMessage.SUCCESS, result)
+}
+
 // ADMIN / SUPER_ADMIN / TRAINER — collections view across all students in
 // the tenant. Trainers are auto-scoped to their own courses on the server.
 export const adminInvoices = async (req: Request, res: Response): Promise<void> => {
