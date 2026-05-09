@@ -29,8 +29,13 @@ export default tseslint.config(
             '**/*.config.js',
             '**/*.config.cjs',
             '**/*.config.mjs',
-            // Standalone JS scripts — not part of the TS project graph.
-            'script/**/*.js'
+            // Standalone JS / CJS scripts — not part of the TS project graph,
+            // so type-aware rules (e.g. await-thenable) would crash on them.
+            'script/**/*.js',
+            'scripts/**/*.js',
+            'scripts/**/*.cjs',
+            'scripts/**/*.mjs',
+            '**/*.cjs'
         ]
     },
 
