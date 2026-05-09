@@ -1,15 +1,46 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { CheckCircle2, Clock, Users, GraduationCap, Sparkles, ArrowRight, Briefcase, Award, ChevronRight, Tag, Wallet } from 'lucide-react'
+import { CheckCircle2, Clock, Users, GraduationCap, Sparkles, ArrowRight, Tag, Wallet, Award, Briefcase, Compass } from 'lucide-react'
 import { findProgram } from '@/constants/programs'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
 import { useCollectionItem } from '@/hooks/useContent'
 import type { PaymentType } from '@/services/purchaseService'
+import { ArmorCodeHero } from '@/components/user/program-page/ArmorCodeHero'
+import { StatsBar } from '@/components/user/program-page/StatsBar'
+import { ScrollingToolStrip } from '@/components/user/program-page/ScrollingToolStrip'
+import { CurriculumAccordion, type CurriculumSection } from '@/components/user/program-page/CurriculumAccordion'
+import { MentorStrip } from '@/components/user/program-page/MentorStrip'
+import { SuccessStories } from '@/components/user/program-page/SuccessStories'
+import { AlumniCompanyWall } from '@/components/user/program-page/AlumniCompanyWall'
+import {
+    AdvantageGrid,
+    WhatYoullLearn,
+    IndustryProjects,
+    CaseStudies,
+    Certifications,
+    CareerOutcomes,
+    FaqAccordion,
+    FinalCTABanner,
+    StickyProgramNav
+} from '@/components/user/program-page/ProgramSections'
+import {
+    ARMORCODE_NODES_FOR_PROGRAM,
+    CASE_STUDIES_FOR_PROGRAM,
+    CERTIFICATIONS_FOR_PROGRAM,
+    DEFAULT_ADVANTAGE,
+    FAQ_FOR_PROGRAM,
+    PROJECTS_FOR_PROGRAM,
+    SAMPLE_MENTORS,
+    SKILLS_FOR_PROGRAM,
+    SUCCESS_STORIES,
+    ALUMNI_COMPANIES,
+    careerOutcomesFromProgram,
+    toolsForProgram
+} from '@/constants/program-extras'
 
-// Convert "₹65,000" or "₹1,25,000" → 65000 / 125000 (rupees), then to paise.
-// Returns 0 when the string is unparsable so the modal can fall back to the
-// backend's authoritative course price.
+// "₹65,000" / "₹1,25,000" → 65000 / 125000 (rupees) → paise. Returns 0 when
+// unparsable so the modal falls back to the backend's authoritative price.
 const parseRupeeStringToPaise = (priceStr: string | undefined): number => {
     if (!priceStr) return 0
     const digits = priceStr.replace(/[^0-9]/g, '')
@@ -19,13 +50,8 @@ const parseRupeeStringToPaise = (priceStr: string | undefined): number => {
     return rupees * 100
 }
 
-// Pull the marketing-copy fields from the dashboard's `programs` collection
-// when the admin has populated them; fall back to whatever the static
-// constants file ships. Curriculum (modules / outcomes / fees / tools)
-// stays in code — those are richer than what the CMS schema captures and
-// rarely change. Editable from the dashboard:
-//   title, subtitle, badge, description, duration, mode, level,
-//   enrollDate (next batch), thumbnail, featured.
+// CMS overlay — backend wins for marketing-copy fields when populated;
+// constants supply the rest. Shipped earlier; kept here unchanged.
 type ProgramOverlay = {
     title?: string
     subtitle?: string
@@ -38,14 +64,25 @@ type ProgramOverlay = {
     thumbnail?: string
 }
 
+// Sticky-nav anchor map. Keep ids stable across renders so the share-link
+// (#curriculum) and pricing scroll behaviour both work first time.
+const STICKY_NAV = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'learn', label: 'What you learn' },
+    { id: 'curriculum', label: 'Curriculum' },
+    { id: 'mentors', label: 'Mentors' },
+    { id: 'pricing', label: 'Pricing' },
+    { id: 'faq', label: 'FAQs' }
+]
+
 export default function ProgramPage() {
     const { slug } = useParams<{ slug: string }>()
     const navigate = useNavigate()
     const fallback = slug ? findProgram(slug) : undefined
     const [enrollOpen, setEnrollOpen] = useState(false)
-    // Default to the recommended tier (Mentor-Led on every program). When no
-    // tier is flagged recommended we just pick the second tier as a sensible
-    // mid-priced default. Captured as state so user picks override the default.
+
+    // Recommended-tier default (Mentor-Led on every program). Picks a sensible
+    // mid-priced default when no tier is flagged recommended.
     const recommendedIndex = (() => {
         if (!fallback) return 0
         const idx = fallback.fees.findIndex((t) => t.recommended)
@@ -54,13 +91,9 @@ export default function ProgramPage() {
     const [selectedTierIdx, setSelectedTierIdx] = useState(recommendedIndex)
     const [paymentIntent, setPaymentIntent] = useState<PaymentType>('REGISTRATION')
 
-    // Fetch the matching CMS row. Drafts are filtered out by the backend, so
-    // an unpublished item simply 404s and we render the constants version.
     const cmsQuery = useCollectionItem('programs', slug)
     const overlay = (cmsQuery.data?.item.data ?? null) as ProgramOverlay | null
 
-    // Merge: backend wins for any non-empty marketing field; constants
-    // supply the rest (icon, accent, modules, outcomes, fees, tools, …).
     const program = useMemo(() => {
         if (!fallback) return undefined
         if (!overlay) return fallback
@@ -84,9 +117,6 @@ export default function ProgramPage() {
     if (!program) return <Navigate to="/" replace />
 
     const Icon = program.icon
-    // Best-effort price string from the program's pricing tiers (used as a
-    // hint in the modal). The authoritative amount comes from the backend
-    // when checkout starts, so a missing value here is harmless.
     const displayPrice = program.fees[0]?.price
     const selectedTier = program.fees[selectedTierIdx] ?? program.fees[0]
     const selectedTierPaise = parseRupeeStringToPaise(selectedTier?.price)
@@ -97,12 +127,36 @@ export default function ProgramPage() {
         setEnrollOpen(true)
     }
 
+    // ──────────────────────────────────────────────────────────────────
+    // Per-program data assembly — pulls from constants/program-extras
+    // with sensible defaults so a fresh slug never shows empty sections.
+    // ──────────────────────────────────────────────────────────────────
+    const tools = toolsForProgram(program.tools)
+    const armorNodes = ARMORCODE_NODES_FOR_PROGRAM(program.slug)
+    const skills = SKILLS_FOR_PROGRAM(program.slug, program.tools)
+    const projects = PROJECTS_FOR_PROGRAM(program.slug)
+    const caseStudies = CASE_STUDIES_FOR_PROGRAM(program.slug)
+    const certifications = CERTIFICATIONS_FOR_PROGRAM(program.slug)
+    const stories = SUCCESS_STORIES[program.slug] ?? []
+    const faqs = FAQ_FOR_PROGRAM(program.slug)
+    const curriculumSections: CurriculumSection[] = program.modules.map((m) => ({
+        title: m.title,
+        lessons: m.items.map((title, i) => ({
+            title,
+            // Conservative duration estimate — first lesson per module is a
+            // free preview so the share-link experience always has something
+            // playable on the public side.
+            durationMinutes: 12 + ((i * 7) % 30),
+            isFreePreview: i === 0
+        }))
+    }))
+
     return (
-        <div
-            className="min-h-screen relative overflow-hidden"
-            style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
-            {/* Hero */}
-            <section className="relative pt-[140px] pb-16 px-5 md:px-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            {/* ──────────────────────────────────────────────────────────
+                1. HERO — title + counsellor side card + ArmorCode canvas
+            ────────────────────────────────────────────────────────── */}
+            <section id="overview" className="relative pt-[140px] pb-16 px-5 md:px-8">
                 <div
                     aria-hidden="true"
                     className="absolute pointer-events-none rounded-full"
@@ -115,17 +169,6 @@ export default function ProgramPage() {
                         filter: 'blur(40px)'
                     }}
                 />
-                <div
-                    className="absolute inset-x-0 top-0 h-[480px] pointer-events-none"
-                    style={{
-                        backgroundImage: 'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
-                        backgroundSize: '28px 28px',
-                        opacity: 0.45,
-                        maskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, #000 60%, transparent 100%)',
-                        WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, #000 60%, transparent 100%)'
-                    }}
-                />
-
                 <div className="max-w-6xl mx-auto relative z-[1] grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-start">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                         <div
@@ -140,17 +183,13 @@ export default function ProgramPage() {
                             style={{ color: 'var(--text-primary)', fontSize: 'clamp(32px, 6.5vw, 64px)' }}>
                             <span className="font-medium">{program.title}</span>
                             <br />
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>{program.highlight}</span>
+                            <span className="italic font-light alb-gradient-text">{program.highlight}</span>
                         </h1>
 
-                        <p
-                            className="text-[17px] font-medium mb-3"
-                            style={{ color: 'var(--brand)' }}>
+                        <p className="text-[17px] font-medium mb-3" style={{ color: 'var(--brand)' }}>
                             {program.subtitle}
                         </p>
-                        <p
-                            className="text-[15px] leading-relaxed max-w-xl mb-8"
-                            style={{ color: 'var(--text-secondary)' }}>
+                        <p className="text-[15px] leading-relaxed max-w-xl mb-8" style={{ color: 'var(--text-secondary)' }}>
                             {program.description}
                         </p>
 
@@ -185,6 +224,12 @@ export default function ProgramPage() {
                                 See Pricing
                             </a>
                         </div>
+
+                        {/* Animated stack of tool nodes — sits below the hero copy, above
+                            the counsellor card on mobile. Anchors the page visually. */}
+                        <div className="hidden md:block mt-10">
+                            <ArmorCodeHero nodes={armorNodes} hubLabel={program.title.split(' ')[0]} hubGlyph="✦" height={280} />
+                        </div>
                     </motion.div>
 
                     {/* Counsellor side card */}
@@ -192,25 +237,19 @@ export default function ProgramPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
-                        className="rounded-2xl p-6"
+                        className="rounded-2xl p-6 lg:sticky lg:top-[100px]"
                         style={{
                             background: 'var(--surface)',
                             border: '1px solid var(--line)',
                             boxShadow: 'var(--card-shadow-hover)'
                         }}>
-                        <div
-                            className="flex items-center gap-2 mb-3 text-[13px] font-semibold"
-                            style={{ color: 'var(--accent)' }}>
+                        <div className="flex items-center gap-2 mb-3 text-[13px] font-semibold" style={{ color: 'var(--accent)' }}>
                             <Sparkles size={16} /> {program.enrollDate}
                         </div>
-                        <h3
-                            className="font-display text-[20px] font-semibold mb-1"
-                            style={{ color: 'var(--text-primary)' }}>
+                        <h3 className="font-display text-[20px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                             Talk to a Counsellor
                         </h3>
-                        <p
-                            className="text-[14px] mb-5"
-                            style={{ color: 'var(--text-secondary)' }}>
+                        <p className="text-[14px] mb-5" style={{ color: 'var(--text-secondary)' }}>
                             Quick 15-min call — get program details, eligibility, and fee structure.
                         </p>
 
@@ -235,19 +274,13 @@ export default function ProgramPage() {
                             </button>
                         </div>
 
-                        <div
-                            className="grid grid-cols-2 gap-3 mt-6 pt-6 border-t"
-                            style={{ borderColor: 'var(--line)' }}>
+                        <div className="grid grid-cols-2 gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--line)' }}>
                             {program.stats.map((s, i) => (
                                 <div key={i}>
-                                    <div
-                                        className="font-display text-[22px] font-semibold leading-none"
-                                        style={{ color: 'var(--text-primary)' }}>
+                                    <div className="font-display text-[22px] font-semibold leading-none" style={{ color: 'var(--text-primary)' }}>
                                         {s.v}
                                     </div>
-                                    <div
-                                        className="text-[10px] tracking-[0.16em] uppercase mt-1.5 font-semibold"
-                                        style={{ color: 'var(--text-tertiary)' }}>
+                                    <div className="text-[10px] tracking-[0.16em] uppercase mt-1.5 font-semibold" style={{ color: 'var(--text-tertiary)' }}>
                                         {s.l}
                                     </div>
                                 </div>
@@ -257,159 +290,100 @@ export default function ProgramPage() {
                 </div>
             </section>
 
-            {/* Highlights & tools */}
-            <section className="px-5 md:px-8 mb-20">
-                <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8">
-                    <Card title="Program Highlights" icon={Award}>
-                        <ul className="space-y-3">
-                            {program.highlights.map((h, i) => (
-                                <li key={i} className="flex items-start gap-3">
-                                    <CheckCircle2
-                                        size={18}
-                                        className="flex-shrink-0 mt-0.5"
-                                        style={{ color: 'var(--brand)' }}
-                                    />
-                                    <span
-                                        className="text-[15px] leading-relaxed"
-                                        style={{ color: 'var(--text-secondary)' }}>
-                                        {h}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </Card>
+            {/* Sticky in-page nav under the hero */}
+            <StickyProgramNav items={STICKY_NAV} />
 
-                    <Card title="Tools & Technologies" icon={Sparkles}>
-                        <div className="flex flex-wrap gap-2">
-                            {program.tools.map((t, i) => (
-                                <span
-                                    key={i}
-                                    className="px-3 py-1.5 rounded-full text-[13.5px]"
-                                    style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--line)' }}>
-                                    {t}
-                                </span>
-                            ))}
-                        </div>
-                    </Card>
-                </div>
-            </section>
+            {/* ──────────────────────────────────────────────────────────
+                2. STATS BAR — full-width dark navy w/ count-ups
+            ────────────────────────────────────────────────────────── */}
+            <StatsBar
+                tone="deep"
+                stats={[
+                    { label: 'Students placed', value: 12400, suffix: '+' },
+                    { label: 'Placement rate', value: 92, suffix: '%' },
+                    { label: 'Avg salary hike', value: 280, suffix: '%' },
+                    { label: 'Hiring partners', value: 180, suffix: '+' }
+                ]}
+            />
 
-            {/* Curriculum */}
-            <section className="px-5 md:px-8 mb-20">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-10">
-                        <h2
-                            className="font-display text-[32px] md:text-[44px] font-semibold tracking-[-0.02em] mb-3"
-                            style={{ color: 'var(--text-primary)' }}>
-                            Curriculum
-                        </h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Industry-validated, practice-first, mentor-reviewed every batch.</p>
-                    </div>
+            {/* ──────────────────────────────────────────────────────────
+                3. THE ADVANTAGE / WHY US
+            ────────────────────────────────────────────────────────── */}
+            <AdvantageGrid items={DEFAULT_ADVANTAGE.map((a, i) => ({ ...a, icon: [<Briefcase key="b" size={20} />, <Award key="a" size={20} />, <Compass key="c" size={20} />][i] }))} />
 
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {program.modules.map((m, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 12 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.04 }}
-                                className="rounded-2xl p-6"
-                                style={{
-                                    background: 'var(--surface)',
-                                    border: '1px solid var(--line)',
-                                    boxShadow: 'var(--card-shadow)'
-                                }}>
-                                <div
-                                    className="text-[11px] font-bold tracking-[0.16em] uppercase mb-2"
-                                    style={{ color: 'var(--brand)' }}>
-                                    Module {String(i + 1).padStart(2, '0')}
-                                </div>
-                                <h3
-                                    className="font-display text-[18px] font-semibold mb-3"
-                                    style={{ color: 'var(--text-primary)' }}>
-                                    {m.title}
-                                </h3>
-                                <ul className="space-y-1.5">
-                                    {m.items.map((x, j) => (
-                                        <li
-                                            key={j}
-                                            className="flex items-start gap-2 text-[14px]"
-                                            style={{ color: 'var(--text-secondary)' }}>
-                                            <ChevronRight
-                                                size={14}
-                                                className="flex-shrink-0 mt-1"
-                                                style={{ color: 'var(--brand)' }}
-                                            />
-                                            <span>{x}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            {/* ──────────────────────────────────────────────────────────
+                4. WHAT YOU'LL LEARN — tabbed pill grid
+            ────────────────────────────────────────────────────────── */}
+            <div id="learn">
+                <WhatYoullLearn categories={skills} />
+            </div>
 
-            {/* Outcomes */}
-            <section className="px-5 md:px-8 mb-20">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-10">
-                        <h2
-                            className="font-display text-[32px] md:text-[44px] font-semibold tracking-[-0.02em] mb-3"
-                            style={{ color: 'var(--text-primary)' }}>
-                            Career Outcomes
-                        </h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Roles our learners land — with realistic salary ranges from market data.</p>
-                    </div>
+            {/* ──────────────────────────────────────────────────────────
+                5. CURRICULUM — accordion + share + PDF
+            ────────────────────────────────────────────────────────── */}
+            <CurriculumAccordion
+                sections={curriculumSections}
+                programSlug={program.slug}
+                syllabusPdfUrl={`/syllabi/${program.slug}.pdf`}
+            />
 
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {program.outcomes.map((o, i) => (
-                            <div
-                                key={i}
-                                className="rounded-2xl p-6 relative overflow-hidden"
-                                style={{
-                                    background: 'var(--surface)',
-                                    border: '1px solid var(--line)',
-                                    boxShadow: 'var(--card-shadow)'
-                                }}>
-                                <Briefcase
-                                    size={24}
-                                    className="mb-4"
-                                    style={{ color: 'var(--brand)' }}
-                                />
-                                <h3
-                                    className="font-display text-[18px] font-semibold mb-1"
-                                    style={{ color: 'var(--text-primary)' }}>
-                                    {o.role}
-                                </h3>
-                                {o.salary && (
-                                    <div
-                                        className="text-[14px] font-semibold"
-                                        style={{ color: 'var(--brand)' }}>
-                                        {o.salary}
-                                    </div>
-                                )}
-                                {o.companies && (
-                                    <div className="flex flex-wrap gap-1.5 mt-4">
-                                        {o.companies.map((c, j) => (
-                                            <span
-                                                key={j}
-                                                className="px-2 py-0.5 rounded-md text-[12px]"
-                                                style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--line)' }}>
-                                                {c}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            {/* ──────────────────────────────────────────────────────────
+                6. TOOL TICKER STRIP
+            ────────────────────────────────────────────────────────── */}
+            <ScrollingToolStrip
+                tools={tools}
+                heading={
+                    <>
+                        {tools.length}+ industry tools, <span className="alb-gradient-text italic font-medium">woven into every lab.</span>
+                    </>
+                }
+            />
 
-            {/* Choose Your Plan + Reserve / Pay-Full */}
-            <section id="pricing" className="px-5 md:px-8 mb-20 scroll-mt-24">
+            {/* ──────────────────────────────────────────────────────────
+                7. INDUSTRY PROJECTS
+            ────────────────────────────────────────────────────────── */}
+            <IndustryProjects projects={projects} />
+
+            {/* ──────────────────────────────────────────────────────────
+                8. CASE STUDIES
+            ────────────────────────────────────────────────────────── */}
+            <CaseStudies cases={caseStudies} />
+
+            {/* ──────────────────────────────────────────────────────────
+                9. MENTORS / INSTRUCTORS
+            ────────────────────────────────────────────────────────── */}
+            <div id="mentors">
+                <MentorStrip
+                    mentors={SAMPLE_MENTORS}
+                    stats={[
+                        { value: '10+', label: 'Mentors' },
+                        { value: '50+', label: 'Yrs experience' },
+                        { value: 'Top 1%', label: 'Talent pool' }
+                    ]}
+                />
+            </div>
+
+            {/* ──────────────────────────────────────────────────────────
+                10. CERTIFICATIONS
+            ────────────────────────────────────────────────────────── */}
+            <Certifications certifications={certifications} />
+
+            {/* ──────────────────────────────────────────────────────────
+                11. CAREER OUTCOMES + SUCCESS STORIES
+            ────────────────────────────────────────────────────────── */}
+            <CareerOutcomes outcomes={careerOutcomesFromProgram(program.outcomes)} />
+            {stories.length > 0 && <SuccessStories stories={stories} />}
+
+            {/* ──────────────────────────────────────────────────────────
+                12. ALUMNI AT COMPANIES
+            ────────────────────────────────────────────────────────── */}
+            <AlumniCompanyWall companies={ALUMNI_COMPANIES} />
+
+            {/* ──────────────────────────────────────────────────────────
+                13. PRICING — existing tier picker (kept for parity with
+                    the Razorpay flow shipped earlier)
+            ────────────────────────────────────────────────────────── */}
+            <section id="pricing" className="px-5 md:px-8 py-20 md:py-24 scroll-mt-24" style={{ background: 'var(--surface)' }}>
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-10">
                         <div
@@ -419,9 +393,9 @@ export default function ProgramPage() {
                             Course Investment
                         </div>
                         <h2
-                            className="font-display text-[32px] md:text-[44px] font-semibold tracking-[-0.02em] mb-3"
-                            style={{ color: 'var(--text-primary)' }}>
-                            Choose Your Plan
+                            className="font-display tracking-[-0.02em] mb-3 font-semibold"
+                            style={{ color: 'var(--text-primary)', fontSize: 'clamp(28px, 5vw, 48px)' }}>
+                            Choose your <span className="alb-gradient-text italic font-medium">plan.</span>
                         </h2>
                         <p style={{ color: 'var(--text-secondary)' }}>Reserve your seat with a small registration fee, or pay the full course fee in one go.</p>
                     </div>
@@ -439,7 +413,7 @@ export default function ProgramPage() {
                                     style={{
                                         background: isSelected ? 'var(--brand-soft)' : 'var(--surface)',
                                         border: `1px solid ${isSelected ? 'var(--brand)' : 'var(--line)'}`,
-                                        boxShadow: isSelected ? 'var(--card-shadow-hover)' : 'var(--card-shadow)'
+                                        boxShadow: isSelected ? 'var(--card-shadow-hover)' : 'var(--card-shadow-soft)'
                                     }}>
                                     {recommended && (
                                         <div
@@ -448,29 +422,20 @@ export default function ProgramPage() {
                                             Recommended
                                         </div>
                                     )}
-                                    <div
-                                        className="text-[11px] font-bold tracking-[0.16em] uppercase mb-2"
-                                        style={{ color: 'var(--brand)' }}>
+                                    <div className="text-[11px] font-bold tracking-[0.16em] uppercase mb-2" style={{ color: 'var(--brand)' }}>
                                         {tier.plan}
                                     </div>
-                                    <div
-                                        className="font-display text-[32px] font-semibold leading-none mb-1"
-                                        style={{ color: 'var(--text-primary)' }}>
+                                    <div className="font-display text-[32px] font-semibold leading-none mb-1" style={{ color: 'var(--text-primary)' }}>
                                         {tier.price}
                                     </div>
                                     {tier.emi && (
-                                        <div
-                                            className="text-[12.5px] font-semibold mb-4"
-                                            style={{ color: 'var(--text-tertiary)' }}>
+                                        <div className="text-[12.5px] font-semibold mb-4" style={{ color: 'var(--text-tertiary)' }}>
                                             or {tier.emi} on EMI · GST extra
                                         </div>
                                     )}
                                     <ul className="space-y-2 mt-4">
                                         {tier.features.map((f, j) => (
-                                            <li
-                                                key={j}
-                                                className="flex items-start gap-2 text-[13.5px]"
-                                                style={{ color: 'var(--text-secondary)' }}>
+                                            <li key={j} className="flex items-start gap-2 text-[13.5px]" style={{ color: 'var(--text-secondary)' }}>
                                                 <CheckCircle2 size={14} className="flex-shrink-0 mt-1" style={{ color: 'var(--brand)' }} />
                                                 <span>{f}</span>
                                             </li>
@@ -495,17 +460,15 @@ export default function ProgramPage() {
                     {selectedTier && (
                         <div
                             className="rounded-3xl p-6 md:p-8 grid lg:grid-cols-[1fr_auto] gap-6 items-center"
-                            style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow)' }}>
+                            style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow-soft)' }}>
                             <div>
                                 <div
                                     className="inline-flex items-center gap-2 py-1 px-2.5 rounded-full mb-3 text-[10.5px] font-bold tracking-[0.16em] uppercase"
                                     style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                                     <Wallet size={12} />
-                                    Reserve Your Spot
+                                    Reserve your spot
                                 </div>
-                                <h3
-                                    className="font-display text-[22px] md:text-[26px] font-semibold mb-2"
-                                    style={{ color: 'var(--text-primary)' }}>
+                                <h3 className="font-display text-[22px] md:text-[26px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                                     Lock {selectedTier.plan} for ₹5,000 today
                                 </h3>
                                 <p className="text-[14px] mb-1" style={{ color: 'var(--text-secondary)' }}>
@@ -545,50 +508,26 @@ export default function ProgramPage() {
                 </div>
             </section>
 
-            {/* Bottom CTA */}
-            <section className="px-5 md:px-8 mb-24">
-                <div className="max-w-6xl mx-auto">
-                    <div
-                        className="rounded-3xl p-8 md:p-14 text-center relative overflow-hidden"
-                        style={{
-                            background: 'var(--brand-soft)',
-                            border: '1px solid var(--brand)'
-                        }}>
-                        <h2
-                            className="font-display text-[32px] md:text-[40px] font-semibold tracking-[-0.02em] mb-3"
-                            style={{ color: 'var(--text-primary)' }}>
-                            Ready to start your <span className="italic" style={{ color: 'var(--brand)' }}>journey?</span>
-                        </h2>
-                        <p
-                            className="mb-7 max-w-xl mx-auto"
-                            style={{ color: 'var(--text-secondary)' }}>
-                            Talk to a counsellor today. We'll help you pick the right plan, batch, and learning path for your goals.
-                        </p>
-                        <div className="flex flex-wrap items-center justify-center gap-3">
-                            <button
-                                onClick={() => navigate('/contact')}
-                                className="px-7 py-3.5 rounded-full font-semibold inline-flex items-center gap-2 transition-all hover:translate-y-[-1px]"
-                                style={{
-                                    background: 'var(--brand)',
-                                    color: 'var(--text-on-inverse)',
-                                    boxShadow: '0 12px 32px rgba(13,79,60,0.30)'
-                                }}>
-                                Book a Free 1:1 Call <ArrowRight size={16} />
-                            </button>
-                            <a
-                                href="#pricing"
-                                className="px-7 py-3.5 rounded-full font-semibold inline-flex items-center gap-2 transition-all hover:translate-y-[-1px]"
-                                style={{
-                                    background: 'var(--surface)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--line-strong)'
-                                }}>
-                                See Pricing &amp; Plans <ArrowRight size={16} />
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* ──────────────────────────────────────────────────────────
+                14. FAQ
+            ────────────────────────────────────────────────────────── */}
+            <div id="faq">
+                <FaqAccordion items={faqs} />
+            </div>
+
+            {/* ──────────────────────────────────────────────────────────
+                15. FINAL CTA BANNER
+            ────────────────────────────────────────────────────────── */}
+            <FinalCTABanner
+                heading="Ready to start your"
+                accent="journey?"
+                description="Talk to a counsellor today. We'll help you pick the right plan, batch, and learning path for your goals."
+                primaryLabel="Book a Free 1:1 Call"
+                primaryHref="/contact"
+                secondaryLabel="See Pricing"
+                secondaryHref="#pricing"
+                nextBatchDate={program.enrollDate?.replace('Next batch:', '').trim()}
+            />
 
             <EnrollModal
                 open={enrollOpen}
@@ -601,6 +540,16 @@ export default function ProgramPage() {
                 tierLabel={selectedTier ? `${selectedTier.plan} · ${selectedTier.price}` : undefined}
                 tierPriceMinor={selectedTierPaise || undefined}
             />
+
+            {/* Floating "Talk to us" button — mobile only since the sidebar form
+                is already visible on larger screens. */}
+            <button
+                onClick={() => navigate('/contact')}
+                className="lg:hidden fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-105"
+                style={{ background: 'var(--gradient-aurora)', color: '#fff' }}
+                aria-label="Talk to a counsellor">
+                <Compass size={22} />
+            </button>
         </div>
     )
 }
@@ -612,32 +561,6 @@ function Pill({ icon: Icon, label }: { icon: React.ComponentType<{ size?: number
             style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
             <Icon size={14} style={{ color: 'var(--brand)' }} />
             {label}
-        </div>
-    )
-}
-
-function Card({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>; children: React.ReactNode }) {
-    return (
-        <div
-            className="rounded-2xl p-7"
-            style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--line)',
-                boxShadow: 'var(--card-shadow)'
-            }}>
-            <div className="flex items-center gap-3 mb-5">
-                <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                    <Icon size={18} />
-                </div>
-                <h2
-                    className="font-display text-[20px] font-semibold"
-                    style={{ color: 'var(--text-primary)' }}>
-                    {title}
-                </h2>
-            </div>
-            {children}
         </div>
     )
 }

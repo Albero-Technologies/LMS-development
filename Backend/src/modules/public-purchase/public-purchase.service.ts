@@ -1,6 +1,7 @@
 import {
     AuthProvider,
     CoursePublishState,
+    EnrollmentAccessTier,
     EnrollmentStatus,
     InvoiceStatus,
     PaymentGateway,
@@ -328,16 +329,35 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             })
         }
 
-        // If the same user previously enrolled in this course, reuse the row
-        // and just nudge it back to ACTIVE (covers a refund-then-rebuy edge).
+        // Resolve the access tier + demo expiry based on what the student
+        // just paid. REGISTRATION → DEMO with optional expiry from
+        // course.demoExpiryDays; FULL → unrestricted FULL access.
+        // Re-enrolment (refund-then-rebuy edge) gets the same upgrade.
+        const accessTier = isRegistration ? EnrollmentAccessTier.DEMO : EnrollmentAccessTier.FULL
+        const courseRow = await tx.course.findUnique({
+            where: { id: intent.courseId },
+            select: { demoExpiryDays: true }
+        })
+        const demoExpiresAt =
+            isRegistration && courseRow?.demoExpiryDays && courseRow.demoExpiryDays > 0
+                ? new Date(Date.now() + courseRow.demoExpiryDays * 24 * 60 * 60 * 1000)
+                : null
+
         const enrollment = await tx.enrollment.upsert({
             where: { tenantId_userId_courseId: { tenantId: enquiry.tenantId, userId: user.id, courseId: intent.courseId } },
-            update: { status: EnrollmentStatus.ACTIVE, startedAt: new Date() },
+            update: {
+                status: EnrollmentStatus.ACTIVE,
+                startedAt: new Date(),
+                accessTier,
+                demoExpiresAt
+            },
             create: {
                 tenantId: enquiry.tenantId,
                 userId: user.id,
                 courseId: intent.courseId,
                 status: EnrollmentStatus.ACTIVE,
+                accessTier,
+                demoExpiresAt,
                 startedAt: new Date()
             }
         })

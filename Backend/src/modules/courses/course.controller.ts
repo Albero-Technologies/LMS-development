@@ -34,7 +34,11 @@ export const get = async (req: Request, res: Response): Promise<void> => {
     const tenantId = await resolveTenantId(req)
     const privileged: Role[] = [Role.ADMIN, Role.SUPER_ADMIN, Role.TRAINER]
     const includePrivate = privileged.includes(req.auth.role)
-    const course = await service.getCourse(tenantId, req.params.id, { includePrivate })
+    // Students get the demo-aware response (per-lesson `locked` flags +
+    // course demoAccess summary). Staff get the raw curriculum because
+    // they need to see / edit every lesson regardless of access tier.
+    const viewerUserId = req.auth.role === Role.STUDENT ? req.auth.userId : undefined
+    const course = await service.getCourse(tenantId, req.params.id, { includePrivate, viewerUserId })
     httpResponse(req, res, 200, responseMessage.SUCCESS, course)
 }
 

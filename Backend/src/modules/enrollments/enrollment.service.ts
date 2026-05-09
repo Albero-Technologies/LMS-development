@@ -1,4 +1,4 @@
-import { CoursePublishState, EnrollmentStatus, InvoiceStatus, PaymentEventStatus, PaymentGateway, type Prisma, Role, UserStatus } from '@prisma/client'
+import { CoursePublishState, EnrollmentAccessTier, EnrollmentStatus, InvoiceStatus, PaymentEventStatus, PaymentGateway, type Prisma, Role, UserStatus } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
@@ -373,9 +373,28 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
                 data: { status: InvoiceStatus.PAID, gatewayPaymentId: payment.id, paidAt: new Date() }
             })
             if (invoice.enrollmentId) {
+                // After the invoice flips to PAID, recompute the enrolment
+                // access tier. If the student's outstanding balance is now
+                // zero (sum of DUE/DRAFT invoices == 0), upgrade DEMO →
+                // FULL so all lessons unlock immediately.
+                const enrollmentSnapshot = await tx.enrollment.findUnique({ where: { id: invoice.enrollmentId } })
+                const outstanding = await tx.invoice.aggregate({
+                    _sum: { totalAmount: true },
+                    where: {
+                        enrollmentId: invoice.enrollmentId,
+                        status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] }
+                    }
+                })
+                const remaining = outstanding._sum.totalAmount ?? 0
+                const shouldUpgrade =
+                    enrollmentSnapshot?.accessTier === EnrollmentAccessTier.DEMO && remaining === 0
                 await tx.enrollment.update({
                     where: { id: invoice.enrollmentId },
-                    data: { status: EnrollmentStatus.ACTIVE, startedAt: new Date() }
+                    data: {
+                        status: EnrollmentStatus.ACTIVE,
+                        startedAt: new Date(),
+                        ...(shouldUpgrade ? { accessTier: EnrollmentAccessTier.FULL, demoExpiresAt: null } : {})
+                    }
                 })
             }
         }
@@ -394,6 +413,30 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
         paymentId: payment.id,
         amount: payment.amount
     })
+
+    // Per-student unlock event. We re-read the enrolment after the
+    // transaction so the socket payload reflects the post-upgrade tier.
+    // This drives the green "🎉 Full access unlocked!" toast on the
+    // student's open dashboard session and refetches the lesson list.
+    if (parsed.event === 'payment.captured' && invoice.enrollmentId) {
+        const fresh = await db.client.enrollment.findUnique({
+            where: { id: invoice.enrollmentId },
+            select: { id: true, userId: true, accessTier: true, courseId: true }
+        })
+        if (fresh && fresh.accessTier === EnrollmentAccessTier.FULL) {
+            try {
+                const { emitToUser } = await import('../../service/socket')
+                emitToUser(fresh.userId, 'enrollment:unlocked', {
+                    enrollmentId: fresh.id,
+                    courseId: fresh.courseId,
+                    ts: Date.now()
+                })
+            } catch (err) {
+                logger.warn('ENROLLMENT_UNLOCK_EMIT_FAILED', { meta: { err: (err as Error).message } })
+            }
+        }
+    }
+
     await notifyPaymentStakeholders(invoice.tenantId, invoice.userId, invoice.id, parsed.event, payment.amount)
 
     return { ok: true }

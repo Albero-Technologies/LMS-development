@@ -153,6 +153,17 @@ body {
        on the root element silently breaks `position: sticky` on every
        descendant (e.g. the desktop StaircaseClimb pinned canvas). */
     overflow-x: clip;
+    /* Smooth-scroll for in-page anchor jumps — the sticky program-page
+       nav and curriculum share-link rely on this to glide instead of
+       teleporting. Reduced-motion users get the instant default below. */
+    scroll-behavior: smooth;
+    scroll-padding-top: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
 }
 
 body {
@@ -360,3 +371,173 @@ html.lenis body {
     50% { transform: scale(1.18) rotate(6deg); opacity: 1; }
     100% { transform: scale(1) rotate(0); opacity: 1; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Program-page redesign tokens & animations (Meritshot + ArmorCode parity)
+   ─────────────────────────────────────────────────────────────────────────
+   Reusable across:
+     - Tool / alumni-logo ticker (ScrollingToolStrip)
+     - Section primitives (SectionShell, SectionBadge, GradientText)
+     - ArmorCode-style gradient + frosted glass + wave dividers
+     - Salary-jump bounce arrow + hero canvas easings
+   Honour `prefers-reduced-motion` at the bottom of this block.
+─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+    /* ArmorCode-inspired brand gradient — used on accent words, gradient-icon
+       containers, primary CTAs on dark sections. The mid-stop is the bridge
+       between Albero's emerald and ArmorCode's violet so the new sections
+       blend with the existing palette. */
+    --gradient-aurora: linear-gradient(135deg, #5b3fd6 0%, #14785f 50%, #0ea47a 100%);
+    --gradient-brand: linear-gradient(135deg, #0d4f3c 0%, #14785f 60%, #34d399 100%);
+    --gradient-accent: linear-gradient(135deg, #b86a18 0%, #fbbf24 100%);
+
+    /* Section backgrounds — alternating tones the redesign uses to avoid the
+       "wall of white" look. Pure white / very-light blue / deep navy. */
+    --section-soft: #f4f6fa;
+    --section-deep: #0a0f1e;
+
+    /* Card defaults — soft shadow, hairline border. Hover state overrides
+       lift + shadow inline on each component. */
+    --card-shadow-soft: 0 4px 24px rgba(15, 23, 42, 0.07);
+    --card-shadow-hover: 0 12px 36px rgba(15, 23, 42, 0.12);
+    --hairline: #e8edf5;
+}
+
+[data-theme='dark'] {
+    --section-soft: #11163a;
+    --section-deep: #050816;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --card-shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.35);
+    --card-shadow-hover: 0 14px 36px rgba(0, 0, 0, 0.5);
+}
+
+/* Tool / alumni ticker — pure-CSS infinite scroll, no JS. The track holds
+   3× the source list so a translate of -33.333% loops seamlessly. Pause on
+   hover via animation-play-state. */
+@keyframes alb-ticker-left {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-33.333%, 0, 0); }
+}
+
+@keyframes alb-ticker-right {
+    0% { transform: translate3d(-33.333%, 0, 0); }
+    100% { transform: translate3d(0, 0, 0); }
+}
+
+.alb-ticker-track {
+    display: inline-flex;
+    gap: 14px;
+    will-change: transform;
+}
+
+.alb-ticker-track[data-direction='left'] {
+    animation: alb-ticker-left var(--ticker-duration, 40s) linear infinite;
+}
+
+.alb-ticker-track[data-direction='right'] {
+    animation: alb-ticker-right var(--ticker-duration, 40s) linear infinite;
+}
+
+.alb-ticker:hover .alb-ticker-track {
+    animation-play-state: paused;
+}
+
+/* Salary-jump arrow — cubic bezier overshoot when the card scrolls in. */
+@keyframes alb-arrow-pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.alb-arrow-pop[data-visible='true'] {
+    animation: alb-arrow-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ArmorCode-style hub pulse — concentric expanding rings around the
+   central canvas node. Used by the standalone ArmorCodeHero canvas
+   render path AND any static "central icon" mock-up that wants the
+   same vibe. */
+@keyframes alb-hub-pulse {
+    0% { transform: scale(0.85); opacity: 0.55; }
+    80% { transform: scale(1.6); opacity: 0; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+.alb-hub-pulse {
+    animation: alb-hub-pulse 2.4s ease-out infinite;
+}
+
+/* Aurora mesh background — sits behind dark hero sections to add depth
+   without the full neon. Three subtle radial gradients layered. */
+.alb-aurora-mesh {
+    background:
+        radial-gradient(60% 50% at 20% 20%, rgba(91, 63, 214, 0.18) 0%, transparent 60%),
+        radial-gradient(60% 50% at 80% 30%, rgba(20, 120, 95, 0.16) 0%, transparent 60%),
+        radial-gradient(60% 50% at 50% 90%, rgba(14, 164, 122, 0.15) 0%, transparent 60%),
+        var(--section-deep);
+}
+
+/* Frosted glass cards — for nodes that float over the aurora mesh or
+   hero canvas. Falls back to opaque on browsers without backdrop-filter. */
+.alb-glass {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme='light'] .alb-glass {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+/* Gradient text wrapper — used on accent words inside large headings.
+   The webkit fallback keeps the text visible if background-clip:text fails. */
+.alb-gradient-text {
+    background: var(--gradient-aurora);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Section badge pill — "· PROVEN CAREER OUTCOMES ·" style label. */
+.alb-section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: var(--section-soft);
+    border: 1px solid var(--hairline);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+/* Curriculum accordion smoothness — max-height transition without snap. */
+.alb-accordion-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+}
+
+.alb-accordion-body[data-open='true'] {
+    max-height: 1200px;
+}
+
+/* Reduced motion — kill anything beyond a 0.01s transition. */
+@media (prefers-reduced-motion: reduce) {
+    .alb-ticker-track,
+    .alb-arrow-pop[data-visible='true'],
+    .alb-hub-pulse {
+        animation: none !important;
+    }
+    .alb-accordion-body {
+        transition: none !important;
+    }
+}
+

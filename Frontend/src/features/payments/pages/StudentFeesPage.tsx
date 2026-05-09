@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, AlertTriangle, CreditCard, Download, Receipt, Calendar, IndianRupee, History } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, CreditCard, Download, Receipt, Calendar, IndianRupee, History, Lock, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
@@ -11,6 +11,8 @@ import { Skeleton } from '@shared/components/ui/Skeleton'
 import { cn } from '@shared/helpers/cn'
 import { useAuthStore, fullName } from '@shared/stores/authStore'
 import { createPaymentOrder, isOverdue, listMyInvoices, type Invoice } from '../services/payment.service'
+import { listMyEnrollments } from '@features/courses/services/enrollment.service'
+import { downloadInvoiceReceipt } from '../services/payment.service'
 import { openRazorpayCheckout } from '../services/razorpay'
 
 // Amounts come from the backend in paise (smallest currency unit).
@@ -33,6 +35,16 @@ export const StudentFeesPage = () => {
     const invoicesQuery = useQuery({
         queryKey: ['payments', 'invoices'],
         queryFn: listMyInvoices,
+        staleTime: 30_000
+    })
+
+    // Driving the DEMO banner — the Fees page is the obvious surface for
+    // "you've reserved your seat, settle the balance to unlock". Listing
+    // enrolments is cheap; we re-key off ['enrollments', 'mine'] so the
+    // realtime sync hook can invalidate this on enrollment:unlocked too.
+    const enrollmentsQuery = useQuery({
+        queryKey: ['enrollments', 'mine'],
+        queryFn: listMyEnrollments,
         staleTime: 30_000
     })
 
@@ -90,6 +102,23 @@ export const StudentFeesPage = () => {
     const outstandingTotal = overdueTotal + buckets.due.reduce((n, i) => n + i.totalAmount, 0)
     const outstandingCount = buckets.overdue.length + buckets.due.length
 
+    // Match each DEMO enrolment with its outstanding balance invoice (the
+    // one created at registration-fee time). Used to render a per-course
+    // "you've reserved your seat" banner with a direct Pay-now button.
+    // Computed before the early-return branches so React's hook ordering
+    // stays stable across renders.
+    const demoEnrolments = useMemo(() => {
+        const list = enrollmentsQuery.data ?? []
+        return list
+            .filter((e) => e.accessTier === 'DEMO')
+            .map((e) => {
+                const balance = invoices.find(
+                    (inv) => inv.status === 'DUE' && inv.enrollment?.course?.id === e.course?.id
+                )
+                return { enrollment: e, balanceInvoice: balance ?? null }
+            })
+    }, [enrollmentsQuery.data, invoices])
+
     const handlePay = (invoice: Invoice) => {
         setPayingId(invoice.id)
         payMutation.mutate(invoice)
@@ -138,11 +167,26 @@ export const StudentFeesPage = () => {
                 description="Invoices for your enrollments. Pay outstanding fees in one click."
             />
 
+            {demoEnrolments.length > 0 && (
+                <div className="space-y-3 mb-6">
+                    {demoEnrolments.map(({ enrollment, balanceInvoice }) => (
+                        <DemoBalanceBanner
+                            key={enrollment.id}
+                            courseTitle={enrollment.course?.title ?? 'your course'}
+                            balanceInvoice={balanceInvoice}
+                            isPaying={!!balanceInvoice && payingId === balanceInvoice.id}
+                            onPay={() => balanceInvoice && handlePay(balanceInvoice)}
+                        />
+                    ))}
+                </div>
+            )}
+
             <OutstandingHero
                 overdueTotal={overdueTotal}
                 outstandingTotal={outstandingTotal}
                 overdueCount={buckets.overdue.length}
                 outstandingCount={outstandingCount}
+                allDemo={demoEnrolments.length > 0 && demoEnrolments.every((d) => d.balanceInvoice)}
             />
 
             {outstandingCount > 0 && (
@@ -208,21 +252,22 @@ export const StudentFeesPage = () => {
                                             <td className="py-3 px-5 font-mono">{fmtINR(inv.totalAmount)}</td>
                                             <td className="py-3 px-5 text-xs text-fg-muted">{inv.paidAt ? fmtDate(inv.paidAt) : '—'}</td>
                                             <td className="py-3 px-5 text-right">
-                                                {inv.pdfUrl ? (
-                                                    <a
-                                                        href={inv.pdfUrl}
-                                                        target="_blank"
-                                                        rel="noreferrer">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            leftIcon={<Download size={12} />}>
-                                                            PDF
-                                                        </Button>
-                                                    </a>
-                                                ) : (
-                                                    <span className="text-xs text-fg-muted">—</span>
-                                                )}
+                                                {/* /payments/invoices/:id/receipt streams a printable
+                                                    GST receipt — the browser's "Save as PDF" turns it
+                                                    into a real PDF. We download as a blob so the
+                                                    bearer token in localStorage authenticates the
+                                                    request (a plain <a href> can't carry it). */}
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    leftIcon={<Download size={12} />}
+                                                    onClick={() => {
+                                                        downloadInvoiceReceipt(inv.id).catch((err: unknown) =>
+                                                            toast.error(err instanceof Error ? err.message : 'Could not open receipt')
+                                                        )
+                                                    }}>
+                                                    PDF
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -240,13 +285,19 @@ const OutstandingHero = ({
     overdueTotal,
     outstandingTotal,
     overdueCount,
-    outstandingCount
+    outstandingCount,
+    allDemo
 }: {
     overdueTotal: number
     outstandingTotal: number
     overdueCount: number
     outstandingCount: number
+    allDemo?: boolean
 }) => {
+    // Hide the "all paid up" / outstanding hero when every outstanding row is
+    // already represented by a demo banner above — duplicating the same
+    // amount in two places confuses students.
+    if (allDemo) return null
     if (outstandingCount === 0) {
         return (
             <Card className="!p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-[var(--color-success)]/30 bg-[var(--color-success-soft)]">
@@ -340,6 +391,60 @@ const InvoiceRow = ({ inv, isPaying, onPay }: { inv: Invoice; isPaying: boolean;
                     Pay now
                 </Button>
             </div>
+        </Card>
+    )
+}
+
+// "You've reserved your seat — pay the balance to unlock all lessons."
+// Renders one card per DEMO enrolment with the matching DUE invoice.
+// Falls back to a plain reminder when the balance invoice hasn't been
+// generated yet (legacy enrolments created before the migration).
+const DemoBalanceBanner = ({
+    courseTitle,
+    balanceInvoice,
+    isPaying,
+    onPay
+}: {
+    courseTitle: string
+    balanceInvoice: Invoice | null
+    isPaying: boolean
+    onPay: () => void
+}) => {
+    return (
+        <Card className="!p-5 flex flex-col sm:flex-row sm:items-center gap-4 border-[var(--color-warn,#f59e0b)]/40 bg-[var(--color-warn-soft,rgba(245,158,11,0.08))]">
+            <div className="w-10 h-10 rounded-md bg-[var(--color-warn,#f59e0b)] text-white flex items-center justify-center shrink-0">
+                <Lock size={18} />
+            </div>
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Badge tone="warn">Demo access</Badge>
+                    <span className="text-xs text-fg-muted font-mono">{balanceInvoice?.number ?? 'balance pending'}</span>
+                </div>
+                <div className="mt-1 text-sm font-medium text-fg">
+                    You've reserved your seat in <strong>{courseTitle}</strong>.
+                </div>
+                <p className="mt-1 text-xs text-fg-soft">
+                    {balanceInvoice
+                        ? `Pay the remaining ${fmtINR(balanceInvoice.totalAmount)} to unlock every lesson, quiz, and assignment.`
+                        : 'A counsellor will share your full-fee invoice shortly.'}
+                </p>
+            </div>
+            {balanceInvoice && (
+                <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                        <div className="font-mono text-lg font-semibold text-fg">{fmtINR(balanceInvoice.totalAmount)}</div>
+                        <div className="text-[11px] text-fg-muted">incl. {balanceInvoice.gstPercent}% GST</div>
+                    </div>
+                    <Button
+                        size="sm"
+                        leftIcon={<CreditCard size={13} />}
+                        rightIcon={<ArrowRight size={12} />}
+                        loading={isPaying}
+                        onClick={onPay}>
+                        Pay balance
+                    </Button>
+                </div>
+            )}
         </Card>
     )
 }

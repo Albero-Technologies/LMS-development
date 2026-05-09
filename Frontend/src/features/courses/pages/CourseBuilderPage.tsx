@@ -802,6 +802,7 @@ const LessonEditorModal = ({ open, mode, lesson, onClose, courseId, section, ten
     )
     const [duration, setDuration] = useState(lesson?.durationSec ? String(Math.round(lesson.durationSec / 60)) : '')
     const [freePreview, setFreePreview] = useState<boolean>(!!lesson?.freePreview)
+    const [demoAccess, setDemoAccess] = useState<boolean>(!!lesson?.demoAccess)
     const [resources, setResources] = useState<TLessonResource[]>(lesson?.resources ?? [])
     const [error, setError] = useState<string | null>(null)
 
@@ -820,6 +821,7 @@ const LessonEditorModal = ({ open, mode, lesson, onClose, courseId, section, ten
         )
         setDuration(lesson?.durationSec ? String(Math.round(lesson.durationSec / 60)) : '')
         setFreePreview(!!lesson?.freePreview)
+        setDemoAccess(!!lesson?.demoAccess)
         setResources(lesson?.resources ?? [])
         setError(null)
     }, [open, lesson])
@@ -851,6 +853,7 @@ const LessonEditorModal = ({ open, mode, lesson, onClose, courseId, section, ten
             externalUrl: type === 'EXTERNAL_LIVE' ? url.trim() : undefined,
             durationSec,
             freePreview,
+            demoAccess,
             // Drop resources with no URL — empty rows from a half-typed entry.
             resources: resources.filter((r) => r.url.trim().length > 0)
         }
@@ -1027,6 +1030,27 @@ const LessonEditorModal = ({ open, mode, lesson, onClose, courseId, section, ten
                     </span>
                 </label>
 
+                {/* Demo access — distinct from free preview. Free preview is
+                    for anonymous traffic on the marketing site; demo access
+                    gates DEMO-tier enrolments (registration-fee students)
+                    inside the dashboard. A lesson can be one, both, or
+                    neither. */}
+                <label className="flex items-start gap-3 rounded-md border border-[var(--color-border)] p-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={demoAccess}
+                        onChange={(e) => setDemoAccess(e.target.checked)}
+                        className="mt-0.5 accent-[var(--color-warn,#f59e0b)]"
+                    />
+                    <span>
+                        <span className="text-sm font-medium text-fg block">Available in demo</span>
+                        <span className="text-xs text-fg-muted block mt-0.5">
+                            DEMO-tier students (paid registration only) can open this lesson, on top of the course's default
+                            demo lesson count.
+                        </span>
+                    </span>
+                </label>
+
                 {/* Resources — light-weight attachment list (URL + label).
                     Resources usually live on Drive / S3, so we capture the
                     public URL here rather than implementing in-platform
@@ -1129,6 +1153,10 @@ interface CourseFormState {
     endsAt: string
     certificateEnabled: boolean
     certificateTemplate: string
+    // Demo gating — controls what registration-fee students can access.
+    demoEnabled: boolean
+    demoLessonDefault: string
+    demoExpiryDays: string
 }
 
 const dateToInput = (iso: string | null | undefined): string => {
@@ -1158,7 +1186,10 @@ const fromCourse = (c: NonNullable<ReturnType<typeof getCourse> extends Promise<
     startsAt: dateToInput(c.startsAt),
     endsAt: dateToInput(c.endsAt),
     certificateEnabled: !!c.certificateEnabled,
-    certificateTemplate: c.certificateTemplate ?? ''
+    certificateTemplate: c.certificateTemplate ?? '',
+    demoEnabled: c.demoEnabled !== false,
+    demoLessonDefault: String(c.demoLessonDefault ?? 3),
+    demoExpiryDays: c.demoExpiryDays == null ? '' : String(c.demoExpiryDays)
 })
 
 const CourseSettingsPanel = ({
@@ -1211,7 +1242,11 @@ const CourseSettingsPanel = ({
                     startsAt: toIsoOrNull(form.startsAt),
                     endsAt: toIsoOrNull(form.endsAt),
                     certificateEnabled: form.certificateEnabled,
-                    certificateTemplate: form.certificateTemplate.trim() || null
+                    certificateTemplate: form.certificateTemplate.trim() || null,
+                    demoEnabled: form.demoEnabled,
+                    demoLessonDefault: Math.max(0, Math.min(500, Math.round(Number(form.demoLessonDefault) || 0))),
+                    demoExpiryDays:
+                        form.demoExpiryDays.trim() === '' ? null : Math.max(0, Math.min(365, Math.round(Number(form.demoExpiryDays))))
                 },
                 tenantId
             )
@@ -1495,6 +1530,44 @@ const CourseSettingsPanel = ({
                             placeholder="default"
                             hint="Free-form key. Leave blank to use the platform default."
                         />
+                    )}
+                </Card>
+
+                <Card>
+                    <h3 className="text-sm font-semibold text-fg mb-1">Demo access</h3>
+                    <p className="text-xs text-fg-muted mb-4">
+                        Controls what registration-fee students can open before they pay the full course fee. Per-lesson and
+                        per-section demo toggles below override this default.
+                    </p>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={form.demoEnabled}
+                            onChange={(e) => setForm((f) => ({ ...f, demoEnabled: e.target.checked }))}
+                            className="accent-[var(--color-brand-500)]"
+                        />
+                        <span className="text-sm text-fg">Allow DEMO students to preview lessons</span>
+                    </label>
+                    {form.demoEnabled && (
+                        <div className="grid sm:grid-cols-2 gap-3 mt-4">
+                            <Input
+                                type="number"
+                                min={0}
+                                label="Default demo lesson count"
+                                value={form.demoLessonDefault}
+                                onChange={(e) => setForm((f) => ({ ...f, demoLessonDefault: e.target.value }))}
+                                hint="How many lessons unlock by default. Trainer-marked demo lessons unlock on top of this."
+                            />
+                            <Input
+                                type="number"
+                                min={0}
+                                label="Demo expiry (days, optional)"
+                                value={form.demoExpiryDays}
+                                onChange={(e) => setForm((f) => ({ ...f, demoExpiryDays: e.target.value }))}
+                                placeholder="No expiry"
+                                hint="Demo locks N days after enrolment. Leave blank to keep demo open until full payment."
+                            />
+                        </div>
                     )}
                 </Card>
             </div>

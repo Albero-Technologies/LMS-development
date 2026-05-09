@@ -39,7 +39,13 @@ export const createCourseSchema = z.object({
     startsAt: z.string().datetime().nullable().optional(),
     endsAt: z.string().datetime().nullable().optional(),
     certificateEnabled: z.boolean().optional(),
-    certificateTemplate: z.string().max(80).nullable().optional()
+    certificateTemplate: z.string().max(80).nullable().optional(),
+    // Demo-mode gating — controls registration-fee / DEMO students. Trainers
+    // edit these from the Course Settings panel. demoExpiryDays=null means
+    // no expiry; otherwise demo lock kicks in N days after enrolment.
+    demoEnabled: z.boolean().optional(),
+    demoLessonDefault: z.number().int().min(0).max(500).optional(),
+    demoExpiryDays: z.number().int().min(0).max(365).nullable().optional()
 })
 
 export const updateCourseSchema = createCourseSchema.partial().extend({
@@ -76,6 +82,10 @@ export const createLessonSchema = z.object({
     order: z.number().int().min(0).max(1000).default(0),
     // Free-preview lessons render outside the paywall on the public detail page.
     freePreview: z.boolean().optional(),
+    // demoAccess gates DEMO-tier enrolments (registration-fee students)
+    // inside the dashboard. Distinct from freePreview, which is anonymous
+    // marketing-page visibility. A lesson can be one, both, or neither.
+    demoAccess: z.boolean().optional(),
     // Up to 10 attached resources per lesson.
     resources: z.array(resourceSchema).max(10).optional()
 })

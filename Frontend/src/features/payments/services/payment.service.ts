@@ -57,6 +57,25 @@ export const createPaymentOrder = async (invoiceId: string): Promise<RazorpayOrd
 // "Overdue" is a UI concept = status DUE with dueAt in the past.
 export const isOverdue = (inv: Invoice): boolean => inv.status === 'DUE' && inv.dueAt !== null && new Date(inv.dueAt).getTime() < Date.now()
 
+// Pulls the printable HTML receipt as a blob and opens it in a new tab.
+// Goes through the api client so the bearer token in localStorage
+// authenticates the request — a plain <a href> can't carry the token.
+export const downloadInvoiceReceipt = async (invoiceId: string): Promise<void> => {
+    const res = await api.get<Blob>(`/payments/invoices/${invoiceId}/receipt`, { responseType: 'blob' })
+    const url = URL.createObjectURL(res.data)
+    const win = window.open(url, '_blank', 'noopener,noreferrer')
+    if (!win) {
+        // Pop-up blocked — fall back to a forced download.
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `receipt-${invoiceId}.html`
+        a.click()
+    }
+    // Browsers GC blob URLs aggressively; keep the URL alive long enough
+    // for the print dialog to load the document.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
 // Admin collections view — every invoice in the tenant. Trainers are
 // auto-scoped server-side to their own courses.
 export type AdminInvoiceRow = Invoice & {

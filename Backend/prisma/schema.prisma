@@ -98,6 +98,16 @@ enum EnrollmentStatus {
   CANCELLED
 }
 
+// Access tier — orthogonal to the lifecycle EnrollmentStatus. A row can be
+// status=ACTIVE but accessTier=DEMO when only the registration fee was
+// paid: the seat is reserved, but the curriculum gates only unlock the
+// demo lessons. Promotes to FULL automatically when the balance invoice
+// is paid (Razorpay webhook + the public-purchase verify path).
+enum EnrollmentAccessTier {
+  DEMO
+  FULL
+}
+
 enum InvoiceStatus {
   DRAFT
   DUE
@@ -501,6 +511,21 @@ model Course {
   // picks "Reserve seat" instead of paying full. Falls back to the tenant
   // default (tenant.settings.payments.registrationFeeMinor → ₹5,000).
   registrationFeeMinor Int?
+  // ---- Demo / preview gating ------------------------------------------
+  // demoEnabled        — when false, registration-fee students get zero
+  //                      lesson access (dashboard says "course starts
+  //                      after full payment"). Most courses keep this on.
+  // demoLessonDefault  — how many lessons from the top of the curriculum
+  //                      a DEMO student can open by default. Trainers
+  //                      override per-lesson (Lesson.demoAccess) or
+  //                      per-section (CourseSection.demoSection); admins
+  //                      override per-student (Enrollment.demoLessonLimit).
+  // demoExpiryDays     — null = no expiry. When set, demo access locks
+  //                      automatically N days after enrolment until the
+  //                      student pays the balance.
+  demoEnabled          Boolean            @default(true)
+  demoLessonDefault    Int                @default(3)
+  demoExpiryDays       Int?
   curriculumJson       Json               @default("{}") // section → lesson tree
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -525,6 +550,11 @@ model CourseSection {
   courseId  String
   title     String
   order     Int      @default(0)
+  // When true, every lesson in this section unlocks for DEMO students,
+  // overridable per-lesson (Lesson.demoAccess). Trainers flip this from
+  // the curriculum editor to mark whole "Welcome & Orientation" or
+  // "Module 1" sections as previewable. Defaults to false.
+  demoSection Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -549,6 +579,11 @@ model Lesson {
   // detail page — useful for letting prospects sample one or two videos
   // before paying. Defaults to false; admins flip it from the lesson editor.
   freePreview Boolean    @default(false)
+  // Demo-access flag — true means a DEMO-tier enrolment can play this
+  // lesson. Distinct from `freePreview` (which controls anonymous public
+  // visibility on the marketing course page). A lesson can be one, both,
+  // or neither.
+  demoAccess  Boolean    @default(false)
   // Attached resources: array of `{ url: string, label?: string, type?: 'pdf' | 'link' | 'file' }`.
   // Stored as JSON so we don't need a Resource table for what's effectively
   // a tiny enrichment of the lesson.
@@ -616,6 +651,31 @@ model Enrollment {
   batchId      String?
   counsellorId String? // tracks attribution for counsellor target rollups
   status       EnrollmentStatus @default(PENDING_PAYMENT)
+  // Access tier — DEMO when only the registration fee was paid; FULL when
+  // the entire course fee is settled (or when an admin manually upgrades
+  // for a scholarship case). Lifecycle status (ACTIVE / COMPLETED / …)
+  // and access tier are independent: a row can be ACTIVE-and-DEMO, or
+  // COMPLETED-and-FULL, etc. Defaults to FULL so the legacy single-payment
+  // flow keeps working without backfill.
+  accessTier         EnrollmentAccessTier @default(FULL)
+  // Per-student demo lesson cap. null = inherit Course.demoLessonDefault.
+  // Admin overrides this from the Demo Mode student list to grant a
+  // particular student more or fewer lessons than the course default.
+  demoLessonLimit    Int?
+  // Optional explicit allowlist of lesson ids the student can open in
+  // demo mode. Wins over demoLessonLimit + course/section flags. Used by
+  // the admin "let this student try lessons 1, 4, and 9" override.
+  demoLessonAllowlist String[]            @default([])
+  // When set, demo access locks at this date even if the limit hasn't
+  // been hit. Computed from Course.demoExpiryDays at enrolment time;
+  // editable by admins for case-by-case extensions.
+  demoExpiresAt      DateTime?
+  // Audit + reason metadata when an admin force-upgrades to FULL without
+  // a payment (scholarship, comp, …). Logged here in addition to AuditLog
+  // so the SA panel can render it inline next to the row.
+  manualUpgradeAt     DateTime?
+  manualUpgradeReason String?
+  manualUpgradeById   String?
   progressPct  Int              @default(0)
   startedAt    DateTime?
   completedAt  DateTime?

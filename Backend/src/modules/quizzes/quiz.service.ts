@@ -1,4 +1,4 @@
-import { EnrollmentStatus, type Prisma, QuizAttemptStatus, Role } from '@prisma/client'
+import { EnrollmentAccessTier, EnrollmentStatus, type Prisma, QuizAttemptStatus, Role } from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
@@ -97,6 +97,14 @@ export const getQuizForStudent = async (tenantId: string, userId: string, quizId
     })
     if (!enrolled) throw AppError.forbidden(responseMessage.ENROLLMENT_REQUIRED, 'NO_ENROLLMENT')
 
+    // Demo students can browse the quiz card on the listings page (the
+    // controller renders it in a "locked" state) but the take/start path
+    // is gated to FULL access. Quizzes don't have a lessonId reference in
+    // the schema, so we treat them as full-fee content as a whole.
+    if (enrolled.accessTier === EnrollmentAccessTier.DEMO) {
+        throw AppError.forbidden('Quizzes unlock with the full course fee.', 'QUIZ_DEMO_LOCKED')
+    }
+
     return {
         id: quiz.id,
         title: quiz.title,
@@ -136,6 +144,9 @@ export const startAttempt = async (tenantId: string, userId: string, quizId: str
         }
     })
     if (!enrolled) throw AppError.forbidden(responseMessage.ENROLLMENT_REQUIRED, 'NO_ENROLLMENT')
+    if (enrolled.accessTier === EnrollmentAccessTier.DEMO) {
+        throw AppError.forbidden('Quizzes unlock with the full course fee.', 'QUIZ_DEMO_LOCKED')
+    }
 
     const attemptCount = await db.client.quizAttempt.count({ where: { tenantId, quizId, userId } })
     if (attemptCount >= quiz.maxAttempts) {

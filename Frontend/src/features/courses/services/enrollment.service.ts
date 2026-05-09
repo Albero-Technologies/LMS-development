@@ -3,6 +3,7 @@ import { api } from '@shared/libs/api'
 type Envelope<T> = { success: boolean; message: string; data: T }
 
 export type EnrollmentStatus = 'PENDING_PAYMENT' | 'ACTIVE' | 'COMPLETED' | 'REFUNDED' | 'CANCELLED'
+export type EnrollmentAccessTier = 'DEMO' | 'FULL'
 
 export type Enrollment = {
     id: string
@@ -11,6 +12,12 @@ export type Enrollment = {
     courseId: string
     batchId: string | null
     status: EnrollmentStatus
+    // Access tier — DEMO when only the registration fee was paid; FULL
+    // unlocks every lesson. Defaults to FULL on rows created before the
+    // demo-mode migration so legacy single-payment enrolments stay open.
+    accessTier: EnrollmentAccessTier
+    demoLessonLimit: number | null
+    demoExpiresAt: string | null
     progressPct: number
     startedAt: string | null
     completedAt: string | null

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useAuthStore } from '@shared/stores/authStore'
 import { disconnectSocket, ensureSocket, onSocketEvent } from '@shared/libs/socket'
 
@@ -49,10 +50,21 @@ export const useRealtimeSync = (): void => {
             void queryClient.invalidateQueries({ queryKey: ['leads'] })
         })
 
+        // Per-student "your enrolment was just upgraded to FULL" event. Fires
+        // when the Razorpay webhook flips DEMO → FULL after the balance is
+        // paid. Refresh enrolments + courses so locked lessons unlock without
+        // a page reload, and pop a celebratory toast.
+        const unsubUnlock = onSocketEvent('enrollment:unlocked', () => {
+            void queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+            void queryClient.invalidateQueries({ queryKey: ['courses'] })
+            toast.success('🎉 Full access unlocked! Every lesson is open now.', { duration: 5000 })
+        })
+
         return () => {
             unsubNotifications()
             unsubTickets()
             unsubPayments()
+            unsubUnlock()
         }
     }, [accessToken, queryClient])
 }

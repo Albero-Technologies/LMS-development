@@ -25,7 +25,13 @@ export type TLesson = {
     durationSec: number
     order: number
     freePreview?: boolean
+    demoAccess?: boolean
     resources?: TLessonResource[] | null
+    // Set by the backend when the viewer is a STUDENT and the enrolment
+    // is on DEMO tier. Trainer / admin / SA responses leave this undefined
+    // so they always see the full curriculum + media URLs.
+    locked?: boolean
+    lockReason?: 'expired' | 'demo_disabled' | 'beyond_limit' | 'not_enrolled' | null
 }
 
 export type TSection = {
@@ -33,7 +39,18 @@ export type TSection = {
     courseId: string
     title: string
     order: number
+    demoSection?: boolean
     lessons: TLesson[]
+}
+
+// Course detail response now includes a per-viewer demo summary when the
+// caller is a student. Optional for trainer / admin / SA.
+export type TDemoAccessSummary = {
+    tier: 'DEMO' | 'FULL'
+    lessonsTotal: number
+    lessonsUnlocked: number
+    demoExpired: boolean
+    demoExpiresAt: string | null
 }
 
 export type TCourse = {
@@ -66,6 +83,12 @@ export type TCourse = {
     // getCourse returns the full curriculum; listCourses omits these fields.
     sections?: TSection[]
     trainer?: { id: string; firstName: string | null; lastName: string | null } | null
+    // Demo settings (visible to trainer / admin); copy mirrored on the
+    // student response so the dashboard can show "Demo: 1/47 lessons".
+    demoEnabled?: boolean
+    demoLessonDefault?: number
+    demoExpiryDays?: number | null
+    demoAccess?: TDemoAccessSummary
 }
 
 type Envelope<T> = { success: boolean; data: T; message: string }

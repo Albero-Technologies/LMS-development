@@ -7,7 +7,9 @@ import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
 import { Input } from '@shared/components/ui/Input'
 import { Skeleton } from '@shared/components/ui/Skeleton'
+import { Tabs } from '@shared/components/ui/Tabs'
 import { getMyTenant, readDemoConfig, writeDemoConfig, type DemoModeConfig } from '../services/tenant.service'
+import { DemoModeStudentsTab } from '../components/DemoModeStudentsTab'
 
 const HIDEABLE_SECTIONS = [
     { key: 'reports', label: 'Reports & analytics' },
@@ -54,6 +56,8 @@ export const DemoControlPage = () => {
         setConfig({ ...config, hiddenSections: next })
     }
 
+    const [tab, setTab] = useState<'settings' | 'students'>('settings')
+
     return (
         <>
             <PageHeader
@@ -61,18 +65,32 @@ export const DemoControlPage = () => {
                 title="Demo Mode"
                 description="Control what unpaid learners see. Once a student pays, Demo Mode is automatically lifted for them."
                 actions={
-                    <Button
-                        size="sm"
-                        leftIcon={<Save size={14} />}
-                        loading={saveMutation.isPending}
-                        disabled={!config}
-                        onClick={() => saveMutation.mutate()}>
-                        Save
-                    </Button>
+                    tab === 'settings' && (
+                        <Button
+                            size="sm"
+                            leftIcon={<Save size={14} />}
+                            loading={saveMutation.isPending}
+                            disabled={!config}
+                            onClick={() => saveMutation.mutate()}>
+                            Save
+                        </Button>
+                    )
                 }
             />
 
-            {tenantQuery.isLoading || !config ? (
+            <Tabs<'settings' | 'students'>
+                tabs={[
+                    { value: 'settings', label: 'Tenant settings' },
+                    { value: 'students', label: 'Students' }
+                ]}
+                value={tab}
+                onChange={setTab}
+                className="mb-5"
+            />
+
+            {tab === 'students' ? (
+                <DemoModeStudentsTab />
+            ) : tenantQuery.isLoading || !config ? (
                 <Card>
                     <div className="space-y-3">
                         <Skeleton className="h-5 w-1/3" />

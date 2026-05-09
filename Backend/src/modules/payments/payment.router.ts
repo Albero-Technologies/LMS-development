@@ -10,6 +10,7 @@ router.use(requireAuth)
 // Student-facing payments tab. POLICY['payment'] grants STUDENT both read and write.
 router.get('/pending', requirePolicy('payment', 'read'), asyncHandler(ctrl.pending))
 router.get('/invoices', requirePolicy('payment', 'read'), asyncHandler(ctrl.invoices))
+router.get('/invoices/:invoiceId/receipt', requirePolicy('payment', 'read'), asyncHandler(ctrl.receipt))
 router.post('/:invoiceId/pay', requirePolicy('payment', 'write'), asyncHandler(ctrl.pay))
 
 // Admin / trainer collections views. The controller scopes trainer requests

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { CalendarCheck, ArrowRight, ClipboardList, GraduationCap, IndianRupee, FileText, BookOpen } from 'lucide-react'
+import { CalendarCheck, ArrowRight, ClipboardList, GraduationCap, IndianRupee, FileText, BookOpen, Lock } from 'lucide-react'
 import { Card, StatCard } from '@shared/components/ui/Card'
 import { Badge } from '@shared/components/ui/Badge'
 import { Button } from '@shared/components/ui/Button'
@@ -25,9 +25,13 @@ export const StudentDashboard = () => {
     const nextActions = dashQuery.data?.nextActions ?? []
     const enrollments = enrollmentsQuery.data ?? []
 
+    const demoEnrolments = enrollments.filter((e) => e.accessTier === 'DEMO')
+
     return (
         <>
             <DemoModeBanner />
+
+            {demoEnrolments.length > 0 && <StudentDemoBanner enrolments={demoEnrolments} />}
 
             <div
                 className="rounded-lg p-6 sm:p-8 mb-6 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
@@ -156,19 +160,62 @@ export const StudentDashboard = () => {
     )
 }
 
+// Persistent amber banner shown above the welcome hero when the student
+// has any DEMO-tier enrolment. Calls out the course title + nudges them
+// to the Fees page to settle the balance. Disappears once every
+// enrolment is on FULL access (or the realtime sync invalidates the list).
+const StudentDemoBanner = ({ enrolments }: { enrolments: Enrollment[] }) => {
+    const first = enrolments[0]
+    const more = enrolments.length - 1
+    return (
+        <div
+            className="rounded-lg p-4 sm:p-5 mb-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+            style={{
+                background: 'var(--color-warn-soft,rgba(245,158,11,0.08))',
+                border: '1px solid var(--color-warn,#f59e0b)'
+            }}>
+            <div className="w-10 h-10 rounded-full bg-[var(--color-warn,#f59e0b)] text-white flex items-center justify-center shrink-0">
+                <Lock size={18} />
+            </div>
+            <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-fg">
+                    Demo access — limited lessons unlocked
+                </div>
+                <p className="mt-0.5 text-xs text-fg-soft">
+                    {first.course?.title ? `You've reserved your seat in ${first.course.title}.` : "You've reserved your seat."}
+                    {more > 0 ? ` (+${more} more course${more === 1 ? '' : 's'})` : ''} Pay the balance to unlock every lesson, quiz, and assignment.
+                </p>
+            </div>
+            <Link to="/app/payments">
+                <Button size="sm" rightIcon={<ArrowRight size={14} />}>
+                    Complete payment
+                </Button>
+            </Link>
+        </div>
+    )
+}
+
 const EnrollmentRow = ({ enrollment }: { enrollment: Enrollment }) => {
     const courseId = enrollment.course?.id
     const title = enrollment.course?.title ?? 'Untitled course'
+    const isDemo = enrollment.accessTier === 'DEMO'
     return (
         <li className="py-4 flex items-center gap-4">
             <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-fg truncate">{title}</div>
-                <div className="text-xs text-fg-muted mt-0.5">Status · {enrollment.status}</div>
+                <div className="text-sm font-medium text-fg truncate inline-flex items-center gap-2">
+                    {title}
+                    {isDemo && <Badge tone="warn">Demo</Badge>}
+                </div>
+                <div className="text-xs text-fg-muted mt-0.5">
+                    {isDemo
+                        ? 'Pay the balance to unlock every lesson'
+                        : `Status · ${enrollment.status} · ${enrollment.progressPct}% complete`}
+                </div>
             </div>
             <div className="text-right shrink-0">
                 {courseId && (
                     <Link to={`/app/courses/${courseId}`}>
-                        <Button size="sm">Resume</Button>
+                        <Button size="sm">{isDemo ? 'Open demo' : 'Resume'}</Button>
                     </Link>
                 )}
             </div>

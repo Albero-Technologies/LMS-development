@@ -38,3 +38,18 @@ export const refund = async (req: Request, res: Response): Promise<void> => {
     await writeAudit({ action: 'payment.refunded', entityType: 'Invoice', entityId: invoice.id }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, invoice)
 }
+
+// Print-ready HTML receipt — students hit this from the Fees page Receipt
+// column. The browser's "Save as PDF" turns it into a real PDF without
+// needing a server-side renderer. Returns text/html (not JSON) so a
+// regular <a target="_blank"> link works.
+export const receipt = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) return
+    const html = await service.renderInvoiceReceipt(req.auth.tenantId, req.params.invoiceId, {
+        userId: req.auth.userId,
+        role: req.auth.role
+    })
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.setHeader('Content-Disposition', `inline; filename="receipt-${req.params.invoiceId}.html"`)
+    res.send(html)
+}

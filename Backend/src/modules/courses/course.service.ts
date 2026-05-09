@@ -2,6 +2,7 @@ import { CoursePublishState, EnrollmentStatus, LessonType, type Prisma, Role } f
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
+import { buildLessonGateMap, summarizeDemoAccess, type DemoAccessContext } from './demo-access'
 import {
     type TCreateCourseInput,
     type TCreateLessonInput,
@@ -50,7 +51,7 @@ export const listCourses = async (tenantId: string, role: Role, userId: string, 
     return { items, total, page: query.page, pageSize: query.pageSize }
 }
 
-export const getCourse = async (tenantId: string, id: string, opts?: { includePrivate?: boolean }) => {
+export const getCourse = async (tenantId: string, id: string, opts?: { includePrivate?: boolean; viewerUserId?: string }) => {
     const course = await db.client.course.findFirst({
         where: { id, tenantId },
         include: {
@@ -65,6 +66,55 @@ export const getCourse = async (tenantId: string, id: string, opts?: { includePr
     if (!opts?.includePrivate && course.publishState !== CoursePublishState.PUBLISHED) {
         throw AppError.notFound(responseMessage.NOT_FOUND('Course'), 'COURSE_NOT_FOUND')
     }
+
+    // When the viewer is a student, attach a per-lesson `locked` flag and
+    // a course-level demo summary derived from their enrolment. Returns
+    // unmodified course for trainers / admins / SAs (they always see the
+    // full curriculum).
+    if (opts?.viewerUserId) {
+        const enrollment = await db.client.enrollment.findUnique({
+            where: { tenantId_userId_courseId: { tenantId, userId: opts.viewerUserId, courseId: course.id } },
+            select: {
+                accessTier: true,
+                demoLessonLimit: true,
+                demoLessonAllowlist: true,
+                demoExpiresAt: true,
+                status: true
+            }
+        })
+
+        if (enrollment) {
+            const ctx: DemoAccessContext = {
+                enrollment,
+                course: { demoEnabled: course.demoEnabled, demoLessonDefault: course.demoLessonDefault },
+                sections: course.sections
+            }
+            const gateMap = buildLessonGateMap(ctx)
+            const summary = summarizeDemoAccess(ctx)
+
+            // Lock-aware section + lesson copies. Hide the YouTube id /
+            // external URL on locked lessons so a curious student can't
+            // hand-craft a request to play paid content. Front-end gets a
+            // `locked: true` flag + a placeholder thumbnail and renders the
+            // padlock overlay.
+            const sections = course.sections.map((s) => ({
+                ...s,
+                lessons: s.lessons.map((l) => {
+                    const gate = gateMap.get(l.id)
+                    const locked = !!gate?.locked
+                    return {
+                        ...l,
+                        locked,
+                        lockReason: gate?.reason ?? null,
+                        youtubeId: locked ? null : l.youtubeId,
+                        externalUrl: locked ? null : l.externalUrl
+                    }
+                })
+            }))
+            return { ...course, sections, demoAccess: summary, enrollment }
+        }
+    }
+
     return course
 }
 
@@ -149,6 +199,9 @@ export const updateCourse = async (tenantId: string, id: string, input: TUpdateC
             endsAt,
             certificateEnabled: input.certificateEnabled,
             certificateTemplate: input.certificateTemplate,
+            demoEnabled: input.demoEnabled,
+            demoLessonDefault: input.demoLessonDefault,
+            demoExpiryDays: input.demoExpiryDays,
             publishState: input.publishState
         }
     })
@@ -218,6 +271,7 @@ export const addLesson = async (tenantId: string, courseId: string, input: TCrea
             durationSec: input.durationSec,
             order: input.order,
             freePreview: input.freePreview ?? false,
+            demoAccess: input.demoAccess ?? false,
             // Prisma's Json column accepts the array directly; cast through
             // unknown because TS infers the literal too narrowly.
             resources: (input.resources ?? null) as unknown as Prisma.InputJsonValue
@@ -248,6 +302,7 @@ export const updateLesson = async (
             durationSec: input.durationSec,
             order: input.order,
             freePreview: input.freePreview,
+            demoAccess: input.demoAccess,
             resources:
                 input.resources === undefined ? undefined : ((input.resources ?? null) as unknown as Prisma.InputJsonValue)
         }
@@ -280,6 +335,37 @@ export const updateProgress = async (tenantId: string, userId: string, courseId:
         where: { id: lessonId, section: { courseId, course: { tenantId } } }
     })
     if (!lesson) throw AppError.notFound(responseMessage.NOT_FOUND('Lesson'))
+
+    // Demo gate — refuse progress writes on locked lessons. We re-fetch the
+    // course curriculum to feed the resolver because a single Lesson row
+    // can't tell us about its siblings (the limit-based unlock rule needs
+    // them). Cheap because course detail is already cache-able.
+    const courseRow = await db.client.course.findFirst({
+        where: { id: courseId, tenantId },
+        select: {
+            demoEnabled: true,
+            demoLessonDefault: true,
+            sections: {
+                orderBy: { order: 'asc' },
+                select: {
+                    id: true,
+                    order: true,
+                    demoSection: true,
+                    lessons: { orderBy: { order: 'asc' }, select: { id: true, order: true, demoAccess: true } }
+                }
+            }
+        }
+    })
+    if (courseRow) {
+        const gate = buildLessonGateMap({
+            enrollment,
+            course: { demoEnabled: courseRow.demoEnabled, demoLessonDefault: courseRow.demoLessonDefault },
+            sections: courseRow.sections
+        }).get(lessonId)
+        if (gate?.locked) {
+            throw AppError.forbidden('This lesson is locked until you complete payment.', 'LESSON_LOCKED')
+        }
+    }
 
     const existing = await db.client.lessonProgress.findUnique({
         where: { lessonId_enrollmentId: { lessonId, enrollmentId: enrollment.id } }

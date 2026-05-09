@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Play, CheckCircle2, Circle, ArrowLeft, Youtube, Wrench, FileText, LinkIcon, ChevronRight } from 'lucide-react'
+import { Play, CheckCircle2, Circle, ArrowLeft, Youtube, Wrench, FileText, LinkIcon, ChevronRight, Lock, ArrowRight } from 'lucide-react'
 import { PageHeader } from '@features/dashboards/components/PageHeader'
 import { Card } from '@shared/components/ui/Card'
 import { Button } from '@shared/components/ui/Button'
@@ -207,6 +207,34 @@ export const CourseDetailPage = () => {
                 }
             />
 
+            {course.demoAccess?.tier === 'DEMO' && (
+                <div
+                    className="rounded-md p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3"
+                    style={{
+                        background: 'var(--color-warn-soft,rgba(245,158,11,0.08))',
+                        border: '1px solid var(--color-warn,#f59e0b)'
+                    }}>
+                    <Lock size={18} className="text-[var(--color-warn,#f59e0b)] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-fg">
+                            {course.demoAccess.demoExpired
+                                ? 'Your demo has expired'
+                                : `Demo access — ${course.demoAccess.lessonsUnlocked} of ${course.demoAccess.lessonsTotal} lessons unlocked`}
+                        </div>
+                        <p className="text-xs text-fg-soft mt-0.5">
+                            {course.demoAccess.demoExpired
+                                ? 'You can still pay the balance and continue from where you left off.'
+                                : 'Pay the remaining course fee to unlock every lesson, quiz, and assignment.'}
+                        </p>
+                    </div>
+                    <Link to="/app/payments">
+                        <Button size="sm" rightIcon={<ArrowRight size={14} />}>
+                            Complete payment
+                        </Button>
+                    </Link>
+                </div>
+            )}
+
             <div className="grid lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2 space-y-4">
                     <Card padded={false}>
@@ -223,7 +251,7 @@ export const CourseDetailPage = () => {
                                         <div className="text-base font-semibold text-fg">{currentLesson.title}</div>
                                         {currentLesson.description && <p className="mt-2 text-sm text-fg-soft">{currentLesson.description}</p>}
                                     </div>
-                                    {isStudent && current && (
+                                    {isStudent && current && !currentLesson?.locked && (
                                         <Button
                                             size="sm"
                                             variant={isLessonCompleted(current.lessonId) ? 'subtle' : 'primary'}
@@ -302,14 +330,21 @@ export const CourseDetailPage = () => {
                                                     const Icon = LESSON_ICON[l.type] ?? Play
                                                     const isActive = current?.sectionId === sec.id && current.lessonId === l.id
                                                     const done = isLessonCompleted(l.id)
+                                                    const locked = l.locked === true
                                                     return (
                                                         <li
                                                             key={l.id}
                                                             className={cn(
                                                                 'flex items-center gap-3 px-3 py-2.5 transition-colors',
-                                                                isActive && 'bg-[var(--color-brand-50)]'
+                                                                isActive && !locked && 'bg-[var(--color-brand-50)]',
+                                                                locked && 'opacity-70'
                                                             )}>
-                                                            {done ? (
+                                                            {locked ? (
+                                                                <Lock
+                                                                    size={16}
+                                                                    className="text-[var(--color-warn,#f59e0b)] shrink-0"
+                                                                />
+                                                            ) : done ? (
                                                                 <CheckCircle2
                                                                     size={16}
                                                                     className="text-[var(--color-success)] shrink-0"
@@ -326,7 +361,10 @@ export const CourseDetailPage = () => {
                                                             />
                                                             <button
                                                                 type="button"
+                                                                disabled={locked}
+                                                                title={locked ? 'Unlock by completing your payment.' : undefined}
                                                                 onClick={() =>
+                                                                    !locked &&
                                                                     setActiveLesson({
                                                                         sectionId: sec.id,
                                                                         lessonId: l.id
@@ -334,9 +372,11 @@ export const CourseDetailPage = () => {
                                                                 }
                                                                 className={cn(
                                                                     'flex-1 text-left text-sm truncate transition-colors',
-                                                                    isActive
-                                                                        ? 'text-[var(--color-brand-700)] font-medium'
-                                                                        : 'text-fg hover:text-brand'
+                                                                    locked
+                                                                        ? 'text-fg-muted cursor-not-allowed'
+                                                                        : isActive
+                                                                          ? 'text-[var(--color-brand-700)] font-medium'
+                                                                          : 'text-fg hover:text-brand'
                                                                 )}>
                                                                 {l.title}
                                                             </button>
@@ -345,10 +385,13 @@ export const CourseDetailPage = () => {
                                                                     {Math.round(l.durationSec / 60)}m
                                                                 </span>
                                                             )}
-                                                            <ChevronRight
-                                                                size={14}
-                                                                className="text-fg-muted"
-                                                            />
+                                                            {locked ? (
+                                                                <span className="text-[10px] uppercase tracking-wide font-bold text-[var(--color-warn,#f59e0b)]">
+                                                                    Locked
+                                                                </span>
+                                                            ) : (
+                                                                <ChevronRight size={14} className="text-fg-muted" />
+                                                            )}
                                                         </li>
                                                     )
                                                 })}

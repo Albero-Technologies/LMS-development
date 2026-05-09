@@ -151,6 +151,9 @@ export const submitAssignment = async (tenantId: string, userId: string, assignm
         where: { tenantId, userId, courseId: assignment.courseId, status: { in: ['ACTIVE', 'COMPLETED'] } }
     })
     if (!enrolled) throw AppError.forbidden('Enrol in this course first', 'NOT_ENROLLED')
+    if (enrolled.accessTier === 'DEMO') {
+        throw AppError.forbidden('Assignments unlock with the full course fee.', 'ASSIGNMENT_DEMO_LOCKED')
+    }
 
     if (!input.textAnswer && !input.fileUrl) {
         throw AppError.badRequest('Provide a text answer or a file URL', 'EMPTY_SUBMISSION')
