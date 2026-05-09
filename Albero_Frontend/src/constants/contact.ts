@@ -17,7 +17,7 @@ export const contactData = {
     },
     card: {
         title: 'Direct Contact',
-        email: 'info@albero.in',
+        email: 'info@alberoacademy.com',
         phone: '+91 9170780671',
         address: 'Noida, India'
     },

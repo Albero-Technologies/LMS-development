@@ -5,15 +5,15 @@
             "has": [
                 {
                     "type": "host",
-                    "value": "albero.in"
+                    "value": "alberoacademy.com"
                 }
             ],
-            "destination": "https://www.albero.in/:1",
+            "destination": "https://www.alberoacademy.com/:1",
             "permanent": true
         },
         {
             "source": "/(.*)",
-            "destination": "https://www.albero.in/:1",
+            "destination": "https://www.alberoacademy.com/:1",
             "permanent": true
         }
     ],

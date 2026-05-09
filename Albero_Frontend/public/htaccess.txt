@@ -1,5 +1,5 @@
 # ============================================================
-# .htaccess — Albero Academy  |  www.albero.in
+# .htaccess — Albero Academy  |  www.alberoacademy.com
 # Apache 2.4 — place in site root (public/)
 # RENAME THIS FILE TO: .htaccess  after downloading
 # ============================================================

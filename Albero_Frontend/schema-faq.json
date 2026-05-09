@@ -1,9 +1,9 @@
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "@id": "https://www.albero.in/#faq",
+  "@id": "https://www.alberoacademy.com/#faq",
   "name": "Frequently Asked Questions — Albero Academy",
-  "url": "https://www.albero.in",
+  "url": "https://www.alberoacademy.com",
   "mainEntity": [
     {
       "@type": "Question",

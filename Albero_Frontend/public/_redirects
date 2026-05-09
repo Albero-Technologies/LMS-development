@@ -4,7 +4,7 @@
 # ============================================================
 
 # ── Canonical: force www ──────────────────────────────────────
-https://albero.in/*          https://www.albero.in/:splat        301!
+https://alberoacademy.com/*          https://www.alberoacademy.com/:splat        301!
 
 # ── Legacy / vanity URL aliases ──────────────────────────────
 /case-studies                /work                                301

@@ -31,7 +31,7 @@ export default {
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
     // Where the tenant-facing public site is served (the SPA host). Used to
     // build absolute <loc> entries in sitemap.xml. Defaults to CORS_ORIGIN
-    // so dev "just works"; set explicitly in prod (e.g. https://www.albero.in).
+    // so dev "just works"; set explicitly in prod (e.g. https://www.alberoacademy.com).
     PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL || process.env.CORS_ORIGIN || 'http://localhost:5173',
     // Where the student / staff dashboard SPA is served (separate host from
     // the marketing PUBLIC_SITE_URL). Used to build set-password and login

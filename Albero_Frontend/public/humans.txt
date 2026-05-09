@@ -1,8 +1,8 @@
 /* TEAM */
   Company: Albero Academy Pvt Ltd
   Founder & Lead Developer: Jitendra Kumar
-  Site: https://www.albero.in
-  Contact: info@albero.in
+  Site: https://www.alberoacademy.com
+  Contact: info@alberoacademy.com
   Location: Noida, Uttar Pradesh, India
 
 /* THANKS */

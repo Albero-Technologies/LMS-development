@@ -1,6 +1,6 @@
 # ============================================================
 # robots.txt — Albero Academy
-# https://www.albero.in
+# https://www.alberoacademy.com
 # ============================================================
 
 # ── Allow all well-behaved crawlers ──────────────────────────
@@ -45,4 +45,4 @@ Allow: /
 Crawl-delay: 3
 
 # ── Sitemap location ──────────────────────────────────────────
-Sitemap: https://www.albero.in/sitemap.xml
+Sitemap: https://www.alberoacademy.com/sitemap.xml
