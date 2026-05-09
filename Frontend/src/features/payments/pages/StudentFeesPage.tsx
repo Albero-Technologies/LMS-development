@@ -17,6 +17,12 @@ import { openRazorpayCheckout } from '../services/razorpay'
 
 // Amounts come from the backend in paise (smallest currency unit).
 const fmtINR = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+
+// Albero marketing-site root. Falls back to the dashboard origin when the
+// env var isn't wired so the link still resolves to *something* the user
+// can recognise (the catch-all 404 has a "Back to home" button).
+const PUBLIC_SITE_URL = (import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined)?.replace(/\/+$/, '') ||
+    (typeof window !== 'undefined' ? window.location.origin : '')
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 const daysFromNow = (iso: string): number => Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000)
 
@@ -482,14 +488,19 @@ const DemoBalanceBanner = ({
                             Pay balance
                         </Button>
                     ) : (
-                        // Legacy path — no invoice. Send the student back to
-                        // the public program page where they can complete the
-                        // FULL fee through the normal Razorpay flow.
-                        <a href={courseSlug ? `/programs/${courseSlug}#pricing` : '/contact'} target="_blank" rel="noreferrer">
-                            <Button
-                                size="sm"
-                                leftIcon={<CreditCard size={13} />}
-                                rightIcon={<ArrowRight size={12} />}>
+                        // Legacy path — no invoice. Send the student to the
+                        // public marketing site's program page where the
+                        // Razorpay full-fee flow lives. The dashboard SPA
+                        // doesn't host /programs/:slug, so we cross-app jump.
+                        <a
+                            href={
+                                courseSlug
+                                    ? `${PUBLIC_SITE_URL}/programs/${courseSlug}#pricing`
+                                    : `${PUBLIC_SITE_URL}/contact`
+                            }
+                            target="_blank"
+                            rel="noreferrer">
+                            <Button size="sm" leftIcon={<CreditCard size={13} />} rightIcon={<ArrowRight size={12} />}>
                                 Pay balance
                             </Button>
                         </a>

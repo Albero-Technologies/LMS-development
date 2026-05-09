@@ -6,7 +6,7 @@ import { findProgram } from '@/constants/programs'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
 import { useCollectionItem } from '@/hooks/useContent'
 import type { PaymentType } from '@/services/purchaseService'
-import { ArmorCodeHero } from '@/components/user/program-page/ArmorCodeHero'
+import { TechMeshSection } from '@/components/user/program-page/TechMeshSection'
 import { StatsBar } from '@/components/user/program-page/StatsBar'
 import { ScrollingToolStrip } from '@/components/user/program-page/ScrollingToolStrip'
 import { CurriculumAccordion, type CurriculumSection } from '@/components/user/program-page/CurriculumAccordion'
@@ -225,11 +225,6 @@ export default function ProgramPage() {
                             </a>
                         </div>
 
-                        {/* Animated stack of tool nodes — sits below the hero copy, above
-                            the counsellor card on mobile. Anchors the page visually. */}
-                        <div className="hidden md:block mt-10">
-                            <ArmorCodeHero nodes={armorNodes} hubLabel={program.title.split(' ')[0]} hubGlyph="✦" height={280} />
-                        </div>
                     </motion.div>
 
                     {/* Counsellor side card */}
@@ -319,6 +314,13 @@ export default function ProgramPage() {
             </div>
 
             {/* ──────────────────────────────────────────────────────────
+                4b. TECH MESH — animated stack overview, full standalone
+                    section. Replaces the small embedded canvas that used
+                    to live inside the hero block.
+            ────────────────────────────────────────────────────────── */}
+            <TechMeshSection nodes={armorNodes} hubLabel={program.title.split(' ')[0]} hubGlyph="✦" />
+
+            {/* ──────────────────────────────────────────────────────────
                 5. CURRICULUM — accordion + share + PDF
             ────────────────────────────────────────────────────────── */}
             <CurriculumAccordion
@@ -332,11 +334,9 @@ export default function ProgramPage() {
             ────────────────────────────────────────────────────────── */}
             <ScrollingToolStrip
                 tools={tools}
-                heading={
-                    <>
-                        {tools.length}+ industry tools, <span className="alb-gradient-text italic font-medium">woven into every lab.</span>
-                    </>
-                }
+                tone="deep"
+                heading={`${tools.length}+ industry tools,`}
+                accent="woven into every lab."
             />
 
             {/* ──────────────────────────────────────────────────────────

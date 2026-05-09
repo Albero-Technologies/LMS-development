@@ -73,6 +73,22 @@ export interface SkillCategory {
     items: string[]
 }
 
+// Premium revamp — Outcomes section reads as a curated skill catalogue
+// instead of a tabbed pill cloud. Pieces:
+//   - Eyebrow chip with pulsing brand dot (matches the Industry Tools chip)
+//   - Tabs are larger card-style buttons with a count badge per category
+//   - Active tab gets a brand-gradient fill + glow
+//   - Skills render as glass cards (icon + label + numbered chip) in a
+//     responsive grid — replaces the old text-only pill cloud
+//   - Soft tinted background + brand gradient orbs for depth
+const SKILL_TAB_ICONS: Record<string, string> = {
+    Tools: '🛠',
+    Concepts: '🧠',
+    'Soft skills': '🤝',
+    Foundations: '🎯',
+    'System design': '⚙️'
+}
+
 export const WhatYoullLearn = ({
     categories,
     heading = (
@@ -90,40 +106,125 @@ export const WhatYoullLearn = ({
     if (categories.length === 0) return null
     const current = categories[active]
     return (
-        <SectionShell tone="soft" spacing="normal">
-            <SectionHeading eyebrow="Outcomes" title={heading} description={description} />
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 mb-6 md:justify-center">
-                {categories.map((c, i) => (
-                    <button
-                        key={c.category}
-                        type="button"
-                        onClick={() => setActive(i)}
-                        className="px-4 py-2 rounded-full text-[13.5px] font-semibold whitespace-nowrap transition-colors"
-                        style={{
-                            background: i === active ? 'var(--brand)' : 'var(--surface)',
-                            color: i === active ? 'var(--text-on-inverse)' : 'var(--text-primary)',
-                            border: `1px solid ${i === active ? 'var(--brand)' : 'var(--hairline)'}`
-                        }}>
-                        {c.category}
-                    </button>
-                ))}
+        <section className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8" style={{ background: 'var(--section-soft)' }}>
+            {/* Two soft brand-tinted orbs for depth — pure decoration. */}
+            <div
+                aria-hidden="true"
+                className="absolute pointer-events-none rounded-full"
+                style={{
+                    top: -120,
+                    left: '8%',
+                    width: 320,
+                    height: 320,
+                    background: 'radial-gradient(circle, rgba(13,79,60,0.12) 0%, transparent 70%)',
+                    filter: 'blur(60px)'
+                }}
+            />
+            <div
+                aria-hidden="true"
+                className="absolute pointer-events-none rounded-full"
+                style={{
+                    bottom: -160,
+                    right: '4%',
+                    width: 380,
+                    height: 380,
+                    background: 'radial-gradient(circle, rgba(184,106,24,0.1) 0%, transparent 70%)',
+                    filter: 'blur(70px)'
+                }}
+            />
+
+            <div className="relative max-w-5xl mx-auto">
+                <SectionHeading eyebrow="Outcomes" title={heading} description={description} />
+
+                {/* Premium tab pill row — bigger, with icons + per-tab counts. */}
+                <div className="flex items-center justify-center gap-2 md:gap-3 mb-10 flex-wrap">
+                    {categories.map((c, i) => {
+                        const isActive = i === active
+                        return (
+                            <button
+                                key={c.category}
+                                type="button"
+                                onClick={() => setActive(i)}
+                                className="group inline-flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-full text-[13.5px] font-semibold transition-all"
+                                style={{
+                                    background: isActive ? 'var(--gradient-aurora)' : 'var(--surface)',
+                                    color: isActive ? '#fff' : 'var(--text-primary)',
+                                    border: `1px solid ${isActive ? 'transparent' : 'var(--hairline)'}`,
+                                    boxShadow: isActive ? 'var(--glow-brand)' : 'var(--card-shadow-soft)',
+                                    transform: isActive ? 'translateY(-1px)' : 'none'
+                                }}>
+                                <span aria-hidden="true" className="text-base leading-none">
+                                    {SKILL_TAB_ICONS[c.category] ?? '✦'}
+                                </span>
+                                <span>{c.category}</span>
+                                <span
+                                    className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-bold"
+                                    style={{
+                                        background: isActive ? 'rgba(255,255,255,0.22)' : 'var(--section-soft)',
+                                        color: isActive ? '#fff' : 'var(--text-tertiary)'
+                                    }}>
+                                    {c.items.length}
+                                </span>
+                            </button>
+                        )
+                    })}
+                </div>
+
+                {/* Skill cards grid — keyed by `current.category` so React
+                    remounts on tab change and replays the entrance animation. */}
+                <div key={current.category} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                    {current.items.map((item, i) => (
+                        <SkillCard key={`${current.category}-${item}`} label={item} index={i} categoryLabel={current.category} />
+                    ))}
+                </div>
+
+                {/* Footer caption — gives the section a clean close + a tiny
+                    callout that the catalogue is curated, not exhaustive. */}
+                <p className="mt-10 text-center text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                    {current.items.length} {current.category.toLowerCase()} you'll touch — and many more reviewed in 1:1 mentor sessions.
+                </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-                {current.items.map((item) => (
-                    <span
-                        key={item}
-                        className="inline-flex items-center px-3.5 py-2 rounded-full text-[13.5px] font-medium"
-                        style={{
-                            background: 'var(--surface)',
-                            border: '1px solid var(--hairline)',
-                            color: 'var(--text-secondary)',
-                            boxShadow: 'var(--card-shadow-soft)'
-                        }}>
-                        {item}
-                    </span>
-                ))}
+        </section>
+    )
+}
+
+const SkillCard = ({ label, index, categoryLabel }: { label: string; index: number; categoryLabel: string }) => {
+    const [ref, visible] = useScrollReveal<HTMLDivElement>(0.15)
+    return (
+        <div
+            ref={ref}
+            className="group relative rounded-2xl px-4 py-4 transition-all duration-[500ms] ease-out hover:translate-y-[-3px]"
+            style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--hairline)',
+                boxShadow: 'var(--card-shadow-soft)',
+                opacity: visible ? 1 : 0,
+                transform: visible ? 'translateY(0)' : 'translateY(12px)',
+                transitionDelay: `${Math.min(index * 50, 250)}ms`
+            }}>
+            {/* Subtle gradient ribbon along the top — appears on hover for
+                a tactile "card lights up" effect. */}
+            <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-[2px] rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'var(--gradient-aurora)' }}
+            />
+            <div className="flex items-start gap-3">
+                <span
+                    className="inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-lg text-[10.5px] font-bold tracking-wide font-mono shrink-0"
+                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                    {String(index + 1).padStart(2, '0')}
+                </span>
+                <div className="min-w-0">
+                    <div className="text-[13.5px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
+                        {label}
+                    </div>
+                    <div className="mt-0.5 text-[10.5px] uppercase tracking-[0.14em] font-bold" style={{ color: 'var(--text-tertiary)' }}>
+                        {categoryLabel}
+                    </div>
+                </div>
             </div>
-        </SectionShell>
+        </div>
     )
 }
 
@@ -612,18 +713,20 @@ const FaqRow = ({ item, open, onToggle }: { item: FaqItem; open: boolean; onTogg
     )
 }
 
-// Helper — composes the accordion-aware sticky nav we use under the hero.
+// Sticky in-page nav under the hero. Theme-aware via the .alb-sticky-nav
+// CSS class (defined in index.css) so the bg + text + hover states adapt
+// to dark mode automatically — the previous hardcoded white background
+// rendered as light-grey-on-light-grey when the user toggled the theme.
 export const StickyProgramNav = ({ items }: { items: { id: string; label: string }[] }) => {
     const labels = useMemo(() => items, [items])
     return (
-        <nav className="sticky top-[72px] z-30 backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.85)', borderBottom: '1px solid var(--hairline)' }}>
-            <div className="max-w-6xl mx-auto px-5 md:px-8 flex items-center gap-1 overflow-x-auto scrollbar-hide py-2">
+        <nav className="alb-sticky-nav sticky top-[72px] z-30 backdrop-blur-md">
+            <div className="max-w-6xl mx-auto px-5 md:px-8 flex items-center gap-1 overflow-x-auto scrollbar-hide py-2.5">
                 {labels.map((item) => (
                     <a
                         key={item.id}
                         href={`#${item.id}`}
-                        className="px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold whitespace-nowrap transition-colors hover:bg-[var(--section-soft)]"
-                        style={{ color: 'var(--text-secondary)' }}>
+                        className="alb-sticky-nav__link px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold whitespace-nowrap transition-colors">
                         {item.label}
                     </a>
                 ))}

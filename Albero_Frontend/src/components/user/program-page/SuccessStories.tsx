@@ -59,8 +59,8 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
     const [page, setPage] = useState(0)
     const [paused, setPaused] = useState(false)
 
-    // 3 at a time on desktop. We let CSS handle the layout — this counter is
-    // only for the dot indicators + scrollIntoView jumps.
+    // 3 at a time on desktop. The counter only drives dot indicators +
+    // scrollIntoView jumps — actual layout is CSS-only.
     const pages = Math.max(1, Math.ceil(stories.length / 3))
 
     useEffect(() => {
@@ -69,9 +69,6 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
         return () => clearInterval(id)
     }, [paused, pages])
 
-    // Sync the actual scroll position when `page` ticks. We measure the
-    // first card's offsetWidth to compute the scroll target so the layout
-    // stays single-source-of-truth in CSS.
     useEffect(() => {
         const track = trackRef.current
         if (!track) return
@@ -81,6 +78,25 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
         track.scrollTo({ left: page * cardWidth * 3, behavior: 'smooth' })
     }, [page])
 
+    // Compact path — fewer than 3 cards reads as a static centred grid.
+    // The carousel chrome (arrows + dots) would be misleading when there's
+    // nothing to scroll to, and the cards centred under the headline feels
+    // more "premium proof" than "leftover from a wider rail".
+    if (stories.length <= 2) {
+        // We force `compact` on EVERY card here so each one takes its
+        // cell's full width (capped at 380px) instead of inheriting the
+        // carousel's 60%/33% rail widths — that bug left the photos
+        // squashed to a 80px head-band when only 2 stories existed.
+        const colsClass = stories.length === 1 ? 'sm:grid-cols-1' : 'sm:grid-cols-2'
+        return (
+            <div className={`grid gap-6 ${colsClass} max-w-[820px] mx-auto place-items-center`}>
+                {stories.map((s, i) => (
+                    <StoryCard key={s.id} story={s} delayMs={i * 120} compact />
+                ))}
+            </div>
+        )
+    }
+
     return (
         <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
             {/* Desktop arrow buttons */}
@@ -88,7 +104,7 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
                 type="button"
                 aria-label="Previous stories"
                 onClick={() => setPage((p) => (p - 1 + pages) % pages)}
-                className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full items-center justify-center transition-transform hover:scale-105"
+                className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full items-center justify-center transition-all hover:scale-105 hover:translate-x-[-2px]"
                 style={{
                     background: 'var(--surface)',
                     border: '1px solid var(--hairline)',
@@ -101,7 +117,7 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
                 type="button"
                 aria-label="Next stories"
                 onClick={() => setPage((p) => (p + 1) % pages)}
-                className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full items-center justify-center transition-transform hover:scale-105"
+                className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full items-center justify-center transition-all hover:scale-105 hover:translate-x-[2px]"
                 style={{
                     background: 'var(--surface)',
                     border: '1px solid var(--hairline)',
@@ -120,7 +136,6 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
                 ))}
             </div>
 
-            {/* Dot indicators (mobile + desktop) */}
             {pages > 1 && (
                 <div className="mt-6 flex items-center justify-center gap-1.5">
                     {Array.from({ length: pages }).map((_, p) => (
@@ -142,7 +157,17 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
     )
 }
 
-const StoryCard = ({ story, delayMs = 0 }: { story: SuccessStory; delayMs?: number }) => {
+const StoryCard = ({
+    story,
+    delayMs = 0,
+    compact = false
+}: {
+    story: SuccessStory
+    delayMs?: number
+    /** Single-card centred layout — caps the width so the lone card
+     *  doesn't span the entire section. */
+    compact?: boolean
+}) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.2)
     const initials = story.name
         .split(' ')
@@ -153,11 +178,18 @@ const StoryCard = ({ story, delayMs = 0 }: { story: SuccessStory; delayMs?: numb
     const growth = story.growthPct ?? Math.round(((story.salaryAfterLpa - story.salaryBeforeLpa) / Math.max(1, story.salaryBeforeLpa)) * 100)
     const stars = Math.max(0, Math.min(5, story.starRating ?? 5))
 
+    // Width buckets:
+    //   compact  — 1 of 1, capped at 380px so it stays readable
+    //   default  — fills its parent grid cell on desktop, snap-scroll width on mobile
+    const widthClass = compact
+        ? 'w-full max-w-[380px] mx-auto'
+        : 'snap-start shrink-0 w-[88%] sm:w-[60%] md:w-[calc((100%-40px)/3)]'
+
     return (
         <article
             data-story-card
             ref={ref}
-            className="snap-start shrink-0 w-[88%] sm:w-[60%] md:w-[calc((100%-40px)/3)] rounded-2xl overflow-hidden flex flex-col transition-all duration-[600ms] ease-out"
+            className={`${widthClass} rounded-2xl overflow-hidden flex flex-col transition-all duration-[600ms] ease-out hover:translate-y-[-4px]`}
             style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--hairline)',

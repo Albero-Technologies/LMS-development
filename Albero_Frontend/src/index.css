@@ -507,20 +507,32 @@ html.lenis body {
     -webkit-text-fill-color: transparent;
 }
 
-/* Section badge pill — "· PROVEN CAREER OUTCOMES ·" style label. */
+/* Section badge pill — "· PROVEN CAREER OUTCOMES ·" style label. The
+   leading + trailing dots are decorative; we also render a tiny brand
+   indicator dot via ::before so light-bg badges have a colour anchor. */
 .alb-section-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
+    gap: 8px;
+    padding: 7px 16px;
     border-radius: 9999px;
     background: var(--section-soft);
     border: 1px solid var(--hairline);
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.16em;
+    font-weight: 700;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-secondary);
+    position: relative;
+}
+
+.alb-section-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--brand);
+    box-shadow: 0 0 0 3px rgba(13, 79, 60, 0.12);
 }
 
 /* Curriculum accordion smoothness — max-height transition without snap. */
@@ -532,6 +544,29 @@ html.lenis body {
 
 .alb-accordion-body[data-open='true'] {
     max-height: 1200px;
+}
+
+/* Sticky in-page program nav — theme-aware bg + link colours. The
+   previous inline `rgba(255,255,255,0.85)` rendered as light-grey-on-dark
+   when the user toggled the theme. `color-mix` blends the active surface
+   token with transparency so the bar stays legible on both themes; the
+   fallback at the bottom catches non-evergreen browsers. */
+.alb-sticky-nav {
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    border-bottom: 1px solid var(--hairline);
+}
+
+.alb-sticky-nav__link {
+    color: var(--text-secondary);
+}
+
+.alb-sticky-nav__link:hover {
+    background: var(--section-soft);
+    color: var(--text-primary);
+}
+
+@supports not (background: color-mix(in srgb, white 50%, transparent)) {
+    .alb-sticky-nav { background: var(--surface); }
 }
 
 /* Reduced motion — kill anything beyond a 0.01s transition. */

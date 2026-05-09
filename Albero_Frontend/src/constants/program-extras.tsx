@@ -276,32 +276,32 @@ export const FAQ_FOR_PROGRAM = (slug: string): FaqItem[] => {
 export const ARMORCODE_NODES_FOR_PROGRAM = (slug: string): ArmorCodeNode[] => {
     const presets: Record<string, ArmorCodeNode[]> = {
         'business-analytics': [
-            { id: 'excel', label: 'Excel', glyph: 'X', color: '#107c41', x: 0.12, y: 0.22 },
-            { id: 'sql', label: 'SQL', glyph: 'S', color: '#00758f', x: 0.88, y: 0.22 },
-            { id: 'pbi', label: 'Power BI', glyph: 'P', color: '#f2c811', x: 0.06, y: 0.74 },
-            { id: 'tab', label: 'Tableau', glyph: 'T', color: '#e97627', x: 0.94, y: 0.74 },
-            { id: 'py', label: 'Python', glyph: 'Py', color: '#3776ab', x: 0.5, y: 0.08 }
+            { id: 'excel', label: 'Excel', glyph: 'X', color: '#107c41', x: 0.12, y: 0.22, tooltip: 'Pivot tables, Power Query, dashboards' },
+            { id: 'sql', label: 'SQL', glyph: 'S', color: '#00758f', x: 0.88, y: 0.22, tooltip: 'Joins, CTEs, window functions, tuning' },
+            { id: 'pbi', label: 'Power BI', glyph: 'P', color: '#f2c811', x: 0.06, y: 0.74, tooltip: 'Data modelling, DAX, story-driven reports' },
+            { id: 'tab', label: 'Tableau', glyph: 'T', color: '#e97627', x: 0.94, y: 0.74, tooltip: 'Interactive viz, calculated fields, narrative' },
+            { id: 'py', label: 'Python', glyph: 'Py', color: '#3776ab', x: 0.5, y: 0.08, tooltip: 'Pandas, statistical thinking, automation' }
         ],
         'data-science-ai': [
-            { id: 'py', label: 'Python', glyph: 'Py', color: '#3776ab', x: 0.1, y: 0.2 },
-            { id: 'pt', label: 'PyTorch', glyph: 'PT', color: '#ee4c2c', x: 0.9, y: 0.2 },
-            { id: 'tf', label: 'TensorFlow', glyph: 'TF', color: '#ff6f00', x: 0.06, y: 0.78 },
-            { id: 'lc', label: 'LangChain', glyph: 'L', color: '#1c3d5a', x: 0.94, y: 0.78 },
-            { id: 'oa', label: 'OpenAI', glyph: '◎', color: '#10a37f', x: 0.5, y: 0.08 }
+            { id: 'py', label: 'Python', glyph: 'Py', color: '#3776ab', x: 0.1, y: 0.2, tooltip: 'NumPy, Pandas, Scikit-Learn pipelines' },
+            { id: 'pt', label: 'PyTorch', glyph: 'PT', color: '#ee4c2c', x: 0.9, y: 0.2, tooltip: 'Deep learning + production-grade training loops' },
+            { id: 'tf', label: 'TensorFlow', glyph: 'TF', color: '#ff6f00', x: 0.06, y: 0.78, tooltip: 'Keras, TF-Serving, edge deployment' },
+            { id: 'lc', label: 'LangChain', glyph: 'L', color: '#7e22ce', x: 0.94, y: 0.78, tooltip: 'RAG pipelines, agents, tool-calling' },
+            { id: 'oa', label: 'OpenAI', glyph: '◎', color: '#10a37f', x: 0.5, y: 0.08, tooltip: 'GPT, function calling, embeddings' }
         ],
         'full-stack': [
-            { id: 'rc', label: 'React', glyph: '⚛', color: '#61dafb', x: 0.12, y: 0.2 },
-            { id: 'nd', label: 'Node.js', glyph: 'N', color: '#3c873a', x: 0.88, y: 0.2 },
-            { id: 'ts', label: 'TS', glyph: 'TS', color: '#3178c6', x: 0.06, y: 0.78 },
-            { id: 'pg', label: 'Postgres', glyph: 'PG', color: '#336791', x: 0.94, y: 0.78 },
-            { id: 'aws', label: 'AWS', glyph: 'A', color: '#ff9900', x: 0.5, y: 0.08 }
+            { id: 'rc', label: 'React', glyph: '⚛', color: '#0891b2', x: 0.12, y: 0.2, tooltip: 'Components, hooks, TypeScript-first' },
+            { id: 'nd', label: 'Node.js', glyph: 'N', color: '#3c873a', x: 0.88, y: 0.2, tooltip: 'Express, REST, GraphQL, auth + rate limits' },
+            { id: 'ts', label: 'TS', glyph: 'TS', color: '#3178c6', x: 0.06, y: 0.78, tooltip: 'Generics, narrowing, end-to-end types' },
+            { id: 'pg', label: 'Postgres', glyph: 'PG', color: '#336791', x: 0.94, y: 0.78, tooltip: 'Indexes, transactions, migrations' },
+            { id: 'aws', label: 'AWS', glyph: 'A', color: '#ff9900', x: 0.5, y: 0.08, tooltip: 'EC2, S3, ECS, CI/CD pipelines' }
         ],
         'cybersecurity': [
-            { id: 'sp', label: 'Splunk', glyph: 'S', color: '#65a637', x: 0.1, y: 0.2 },
-            { id: 'kl', label: 'Kali', glyph: 'K', color: '#557c94', x: 0.9, y: 0.2 },
-            { id: 'wz', label: 'Wazuh', glyph: 'W', color: '#0066b1', x: 0.06, y: 0.78 },
-            { id: 'bs', label: 'Burp', glyph: 'B', color: '#ff6633', x: 0.94, y: 0.78 },
-            { id: 'lx', label: 'Linux', glyph: '🐧', color: '#000000', x: 0.5, y: 0.08 }
+            { id: 'sp', label: 'Splunk', glyph: 'S', color: '#65a637', x: 0.1, y: 0.2, tooltip: 'SIEM queries, alerting, threat hunting' },
+            { id: 'kl', label: 'Kali', glyph: 'K', color: '#557c94', x: 0.9, y: 0.2, tooltip: 'Pentest distro + offensive toolkits' },
+            { id: 'wz', label: 'Wazuh', glyph: 'W', color: '#0066b1', x: 0.06, y: 0.78, tooltip: 'Open-source SIEM + endpoint detection' },
+            { id: 'bs', label: 'Burp', glyph: 'B', color: '#ff6633', x: 0.94, y: 0.78, tooltip: 'Web app proxy, intruder, repeater' },
+            { id: 'lx', label: 'Linux', glyph: '🐧', color: '#14785f', x: 0.5, y: 0.08, tooltip: 'Hardening, scripting, packet capture' }
         ]
     }
     return presets[slug] ?? presets['business-analytics']
