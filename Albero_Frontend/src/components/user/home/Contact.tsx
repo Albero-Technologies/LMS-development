@@ -45,8 +45,9 @@ export const Contact = () => {
     const { submitForm, loading } = useContactForm()
     const tenantQ = useTenantInfo()
 
-    const remoteContacts = ((tenantQ.data?.landing as { contacts?: SettingsContacts } | null)?.contacts) ??
-        ((tenantQ.data as unknown as { settings?: { contacts?: SettingsContacts } } | undefined)?.settings?.contacts)
+    const remoteContacts =
+        (tenantQ.data?.landing as { contacts?: SettingsContacts } | null)?.contacts ??
+        (tenantQ.data as unknown as { settings?: { contacts?: SettingsContacts } } | undefined)?.settings?.contacts
     const card = {
         email: remoteContacts?.primaryEmail || contactData.card.email,
         phone: remoteContacts?.primaryPhone || contactData.card.phone,

@@ -81,7 +81,7 @@ const trackMeta: Record<string, { name: string; color: string }> = {
     'data-science-ai': { name: 'Data Science & AI', color: '#7c3aed' },
     'full-stack': { name: 'Full-Stack', color: '#10b981' },
     'data-engineering': { name: 'Data Engineering', color: '#ef4444' },
-    'cybersecurity': { name: 'Cybersecurity', color: '#06b6d4' },
+    cybersecurity: { name: 'Cybersecurity', color: '#06b6d4' },
     'product-analytics': { name: 'Product Analytics', color: '#f97316' },
     'investment-banking': { name: 'Investment Banking', color: '#6366f1' }
 }
@@ -210,24 +210,23 @@ export default function InteractiveSkillsGrid() {
                                 lineHeight: 1.02
                             }}>
                             Hover a skill —{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 see its track.
                             </span>
                         </h2>
                         <p
                             className="mt-5 text-[15.5px] leading-relaxed max-w-[520px]"
                             style={{ color: 'var(--text-secondary)' }}>
-                            Every Albero programme maps to a working role. Hover any chip to highlight every other skill in
-                            the same track.
+                            Every Albero programme maps to a working role. Hover any chip to highlight every other skill in the same track.
                         </p>
 
                         <div
                             className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors"
                             style={{
                                 background: activeTrack ? 'var(--surface)' : 'transparent',
-                                border: activeTrack
-                                    ? `1px solid ${trackMeta[activeTrack].color}40`
-                                    : '1px solid transparent',
+                                border: activeTrack ? `1px solid ${trackMeta[activeTrack].color}40` : '1px solid transparent',
                                 color: activeTrack ? trackMeta[activeTrack].color : 'var(--text-tertiary)',
                                 boxShadow: activeTrack ? 'var(--card-shadow)' : 'none',
                                 minHeight: 36
@@ -235,9 +234,7 @@ export default function InteractiveSkillsGrid() {
                             <span
                                 className="w-1.5 h-1.5 rounded-full"
                                 style={{
-                                    background: activeTrack
-                                        ? trackMeta[activeTrack].color
-                                        : 'var(--text-tertiary)'
+                                    background: activeTrack ? trackMeta[activeTrack].color : 'var(--text-tertiary)'
                                 }}
                             />
                             {activeTrack ? trackMeta[activeTrack].name : 'Hover any chip to start'}
@@ -316,7 +313,9 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
                 style={{ color: 'var(--brand)' }}>
                 {children}
             </div>
-            <div className="text-[10.5px] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--text-tertiary)' }}>
+            <div
+                className="text-[10.5px] tracking-[0.16em] uppercase mt-2"
+                style={{ color: 'var(--text-tertiary)' }}>
                 {label}
             </div>
         </div>

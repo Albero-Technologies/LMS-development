@@ -20,9 +20,28 @@ const programs = [
 ]
 
 const partners = [
-    'Microsoft', 'Amazon', 'Razorpay', 'Flipkart', 'Adobe', 'Swiggy', 'Walmart', 'Deloitte',
-    'EY', 'PhonePe', 'Google', 'PwC', 'CRED', 'Meesho', 'Zerodha', 'Paytm', 'Zomato',
-    'Infosys', 'TCS', 'Wipro', 'Accenture', 'IBM'
+    'Microsoft',
+    'Amazon',
+    'Razorpay',
+    'Flipkart',
+    'Adobe',
+    'Swiggy',
+    'Walmart',
+    'Deloitte',
+    'EY',
+    'PhonePe',
+    'Google',
+    'PwC',
+    'CRED',
+    'Meesho',
+    'Zerodha',
+    'Paytm',
+    'Zomato',
+    'Infosys',
+    'TCS',
+    'Wipro',
+    'Accenture',
+    'IBM'
 ]
 
 const stats = [
@@ -52,8 +71,7 @@ export function Hero({ subtitle }: HeroProps) {
                 aria-hidden="true"
                 className="absolute inset-0 pointer-events-none opacity-[0.45]"
                 style={{
-                    backgroundImage:
-                        'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
+                    backgroundImage: 'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
                     backgroundSize: '28px 28px',
                     maskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, #000 50%, transparent 90%)',
                     WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, #000 50%, transparent 90%)'
@@ -111,7 +129,9 @@ export function Hero({ subtitle }: HeroProps) {
                                 lineHeight: 1.0
                             }}>
                             <span className="font-medium">Become a</span>{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 job-ready
                             </span>
                             <br />
@@ -154,7 +174,9 @@ export function Hero({ subtitle }: HeroProps) {
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-3 text-[12px] mb-5" style={{ color: 'var(--text-tertiary)' }}>
+                        <div
+                            className="flex items-center gap-3 text-[12px] mb-5"
+                            style={{ color: 'var(--text-tertiary)' }}>
                             <button
                                 onClick={() => navigate('/resources/tutorials')}
                                 className="inline-flex items-center gap-2 transition-colors"
@@ -162,7 +184,10 @@ export function Hero({ subtitle }: HeroProps) {
                                 <span
                                     className="inline-flex items-center justify-center w-5 h-5 rounded-full"
                                     style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-                                    <Play size={9} className="ml-0.5" />
+                                    <Play
+                                        size={9}
+                                        className="ml-0.5"
+                                    />
                                 </span>
                                 Watch 60-sec demo
                             </button>
@@ -205,7 +230,10 @@ export function Hero({ subtitle }: HeroProps) {
                         <div
                             className="absolute -top-3 left-5 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 text-[10px] font-semibold z-[2]"
                             style={{ background: 'var(--accent)', color: '#fff', boxShadow: '0 8px 18px rgba(184,106,24,0.30)' }}>
-                            <Star size={10} fill="currentColor" />
+                            <Star
+                                size={10}
+                                fill="currentColor"
+                            />
                             Rated 4.8/5
                         </div>
 
@@ -223,23 +251,72 @@ export function Hero({ subtitle }: HeroProps) {
                                 boxShadow: '0 8px 18px rgba(13,79,60,0.16)'
                             }}>
                             <span style={{ color: 'var(--brand)' }}>Certified by</span>
-                            <span className="inline-flex items-center" style={{ color: '#0530AD' }}>
-                                <svg viewBox="0 0 64 28" width={28} height={12} aria-label="IBM" role="img">
+                            <span
+                                className="inline-flex items-center"
+                                style={{ color: '#0530AD' }}>
+                                <svg
+                                    viewBox="0 0 64 28"
+                                    width={28}
+                                    height={12}
+                                    aria-label="IBM"
+                                    role="img">
                                     {Array.from({ length: 8 }).map((_, i) => (
-                                        <rect key={i} x={i * 8} y="2" width="6" height="3.2" fill="currentColor" />
+                                        <rect
+                                            key={i}
+                                            x={i * 8}
+                                            y="2"
+                                            width="6"
+                                            height="3.2"
+                                            fill="currentColor"
+                                        />
                                     ))}
-                                    <text x="0" y="22" fontFamily="Inter, system-ui, sans-serif" fontWeight={800} fontSize="14" letterSpacing="2" fill="currentColor">
+                                    <text
+                                        x="0"
+                                        y="22"
+                                        fontFamily="Inter, system-ui, sans-serif"
+                                        fontWeight={800}
+                                        fontSize="14"
+                                        letterSpacing="2"
+                                        fill="currentColor">
                                         IBM
                                     </text>
                                 </svg>
                             </span>
                             <span style={{ color: 'var(--text-tertiary)' }}>·</span>
                             <span className="inline-flex items-center gap-1">
-                                <svg viewBox="0 0 24 24" width={11} height={11} aria-hidden="true">
-                                    <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-                                    <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-                                    <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-                                    <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width={11}
+                                    height={11}
+                                    aria-hidden="true">
+                                    <rect
+                                        x="1"
+                                        y="1"
+                                        width="10"
+                                        height="10"
+                                        fill="#F25022"
+                                    />
+                                    <rect
+                                        x="13"
+                                        y="1"
+                                        width="10"
+                                        height="10"
+                                        fill="#7FBA00"
+                                    />
+                                    <rect
+                                        x="1"
+                                        y="13"
+                                        width="10"
+                                        height="10"
+                                        fill="#00A4EF"
+                                    />
+                                    <rect
+                                        x="13"
+                                        y="13"
+                                        width="10"
+                                        height="10"
+                                        fill="#FFB900"
+                                    />
                                 </svg>
                                 <span style={{ color: 'var(--text-primary)' }}>Microsoft</span>
                             </span>
@@ -257,9 +334,18 @@ export function Hero({ subtitle }: HeroProps) {
                                 className="px-5 py-2.5 flex items-center justify-between border-b"
                                 style={{ borderColor: 'var(--line)', background: 'var(--surface-2)' }}>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full" style={{ background: '#ef4444' }} />
-                                    <span className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
-                                    <span className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} />
+                                    <span
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ background: '#ef4444' }}
+                                    />
+                                    <span
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ background: '#f59e0b' }}
+                                    />
+                                    <span
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ background: '#10b981' }}
+                                    />
                                 </div>
                                 <span
                                     className="font-mono text-[10.5px] tracking-tight"
@@ -324,9 +410,18 @@ export function Hero({ subtitle }: HeroProps) {
                                 <div
                                     className="mt-3 grid grid-cols-3 gap-3 pt-3 border-t"
                                     style={{ borderColor: 'var(--line)' }}>
-                                    <Mini value="₹12L" label="Avg salary" />
-                                    <Mini value="180+" label="Partners" />
-                                    <Mini value="9 mo" label="Avg duration" />
+                                    <Mini
+                                        value="₹12L"
+                                        label="Avg salary"
+                                    />
+                                    <Mini
+                                        value="180+"
+                                        label="Partners"
+                                    />
+                                    <Mini
+                                        value="9 mo"
+                                        label="Avg duration"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -361,7 +456,10 @@ export function Hero({ subtitle }: HeroProps) {
                     </div>
                 </div>
             </div>
-            <CurriculumDownloadModal open={curriculumOpen} onClose={() => setCurriculumOpen(false)} />
+            <CurriculumDownloadModal
+                open={curriculumOpen}
+                onClose={() => setCurriculumOpen(false)}
+            />
         </section>
     )
 }
@@ -369,10 +467,14 @@ export function Hero({ subtitle }: HeroProps) {
 function Mini({ value, label }: { value: string; label: string }) {
     return (
         <div>
-            <div className="font-display text-[16px] leading-none font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <div
+                className="font-display text-[16px] leading-none font-semibold"
+                style={{ color: 'var(--text-primary)' }}>
                 {value}
             </div>
-            <div className="text-[9px] tracking-[0.16em] uppercase mt-1" style={{ color: 'var(--text-tertiary)' }}>
+            <div
+                className="text-[9px] tracking-[0.16em] uppercase mt-1"
+                style={{ color: 'var(--text-tertiary)' }}>
                 {label}
             </div>
         </div>

@@ -49,6 +49,5 @@ export const useScrollReveal = <T extends HTMLElement = HTMLDivElement>(threshol
 export const revealClass = (visible: boolean, delayMs?: number): string => {
     const base = 'transition-all duration-[600ms] ease-out will-change-transform'
     const state = visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-    return delayMs ? `${base} ${state}` : `${base} ${state}`
-        + (delayMs ? ` [transition-delay:${delayMs}ms]` : '')
+    return delayMs ? `${base} ${state}` : `${base} ${state}` + (delayMs ? ` [transition-delay:${delayMs}ms]` : '')
 }

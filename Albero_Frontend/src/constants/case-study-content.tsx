@@ -57,23 +57,22 @@ const starbucks: CaseStudyEntry = {
     content: (
         <>
             <P>
-                Starbucks is one of the most-studied brands of the last fifty years for a reason: it changed how America drinks coffee, how
-                shopping malls anchor their food courts, and how loyalty programs convert habitual purchases into financial assets on a balance
-                sheet. In this study we'll trace the moves that turned a single Seattle store into a $100 billion company.
+                Starbucks is one of the most-studied brands of the last fifty years for a reason: it changed how America drinks coffee, how shopping
+                malls anchor their food courts, and how loyalty programs convert habitual purchases into financial assets on a balance sheet. In this
+                study we'll trace the moves that turned a single Seattle store into a $100 billion company.
             </P>
 
             <H2 id="origin">Origin story</H2>
             <P>
-                Starbucks opened in 1971 as a single bean-roasting shop at Pike Place Market, Seattle. It sold ground coffee, not coffee drinks.
-                The pivot to becoming a coffeehouse came in 1983 when Howard Schultz returned from Italy convinced that what America was missing
-                was the espresso bar. After acquiring the brand in 1987, Schultz expanded with a relentless real-estate-first strategy.
+                Starbucks opened in 1971 as a single bean-roasting shop at Pike Place Market, Seattle. It sold ground coffee, not coffee drinks. The
+                pivot to becoming a coffeehouse came in 1983 when Howard Schultz returned from Italy convinced that what America was missing was the
+                espresso bar. After acquiring the brand in 1987, Schultz expanded with a relentless real-estate-first strategy.
             </P>
 
             <H2 id="model">Business model</H2>
             <P>
-                Starbucks operates a hybrid model that's frequently misunderstood. Globally, ~50% of stores are{' '}
-                <Strong>company-operated</Strong> and ~50% are <Strong>licensed</Strong> — but it does not run a traditional franchise system in
-                the McDonald's sense.
+                Starbucks operates a hybrid model that's frequently misunderstood. Globally, ~50% of stores are <Strong>company-operated</Strong> and
+                ~50% are <Strong>licensed</Strong> — but it does not run a traditional franchise system in the McDonald's sense.
             </P>
             <UL>
                 <LI>
@@ -97,19 +96,17 @@ const starbucks: CaseStudyEntry = {
             <H2 id="thirdplace">The "third place" strategy</H2>
             <P>
                 Schultz's most quoted idea is the "third place" — a space that isn't home (the first place) or work (the second). The store design
-                follows from this brief: comfortable seating, free Wi-Fi, no time pressure, espresso-bar acoustics. Every choice from chair height
-                to music volume is downstream of the third-place positioning.
+                follows from this brief: comfortable seating, free Wi-Fi, no time pressure, espresso-bar acoustics. Every choice from chair height to
+                music volume is downstream of the third-place positioning.
             </P>
 
             <H2 id="rewards">Rewards &amp; the lock-in flywheel</H2>
             <P>
                 The Starbucks Rewards program is the quietest financial-services innovation of the last decade. Customers preload money onto a
-                Starbucks balance to earn faster — at any given quarter Starbucks is sitting on $1.6B+ of customer money. This balance is
-                effectively an interest-free loan, larger than the deposit base of many community banks.
+                Starbucks balance to earn faster — at any given quarter Starbucks is sitting on $1.6B+ of customer money. This balance is effectively
+                an interest-free loan, larger than the deposit base of many community banks.
             </P>
-            <P>
-                The flywheel works like this:
-            </P>
+            <P>The flywheel works like this:</P>
             <UL>
                 <LI>Customer preloads ₹500 to earn 2× stars on next visit.</LI>
                 <LI>Starbucks holds the cash — non-interest-bearing, in foreign currencies that strengthen.</LI>
@@ -138,7 +135,7 @@ const zara: CaseStudyEntry = {
     brand: 'Zara',
     title: 'Zara — The Fast-Fashion Empire That Made Trends in Two Weeks',
     description:
-        'How Zara compressed the fashion supply chain from 9 months to 14 days, redefined retail merchandising, and grew Inditex into the world\'s most profitable apparel group — without TV ads.',
+        "How Zara compressed the fashion supply chain from 9 months to 14 days, redefined retail merchandising, and grew Inditex into the world's most profitable apparel group — without TV ads.",
     sector: 'Fashion Retail',
     founded: '1975',
     headquarters: 'Arteixo, Spain',
@@ -157,7 +154,7 @@ const zara: CaseStudyEntry = {
         { label: 'Industry markdown rate', value: '50%' }
     ],
     toc: [
-        { id: 'origin', label: "The Inditex story" },
+        { id: 'origin', label: 'The Inditex story' },
         { id: 'supplychain', label: 'A two-week supply chain' },
         { id: 'merchandising', label: 'Scarcity as merchandising' },
         { id: 'data', label: 'Stores as data sensors' },
@@ -167,29 +164,27 @@ const zara: CaseStudyEntry = {
         <>
             <P>
                 Zara is the brand that proved the fashion industry's century-old playbook was wrong. While competitors were forecasting trends 9
-                months in advance, Zara was reading customer demand off the shop floor and shipping new product to stores within 14 days. The
-                result: the largest, most profitable apparel group in history — and a textbook every operations student studies.
+                months in advance, Zara was reading customer demand off the shop floor and shipping new product to stores within 14 days. The result:
+                the largest, most profitable apparel group in history — and a textbook every operations student studies.
             </P>
 
             <H2 id="origin">The Inditex story</H2>
             <P>
-                Amancio Ortega founded Confecciones Goa in 1963 as a robe-and-lingerie maker in A Coruña, Spain. The first Zara store opened in
-                1975. The strategic insight that built the empire came early: <Strong>treat fashion as a perishable good</Strong>, not a seasonal
-                forecast. Inditex now operates eight brands; Zara remains the flagship, contributing ~70% of group revenue.
+                Amancio Ortega founded Confecciones Goa in 1963 as a robe-and-lingerie maker in A Coruña, Spain. The first Zara store opened in 1975.
+                The strategic insight that built the empire came early: <Strong>treat fashion as a perishable good</Strong>, not a seasonal forecast.
+                Inditex now operates eight brands; Zara remains the flagship, contributing ~70% of group revenue.
             </P>
 
             <H2 id="supplychain">A two-week supply chain</H2>
-            <P>
-                The Zara number that gets quoted everywhere is "14 days from sketch to store". That's enabled by:
-            </P>
+            <P>The Zara number that gets quoted everywhere is "14 days from sketch to store". That's enabled by:</P>
             <UL>
                 <LI>
-                    <Strong>Vertical integration.</Strong> Zara owns the design, fabric dyeing, cutting, and ~50% of garment manufacturing — most
-                    of it in Spain, Portugal, Morocco, and Turkey. Most competitors outsource everything to Asia.
+                    <Strong>Vertical integration.</Strong> Zara owns the design, fabric dyeing, cutting, and ~50% of garment manufacturing — most of
+                    it in Spain, Portugal, Morocco, and Turkey. Most competitors outsource everything to Asia.
                 </LI>
                 <LI>
-                    <Strong>Air freight, not sea.</Strong> Inditex ships product by air from a single hub in A Coruña, twice a week. It's
-                    expensive — but margin from selling at full price beats the freight cost.
+                    <Strong>Air freight, not sea.</Strong> Inditex ships product by air from a single hub in A Coruña, twice a week. It's expensive —
+                    but margin from selling at full price beats the freight cost.
                 </LI>
                 <LI>
                     <Strong>Small batches.</Strong> Zara designs are made in small initial runs. If a SKU sells, more is made; if it doesn't, it
@@ -198,28 +193,28 @@ const zara: CaseStudyEntry = {
             </UL>
 
             <Callout kind="tip">
-                The most counter-intuitive Zara number: only ~15% of inventory ends up at markdown vs. 50% industry average. That delta is the
-                whole story of the group's profitability.
+                The most counter-intuitive Zara number: only ~15% of inventory ends up at markdown vs. 50% industry average. That delta is the whole
+                story of the group's profitability.
             </Callout>
 
             <H2 id="merchandising">Scarcity as merchandising</H2>
             <P>
-                Zara stores deliberately keep less inventory than they could sell. A typical SKU sits on the floor for under 4 weeks. Customers
-                learn that "I'll come back next week" is the wrong strategy — by next week it's gone. The result is roughly 17 store visits per
-                customer per year, vs. 3–4 for typical apparel retail.
+                Zara stores deliberately keep less inventory than they could sell. A typical SKU sits on the floor for under 4 weeks. Customers learn
+                that "I'll come back next week" is the wrong strategy — by next week it's gone. The result is roughly 17 store visits per customer per
+                year, vs. 3–4 for typical apparel retail.
             </P>
 
             <H2 id="data">Stores as data sensors</H2>
             <P>
-                Every Zara store manager reports daily on what's selling, what customers asked for that wasn't on the rack, and which fits got
-                tried but not bought. That data lands at the design centre in Arteixo every evening. Decisions on which SKUs to scale, which to
-                kill, and which trends to pursue happen on a weekly cadence.
+                Every Zara store manager reports daily on what's selling, what customers asked for that wasn't on the rack, and which fits got tried
+                but not bought. That data lands at the design centre in Arteixo every evening. Decisions on which SKUs to scale, which to kill, and
+                which trends to pursue happen on a weekly cadence.
             </P>
 
             <H2 id="lessons">Lessons for builders</H2>
             <Takeaways
                 items={[
-                    "Replace forecasting with sensing. Build cycles short enough to react instead of predict.",
+                    'Replace forecasting with sensing. Build cycles short enough to react instead of predict.',
                     'Vertical integration is a competitive moat when the supply chain is the product.',
                     'Treat scarcity as merchandising — not a manufacturing failure.',
                     'Stores (or in your business: customers) are the cheapest market-research instrument you own.',
@@ -237,7 +232,7 @@ const discord: CaseStudyEntry = {
     brand: 'Discord',
     title: 'Discord — The Community-Led Platform That Out-Scaled Slack Without Paid Marketing',
     description:
-        "How Discord turned a niche gamer voice-chat tool into a 200M+ user platform by betting on community-led growth, server-as-product, and zero spend on traditional acquisition.",
+        'How Discord turned a niche gamer voice-chat tool into a 200M+ user platform by betting on community-led growth, server-as-product, and zero spend on traditional acquisition.',
     sector: 'Consumer SaaS',
     founded: '2015',
     headquarters: 'San Francisco, USA',
@@ -265,22 +260,22 @@ const discord: CaseStudyEntry = {
     content: (
         <>
             <P>
-                Discord is the rare consumer platform that scaled from zero to 200 million users without buying ads. Its growth playbook — start
-                in a single passionate niche, build the product around communities, monetise patiently — has become the default reference for
-                community-led growth in 2026.
+                Discord is the rare consumer platform that scaled from zero to 200 million users without buying ads. Its growth playbook — start in a
+                single passionate niche, build the product around communities, monetise patiently — has become the default reference for community-led
+                growth in 2026.
             </P>
 
             <H2 id="origin">From a failed game studio</H2>
             <P>
-                Discord's founders spent three years building a mobile game called Fates Forever. It didn't work. But while building, they hated
-                every voice-chat tool they tried — TeamSpeak, Mumble, Skype. So they pivoted in 2015 to fix that one problem.
+                Discord's founders spent three years building a mobile game called Fates Forever. It didn't work. But while building, they hated every
+                voice-chat tool they tried — TeamSpeak, Mumble, Skype. So they pivoted in 2015 to fix that one problem.
             </P>
 
             <H2 id="wedge">The gamer wedge</H2>
             <P>
                 Discord's first 100,000 users came from one place: the League of Legends and World of Warcraft subreddits. The team sat in those
-                communities, posted invites, and shipped weekly fixes for the exact pain those users felt — low-latency voice, no install for
-                guests, free private servers. The wedge was so specific that the broader market underestimated what was being built.
+                communities, posted invites, and shipped weekly fixes for the exact pain those users felt — low-latency voice, no install for guests,
+                free private servers. The wedge was so specific that the broader market underestimated what was being built.
             </P>
 
             <Callout kind="info">
@@ -290,10 +285,10 @@ const discord: CaseStudyEntry = {
 
             <H2 id="servers">Servers as product</H2>
             <P>
-                The strategic move that unlocked horizontal expansion was treating <Strong>servers</Strong> as the unit of product, not chat
-                rooms. A server in Discord is a fully-loaded community workspace: roles, channels, voice rooms, bots, moderation, analytics. By
-                2018, study groups, crypto DAOs, NFT communities, fan clubs, and university classrooms all looked like servers — even though
-                Discord never built features for them specifically.
+                The strategic move that unlocked horizontal expansion was treating <Strong>servers</Strong> as the unit of product, not chat rooms. A
+                server in Discord is a fully-loaded community workspace: roles, channels, voice rooms, bots, moderation, analytics. By 2018, study
+                groups, crypto DAOs, NFT communities, fan clubs, and university classrooms all looked like servers — even though Discord never built
+                features for them specifically.
             </P>
 
             <H2 id="monetization">Slow, deliberate monetization</H2>
@@ -370,9 +365,8 @@ const razorpay: CaseStudyEntry = {
 
             <H2 id="wedge">The developer-first wedge</H2>
             <P>
-                Razorpay's first three years can be summarised in one sentence: <Strong>they competed on integration time, not pricing</Strong>.
-                Every legacy gateway charged ~2% MDR and so did Razorpay — the wedge was that startups could go live in an afternoon instead of a
-                month.
+                Razorpay's first three years can be summarised in one sentence: <Strong>they competed on integration time, not pricing</Strong>. Every
+                legacy gateway charged ~2% MDR and so did Razorpay — the wedge was that startups could go live in an afternoon instead of a month.
             </P>
             <UL>
                 <LI>
@@ -380,8 +374,8 @@ const razorpay: CaseStudyEntry = {
                     minute form.
                 </LI>
                 <LI>
-                    <Strong>Public API + SDKs</Strong> for every major language. Documentation that rivalled Stripe's, in a market where
-                    documentation was an afterthought.
+                    <Strong>Public API + SDKs</Strong> for every major language. Documentation that rivalled Stripe's, in a market where documentation
+                    was an afterthought.
                 </LI>
                 <LI>
                     <Strong>Webhook-first design</Strong> meant developers could build idempotent systems. Legacy gateways had no webhooks at all.
@@ -389,9 +383,9 @@ const razorpay: CaseStudyEntry = {
             </UL>
 
             <Callout kind="info">
-                The "Stripe of India" framing was wrong in one important way: Stripe's market in 2014 was developed-economy SMBs paying USD; Razorpay's
-                was Indian SMBs navigating UPI, NEFT, IMPS, NACH, and 11+ payment methods at once. The complexity Razorpay abstracted away was 5×
-                higher than Stripe's.
+                The "Stripe of India" framing was wrong in one important way: Stripe's market in 2014 was developed-economy SMBs paying USD;
+                Razorpay's was Indian SMBs navigating UPI, NEFT, IMPS, NACH, and 11+ payment methods at once. The complexity Razorpay abstracted away
+                was 5× higher than Stripe's.
             </Callout>
 
             <H2 id="expansion">From checkout to neo-bank</H2>
@@ -418,9 +412,7 @@ const razorpay: CaseStudyEntry = {
             </UL>
 
             <H2 id="moats">Where the moats are</H2>
-            <P>
-                Three durable advantages compound:
-            </P>
+            <P>Three durable advantages compound:</P>
             <UL>
                 <LI>
                     <Strong>Switching cost</Strong> — once a business runs payouts, payroll, and reconciliation through RazorpayX, the gateway becomes
@@ -499,8 +491,9 @@ const flipkart: CaseStudyEntry = {
                 cleanest in retail history — they bought the books themselves at the local market and delivered them by hand the same day.
             </P>
             <P>
-                That bootstrap year mattered. Flipkart's earliest customers weren't just buying books; they were buying <Strong>delivery
-                certainty</Strong> in a country where Amazon was still sceptical and Indian e-commerce was synonymous with broken shipments.
+                That bootstrap year mattered. Flipkart's earliest customers weren't just buying books; they were buying{' '}
+                <Strong>delivery certainty</Strong> in a country where Amazon was still sceptical and Indian e-commerce was synonymous with broken
+                shipments.
             </P>
 
             <H2 id="cod">Cash-on-delivery: the unlock</H2>
@@ -520,8 +513,8 @@ const flipkart: CaseStudyEntry = {
 
             <H2 id="bbd">Big Billion Days</H2>
             <P>
-                In 2014 Flipkart ran the first <Strong>Big Billion Days</Strong> sale, modelled after Singles' Day in China. The first edition broke
-                — servers crashed, prices showed wrong, customers rage-tweeted for a week. Flipkart's apology letter from Sachin became one of the
+                In 2014 Flipkart ran the first <Strong>Big Billion Days</Strong> sale, modelled after Singles' Day in China. The first edition broke —
+                servers crashed, prices showed wrong, customers rage-tweeted for a week. Flipkart's apology letter from Sachin became one of the
                 most-read corporate communications of the year.
             </P>
             <P>
@@ -575,17 +568,251 @@ const flipkart: CaseStudyEntry = {
 // ─── Stub list ────────────────────────────────────────────────────────────────
 
 const stubBrands: Omit<CaseStudyEntry, 'content' | 'toc'>[] = [
-    { slug: 'apple', brand: 'Apple', title: 'Apple — Premium Pricing, Vertical Integration & Brand Loyalty', description: "How Apple built the world's most valuable brand through hardware-software integration and a cult-like ecosystem.", sector: 'Consumer Tech', founded: '1976', headquarters: 'Cupertino, USA', revenue: '$383B', employees: '161,000+', coverGradient: 'linear-gradient(135deg,#9ca3af,#e5e7eb)', tags: ['Business Model', 'Premium Pricing', 'Ecosystem'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 16, date: '23 Mar 2026', keyFacts: [{ label: 'Active devices', value: '2.2B+' }, { label: 'App Store devs', value: '36M+' }, { label: 'Margin (services)', value: '70%' }, { label: 'Market cap', value: '$3.4T' }] },
-    { slug: 'amazon', brand: 'Amazon', title: 'Amazon — Day-1 Culture, Flywheels & Ruthless Customer Obsession', description: 'The flywheel that powered the everything-store, AWS, Prime, and a culture of long-term thinking.', sector: 'E-commerce / Cloud', founded: '1994', headquarters: 'Seattle, USA', revenue: '$575B', employees: '1.5M+', coverGradient: 'linear-gradient(135deg,#f97316,#fbbf24)', tags: ['Business Model', 'Flywheel', 'Operations'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 18, date: '23 Mar 2026', keyFacts: [{ label: 'Prime members', value: '230M+' }, { label: 'AWS revenue', value: '$90B' }, { label: 'SKUs', value: '350M+' }, { label: 'Market cap', value: '$1.9T' }] },
-    { slug: 'netflix', brand: 'Netflix', title: 'Netflix — DVDs, Streaming, and the Bet That Built Modern Hollywood', description: "From mailing DVDs to commissioning the world's most-watched shows — the strategy bets that defined Netflix's three eras.", sector: 'Media / Streaming', founded: '1997', headquarters: 'Los Gatos, USA', revenue: '$33B', employees: '13,000+', coverGradient: 'linear-gradient(135deg,#dc2626,#7f1d1d)', tags: ['Business Model', 'Strategy Bets', 'Content'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 14, date: '23 Mar 2026', keyFacts: [{ label: 'Subscribers', value: '283M' }, { label: 'Original hours / yr', value: '5,500+' }, { label: 'Content spend', value: '$17B' }, { label: 'Operating margin', value: '21%' }] },
-    { slug: 'spotify', brand: 'Spotify', title: 'Spotify — Music Streaming, Discovery, and the Audio Two-Sided Market', description: 'How Spotify won streaming, then bet on podcasts, then built audiobooks — and the platform economics underneath.', sector: 'Music Streaming', founded: '2006', headquarters: 'Stockholm, Sweden', revenue: '$15B', employees: '7,400+', coverGradient: 'linear-gradient(135deg,#16a34a,#22c55e)', tags: ['Business Model', 'Two-Sided Market', 'Content'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 12, date: '23 Mar 2026', keyFacts: [{ label: 'Premium subs', value: '252M' }, { label: 'MAUs', value: '640M' }, { label: 'Tracks', value: '100M+' }, { label: 'Markets', value: '180+' }] },
-    { slug: 'airbnb', brand: 'Airbnb', title: 'Airbnb — Building Trust Between Strangers at Global Scale', description: 'Cereal boxes, regulatory wars, and the trust infrastructure that turned spare bedrooms into a $100B marketplace.', sector: 'Travel Marketplace', founded: '2008', headquarters: 'San Francisco, USA', revenue: '$11B', employees: '7,300+', coverGradient: 'linear-gradient(135deg,#fb7185,#f43f5e)', tags: ['Marketplace', 'Trust', 'Brand'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 13, date: '23 Mar 2026', keyFacts: [{ label: 'Listings', value: '7.7M' }, { label: 'Hosts', value: '5M' }, { label: 'Cumulative guests', value: '2B+' }, { label: 'Cities', value: '100,000+' }] },
-    { slug: 'tesla', brand: 'Tesla', title: 'Tesla — Vertical Integration, Software-First Cars, and a Brand Built on a CEO', description: 'How Tesla turned an EV niche into the most valuable automaker, built its own factories, and made software the differentiator.', sector: 'EV / Energy', founded: '2003', headquarters: 'Austin, USA', revenue: '$96B', employees: '140,000+', coverGradient: 'linear-gradient(135deg,#991b1b,#7f1d1d)', tags: ['Vertical Integration', 'Brand', 'Disruption'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 15, date: '23 Mar 2026', keyFacts: [{ label: 'Vehicles delivered', value: '1.8M / yr' }, { label: 'Supercharger stalls', value: '60,000+' }, { label: 'Marketing spend', value: '$0' }, { label: 'Market cap', value: '$800B' }] },
-    { slug: 'nike', brand: 'Nike', title: 'Nike — Brand-Led Athletics, Endorsement Economics, and the DTC Pivot', description: 'Just Do It, Air Jordan, and the long arc from manufacturer to brand-first DTC athletic powerhouse.', sector: 'Apparel / Athletics', founded: '1964', headquarters: 'Beaverton, USA', revenue: '$51B', employees: '79,000+', coverGradient: 'linear-gradient(135deg,#0a0a0a,#262626)', tags: ['Brand', 'DTC', 'Endorsements'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 13, date: '23 Mar 2026', keyFacts: [{ label: 'DTC revenue', value: '44%' }, { label: 'Retail stores', value: '1,000+' }, { label: 'Endorsements', value: '$1.5B / yr' }, { label: 'Athletes signed', value: '2,000+' }] },
-    { slug: 'pinterest', brand: 'Pinterest', title: 'Pinterest — Visual Discovery as a $2.8B Advertising Engine', description: "From idea-bookmarking app to one of the highest-intent ad platforms — Pinterest's category creation and slow-burn monetisation.", sector: 'Social / Discovery', founded: '2010', headquarters: 'San Francisco, USA', revenue: '$3B', employees: '3,800+', coverGradient: 'linear-gradient(135deg,#dc2626,#ef4444)', tags: ['Business Model', 'Advertising', 'Discovery'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 16, date: '23 Mar 2026', keyFacts: [{ label: 'MAUs', value: '498M' }, { label: 'Pins saved', value: '300B+' }, { label: 'ARPU (US)', value: '$8.5' }, { label: 'Shopping conversion', value: '+88%' }] },
-    { slug: 'mcdonalds', brand: "McDonald's", title: "McDonald's — How a Burger Stand Became the World's Largest Real-Estate Company", description: "The supply chain, franchise model, and (yes) real-estate strategy that built the world's most recognisable food brand.", sector: 'Quick-Service Restaurants', founded: '1940', headquarters: 'Chicago, USA', revenue: '$25B (corp)', employees: '150,000+', coverGradient: 'linear-gradient(135deg,#fbbf24,#dc2626)', tags: ['Franchise', 'Real Estate', 'Operations'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 14, date: '23 Mar 2026', keyFacts: [{ label: 'Restaurants', value: '40,000+' }, { label: 'Daily customers', value: '69M' }, { label: 'Franchised', value: '93%' }, { label: 'Real estate value', value: '$45B' }] },
-    { slug: 'swiggy', brand: 'Swiggy', title: 'Swiggy — Hyperlocal Delivery, Dark Stores, and the Three-App Strategy', description: 'How Swiggy went from food delivery to Instamart, Genie, and Dineout — the hyperlocal flywheel and the cancellation-cost lesson it learned the hard way.', sector: 'Food Delivery / Quick Commerce', founded: '2014', headquarters: 'Bengaluru, India', revenue: '$1.3B', employees: '6,000+', coverGradient: 'linear-gradient(135deg,#FC8019,#f97316)', tags: ['Marketplace', 'Operations', 'Hyperlocal'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 12, date: '09 May 2026', keyFacts: [{ label: 'Cities', value: '600+' }, { label: 'Delivery partners', value: '350,000+' }, { label: 'Restaurant partners', value: '200,000+' }, { label: 'Orders / day', value: '2M+' }] },
-    { slug: 'adobe', brand: 'Adobe', title: 'Adobe — Subscription Bet, Creative Cloud, and the AI Re-Boot', description: 'The licence-to-subscription pivot that doubled valuations, the Figma deal that didn\'t happen, and how Firefly is reshaping Adobe again.', sector: 'Creative SaaS', founded: '1982', headquarters: 'San Jose, USA', revenue: '$22B', employees: '30,000+', coverGradient: 'linear-gradient(135deg,#FA0F00,#dc2626)', tags: ['SaaS', 'Subscription', 'AI'], author: { name: 'Albero curriculum', role: 'Editorial' }, readMin: 15, date: '09 May 2026', keyFacts: [{ label: 'Creative Cloud subs', value: '33M+' }, { label: 'Annual recurring rev', value: '$19B' }, { label: 'Margin (operating)', value: '36%' }, { label: 'Market cap', value: '$240B' }] }
+    {
+        slug: 'apple',
+        brand: 'Apple',
+        title: 'Apple — Premium Pricing, Vertical Integration & Brand Loyalty',
+        description: "How Apple built the world's most valuable brand through hardware-software integration and a cult-like ecosystem.",
+        sector: 'Consumer Tech',
+        founded: '1976',
+        headquarters: 'Cupertino, USA',
+        revenue: '$383B',
+        employees: '161,000+',
+        coverGradient: 'linear-gradient(135deg,#9ca3af,#e5e7eb)',
+        tags: ['Business Model', 'Premium Pricing', 'Ecosystem'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 16,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Active devices', value: '2.2B+' },
+            { label: 'App Store devs', value: '36M+' },
+            { label: 'Margin (services)', value: '70%' },
+            { label: 'Market cap', value: '$3.4T' }
+        ]
+    },
+    {
+        slug: 'amazon',
+        brand: 'Amazon',
+        title: 'Amazon — Day-1 Culture, Flywheels & Ruthless Customer Obsession',
+        description: 'The flywheel that powered the everything-store, AWS, Prime, and a culture of long-term thinking.',
+        sector: 'E-commerce / Cloud',
+        founded: '1994',
+        headquarters: 'Seattle, USA',
+        revenue: '$575B',
+        employees: '1.5M+',
+        coverGradient: 'linear-gradient(135deg,#f97316,#fbbf24)',
+        tags: ['Business Model', 'Flywheel', 'Operations'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 18,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Prime members', value: '230M+' },
+            { label: 'AWS revenue', value: '$90B' },
+            { label: 'SKUs', value: '350M+' },
+            { label: 'Market cap', value: '$1.9T' }
+        ]
+    },
+    {
+        slug: 'netflix',
+        brand: 'Netflix',
+        title: 'Netflix — DVDs, Streaming, and the Bet That Built Modern Hollywood',
+        description: "From mailing DVDs to commissioning the world's most-watched shows — the strategy bets that defined Netflix's three eras.",
+        sector: 'Media / Streaming',
+        founded: '1997',
+        headquarters: 'Los Gatos, USA',
+        revenue: '$33B',
+        employees: '13,000+',
+        coverGradient: 'linear-gradient(135deg,#dc2626,#7f1d1d)',
+        tags: ['Business Model', 'Strategy Bets', 'Content'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 14,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Subscribers', value: '283M' },
+            { label: 'Original hours / yr', value: '5,500+' },
+            { label: 'Content spend', value: '$17B' },
+            { label: 'Operating margin', value: '21%' }
+        ]
+    },
+    {
+        slug: 'spotify',
+        brand: 'Spotify',
+        title: 'Spotify — Music Streaming, Discovery, and the Audio Two-Sided Market',
+        description: 'How Spotify won streaming, then bet on podcasts, then built audiobooks — and the platform economics underneath.',
+        sector: 'Music Streaming',
+        founded: '2006',
+        headquarters: 'Stockholm, Sweden',
+        revenue: '$15B',
+        employees: '7,400+',
+        coverGradient: 'linear-gradient(135deg,#16a34a,#22c55e)',
+        tags: ['Business Model', 'Two-Sided Market', 'Content'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 12,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Premium subs', value: '252M' },
+            { label: 'MAUs', value: '640M' },
+            { label: 'Tracks', value: '100M+' },
+            { label: 'Markets', value: '180+' }
+        ]
+    },
+    {
+        slug: 'airbnb',
+        brand: 'Airbnb',
+        title: 'Airbnb — Building Trust Between Strangers at Global Scale',
+        description: 'Cereal boxes, regulatory wars, and the trust infrastructure that turned spare bedrooms into a $100B marketplace.',
+        sector: 'Travel Marketplace',
+        founded: '2008',
+        headquarters: 'San Francisco, USA',
+        revenue: '$11B',
+        employees: '7,300+',
+        coverGradient: 'linear-gradient(135deg,#fb7185,#f43f5e)',
+        tags: ['Marketplace', 'Trust', 'Brand'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 13,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Listings', value: '7.7M' },
+            { label: 'Hosts', value: '5M' },
+            { label: 'Cumulative guests', value: '2B+' },
+            { label: 'Cities', value: '100,000+' }
+        ]
+    },
+    {
+        slug: 'tesla',
+        brand: 'Tesla',
+        title: 'Tesla — Vertical Integration, Software-First Cars, and a Brand Built on a CEO',
+        description: 'How Tesla turned an EV niche into the most valuable automaker, built its own factories, and made software the differentiator.',
+        sector: 'EV / Energy',
+        founded: '2003',
+        headquarters: 'Austin, USA',
+        revenue: '$96B',
+        employees: '140,000+',
+        coverGradient: 'linear-gradient(135deg,#991b1b,#7f1d1d)',
+        tags: ['Vertical Integration', 'Brand', 'Disruption'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 15,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Vehicles delivered', value: '1.8M / yr' },
+            { label: 'Supercharger stalls', value: '60,000+' },
+            { label: 'Marketing spend', value: '$0' },
+            { label: 'Market cap', value: '$800B' }
+        ]
+    },
+    {
+        slug: 'nike',
+        brand: 'Nike',
+        title: 'Nike — Brand-Led Athletics, Endorsement Economics, and the DTC Pivot',
+        description: 'Just Do It, Air Jordan, and the long arc from manufacturer to brand-first DTC athletic powerhouse.',
+        sector: 'Apparel / Athletics',
+        founded: '1964',
+        headquarters: 'Beaverton, USA',
+        revenue: '$51B',
+        employees: '79,000+',
+        coverGradient: 'linear-gradient(135deg,#0a0a0a,#262626)',
+        tags: ['Brand', 'DTC', 'Endorsements'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 13,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'DTC revenue', value: '44%' },
+            { label: 'Retail stores', value: '1,000+' },
+            { label: 'Endorsements', value: '$1.5B / yr' },
+            { label: 'Athletes signed', value: '2,000+' }
+        ]
+    },
+    {
+        slug: 'pinterest',
+        brand: 'Pinterest',
+        title: 'Pinterest — Visual Discovery as a $2.8B Advertising Engine',
+        description:
+            "From idea-bookmarking app to one of the highest-intent ad platforms — Pinterest's category creation and slow-burn monetisation.",
+        sector: 'Social / Discovery',
+        founded: '2010',
+        headquarters: 'San Francisco, USA',
+        revenue: '$3B',
+        employees: '3,800+',
+        coverGradient: 'linear-gradient(135deg,#dc2626,#ef4444)',
+        tags: ['Business Model', 'Advertising', 'Discovery'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 16,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'MAUs', value: '498M' },
+            { label: 'Pins saved', value: '300B+' },
+            { label: 'ARPU (US)', value: '$8.5' },
+            { label: 'Shopping conversion', value: '+88%' }
+        ]
+    },
+    {
+        slug: 'mcdonalds',
+        brand: "McDonald's",
+        title: "McDonald's — How a Burger Stand Became the World's Largest Real-Estate Company",
+        description: "The supply chain, franchise model, and (yes) real-estate strategy that built the world's most recognisable food brand.",
+        sector: 'Quick-Service Restaurants',
+        founded: '1940',
+        headquarters: 'Chicago, USA',
+        revenue: '$25B (corp)',
+        employees: '150,000+',
+        coverGradient: 'linear-gradient(135deg,#fbbf24,#dc2626)',
+        tags: ['Franchise', 'Real Estate', 'Operations'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 14,
+        date: '23 Mar 2026',
+        keyFacts: [
+            { label: 'Restaurants', value: '40,000+' },
+            { label: 'Daily customers', value: '69M' },
+            { label: 'Franchised', value: '93%' },
+            { label: 'Real estate value', value: '$45B' }
+        ]
+    },
+    {
+        slug: 'swiggy',
+        brand: 'Swiggy',
+        title: 'Swiggy — Hyperlocal Delivery, Dark Stores, and the Three-App Strategy',
+        description:
+            'How Swiggy went from food delivery to Instamart, Genie, and Dineout — the hyperlocal flywheel and the cancellation-cost lesson it learned the hard way.',
+        sector: 'Food Delivery / Quick Commerce',
+        founded: '2014',
+        headquarters: 'Bengaluru, India',
+        revenue: '$1.3B',
+        employees: '6,000+',
+        coverGradient: 'linear-gradient(135deg,#FC8019,#f97316)',
+        tags: ['Marketplace', 'Operations', 'Hyperlocal'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 12,
+        date: '09 May 2026',
+        keyFacts: [
+            { label: 'Cities', value: '600+' },
+            { label: 'Delivery partners', value: '350,000+' },
+            { label: 'Restaurant partners', value: '200,000+' },
+            { label: 'Orders / day', value: '2M+' }
+        ]
+    },
+    {
+        slug: 'adobe',
+        brand: 'Adobe',
+        title: 'Adobe — Subscription Bet, Creative Cloud, and the AI Re-Boot',
+        description:
+            "The licence-to-subscription pivot that doubled valuations, the Figma deal that didn't happen, and how Firefly is reshaping Adobe again.",
+        sector: 'Creative SaaS',
+        founded: '1982',
+        headquarters: 'San Jose, USA',
+        revenue: '$22B',
+        employees: '30,000+',
+        coverGradient: 'linear-gradient(135deg,#FA0F00,#dc2626)',
+        tags: ['SaaS', 'Subscription', 'AI'],
+        author: { name: 'Albero curriculum', role: 'Editorial' },
+        readMin: 15,
+        date: '09 May 2026',
+        keyFacts: [
+            { label: 'Creative Cloud subs', value: '33M+' },
+            { label: 'Annual recurring rev', value: '$19B' },
+            { label: 'Margin (operating)', value: '36%' },
+            { label: 'Market cap', value: '$240B' }
+        ]
+    }
 ]
 
 const allCaseStudies: CaseStudyEntry[] = [

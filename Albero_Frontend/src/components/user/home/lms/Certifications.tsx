@@ -43,11 +43,7 @@ const credentials: Credential[] = [
         color: '#0530AD',
         title: 'IBM SkillsBuild — Data Science Professional',
         audience: 'Data Science · AI/ML cohorts',
-        bullets: [
-            'Co-issued IBM badge on Credly',
-            'Free IBM Cloud credits during the program',
-            'Capstone reviewed against IBM hiring rubric'
-        ]
+        bullets: ['Co-issued IBM badge on Credly', 'Free IBM Cloud credits during the program', 'Capstone reviewed against IBM hiring rubric']
     },
     {
         issuer: 'Microsoft',
@@ -67,11 +63,7 @@ const credentials: Credential[] = [
         color: '#FF9900',
         title: 'AWS Cloud Practitioner — Pathway Partner',
         audience: 'Data Engineering · MLOps cohorts',
-        bullets: [
-            'AWS Cloud Practitioner exam prep included',
-            '$200 AWS credits for capstone deployments',
-            'AWS-aligned MLOps capstone walk-through'
-        ]
+        bullets: ['AWS Cloud Practitioner exam prep included', '$200 AWS credits for capstone deployments', 'AWS-aligned MLOps capstone walk-through']
     },
     {
         issuer: 'Google',
@@ -79,11 +71,7 @@ const credentials: Credential[] = [
         color: '#4285F4',
         title: 'Google Cloud — Data Engineer Track',
         audience: 'Data Engineering cohorts',
-        bullets: [
-            'Google Cloud Skills Boost labs',
-            'BigQuery + Looker Studio capstone',
-            'Pathway alignment with Google Cloud certs'
-        ]
+        bullets: ['Google Cloud Skills Boost labs', 'BigQuery + Looker Studio capstone', 'Pathway alignment with Google Cloud certs']
     }
 ]
 
@@ -115,7 +103,9 @@ export default function Certifications() {
                         className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
                         style={{ color: 'var(--text-primary)' }}>
                         Credentials hiring managers{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
                             actually trust.
                         </span>
                     </h2>
@@ -135,8 +125,7 @@ export default function Certifications() {
                         transition={{ duration: 0.6 }}
                         className="relative rounded-3xl p-8 md:p-10 overflow-hidden"
                         style={{
-                            background:
-                                'linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%)',
+                            background: 'linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%)',
                             border: '1px solid var(--line)',
                             boxShadow: 'var(--card-shadow-hover)'
                         }}>
@@ -162,16 +151,34 @@ export default function Certifications() {
                                     <span
                                         className="inline-flex items-center justify-center w-12 h-12 rounded-xl"
                                         style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                                            <path d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-                                            <path d="M12 8 L12 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            width="22"
+                                            height="22"
+                                            fill="none">
+                                            <path
+                                                d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z"
+                                                stroke="currentColor"
+                                                strokeWidth="1.6"
+                                                strokeLinejoin="round"
+                                            />
+                                            <path
+                                                d="M12 8 L12 21"
+                                                stroke="currentColor"
+                                                strokeWidth="1.6"
+                                                strokeLinecap="round"
+                                            />
                                         </svg>
                                     </span>
                                     <div className="leading-tight">
-                                        <div className="font-display text-[18px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                        <div
+                                            className="font-display text-[18px] font-semibold"
+                                            style={{ color: 'var(--text-primary)' }}>
                                             Albero Academy
                                         </div>
-                                        <div className="text-[10.5px] tracking-[0.22em] uppercase font-semibold" style={{ color: 'var(--brand)' }}>
+                                        <div
+                                            className="text-[10.5px] tracking-[0.22em] uppercase font-semibold"
+                                            style={{ color: 'var(--brand)' }}>
                                             Certificate of Completion
                                         </div>
                                     </div>
@@ -199,7 +206,9 @@ export default function Certifications() {
                                     className="mt-4 text-[14.5px] max-w-[520px]"
                                     style={{ color: 'var(--text-secondary)' }}>
                                     has successfully completed the{' '}
-                                    <span className="font-semibold" style={{ color: 'var(--brand)' }}>
+                                    <span
+                                        className="font-semibold"
+                                        style={{ color: 'var(--brand)' }}>
                                         Data Analytics
                                     </span>{' '}
                                     program with capstone projects reviewed and approved by industry mentors.
@@ -207,29 +216,42 @@ export default function Certifications() {
                             </div>
 
                             {/* Footer signatures */}
-                            <div className="relative z-[1] grid grid-cols-3 gap-4 pt-5 border-t" style={{ borderColor: 'var(--line)' }}>
+                            <div
+                                className="relative z-[1] grid grid-cols-3 gap-4 pt-5 border-t"
+                                style={{ borderColor: 'var(--line)' }}>
                                 <div>
-                                    <div className="font-display italic text-[16px]" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display italic text-[16px]"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         Rahul Krishnan
                                     </div>
-                                    <div className="text-[10.5px] mt-1 tracking-[0.14em] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[10.5px] mt-1 tracking-[0.14em] uppercase font-semibold"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         Lead Mentor
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="font-display italic text-[16px]" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display italic text-[16px]"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         Priya Verma
                                     </div>
-                                    <div className="text-[10.5px] mt-1 tracking-[0.14em] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[10.5px] mt-1 tracking-[0.14em] uppercase font-semibold"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         Hiring Partner
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="inline-flex items-center gap-1.5 mb-1 text-[10.5px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+                                    <div
+                                        className="inline-flex items-center gap-1.5 mb-1 text-[10.5px] font-mono"
+                                        style={{ color: 'var(--text-secondary)' }}>
                                         <ScanLine size={11} /> ID: ALB-2025-AK7421
                                     </div>
-                                    <div className="ml-auto w-16 h-16 rounded-md grid grid-cols-6 gap-[2px] p-1.5"
-                                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
+                                    <div
+                                        className="ml-auto w-16 h-16 rounded-md grid grid-cols-6 gap-[2px] p-1.5"
+                                        style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
                                         {Array.from({ length: 36 }).map((_, k) => (
                                             <span
                                                 key={k}
@@ -269,10 +291,14 @@ export default function Certifications() {
                                     style={{ color: 'var(--brand)' }}>
                                     {s.v}
                                 </div>
-                                <div className="text-[13.5px] font-semibold mt-2" style={{ color: 'var(--text-primary)' }}>
+                                <div
+                                    className="text-[13.5px] font-semibold mt-2"
+                                    style={{ color: 'var(--text-primary)' }}>
                                     {s.l}
                                 </div>
-                                <div className="text-[12px] mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                                <div
+                                    className="text-[12px] mt-1"
+                                    style={{ color: 'var(--text-tertiary)' }}>
                                     {s.sub}
                                 </div>
                             </motion.div>
@@ -473,7 +499,8 @@ function CertifiedByCarousel() {
                                         const img = e.currentTarget
                                         const fallback = document.createElement('span')
                                         fallback.textContent = c.issuer.charAt(0)
-                                        fallback.className = 'inline-flex items-center justify-center w-[22px] h-[22px] rounded-md text-[12px] font-bold text-white'
+                                        fallback.className =
+                                            'inline-flex items-center justify-center w-[22px] h-[22px] rounded-md text-[12px] font-bold text-white'
                                         fallback.setAttribute('style', `background:${c.color}`)
                                         img.replaceWith(fallback)
                                     }}
@@ -504,7 +531,10 @@ function CertifiedByCarousel() {
 
                         <ul className="space-y-2">
                             {c.bullets.map((b, j) => (
-                                <li key={j} className="flex items-start gap-2 text-[13px]" style={{ color: 'var(--text-secondary)' }}>
+                                <li
+                                    key={j}
+                                    className="flex items-start gap-2 text-[13px]"
+                                    style={{ color: 'var(--text-secondary)' }}>
                                     <span
                                         className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                                         style={{ background: c.color }}

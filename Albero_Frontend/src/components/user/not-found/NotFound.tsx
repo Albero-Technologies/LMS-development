@@ -59,7 +59,10 @@ function NotFound() {
                     <div
                         className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-6 text-[12px] font-semibold tracking-tight"
                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
+                        <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: 'var(--accent)' }}
+                        />
                         Error 404
                     </div>
 
@@ -67,7 +70,9 @@ function NotFound() {
                         className="font-display text-[44px] sm:text-[64px] lg:text-[88px] leading-[0.96] tracking-[-0.02em] font-medium mb-6"
                         style={{ color: 'var(--text-primary)' }}>
                         This page took{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
                             an unscheduled break.
                         </span>
                     </h1>

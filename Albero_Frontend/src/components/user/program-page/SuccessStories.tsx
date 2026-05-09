@@ -42,7 +42,9 @@ export const SuccessStories = ({
 }: Props) => {
     if (stories.length === 0) return null
     return (
-        <SectionShell tone={tone} spacing="normal">
+        <SectionShell
+            tone={tone}
+            spacing="normal">
             <SectionHeading
                 eyebrow="Proven Career Outcomes"
                 title={heading}
@@ -91,14 +93,22 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
         return (
             <div className={`grid gap-6 ${colsClass} max-w-[820px] mx-auto place-items-center`}>
                 {stories.map((s, i) => (
-                    <StoryCard key={s.id} story={s} delayMs={i * 120} compact />
+                    <StoryCard
+                        key={s.id}
+                        story={s}
+                        delayMs={i * 120}
+                        compact
+                    />
                 ))}
             </div>
         )
     }
 
     return (
-        <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+        <div
+            className="relative"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}>
             {/* Desktop arrow buttons */}
             <button
                 type="button"
@@ -132,7 +142,11 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
                 className="flex gap-5 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2"
                 style={{ scrollPaddingLeft: 16 }}>
                 {stories.map((s, i) => (
-                    <StoryCard key={s.id} story={s} delayMs={(i % 3) * 100} />
+                    <StoryCard
+                        key={s.id}
+                        story={s}
+                        delayMs={(i % 3) * 100}
+                    />
                 ))}
             </div>
 
@@ -181,9 +195,7 @@ const StoryCard = ({
     // Width buckets:
     //   compact  — 1 of 1, capped at 380px so it stays readable
     //   default  — fills its parent grid cell on desktop, snap-scroll width on mobile
-    const widthClass = compact
-        ? 'w-full max-w-[380px] mx-auto'
-        : 'snap-start shrink-0 w-[88%] sm:w-[60%] md:w-[calc((100%-40px)/3)]'
+    const widthClass = compact ? 'w-full max-w-[380px] mx-auto' : 'snap-start shrink-0 w-[88%] sm:w-[60%] md:w-[calc((100%-40px)/3)]'
 
     return (
         <article
@@ -202,7 +214,9 @@ const StoryCard = ({
                 so a broken external photo (rate-limited Unsplash, dead CMS
                 asset, etc.) still leaves a polished gradient + monogram
                 instead of a broken-image square. */}
-            <div className="relative aspect-[4/3] overflow-hidden" style={{ background: 'var(--gradient-aurora)' }}>
+            <div
+                className="relative aspect-[4/3] overflow-hidden"
+                style={{ background: 'var(--gradient-aurora)' }}>
                 <div className="absolute inset-0 flex items-center justify-center">
                     <span className="font-display text-[64px] font-semibold text-white/95">{initials}</span>
                 </div>
@@ -237,10 +251,14 @@ const StoryCard = ({
             {/* Body */}
             <div className="p-5 flex-1 flex flex-col">
                 <div>
-                    <h3 className="font-display text-[16.5px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                    <h3
+                        className="font-display text-[16.5px] font-semibold leading-tight"
+                        style={{ color: 'var(--text-primary)' }}>
                         {story.name}
                     </h3>
-                    <p className="mt-0.5 text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                    <p
+                        className="mt-0.5 text-[12.5px]"
+                        style={{ color: 'var(--text-tertiary)' }}>
                         {story.role} at {story.company}
                     </p>
                 </div>
@@ -250,10 +268,14 @@ const StoryCard = ({
                     className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl px-3 py-2.5"
                     style={{ background: 'var(--section-soft)' }}>
                     <div className="text-center">
-                        <div className="text-[9.5px] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--text-tertiary)' }}>
+                        <div
+                            className="text-[9.5px] font-bold tracking-[0.18em] uppercase"
+                            style={{ color: 'var(--text-tertiary)' }}>
                             Before
                         </div>
-                        <div className="font-display text-[18px] font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                        <div
+                            className="font-display text-[18px] font-semibold mt-0.5"
+                            style={{ color: 'var(--text-primary)' }}>
                             ₹{story.salaryBeforeLpa} LPA
                         </div>
                     </div>
@@ -264,24 +286,40 @@ const StoryCard = ({
                         <ArrowRight size={14} />
                     </div>
                     <div className="text-center">
-                        <div className="text-[9.5px] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--brand)' }}>
+                        <div
+                            className="text-[9.5px] font-bold tracking-[0.18em] uppercase"
+                            style={{ color: 'var(--brand)' }}>
                             After
                         </div>
-                        <div className="font-display text-[18px] font-semibold mt-0.5" style={{ color: 'var(--brand)' }}>
+                        <div
+                            className="font-display text-[18px] font-semibold mt-0.5"
+                            style={{ color: 'var(--brand)' }}>
                             ₹{story.salaryAfterLpa} LPA
                         </div>
                     </div>
                 </div>
 
-                <p className="mt-4 text-[13px] leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                    className="mt-4 text-[13px] leading-relaxed line-clamp-3"
+                    style={{ color: 'var(--text-secondary)' }}>
                     “{story.testimonial}”
                 </p>
 
                 {/* Footer — stars + placed-at chip */}
-                <div className="mt-4 pt-4 flex items-center justify-between gap-2 border-t" style={{ borderColor: 'var(--hairline)' }}>
-                    <div className="flex items-center gap-0.5" aria-label={`${stars} out of 5 stars`}>
+                <div
+                    className="mt-4 pt-4 flex items-center justify-between gap-2 border-t"
+                    style={{ borderColor: 'var(--hairline)' }}>
+                    <div
+                        className="flex items-center gap-0.5"
+                        aria-label={`${stars} out of 5 stars`}>
                         {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} size={13} fill={i < stars ? '#f59e0b' : 'transparent'} stroke={i < stars ? '#f59e0b' : 'currentColor'} className={i < stars ? '' : 'text-fg-muted opacity-30'} />
+                            <Star
+                                key={i}
+                                size={13}
+                                fill={i < stars ? '#f59e0b' : 'transparent'}
+                                stroke={i < stars ? '#f59e0b' : 'currentColor'}
+                                className={i < stars ? '' : 'text-fg-muted opacity-30'}
+                            />
                         ))}
                     </div>
                     <span

@@ -36,13 +36,7 @@ function readBrandColors() {
     }
 }
 
-export default function ThreeShowcase({
-    variant = 'orbit',
-    colors,
-    className,
-    style,
-    pauseOnHover = true
-}: Props) {
+export default function ThreeShowcase({ variant = 'orbit', colors, className, style, pauseOnHover = true }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null)
     const [hovered, setHovered] = useState(false)
     const hoveredRef = useRef(false)
@@ -171,11 +165,7 @@ export default function ThreeShowcase({
                         metalness: 0.55
                     })
                 )
-                node.position.set(
-                    Math.cos(angle) * OUTER_R,
-                    Math.sin(angle) * OUTER_R * 0.34,
-                    Math.cos(angle * 0.9 + 1.2) * 0.7
-                )
+                node.position.set(Math.cos(angle) * OUTER_R, Math.sin(angle) * OUTER_R * 0.34, Math.cos(angle * 0.9 + 1.2) * 0.7)
                 root.add(node)
                 kgOuterNodes.push(node)
             }
@@ -383,13 +373,7 @@ export default function ThreeShowcase({
             const t = timeAlive
 
             if (variant === 'orbit') {
-                const [icoMesh, core, knot, oct, ring] = meshes as [
-                    THREE.Mesh,
-                    THREE.Mesh,
-                    THREE.Mesh,
-                    THREE.Mesh,
-                    THREE.Group
-                ]
+                const [icoMesh, core, knot, oct, ring] = meshes as [THREE.Mesh, THREE.Mesh, THREE.Mesh, THREE.Mesh, THREE.Group]
                 if (icoMesh) {
                     icoMesh.rotation.x = t * 0.3
                     icoMesh.rotation.y = t * 0.42

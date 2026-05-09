@@ -181,10 +181,19 @@ export default function ProgramsShowcase() {
     const program = programs[active]
     const Icon = program.Icon
 
-    const next = () => { setAuto(false); setActive((i) => (i + 1) % programs.length) }
-    const prev = () => { setAuto(false); setActive((i) => (i - 1 + programs.length) % programs.length) }
+    const next = () => {
+        setAuto(false)
+        setActive((i) => (i + 1) % programs.length)
+    }
+    const prev = () => {
+        setAuto(false)
+        setActive((i) => (i - 1 + programs.length) % programs.length)
+    }
 
-    const handleHover = (i: number) => { setAuto(false); setActive(i) }
+    const handleHover = (i: number) => {
+        setAuto(false)
+        setActive(i)
+    }
     const handleListLeave = () => setAuto(true)
 
     return (
@@ -205,7 +214,9 @@ export default function ProgramsShowcase() {
                             style={{ color: 'var(--text-primary)' }}>
                             Eight programs.
                             <br />
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 One outcome — your next role.
                             </span>
                         </h2>
@@ -213,8 +224,8 @@ export default function ProgramsShowcase() {
                     <p
                         className="text-[16px] leading-relaxed"
                         style={{ color: 'var(--text-secondary)' }}>
-                        Each program is co-designed with hiring managers and built around live mentorship,
-                        portfolio-grade projects, and a placement-focused career sprint.
+                        Each program is co-designed with hiring managers and built around live mentorship, portfolio-grade projects, and a
+                        placement-focused career sprint.
                     </p>
                 </div>
 
@@ -235,7 +246,7 @@ export default function ProgramsShowcase() {
                                 background: 'var(--surface)',
                                 border: '1px solid var(--line)',
                                 boxShadow: 'var(--card-shadow-hover)',
-                                minHeight: 480   // ← reduced from 560
+                                minHeight: 480 // ← reduced from 560
                             }}>
                             {/* Accent wash */}
                             <div
@@ -309,9 +320,21 @@ export default function ProgramsShowcase() {
                                 <div
                                     className="grid grid-cols-3 gap-3 py-3 border-y mb-4"
                                     style={{ borderColor: 'var(--line)' }}>
-                                    <Meta icon={Clock} label="Duration" value={program.duration} />
-                                    <Meta icon={Users} label="Mode" value={program.mode} />
-                                    <Meta icon={GraduationCap} label="Level" value={program.level} />
+                                    <Meta
+                                        icon={Clock}
+                                        label="Duration"
+                                        value={program.duration}
+                                    />
+                                    <Meta
+                                        icon={Users}
+                                        label="Mode"
+                                        value={program.mode}
+                                    />
+                                    <Meta
+                                        icon={GraduationCap}
+                                        label="Level"
+                                        value={program.level}
+                                    />
                                 </div>
 
                                 {/* Highlights */}
@@ -323,7 +346,10 @@ export default function ProgramsShowcase() {
                                     </div>
                                     <ul className="grid sm:grid-cols-2 gap-1.5">
                                         {program.highlights.map((h, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-[13px]" style={{ color: 'var(--text-secondary)' }}>
+                                            <li
+                                                key={i}
+                                                className="flex items-start gap-2 text-[13px]"
+                                                style={{ color: 'var(--text-secondary)' }}>
                                                 <span
                                                     className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                                                     style={{ background: program.accent }}
@@ -350,7 +376,9 @@ export default function ProgramsShowcase() {
                                     ))}
                                 </div>
 
-                                <div className="flex items-center justify-between mt-auto pt-3 border-t" style={{ borderColor: 'var(--line)' }}>
+                                <div
+                                    className="flex items-center justify-between mt-auto pt-3 border-t"
+                                    style={{ borderColor: 'var(--line)' }}>
                                     <div className="flex items-center gap-5">
                                         <div>
                                             <div
@@ -497,16 +525,24 @@ export default function ProgramsShowcase() {
                         </div>
 
                         {/* Bottom progress bar */}
-                        <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                        <div
+                            className="mt-4 pt-4 border-t"
+                            style={{ borderColor: 'var(--line)' }}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10.5px] tracking-[0.16em] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+                                <span
+                                    className="text-[10.5px] tracking-[0.16em] uppercase font-semibold"
+                                    style={{ color: 'var(--text-tertiary)' }}>
                                     {String(active + 1).padStart(2, '0')} / {String(programs.length).padStart(2, '0')}
                                 </span>
-                                <span className="inline-flex items-center gap-1 text-[11.5px]" style={{ color: 'var(--brand)' }}>
+                                <span
+                                    className="inline-flex items-center gap-1 text-[11.5px]"
+                                    style={{ color: 'var(--brand)' }}>
                                     <TrendingUp size={11} /> Auto-cycling
                                 </span>
                             </div>
-                            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--line)' }}>
+                            <div
+                                className="h-1 rounded-full overflow-hidden"
+                                style={{ background: 'var(--line)' }}>
                                 <motion.div
                                     key={active}
                                     initial={{ width: '0%' }}
@@ -534,11 +570,29 @@ function CertBadges({ cert }: { cert: 'ibm' | 'microsoft' | 'both' }) {
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold tracking-tight"
                     title="IBM SkillsBuild — co-branded badge"
                     style={{ background: '#fff', border: '1px solid rgba(5,48,173,0.25)', color: '#0530AD' }}>
-                    <svg viewBox="0 0 64 28" width={26} height={11} aria-hidden="true">
+                    <svg
+                        viewBox="0 0 64 28"
+                        width={26}
+                        height={11}
+                        aria-hidden="true">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <rect key={i} x={i * 8} y="2" width="6" height="3.2" fill="currentColor" />
+                            <rect
+                                key={i}
+                                x={i * 8}
+                                y="2"
+                                width="6"
+                                height="3.2"
+                                fill="currentColor"
+                            />
                         ))}
-                        <text x="0" y="22" fontFamily="Inter, system-ui, sans-serif" fontWeight={800} fontSize="14" letterSpacing="2" fill="currentColor">
+                        <text
+                            x="0"
+                            y="22"
+                            fontFamily="Inter, system-ui, sans-serif"
+                            fontWeight={800}
+                            fontSize="14"
+                            letterSpacing="2"
+                            fill="currentColor">
                             IBM
                         </text>
                     </svg>
@@ -550,11 +604,39 @@ function CertBadges({ cert }: { cert: 'ibm' | 'microsoft' | 'both' }) {
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold tracking-tight"
                     title="Microsoft Certified pathway"
                     style={{ background: '#fff', border: '1px solid rgba(0,120,212,0.25)', color: '#0078D4' }}>
-                    <svg viewBox="0 0 24 24" width={11} height={11} aria-hidden="true">
-                        <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-                        <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-                        <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-                        <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+                    <svg
+                        viewBox="0 0 24 24"
+                        width={11}
+                        height={11}
+                        aria-hidden="true">
+                        <rect
+                            x="1"
+                            y="1"
+                            width="10"
+                            height="10"
+                            fill="#F25022"
+                        />
+                        <rect
+                            x="13"
+                            y="1"
+                            width="10"
+                            height="10"
+                            fill="#7FBA00"
+                        />
+                        <rect
+                            x="1"
+                            y="13"
+                            width="10"
+                            height="10"
+                            fill="#00A4EF"
+                        />
+                        <rect
+                            x="13"
+                            y="13"
+                            width="10"
+                            height="10"
+                            fill="#FFB900"
+                        />
                     </svg>
                     Microsoft Certified
                 </span>
@@ -584,11 +666,39 @@ function CertDots({ cert }: { cert: 'ibm' | 'microsoft' | 'both' }) {
                     aria-label="Microsoft Certified"
                     className="inline-flex items-center justify-center w-4 h-4 rounded-sm"
                     style={{ background: '#fff', border: '1px solid var(--line-strong)' }}>
-                    <svg viewBox="0 0 24 24" width={10} height={10} aria-hidden="true">
-                        <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-                        <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
-                        <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
-                        <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+                    <svg
+                        viewBox="0 0 24 24"
+                        width={10}
+                        height={10}
+                        aria-hidden="true">
+                        <rect
+                            x="1"
+                            y="1"
+                            width="10"
+                            height="10"
+                            fill="#F25022"
+                        />
+                        <rect
+                            x="13"
+                            y="1"
+                            width="10"
+                            height="10"
+                            fill="#7FBA00"
+                        />
+                        <rect
+                            x="1"
+                            y="13"
+                            width="10"
+                            height="10"
+                            fill="#00A4EF"
+                        />
+                        <rect
+                            x="13"
+                            y="13"
+                            width="10"
+                            height="10"
+                            fill="#FFB900"
+                        />
                     </svg>
                 </span>
             )}
@@ -607,11 +717,18 @@ function Meta({
 }) {
     return (
         <div className="flex flex-col gap-0.5">
-            <div className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.14em] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>
-                <Icon size={11} style={{ color: 'var(--brand)' }} />
+            <div
+                className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.14em] uppercase font-semibold"
+                style={{ color: 'var(--text-tertiary)' }}>
+                <Icon
+                    size={11}
+                    style={{ color: 'var(--brand)' }}
+                />
                 {label}
             </div>
-            <div className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <div
+                className="text-[13px] font-semibold"
+                style={{ color: 'var(--text-primary)' }}>
                 {value}
             </div>
         </div>

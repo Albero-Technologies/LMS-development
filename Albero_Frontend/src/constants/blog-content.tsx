@@ -38,11 +38,14 @@ const dataWarehousing101: BlogPost = {
     ],
     content: (
         <>
-            <span id="intro" className="block scroll-mt-32" />
+            <span
+                id="intro"
+                className="block scroll-mt-32"
+            />
             <P>
                 If you've ever waited 90 seconds for a Power BI dashboard to load, you've felt the cost of bad warehouse design. The way you model
-                your data — how you split it across tables, how you join it — is the single biggest decision you'll make in any analytics project.
-                In this post we'll compare the two most common warehouse modelling patterns: the <Strong>star schema</Strong> and the{' '}
+                your data — how you split it across tables, how you join it — is the single biggest decision you'll make in any analytics project. In
+                this post we'll compare the two most common warehouse modelling patterns: the <Strong>star schema</Strong> and the{' '}
                 <Strong>snowflake schema</Strong>.
             </P>
 
@@ -75,8 +78,10 @@ CREATE TABLE dim_product (
     department     TEXT       -- redundant on purpose
 );`}
             />
-            <P>Notice that <Code>dim_product</Code> stores the brand, category, and department all on one row. Yes, that means brand names get
-                duplicated across thousands of products. That's the trade-off — and it's intentional.</P>
+            <P>
+                Notice that <Code>dim_product</Code> stores the brand, category, and department all on one row. Yes, that means brand names get
+                duplicated across thousands of products. That's the trade-off — and it's intentional.
+            </P>
 
             <H2 id="snowflake">The snowflake schema</H2>
             <P>
@@ -110,17 +115,26 @@ CREATE TABLE dim_sub_category (
             />
             <P>
                 Now to get from a sale to a department name, your query has to walk:{' '}
-                <Code>fact_sales → dim_product → dim_category → dim_sub_category → dim_department</Code>. Five joins. Even though the data is
-                cleaner.
+                <Code>fact_sales → dim_product → dim_category → dim_sub_category → dim_department</Code>. Five joins. Even though the data is cleaner.
             </P>
 
             <H2 id="comparison">Side-by-side comparison</H2>
             <UL>
-                <LI><Strong>Storage.</Strong> Snowflake wins — no duplication. But disk is cheap. This rarely tips the decision.</LI>
-                <LI><Strong>Query speed.</Strong> Star wins — fewer joins, faster scans. Critical at BI-tool speed.</LI>
-                <LI><Strong>Maintenance.</Strong> Snowflake wins — change a brand name in one place. Star duplicates the change everywhere.</LI>
-                <LI><Strong>Analyst usability.</Strong> Star wins — fewer tables to learn, fewer joins to remember.</LI>
-                <LI><Strong>ETL complexity.</Strong> Star wins — fewer surrogate keys to manage during loads.</LI>
+                <LI>
+                    <Strong>Storage.</Strong> Snowflake wins — no duplication. But disk is cheap. This rarely tips the decision.
+                </LI>
+                <LI>
+                    <Strong>Query speed.</Strong> Star wins — fewer joins, faster scans. Critical at BI-tool speed.
+                </LI>
+                <LI>
+                    <Strong>Maintenance.</Strong> Snowflake wins — change a brand name in one place. Star duplicates the change everywhere.
+                </LI>
+                <LI>
+                    <Strong>Analyst usability.</Strong> Star wins — fewer tables to learn, fewer joins to remember.
+                </LI>
+                <LI>
+                    <Strong>ETL complexity.</Strong> Star wins — fewer surrogate keys to manage during loads.
+                </LI>
             </UL>
 
             <Callout kind="tip">
@@ -131,11 +145,17 @@ CREATE TABLE dim_sub_category (
             <H2 id="choosing">How to choose</H2>
             <P>A simple decision framework we use at Albero when reviewing student projects:</P>
             <UL>
-                <LI>Pick <Strong>star</Strong> if BI dashboards are the primary consumer (90% of cases).</LI>
-                <LI>Pick <Strong>snowflake</Strong> if you have very large dimensions ({'>'}50M rows) or strict regulatory requirements that demand a
-                    single source of truth per attribute.</LI>
-                <LI>For mixed needs, build a <Strong>star schema</Strong> in your gold layer and keep the snowflaked source available in the silver
-                    layer.</LI>
+                <LI>
+                    Pick <Strong>star</Strong> if BI dashboards are the primary consumer (90% of cases).
+                </LI>
+                <LI>
+                    Pick <Strong>snowflake</Strong> if you have very large dimensions ({'>'}50M rows) or strict regulatory requirements that demand a
+                    single source of truth per attribute.
+                </LI>
+                <LI>
+                    For mixed needs, build a <Strong>star schema</Strong> in your gold layer and keep the snowflaked source available in the silver
+                    layer.
+                </LI>
             </UL>
 
             <Takeaways
@@ -173,30 +193,41 @@ const apacheKafka: BlogPost = {
     content: (
         <>
             <P>
-                Apache Kafka is the backbone of modern real-time data systems. Uber, Netflix, LinkedIn, Razorpay — all run massive Kafka clusters
-                to move billions of events per day. In this post we'll cut through the jargon and build a working producer-consumer pair in under
-                30 lines of Python.
+                Apache Kafka is the backbone of modern real-time data systems. Uber, Netflix, LinkedIn, Razorpay — all run massive Kafka clusters to
+                move billions of events per day. In this post we'll cut through the jargon and build a working producer-consumer pair in under 30
+                lines of Python.
             </P>
 
             <H2 id="why">Why Kafka?</H2>
             <P>
-                Before Kafka, moving events between systems meant point-to-point integrations. Service A calls service B which calls service C.
-                One outage and the whole graph collapses. Kafka inverts the model: services <Strong>publish events</Strong> to topics, and any
-                number of services can <Strong>subscribe</Strong>. The producer doesn't care who's listening, and the consumer doesn't care who
-                wrote the event.
+                Before Kafka, moving events between systems meant point-to-point integrations. Service A calls service B which calls service C. One
+                outage and the whole graph collapses. Kafka inverts the model: services <Strong>publish events</Strong> to topics, and any number of
+                services can <Strong>subscribe</Strong>. The producer doesn't care who's listening, and the consumer doesn't care who wrote the event.
             </P>
 
             <H2 id="core">Core concepts in 60 seconds</H2>
             <UL>
-                <LI><Strong>Topic.</Strong> A named stream of events. e.g. <Code>orders.placed</Code>, <Code>user.signups</Code>.</LI>
-                <LI><Strong>Partition.</Strong> A topic is split into partitions for parallelism. Each partition is an ordered, append-only log.</LI>
-                <LI><Strong>Producer.</Strong> An app that writes events to a topic.</LI>
-                <LI><Strong>Consumer.</Strong> An app that reads events from a topic. Multiple consumers can read the same topic independently.</LI>
-                <LI><Strong>Offset.</Strong> A consumer's bookmark inside a partition. Kafka doesn't push — consumers pull at their own pace.</LI>
+                <LI>
+                    <Strong>Topic.</Strong> A named stream of events. e.g. <Code>orders.placed</Code>, <Code>user.signups</Code>.
+                </LI>
+                <LI>
+                    <Strong>Partition.</Strong> A topic is split into partitions for parallelism. Each partition is an ordered, append-only log.
+                </LI>
+                <LI>
+                    <Strong>Producer.</Strong> An app that writes events to a topic.
+                </LI>
+                <LI>
+                    <Strong>Consumer.</Strong> An app that reads events from a topic. Multiple consumers can read the same topic independently.
+                </LI>
+                <LI>
+                    <Strong>Offset.</Strong> A consumer's bookmark inside a partition. Kafka doesn't push — consumers pull at their own pace.
+                </LI>
             </UL>
 
             <H2 id="producer">Your first producer</H2>
-            <P>Install <Code>kafka-python</Code> and connect to a local broker:</P>
+            <P>
+                Install <Code>kafka-python</Code> and connect to a local broker:
+            </P>
             <CodeBlock
                 language="python"
                 title="producer.py"
@@ -254,7 +285,7 @@ for msg in consumer:
                     'Topics are split into partitions for parallelism; each partition is an ordered append-only log.',
                     'Consumers track their own offsets — they pull at their own pace, replays are free.',
                     'Group consumers with the same group_id share work; different group_ids each get the full stream.',
-                    "You can build a working producer-consumer pair in 30 lines of Python — start there before reaching for Kafka Streams."
+                    'You can build a working producer-consumer pair in 30 lines of Python — start there before reaching for Kafka Streams.'
                 ]}
             />
         </>
@@ -264,12 +295,72 @@ for msg in consumer:
 // ─── Stub list — preview only, body is "coming soon" ──────────────────────────
 
 const stubPosts: Omit<BlogPost, 'content' | 'toc'>[] = [
-    { slug: 'mastering-data-visualization', title: 'Mastering Data Visualization: Charts, Mistakes & Storytelling', description: 'Master the principles of effective data visualization — chart selection, common mistakes, and storytelling.', category: 'Data Science', date: '8 Apr 2026', readMin: 7, tags: ['DataVisualization', 'DataScience', 'Charts'], author: { name: 'Meritshot Team', role: 'Albero curriculum' }, coverGradient: 'linear-gradient(135deg,#16a34a,#10b981)' },
-    { slug: 'computer-vision-2026', title: 'Computer Vision in 2026: Real-World Applications Transforming Industries', description: 'Explore how computer vision is transforming manufacturing, healthcare, agriculture, retail, and autonomous vehicles.', category: 'AI', date: '2 Apr 2026', readMin: 8, tags: ['ComputerVision', 'AI', 'DeepLearning'], author: { name: 'Meritshot Team', role: 'Albero curriculum' }, coverGradient: 'linear-gradient(135deg,#dc2626,#ef4444)' },
-    { slug: 'large-language-models-explained', title: 'Large Language Models Explained: How AI Understands Text', description: 'A clear explanation of how LLMs like GPT and Claude work — transformers, training, fine-tuning, and 2026 applications.', category: 'AI', date: '28 Mar 2026', readMin: 8, tags: ['LLM', 'AI', 'MachineLearning'], author: { name: 'Meritshot Team', role: 'Albero curriculum' }, coverGradient: 'linear-gradient(135deg,#facc15,#f97316)' },
-    { slug: 'git-branching-strategies', title: 'Git Branching Strategies That Actually Work for Teams', description: 'A practical comparison of Git Flow, GitHub Flow, and Trunk-Based Development.', category: 'Software Development', date: '20 Mar 2026', readMin: 6, tags: ['Git', 'DevOps', 'Engineering'], author: { name: 'Meritshot Team', role: 'Albero curriculum' }, coverGradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
-    { slug: 'investment-banking-analyst-day', title: 'Investment Banking: A Day in the Life of an Analyst', description: 'Hours, deal flow, pitch books, modeling, mentorship, and unwritten rules of IB analyst life.', category: 'Finance & Investment Banking', date: '15 Mar 2026', readMin: 10, tags: ['InvestmentBanking', 'Career', 'Finance'], author: { name: 'Meritshot Team', role: 'Albero curriculum' }, coverGradient: 'linear-gradient(135deg,#facc15,#f59e0b)' },
-    { slug: 'cracking-pm-interview', title: 'Cracking the Product Manager Interview at MAANG', description: 'A structured framework for PM interview prep — strategy, behavioural, technical depth, case studies.', category: 'Career', date: '10 Mar 2026', readMin: 12, tags: ['ProductManagement', 'Interviews', 'Career'], author: { name: 'Meritshot Team', role: 'Albero curriculum' }, coverGradient: 'linear-gradient(135deg,#3b82f6,#0ea5e9)' }
+    {
+        slug: 'mastering-data-visualization',
+        title: 'Mastering Data Visualization: Charts, Mistakes & Storytelling',
+        description: 'Master the principles of effective data visualization — chart selection, common mistakes, and storytelling.',
+        category: 'Data Science',
+        date: '8 Apr 2026',
+        readMin: 7,
+        tags: ['DataVisualization', 'DataScience', 'Charts'],
+        author: { name: 'Meritshot Team', role: 'Albero curriculum' },
+        coverGradient: 'linear-gradient(135deg,#16a34a,#10b981)'
+    },
+    {
+        slug: 'computer-vision-2026',
+        title: 'Computer Vision in 2026: Real-World Applications Transforming Industries',
+        description: 'Explore how computer vision is transforming manufacturing, healthcare, agriculture, retail, and autonomous vehicles.',
+        category: 'AI',
+        date: '2 Apr 2026',
+        readMin: 8,
+        tags: ['ComputerVision', 'AI', 'DeepLearning'],
+        author: { name: 'Meritshot Team', role: 'Albero curriculum' },
+        coverGradient: 'linear-gradient(135deg,#dc2626,#ef4444)'
+    },
+    {
+        slug: 'large-language-models-explained',
+        title: 'Large Language Models Explained: How AI Understands Text',
+        description: 'A clear explanation of how LLMs like GPT and Claude work — transformers, training, fine-tuning, and 2026 applications.',
+        category: 'AI',
+        date: '28 Mar 2026',
+        readMin: 8,
+        tags: ['LLM', 'AI', 'MachineLearning'],
+        author: { name: 'Meritshot Team', role: 'Albero curriculum' },
+        coverGradient: 'linear-gradient(135deg,#facc15,#f97316)'
+    },
+    {
+        slug: 'git-branching-strategies',
+        title: 'Git Branching Strategies That Actually Work for Teams',
+        description: 'A practical comparison of Git Flow, GitHub Flow, and Trunk-Based Development.',
+        category: 'Software Development',
+        date: '20 Mar 2026',
+        readMin: 6,
+        tags: ['Git', 'DevOps', 'Engineering'],
+        author: { name: 'Meritshot Team', role: 'Albero curriculum' },
+        coverGradient: 'linear-gradient(135deg,#a855f7,#7c3aed)'
+    },
+    {
+        slug: 'investment-banking-analyst-day',
+        title: 'Investment Banking: A Day in the Life of an Analyst',
+        description: 'Hours, deal flow, pitch books, modeling, mentorship, and unwritten rules of IB analyst life.',
+        category: 'Finance & Investment Banking',
+        date: '15 Mar 2026',
+        readMin: 10,
+        tags: ['InvestmentBanking', 'Career', 'Finance'],
+        author: { name: 'Meritshot Team', role: 'Albero curriculum' },
+        coverGradient: 'linear-gradient(135deg,#facc15,#f59e0b)'
+    },
+    {
+        slug: 'cracking-pm-interview',
+        title: 'Cracking the Product Manager Interview at MAANG',
+        description: 'A structured framework for PM interview prep — strategy, behavioural, technical depth, case studies.',
+        category: 'Career',
+        date: '10 Mar 2026',
+        readMin: 12,
+        tags: ['ProductManagement', 'Interviews', 'Career'],
+        author: { name: 'Meritshot Team', role: 'Albero curriculum' },
+        coverGradient: 'linear-gradient(135deg,#3b82f6,#0ea5e9)'
+    }
 ]
 
 const allPosts: BlogPost[] = [

@@ -91,8 +91,7 @@ export default function ContactPage() {
             <section
                 className="relative overflow-hidden"
                 style={{
-                    background:
-                        'radial-gradient(ellipse at 65% 50%, #0d2740 0%, #061026 60%, #04081a 100%)',
+                    background: 'radial-gradient(ellipse at 65% 50%, #0d2740 0%, #061026 60%, #04081a 100%)',
                     color: '#f8f6ee'
                 }}>
                 <div
@@ -119,8 +118,13 @@ export default function ContactPage() {
                         transition={{ duration: 0.5 }}
                         className="max-w-[760px]">
                         <div className="inline-flex items-center gap-2 mb-6">
-                            <span className="inline-block w-12 h-[2px] rounded-full" style={{ background: '#34d399' }} />
-                            <span className="text-[11px] tracking-[0.28em] uppercase font-semibold" style={{ color: '#34d399' }}>
+                            <span
+                                className="inline-block w-12 h-[2px] rounded-full"
+                                style={{ background: '#34d399' }}
+                            />
+                            <span
+                                className="text-[11px] tracking-[0.28em] uppercase font-semibold"
+                                style={{ color: '#34d399' }}>
                                 Get in touch
                             </span>
                         </div>
@@ -128,21 +132,30 @@ export default function ContactPage() {
                             className="font-display tracking-[-0.02em] mb-5"
                             style={{ fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 0.96, color: '#f8f6ee' }}>
                             <span className="font-medium">Talk to a</span>{' '}
-                            <span className="italic font-light" style={{ color: '#34d399' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: '#34d399' }}>
                                 senior counsellor.
                             </span>
                         </h1>
                         <p
                             className="text-[16px] md:text-[17px] leading-relaxed max-w-[640px]"
                             style={{ color: 'rgba(248,246,238,0.78)' }}>
-                            We'll map your background, goals, and timeline to the right programme — and if Albero
-                            isn't right for you, we'll tell you that too. No sales pitch, no commitment.
+                            We'll map your background, goals, and timeline to the right programme — and if Albero isn't right for you, we'll tell you
+                            that too. No sales pitch, no commitment.
                         </p>
 
-                        <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13.5px]" style={{ color: 'rgba(248,246,238,0.7)' }}>
+                        <div
+                            className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13.5px]"
+                            style={{ color: 'rgba(248,246,238,0.7)' }}>
                             {['No sales pitch', 'WhatsApp follow-up', 'Reply in 30 min'].map((t) => (
-                                <span key={t} className="inline-flex items-center gap-2">
-                                    <CheckCircle2 size={14} style={{ color: '#34d399' }} />
+                                <span
+                                    key={t}
+                                    className="inline-flex items-center gap-2">
+                                    <CheckCircle2
+                                        size={14}
+                                        style={{ color: '#34d399' }}
+                                    />
                                     {t}
                                 </span>
                             ))}
@@ -185,7 +198,9 @@ export default function ContactPage() {
                                     style={{ color: 'var(--text-primary)' }}>
                                     {value}
                                 </div>
-                                <div className="text-[12px] mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                                <div
+                                    className="text-[12px] mt-1.5"
+                                    style={{ color: 'var(--text-tertiary)' }}>
                                     {sub}
                                 </div>
                             </motion.a>
@@ -231,7 +246,9 @@ export default function ContactPage() {
                             <form
                                 onSubmit={onSubmit}
                                 className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <Field label="Full name" required>
+                                <Field
+                                    label="Full name"
+                                    required>
                                     <input
                                         required
                                         value={form.name}
@@ -245,7 +262,9 @@ export default function ContactPage() {
                                         }}
                                     />
                                 </Field>
-                                <Field label="Email" required>
+                                <Field
+                                    label="Email"
+                                    required>
                                     <input
                                         required
                                         type="email"
@@ -260,7 +279,9 @@ export default function ContactPage() {
                                         }}
                                     />
                                 </Field>
-                                <Field label="WhatsApp number" required>
+                                <Field
+                                    label="WhatsApp number"
+                                    required>
                                     <input
                                         required
                                         type="tel"
@@ -313,7 +334,9 @@ export default function ContactPage() {
                                     </Field>
                                 </div>
                                 <div className="sm:col-span-2 flex items-center justify-between gap-4 mt-2">
-                                    <p className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+                                    <p
+                                        className="text-[12px]"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         By submitting, you agree to our privacy policy. We'll only contact you about programmes.
                                     </p>
                                     <button
@@ -325,7 +348,14 @@ export default function ContactPage() {
                                             color: 'var(--text-on-inverse)',
                                             boxShadow: '0 8px 18px rgba(13,79,60,0.30)'
                                         }}>
-                                        {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                        {loading ? (
+                                            <Loader2
+                                                size={14}
+                                                className="animate-spin"
+                                            />
+                                        ) : (
+                                            <Send size={14} />
+                                        )}
                                         {loading ? 'Sending…' : 'Send message'}
                                     </button>
                                 </div>
@@ -354,8 +384,7 @@ export default function ContactPage() {
                         <div
                             className="rounded-3xl p-6 relative overflow-hidden"
                             style={{
-                                background:
-                                    'linear-gradient(155deg, #0d2740 0%, #061026 60%, #04081a 100%)',
+                                background: 'linear-gradient(155deg, #0d2740 0%, #061026 60%, #04081a 100%)',
                                 color: '#f8f6ee',
                                 border: '1px solid rgba(255,255,255,0.06)'
                             }}>
@@ -369,21 +398,33 @@ export default function ContactPage() {
                                 style={{ background: 'rgba(52,211,153,0.14)', color: '#34d399', border: '1px solid rgba(52,211,153,0.28)' }}>
                                 <Clock size={11} /> Hours
                             </div>
-                            <h3 className="relative font-display text-[20px] leading-tight font-semibold mb-3">
-                                When we pick up the phone.
-                            </h3>
-                            <ul className="relative space-y-2 text-[13.5px]" style={{ color: 'rgba(248,246,238,0.78)' }}>
+                            <h3 className="relative font-display text-[20px] leading-tight font-semibold mb-3">When we pick up the phone.</h3>
+                            <ul
+                                className="relative space-y-2 text-[13.5px]"
+                                style={{ color: 'rgba(248,246,238,0.78)' }}>
                                 <li className="flex items-center justify-between">
                                     <span>Mon – Fri</span>
-                                    <span className="font-semibold" style={{ color: '#f8f6ee' }}>10 AM – 9 PM</span>
+                                    <span
+                                        className="font-semibold"
+                                        style={{ color: '#f8f6ee' }}>
+                                        10 AM – 9 PM
+                                    </span>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <span>Saturday</span>
-                                    <span className="font-semibold" style={{ color: '#f8f6ee' }}>10 AM – 6 PM</span>
+                                    <span
+                                        className="font-semibold"
+                                        style={{ color: '#f8f6ee' }}>
+                                        10 AM – 6 PM
+                                    </span>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <span>Sunday</span>
-                                    <span className="font-semibold" style={{ color: '#f8f6ee' }}>WhatsApp only</span>
+                                    <span
+                                        className="font-semibold"
+                                        style={{ color: '#f8f6ee' }}>
+                                        WhatsApp only
+                                    </span>
                                 </li>
                             </ul>
                         </div>
@@ -487,7 +528,9 @@ export default function ContactPage() {
                                 style={{ color: 'var(--text-primary)' }}>
                                 Albero Academy · Indiranagar
                             </div>
-                            <div className="text-[13px] mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                            <div
+                                className="text-[13px] mt-1"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 100ft Road, Bengaluru 560038 · India
                             </div>
                             <a

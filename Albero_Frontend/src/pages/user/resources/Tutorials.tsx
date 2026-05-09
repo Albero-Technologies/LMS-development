@@ -62,12 +62,54 @@ const topics = [
 ]
 
 const featuredChapters = [
-    { ch: 'Chapter 1', slug: 'python/python-fundamentals', title: 'Python Fundamentals', desc: 'Learn the basics of Python — installation, variables, data types, input/output, comments, and your first programs.', read: '11 min', tags: ['Python', 'Basics'] },
-    { ch: 'Chapter 2', slug: 'python/python-operators', title: 'Python Operators', desc: 'Master arithmetic, comparison, logical, assignment, bitwise, membership, and identity operators with practical examples.', read: '14 min', tags: ['Python', 'Operators'] },
-    { ch: 'Chapter 3', slug: 'python/python-data-types', title: 'Python Data Types', desc: "Deep dive into Python's data types — integers, floats, strings, booleans, None, type conversion, and how they work.", read: '29 min', tags: ['Python', 'Data Types'] },
-    { ch: 'Chapter 4', slug: 'python/python-lists', title: 'Python Lists', desc: 'Master Python lists — creation, indexing, slicing, methods, iteration, comprehensions, nested lists, and more.', read: '28 min', tags: ['Python', 'Lists'] },
-    { ch: 'Chapter 5', slug: 'python/python-strings', title: 'Python Strings', desc: 'Complete guide to Python strings — creation, indexing, slicing, methods, formatting, regex basics and real-world use.', read: '24 min', tags: ['Python', 'Strings'] },
-    { ch: 'Chapter 6', slug: 'python/tuples-and-sets', title: 'Tuples & Sets', desc: 'Understand immutable tuples and unique-element sets — creation, operations, methods, use cases, and when to use which.', read: '34 min', tags: ['Python', 'Tuples'] }
+    {
+        ch: 'Chapter 1',
+        slug: 'python/python-fundamentals',
+        title: 'Python Fundamentals',
+        desc: 'Learn the basics of Python — installation, variables, data types, input/output, comments, and your first programs.',
+        read: '11 min',
+        tags: ['Python', 'Basics']
+    },
+    {
+        ch: 'Chapter 2',
+        slug: 'python/python-operators',
+        title: 'Python Operators',
+        desc: 'Master arithmetic, comparison, logical, assignment, bitwise, membership, and identity operators with practical examples.',
+        read: '14 min',
+        tags: ['Python', 'Operators']
+    },
+    {
+        ch: 'Chapter 3',
+        slug: 'python/python-data-types',
+        title: 'Python Data Types',
+        desc: "Deep dive into Python's data types — integers, floats, strings, booleans, None, type conversion, and how they work.",
+        read: '29 min',
+        tags: ['Python', 'Data Types']
+    },
+    {
+        ch: 'Chapter 4',
+        slug: 'python/python-lists',
+        title: 'Python Lists',
+        desc: 'Master Python lists — creation, indexing, slicing, methods, iteration, comprehensions, nested lists, and more.',
+        read: '28 min',
+        tags: ['Python', 'Lists']
+    },
+    {
+        ch: 'Chapter 5',
+        slug: 'python/python-strings',
+        title: 'Python Strings',
+        desc: 'Complete guide to Python strings — creation, indexing, slicing, methods, formatting, regex basics and real-world use.',
+        read: '24 min',
+        tags: ['Python', 'Strings']
+    },
+    {
+        ch: 'Chapter 6',
+        slug: 'python/tuples-and-sets',
+        title: 'Tuples & Sets',
+        desc: 'Understand immutable tuples and unique-element sets — creation, operations, methods, use cases, and when to use which.',
+        read: '34 min',
+        tags: ['Python', 'Tuples']
+    }
 ]
 
 export default function Tutorials() {
@@ -81,7 +123,9 @@ export default function Tutorials() {
     // (/resources/tutorials/<topic>/<chapter-slug>).
     const cmsChapters = (cmsQuery.data?.items ?? []).map((it, i) => {
         const data = it.data as { title?: string; topic?: string; chapter?: number; description?: string; readMin?: number }
-        const topic = String(data.topic ?? 'general').toLowerCase().replace(/\s+/g, '-')
+        const topic = String(data.topic ?? 'general')
+            .toLowerCase()
+            .replace(/\s+/g, '-')
         return {
             ch: `Chapter ${data.chapter ?? i + 1}`,
             slug: `${topic}/${it.slug}`,
@@ -140,9 +184,17 @@ export default function Tutorials() {
                                 <div
                                     className="h-40 flex items-center justify-center relative overflow-hidden"
                                     style={{ background: t.gradient }}>
-                                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0, transparent 50%)' }} />
-                                    <span className="font-display text-3xl md:text-4xl font-semibold text-white tracking-tight drop-shadow">{t.name}</span>
-                                    <Icon className="absolute right-5 bottom-5 text-white/30" size={64} />
+                                    <div
+                                        className="absolute inset-0 opacity-10"
+                                        style={{ backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0, transparent 50%)' }}
+                                    />
+                                    <span className="font-display text-3xl md:text-4xl font-semibold text-white tracking-tight drop-shadow">
+                                        {t.name}
+                                    </span>
+                                    <Icon
+                                        className="absolute right-5 bottom-5 text-white/30"
+                                        size={64}
+                                    />
                                 </div>
                                 <div className="p-6">
                                     <h3
@@ -160,7 +212,11 @@ export default function Tutorials() {
                                         style={{ borderColor: 'var(--line)' }}>
                                         <span
                                             className="px-3 py-1 rounded-full text-[11.5px] font-semibold"
-                                            style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--line)' }}>
+                                            style={{
+                                                background: 'var(--surface-2)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--line)'
+                                            }}>
                                             {t.lessons} Lessons
                                         </span>
                                         <span
@@ -187,7 +243,12 @@ export default function Tutorials() {
                     <h2
                         className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em] mb-3"
                         style={{ color: 'var(--text-primary)' }}>
-                        Python from <span className="italic font-light" style={{ color: 'var(--brand)' }}>beginner to advanced</span>
+                        Python from{' '}
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
+                            beginner to advanced
+                        </span>
                     </h2>
                     <p style={{ color: 'var(--text-secondary)' }}>14 chapters · 7h 36m total reading · Beginner to Advanced</p>
                 </div>
@@ -233,7 +294,9 @@ export default function Tutorials() {
                                 </span>
                                 <div className="flex gap-2">
                                     {c.tags.slice(0, 2).map((t, j) => (
-                                        <span key={j} style={{ color: 'var(--text-tertiary)' }}>
+                                        <span
+                                            key={j}
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             #{t}
                                         </span>
                                     ))}

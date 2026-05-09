@@ -73,7 +73,13 @@ export default function BlogPostPage() {
         return () => observer.disconnect()
     }, [slug, post])
 
-    if (!post) return <Navigate to="/resources/blogs" replace />
+    if (!post)
+        return (
+            <Navigate
+                to="/resources/blogs"
+                replace
+            />
+        )
 
     const related = all.filter((p) => p.slug !== post.slug && p.category === post.category).slice(0, 3)
     const initials = post.author.name
@@ -97,14 +103,19 @@ export default function BlogPostPage() {
                     <nav
                         className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap"
                         style={{ color: 'var(--text-tertiary)' }}>
-                        <Link to="/resources/blogs" className="hover:underline">
+                        <Link
+                            to="/resources/blogs"
+                            className="hover:underline">
                             Blog
                         </Link>
                         <ChevronRight size={12} />
                         <span style={{ color: 'var(--brand)' }}>{post.category}</span>
                     </nav>
 
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}>
                         <div
                             className="inline-block text-[11px] font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-md mb-5"
                             style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
@@ -122,7 +133,9 @@ export default function BlogPostPage() {
                             {post.description}
                         </p>
 
-                        <div className="flex items-center justify-between flex-wrap gap-4 pb-7 border-b" style={{ borderColor: 'var(--line)' }}>
+                        <div
+                            className="flex items-center justify-between flex-wrap gap-4 pb-7 border-b"
+                            style={{ borderColor: 'var(--line)' }}>
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-10 h-10 rounded-full inline-flex items-center justify-center font-semibold text-[12px]"
@@ -130,10 +143,14 @@ export default function BlogPostPage() {
                                     {initials}
                                 </div>
                                 <div className="leading-tight">
-                                    <div className="text-[13.5px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="text-[13.5px] font-semibold"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {post.author.name}
                                     </div>
-                                    <div className="text-[11.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[11.5px]"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {post.author.role}
                                     </div>
                                 </div>
@@ -227,7 +244,9 @@ export default function BlogPostPage() {
 
             {/* Related */}
             {related.length > 0 && (
-                <section className="px-5 md:px-8 pb-24" style={{ background: 'var(--page-bg-soft)' }}>
+                <section
+                    className="px-5 md:px-8 pb-24"
+                    style={{ background: 'var(--page-bg-soft)' }}>
                     <div className="max-w-[1180px] mx-auto pt-16">
                         <div className="flex items-end justify-between mb-8">
                             <h2
@@ -253,9 +272,7 @@ export default function BlogPostPage() {
                                     <div
                                         className="aspect-[16/9] flex items-end justify-end relative"
                                         style={{ background: p.coverGradient }}>
-                                        <span className="font-display italic text-[34px] text-white/25 pr-3 pb-1 leading-none">
-                                            {p.category}
-                                        </span>
+                                        <span className="font-display italic text-[34px] text-white/25 pr-3 pb-1 leading-none">{p.category}</span>
                                     </div>
                                     <div className="p-5">
                                         <div
@@ -268,7 +285,9 @@ export default function BlogPostPage() {
                                             style={{ color: 'var(--text-primary)' }}>
                                             {p.title}
                                         </h3>
-                                        <div className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+                                        <div
+                                            className="text-[12px]"
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             {p.date} · {p.readMin} min read
                                         </div>
                                     </div>

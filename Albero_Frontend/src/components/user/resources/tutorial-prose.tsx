@@ -69,7 +69,9 @@ export function Code({ children }: { children: ReactNode }) {
 
 export function Strong({ children }: { children: ReactNode }) {
     return (
-        <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <strong
+            className="font-semibold"
+            style={{ color: 'var(--text-primary)' }}>
             {children}
         </strong>
     )
@@ -103,7 +105,9 @@ export function Callout({ kind = 'tip', children }: { kind?: CalloutKind; childr
                     style={{ color: c.color }}>
                     {c.label}
                 </div>
-                <div className="text-[14.5px] leading-[1.65]" style={{ color: 'var(--text-primary)' }}>
+                <div
+                    className="text-[14.5px] leading-[1.65]"
+                    style={{ color: 'var(--text-primary)' }}>
                     {children}
                 </div>
             </div>

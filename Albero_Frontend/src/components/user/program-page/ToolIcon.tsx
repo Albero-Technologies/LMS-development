@@ -1,4 +1,25 @@
-import { Activity, BarChart3, Boxes, Cloud, Code2, Database, FileSpreadsheet, GitBranch, GlobeLock, Layers, LineChart, Network, PieChart, Server, Settings, Shield, ShieldAlert, Sparkles, TerminalSquare, Zap } from 'lucide-react'
+import {
+    Activity,
+    BarChart3,
+    Boxes,
+    Cloud,
+    Code2,
+    Database,
+    FileSpreadsheet,
+    GitBranch,
+    GlobeLock,
+    Layers,
+    LineChart,
+    Network,
+    PieChart,
+    Server,
+    Settings,
+    Shield,
+    ShieldAlert,
+    Sparkles,
+    TerminalSquare,
+    Zap
+} from 'lucide-react'
 
 // Tool icon mapping keyed by lowercase tool name. We render Lucide glyphs
 // in a brand-coloured circle instead of pulling logos from a third-party
@@ -17,8 +38,8 @@ interface ToolIconProps {
 // without needing a per-tool brand colour. All tones are derived from
 // the existing Albero palette.
 const TOOL_TONES = {
-    data: '#0d4f3c',      // emerald — SQL / databases / ETL
-    viz: '#b86a18',       // amber  — Power BI / Tableau / Looker
+    data: '#0d4f3c', // emerald — SQL / databases / ETL
+    viz: '#b86a18', // amber  — Power BI / Tableau / Looker
     spreadsheet: '#107c41', // soft green — Excel / Google Sheets
     python: '#3776ab',
     cloud: '#0891b2',

@@ -217,7 +217,9 @@ export default function PolicyLayout({ eyebrow, title, intro, effective, updated
                                 Need help? Contact us
                             </h3>
                             <div className="grid sm:grid-cols-3 gap-4 text-[14px]">
-                                <div className="flex items-center gap-3" style={{ color: 'var(--text-secondary)' }}>
+                                <div
+                                    className="flex items-center gap-3"
+                                    style={{ color: 'var(--text-secondary)' }}>
                                     <Mail
                                         size={16}
                                         style={{ color: 'var(--brand)' }}
@@ -225,7 +227,9 @@ export default function PolicyLayout({ eyebrow, title, intro, effective, updated
                                     />
                                     <span className="break-all">support@alberoacademy.com</span>
                                 </div>
-                                <div className="flex items-center gap-3" style={{ color: 'var(--text-secondary)' }}>
+                                <div
+                                    className="flex items-center gap-3"
+                                    style={{ color: 'var(--text-secondary)' }}>
                                     <Phone
                                         size={16}
                                         style={{ color: 'var(--brand)' }}
@@ -233,7 +237,9 @@ export default function PolicyLayout({ eyebrow, title, intro, effective, updated
                                     />
                                     <span>+91-XXXXXXXXXX</span>
                                 </div>
-                                <div className="flex items-start gap-3" style={{ color: 'var(--text-secondary)' }}>
+                                <div
+                                    className="flex items-start gap-3"
+                                    style={{ color: 'var(--text-secondary)' }}>
                                     <MapPin
                                         size={16}
                                         style={{ color: 'var(--brand)' }}

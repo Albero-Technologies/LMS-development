@@ -42,15 +42,13 @@ const pythonFundamentals: TutorialChapter = {
     content: (
         <>
             <P>
-                Python is the most popular programming language for analytics, data science, and AI in 2026 — and it's one of the easiest to read.
-                In this chapter we'll set up Python on your machine, walk through variables and data types, and write a few small programs you can
+                Python is the most popular programming language for analytics, data science, and AI in 2026 — and it's one of the easiest to read. In
+                this chapter we'll set up Python on your machine, walk through variables and data types, and write a few small programs you can
                 actually use. Even if you've never coded before, you'll have a working Python setup by the end.
             </P>
 
             <H2 id="why-python">Why Python in 2026?</H2>
-            <P>
-                Python's appeal is that it reads almost like English. Compare a sum-of-squares written in Python and in another language:
-            </P>
+            <P>Python's appeal is that it reads almost like English. Compare a sum-of-squares written in Python and in another language:</P>
             <CodeBlock
                 language="python"
                 title="python · readable"
@@ -116,9 +114,7 @@ pip --version
                 title="hello.py"
                 code={`print("Hello, Albero!")`}
             />
-            <P>
-                Save the file, then run it from your terminal:
-            </P>
+            <P>Save the file, then run it from your terminal:</P>
             <CodeBlock
                 language="bash"
                 showLines={false}
@@ -127,14 +123,13 @@ pip --version
 # Hello, Albero!`}
             />
             <P>
-                That's it — you've shipped a Python program. The <Code>print()</Code> function is built in; you don't need to import anything to
-                use it.
+                That's it — you've shipped a Python program. The <Code>print()</Code> function is built in; you don't need to import anything to use
+                it.
             </P>
 
             <H2 id="variables">Variables</H2>
             <P>
-                A variable is a labelled box. You put a value in, and you can refer to that value by the label. Python uses an equals sign to
-                assign:
+                A variable is a labelled box. You put a value in, and you can refer to that value by the label. Python uses an equals sign to assign:
             </P>
             <CodeBlock
                 language="python"
@@ -148,8 +143,13 @@ print(name, age, salary_lpa, is_alumni)
             />
             <P>Two things to notice:</P>
             <UL>
-                <LI>Python is <Strong>dynamically typed</Strong> — you don't write a type. The value's type is inferred when you assign.</LI>
-                <LI>The conventional naming style is <Code>snake_case</Code> — lowercase with underscores. Reserve <Code>CamelCase</Code> for class names.</LI>
+                <LI>
+                    Python is <Strong>dynamically typed</Strong> — you don't write a type. The value's type is inferred when you assign.
+                </LI>
+                <LI>
+                    The conventional naming style is <Code>snake_case</Code> — lowercase with underscores. Reserve <Code>CamelCase</Code> for class
+                    names.
+                </LI>
             </UL>
 
             <Callout kind="warning">
@@ -158,9 +158,7 @@ print(name, age, salary_lpa, is_alumni)
             </Callout>
 
             <H2 id="data-types">Built-in data types</H2>
-            <P>
-                You'll work with a small set of built-in types every day. Here are the five you must know cold:
-            </P>
+            <P>You'll work with a small set of built-in types every day. Here are the five you must know cold:</P>
             <CodeBlock
                 language="python"
                 code={`# int — whole numbers
@@ -217,14 +215,12 @@ print(f"Welcome to Albero, {name} 🌱")`}
                 cleanest way to format output, and you'll see them everywhere.
             </P>
             <Callout kind="tip">
-                You can do basic math inside an f-string: <Code>{`f"Total: {price * 1.18:.2f}"`}</Code> — that prints <Code>Total: 235.99</Code> with two
-                decimals.
+                You can do basic math inside an f-string: <Code>{`f"Total: {price * 1.18:.2f}"`}</Code> — that prints <Code>Total: 235.99</Code> with
+                two decimals.
             </Callout>
 
             <H2 id="comments">Comments &amp; docstrings</H2>
-            <P>
-                Comments are notes for humans. Python ignores them at runtime.
-            </P>
+            <P>Comments are notes for humans. Python ignores them at runtime.</P>
             <CodeBlock
                 language="python"
                 code={`# A single-line comment
@@ -244,25 +240,17 @@ print(gst(100))  # 118.0`}
             <H2 id="practice">Practice exercises</H2>
             <P>Try these in a fresh file. Solutions are intentionally not included — figure them out, then move to the next chapter.</P>
             <UL>
-                <LI>
-                    Ask the user for two numbers. Print their sum, difference, product, and quotient using f-strings.
-                </LI>
-                <LI>
-                    Read a temperature in Celsius and print it in Fahrenheit. Round to 2 decimals.
-                </LI>
-                <LI>
-                    Build a "tip calculator" — ask for the bill amount and tip percent, print the total.
-                </LI>
-                <LI>
-                    Bonus: print a friendly error message if the user types something that can't be converted to a number.
-                </LI>
+                <LI>Ask the user for two numbers. Print their sum, difference, product, and quotient using f-strings.</LI>
+                <LI>Read a temperature in Celsius and print it in Fahrenheit. Round to 2 decimals.</LI>
+                <LI>Build a "tip calculator" — ask for the bill amount and tip percent, print the total.</LI>
+                <LI>Bonus: print a friendly error message if the user types something that can't be converted to a number.</LI>
             </UL>
 
             <Takeaways
                 items={[
-                    'Python reads like English — it\'s the most popular language for analytics, ML and AI in 2026.',
+                    "Python reads like English — it's the most popular language for analytics, ML and AI in 2026.",
                     'Variables are dynamically typed — assign with =, name them in snake_case.',
-                    'The five built-in types you\'ll use daily are int, float, str, bool, and NoneType.',
+                    "The five built-in types you'll use daily are int, float, str, bool, and NoneType.",
                     'Use input() to read text from the user and f-strings to format output cleanly.',
                     'Comments and docstrings live for the future reader — write them generously.'
                 ]}
@@ -293,7 +281,10 @@ const pythonOperators: TutorialChapter = {
     ],
     content: (
         <>
-            <P>Operators are how you do real work in Python — adding numbers, comparing values, building decisions. This chapter covers the seven categories every Python developer uses every day.</P>
+            <P>
+                Operators are how you do real work in Python — adding numbers, comparing values, building decisions. This chapter covers the seven
+                categories every Python developer uses every day.
+            </P>
 
             <H2 id="arithmetic">Arithmetic operators</H2>
             <P>The seven arithmetic operators in Python:</P>
@@ -311,11 +302,14 @@ print(a % b)   # 2   modulus (remainder)
 print(a ** b)  # 1419857  exponentiation`}
             />
             <Callout kind="tip">
-                The <Code>//</Code> operator returns a whole number — it's perfect for "how many full pages?" or "how many full hours fit?" calculations.
+                The <Code>//</Code> operator returns a whole number — it's perfect for "how many full pages?" or "how many full hours fit?"
+                calculations.
             </Callout>
 
             <H2 id="comparison">Comparison operators</H2>
-            <P>Comparisons always return a <Code>bool</Code> — either <Code>True</Code> or <Code>False</Code>.</P>
+            <P>
+                Comparisons always return a <Code>bool</Code> — either <Code>True</Code> or <Code>False</Code>.
+            </P>
             <CodeBlock
                 language="python"
                 code={`x, y = 10, 20
@@ -329,7 +323,9 @@ print(y >= 25) # False`}
             />
 
             <H2 id="logical">Logical operators</H2>
-            <P>Combine conditions with <Code>and</Code>, <Code>or</Code>, <Code>not</Code>:</P>
+            <P>
+                Combine conditions with <Code>and</Code>, <Code>or</Code>, <Code>not</Code>:
+            </P>
             <CodeBlock
                 language="python"
                 code={`age = 22
@@ -424,8 +420,8 @@ const pythonDataTypes: TutorialChapter = {
     content: (
         <>
             <P>
-                Every value in Python has a type. Understanding the built-in types — and their mutability — is the difference between code that
-                works in toy examples and code that works in production.
+                Every value in Python has a type. Understanding the built-in types — and their mutability — is the difference between code that works
+                in toy examples and code that works in production.
             </P>
 
             <H2 id="overview">The full type tree</H2>
@@ -445,8 +441,8 @@ const pythonDataTypes: TutorialChapter = {
 
             <H2 id="numbers">Numbers — int, float, complex</H2>
             <P>
-                Python has three numeric types. <Code>int</Code> for whole numbers (unlimited precision), <Code>float</Code> for 64-bit decimals,
-                and <Code>complex</Code> for complex numbers (rarely used outside scientific code).
+                Python has three numeric types. <Code>int</Code> for whole numbers (unlimited precision), <Code>float</Code> for 64-bit decimals, and{' '}
+                <Code>complex</Code> for complex numbers (rarely used outside scientific code).
             </P>
             <CodeBlock
                 language="python"
@@ -462,8 +458,8 @@ huge = 2 ** 1000
 print(len(str(huge)))   # 302 digits — no overflow`}
             />
             <Callout kind="warning">
-                Floats follow IEEE 754 — meaning <Code>0.1 + 0.2</Code> is <Code>0.30000000000000004</Code>, not <Code>0.3</Code>. For money,{' '}
-                use the <Code>decimal</Code> module:
+                Floats follow IEEE 754 — meaning <Code>0.1 + 0.2</Code> is <Code>0.30000000000000004</Code>, not <Code>0.3</Code>. For money, use the{' '}
+                <Code>decimal</Code> module:
             </Callout>
             <CodeBlock
                 language="python"
@@ -532,8 +528,8 @@ if result is None:
     print("nothing matched")`}
             />
             <Callout kind="tip">
-                Always check for <Code>None</Code> with <Code>is None</Code>, not <Code>== None</Code>. <Code>is</Code> compares object identity
-                and is the standard idiom — pylint will flag the alternative.
+                Always check for <Code>None</Code> with <Code>is None</Code>, not <Code>== None</Code>. <Code>is</Code> compares object identity and
+                is the standard idiom — pylint will flag the alternative.
             </Callout>
 
             <H2 id="type-checking">Type checking &amp; isinstance</H2>
@@ -1054,7 +1050,7 @@ text = raw_bytes.decode("utf-8")`}
                     'f-strings are the standard for formatting — they support format specs and any expression.',
                     'split / join / replace handle 80% of text wrangling without regex.',
                     'Reach for re for anything pattern-based — emails, phone numbers, dates.',
-                    "Python 3 strings are unicode; encode/decode at I/O boundaries with utf-8."
+                    'Python 3 strings are unicode; encode/decode at I/O boundaries with utf-8.'
                 ]}
             />
         </>
@@ -1084,8 +1080,8 @@ const pythonTuplesAndSets: TutorialChapter = {
     content: (
         <>
             <P>
-                Tuples and sets round out the four built-in collection types (list, tuple, set, dict). Tuples are immutable sequences — like
-                read-only lists. Sets are unordered collections of unique elements.
+                Tuples and sets round out the four built-in collection types (list, tuple, set, dict). Tuples are immutable sequences — like read-only
+                lists. Sets are unordered collections of unique elements.
             </P>
 
             <H2 id="tuple-create">Creating tuples</H2>
@@ -1209,8 +1205,7 @@ both         = ios_users & web_users   # {'u3', 'u4'}
 mobile_only  = ios_users - web_users   # {'u1', 'u2'}`}
             />
             <Callout kind="tip">
-                Use a set as a deduper:{' '}
-                <Code>{`unique_emails = list(set(emails))`}</Code>. It's the cleanest one-liner for "remove duplicates".
+                Use a set as a deduper: <Code>{`unique_emails = list(set(emails))`}</Code>. It's the cleanest one-liner for "remove duplicates".
             </Callout>
 
             <H2 id="frozen">frozenset</H2>
@@ -1269,9 +1264,15 @@ const sqlIntro: TutorialChapter = {
 
             <H2 id="why">Why SQL?</H2>
             <UL>
-                <LI><Strong>Universal.</Strong> Postgres, MySQL, SQL Server, BigQuery, Snowflake, Redshift, ClickHouse — they all speak SQL.</LI>
-                <LI><Strong>Declarative.</Strong> You describe what you want, not how to get it. The query planner figures out the rest.</LI>
-                <LI><Strong>Hire-able.</Strong> Every analytics, data, and BI role lists SQL as a primary requirement.</LI>
+                <LI>
+                    <Strong>Universal.</Strong> Postgres, MySQL, SQL Server, BigQuery, Snowflake, Redshift, ClickHouse — they all speak SQL.
+                </LI>
+                <LI>
+                    <Strong>Declarative.</Strong> You describe what you want, not how to get it. The query planner figures out the rest.
+                </LI>
+                <LI>
+                    <Strong>Hire-able.</Strong> Every analytics, data, and BI role lists SQL as a primary requirement.
+                </LI>
             </UL>
 
             <H2 id="syntax">Anatomy of a SELECT</H2>
@@ -1332,8 +1333,8 @@ SELECT * FROM users
 WHERE referral_code IS NULL;`}
             />
             <Callout kind="warning">
-                <Code>= NULL</Code> always returns <Code>UNKNOWN</Code>, not <Code>TRUE</Code>. Use <Code>IS NULL</Code> /{' '}
-                <Code>IS NOT NULL</Code>. This is the #1 SQL bug for beginners.
+                <Code>= NULL</Code> always returns <Code>UNKNOWN</Code>, not <Code>TRUE</Code>. Use <Code>IS NULL</Code> / <Code>IS NOT NULL</Code>.
+                This is the #1 SQL bug for beginners.
             </Callout>
 
             <H2 id="order">ORDER BY &amp; LIMIT</H2>
@@ -1433,14 +1434,14 @@ const sqlJoins: TutorialChapter = {
     content: (
         <>
             <P>
-                Real databases never live in a single table. Customers in one table, orders in another, products in a third. Joins are how you
-                stitch them back together for analysis.
+                Real databases never live in a single table. Customers in one table, orders in another, products in a third. Joins are how you stitch
+                them back together for analysis.
             </P>
 
             <H2 id="why">Why we join</H2>
             <P>
-                Take two tables: <Code>customers(id, name)</Code> and <Code>orders(id, customer_id, amount)</Code>. To answer "which customers
-                placed which orders", you need to <em>connect</em> them on the matching key — that's a join.
+                Take two tables: <Code>customers(id, name)</Code> and <Code>orders(id, customer_id, amount)</Code>. To answer "which customers placed
+                which orders", you need to <em>connect</em> them on the matching key — that's a join.
             </P>
 
             <H2 id="inner">INNER JOIN</H2>
@@ -1453,8 +1454,7 @@ INNER JOIN orders o
     ON o.customer_id = c.id;`}
             />
             <Callout kind="info">
-                <Code>INNER JOIN</Code> is the default. <Code>JOIN</Code> alone means <Code>INNER JOIN</Code>. Always be explicit; it reads
-                better.
+                <Code>INNER JOIN</Code> is the default. <Code>JOIN</Code> alone means <Code>INNER JOIN</Code>. Always be explicit; it reads better.
             </Callout>
 
             <H2 id="left">LEFT JOIN</H2>
@@ -1503,10 +1503,14 @@ FROM customers c
 LEFT JOIN orders o ON o.customer_id = c.id
 WHERE o.id IS NULL;`}
             />
-            <P>This is faster than the equivalent <Code>NOT IN</Code> on most engines, and unlike <Code>NOT IN</Code> it handles NULLs correctly.</P>
+            <P>
+                This is faster than the equivalent <Code>NOT IN</Code> on most engines, and unlike <Code>NOT IN</Code> it handles NULLs correctly.
+            </P>
 
             <H2 id="self">Self joins</H2>
-            <P>A self join is when you join a table to itself — for example, an employees table where each row has a <Code>manager_id</Code>:</P>
+            <P>
+                A self join is when you join a table to itself — for example, an employees table where each row has a <Code>manager_id</Code>:
+            </P>
             <CodeBlock
                 language="sql"
                 code={`-- Get every employee with their manager's name
@@ -1574,7 +1578,10 @@ SELECT
     salary - AVG(salary) OVER (PARTITION BY department) AS diff_from_avg
 FROM employees;`}
             />
-            <P>The <Code>OVER (PARTITION BY ...)</Code> clause defines the window. Without <Code>PARTITION BY</Code>, the window is the entire result set:</P>
+            <P>
+                The <Code>OVER (PARTITION BY ...)</Code> clause defines the window. Without <Code>PARTITION BY</Code>, the window is the entire result
+                set:
+            </P>
             <CodeBlock
                 language="sql"
                 code={`SELECT name, salary,
@@ -1629,8 +1636,8 @@ FROM daily_metrics;`}
 FROM orders;`}
             />
             <Callout kind="tip">
-                <Code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</Code> is the default when you specify <Code>ORDER BY</Code> without a frame
-                — but writing it explicitly is clearer for reviewers.
+                <Code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</Code> is the default when you specify <Code>ORDER BY</Code> without a frame —
+                but writing it explicitly is clearer for reviewers.
             </Callout>
 
             <H2 id="topn">Top-N per group</H2>
@@ -1654,7 +1661,7 @@ ORDER BY department, salary DESC;`}
             <Takeaways
                 items={[
                     'Window functions compute aggregates without collapsing rows.',
-                    "OVER (PARTITION BY ...) defines the window; ORDER BY orders rows within it.",
+                    'OVER (PARTITION BY ...) defines the window; ORDER BY orders rows within it.',
                     'Use ROW_NUMBER for unique rankings, RANK / DENSE_RANK to handle ties.',
                     'LAG/LEAD look at previous/next rows — perfect for time-series gaps.',
                     'The Top-N-per-group pattern is the most-asked window question — memorise it.'
@@ -1686,27 +1693,36 @@ const powerbiIntro: TutorialChapter = {
     content: (
         <>
             <P>
-                Power BI is Microsoft's business intelligence platform — and the most-used dashboarding tool in Indian enterprises. The Desktop
-                app is free, the cloud service has a per-user licence, and the underlying engine (VertiPaq) is the same one that powers Excel's
-                Power Pivot.
+                Power BI is Microsoft's business intelligence platform — and the most-used dashboarding tool in Indian enterprises. The Desktop app is
+                free, the cloud service has a per-user licence, and the underlying engine (VertiPaq) is the same one that powers Excel's Power Pivot.
             </P>
 
             <H2 id="what">What is Power BI?</H2>
             <UL>
-                <LI><Strong>Power BI Desktop</Strong> — the free Windows app where you connect data, model it, and design reports.</LI>
-                <LI><Strong>Power BI Service</Strong> — the cloud (powerbi.com) where you publish and share dashboards.</LI>
-                <LI><Strong>Power BI Mobile</Strong> — iOS/Android apps for consumption on the go.</LI>
+                <LI>
+                    <Strong>Power BI Desktop</Strong> — the free Windows app where you connect data, model it, and design reports.
+                </LI>
+                <LI>
+                    <Strong>Power BI Service</Strong> — the cloud (powerbi.com) where you publish and share dashboards.
+                </LI>
+                <LI>
+                    <Strong>Power BI Mobile</Strong> — iOS/Android apps for consumption on the go.
+                </LI>
             </UL>
 
             <H2 id="install">Power BI Desktop</H2>
-            <P>Download from <Code>powerbi.microsoft.com</Code> or the Microsoft Store. It's free, Windows-only, and updates monthly.</P>
+            <P>
+                Download from <Code>powerbi.microsoft.com</Code> or the Microsoft Store. It's free, Windows-only, and updates monthly.
+            </P>
             <Callout kind="tip">
                 The Power BI ribbon has three big buttons that map to the three "modes": <Strong>Report</Strong> (visuals), <Strong>Data</Strong>{' '}
                 (table view), and <Strong>Model</Strong> (relationships). You'll switch between them constantly.
             </Callout>
 
             <H2 id="load">Loading data</H2>
-            <P>Click <Strong>Get Data</Strong>. Power BI supports 100+ connectors. Common ones:</P>
+            <P>
+                Click <Strong>Get Data</Strong>. Power BI supports 100+ connectors. Common ones:
+            </P>
             <UL>
                 <LI>Excel / CSV files (drag-and-drop works too)</LI>
                 <LI>SQL Server, Postgres, MySQL, Snowflake, BigQuery</LI>
@@ -1747,20 +1763,32 @@ in
    quantity
    revenue`}
             />
-            <P>In <Strong>Model view</Strong>, drag a key from the fact table onto the matching dimension key. Power BI infers the cardinality (typically one-to-many) and creates the relationship.</P>
+            <P>
+                In <Strong>Model view</Strong>, drag a key from the fact table onto the matching dimension key. Power BI infers the cardinality
+                (typically one-to-many) and creates the relationship.
+            </P>
             <Callout kind="warning">
-                Avoid bidirectional relationships and many-to-many unless you know exactly why. They cause ambiguous filters and surprising
-                totals.
+                Avoid bidirectional relationships and many-to-many unless you know exactly why. They cause ambiguous filters and surprising totals.
             </Callout>
 
             <H2 id="dashboard">Your first dashboard</H2>
             <UL>
-                <LI>Drag <Code>revenue</Code> onto the canvas. Power BI guesses a column chart.</LI>
-                <LI>Drop <Code>region</Code> on the X-axis — now it's revenue by region.</LI>
-                <LI>Add a slicer with <Code>order_date</Code> for time filtering.</LI>
-                <LI>Click <Strong>Format</Strong> on each visual — set titles, font sizes, axis labels.</LI>
+                <LI>
+                    Drag <Code>revenue</Code> onto the canvas. Power BI guesses a column chart.
+                </LI>
+                <LI>
+                    Drop <Code>region</Code> on the X-axis — now it's revenue by region.
+                </LI>
+                <LI>
+                    Add a slicer with <Code>order_date</Code> for time filtering.
+                </LI>
+                <LI>
+                    Click <Strong>Format</Strong> on each visual — set titles, font sizes, axis labels.
+                </LI>
             </UL>
-            <P>Save as <Code>.pbix</Code> and publish via <Strong>File → Publish</Strong> to your Power BI Service workspace.</P>
+            <P>
+                Save as <Code>.pbix</Code> and publish via <Strong>File → Publish</Strong> to your Power BI Service workspace.
+            </P>
 
             <Takeaways
                 items={[
@@ -1805,9 +1833,15 @@ const powerbiDax: TutorialChapter = {
             <H2 id="what">What is DAX?</H2>
             <P>DAX has 250+ functions. You'll use about 30 of them daily. The mental model:</P>
             <UL>
-                <LI>Every visual on the canvas creates a <Strong>filter context</Strong> — the slicers, axis values, and column filters in play.</LI>
-                <LI>A measure is evaluated <em>once per cell</em> in that filter context.</LI>
-                <LI>To change the filter context, you use <Code>CALCULATE</Code>.</LI>
+                <LI>
+                    Every visual on the canvas creates a <Strong>filter context</Strong> — the slicers, axis values, and column filters in play.
+                </LI>
+                <LI>
+                    A measure is evaluated <em>once per cell</em> in that filter context.
+                </LI>
+                <LI>
+                    To change the filter context, you use <Code>CALCULATE</Code>.
+                </LI>
             </UL>
 
             <H2 id="measure-vs-col">Measure vs calculated column</H2>
@@ -1821,8 +1855,7 @@ const powerbiDax: TutorialChapter = {
                 ]}
             />
             <Callout kind="tip">
-                Default to measures. Reach for a calculated column only when you need the value as a row attribute (e.g., to use as a slicer or
-                axis).
+                Default to measures. Reach for a calculated column only when you need the value as a row attribute (e.g., to use as a slicer or axis).
             </Callout>
             <CodeBlock
                 language="text"
@@ -1909,7 +1942,9 @@ AVERAGEX(VALUES(Sales[OrderID]), CALCULATE(SUM(Sales[Amount])))`}
             />
 
             <H2 id="variables">Variables (VAR / RETURN)</H2>
-            <P>Use <Code>VAR</Code> liberally — it makes complex measures readable and avoids re-computing the same thing twice.</P>
+            <P>
+                Use <Code>VAR</Code> liberally — it makes complex measures readable and avoids re-computing the same thing twice.
+            </P>
             <CodeBlock
                 language="text"
                 code={`Profit Margin =
@@ -1957,8 +1992,8 @@ const excelFormulas: TutorialChapter = {
     content: (
         <>
             <P>
-                Excel is still the world's most-used analytics tool. If you can write 15 formulas well, you can solve 90% of analyst day-to-day
-                work. This chapter is those 15.
+                Excel is still the world's most-used analytics tool. If you can write 15 formulas well, you can solve 90% of analyst day-to-day work.
+                This chapter is those 15.
             </P>
 
             <H2 id="refs">Cell references — relative, absolute, mixed</H2>
@@ -2110,13 +2145,19 @@ const excelPivot: TutorialChapter = {
 
             <H2 id="create">Creating a pivot table</H2>
             <UL>
-                <LI>Format your data as an Excel Table first (<Code>Ctrl + T</Code>) — pivots auto-pick up new rows.</LI>
-                <LI>Click anywhere in the table → <Strong>Insert → PivotTable</Strong> → choose New Worksheet.</LI>
-                <LI>You'll see the empty Pivot canvas on the left and the <Strong>Field List</Strong> on the right.</LI>
+                <LI>
+                    Format your data as an Excel Table first (<Code>Ctrl + T</Code>) — pivots auto-pick up new rows.
+                </LI>
+                <LI>
+                    Click anywhere in the table → <Strong>Insert → PivotTable</Strong> → choose New Worksheet.
+                </LI>
+                <LI>
+                    You'll see the empty Pivot canvas on the left and the <Strong>Field List</Strong> on the right.
+                </LI>
             </UL>
             <Callout kind="tip">
-                Always source pivot tables from a Table (<Code>Ctrl+T</Code>), never a static range. Tables auto-extend, so adding new rows
-                requires only a Refresh, not a re-source.
+                Always source pivot tables from a Table (<Code>Ctrl+T</Code>), never a static range. Tables auto-extend, so adding new rows requires
+                only a Refresh, not a re-source.
             </Callout>
 
             <H2 id="fields">Rows · Columns · Values · Filters</H2>
@@ -2129,14 +2170,24 @@ const excelPivot: TutorialChapter = {
                     ['Filters', 'adds a top-level filter for the whole pivot']
                 ]}
             />
-            <P>Example: drag <Code>Region</Code> to Rows, <Code>Year</Code> to Columns, <Code>Revenue</Code> to Values. You instantly have a region × year revenue grid.</P>
-            <P>Click the dropdown next to a value field → <Strong>Value Field Settings</Strong> → switch from Sum to Average / Count / Max. Same panel sets number formatting.</P>
+            <P>
+                Example: drag <Code>Region</Code> to Rows, <Code>Year</Code> to Columns, <Code>Revenue</Code> to Values. You instantly have a region ×
+                year revenue grid.
+            </P>
+            <P>
+                Click the dropdown next to a value field → <Strong>Value Field Settings</Strong> → switch from Sum to Average / Count / Max. Same
+                panel sets number formatting.
+            </P>
 
             <H2 id="calc">Calculated fields</H2>
             <P>Need a column that doesn't exist in the source? Add a calculated field.</P>
             <UL>
-                <LI><Strong>PivotTable Analyze → Fields, Items, &amp; Sets → Calculated Field</Strong></LI>
-                <LI>Name it <Code>Profit Margin</Code> and write <Code>= Profit / Revenue</Code></LI>
+                <LI>
+                    <Strong>PivotTable Analyze → Fields, Items, &amp; Sets → Calculated Field</Strong>
+                </LI>
+                <LI>
+                    Name it <Code>Profit Margin</Code> and write <Code>= Profit / Revenue</Code>
+                </LI>
                 <LI>Format the new field as a percentage</LI>
             </UL>
             <Callout kind="warning">
@@ -2145,15 +2196,26 @@ const excelPivot: TutorialChapter = {
             </Callout>
 
             <H2 id="slicers">Slicers &amp; timelines</H2>
-            <P>Slicers are visual filters. <Strong>PivotTable Analyze → Insert Slicer</Strong>. Pick a field — you get clickable filter buttons.</P>
+            <P>
+                Slicers are visual filters. <Strong>PivotTable Analyze → Insert Slicer</Strong>. Pick a field — you get clickable filter buttons.
+            </P>
             <UL>
-                <LI><Strong>Slicer:</Strong> for any categorical field (region, product, customer segment)</LI>
-                <LI><Strong>Timeline:</Strong> only for date fields — slide-through filtering by month/quarter/year</LI>
-                <LI>Connect one slicer to multiple pivots — <Strong>Slicer → Report Connections</Strong> → tick all the pivots</LI>
+                <LI>
+                    <Strong>Slicer:</Strong> for any categorical field (region, product, customer segment)
+                </LI>
+                <LI>
+                    <Strong>Timeline:</Strong> only for date fields — slide-through filtering by month/quarter/year
+                </LI>
+                <LI>
+                    Connect one slicer to multiple pivots — <Strong>Slicer → Report Connections</Strong> → tick all the pivots
+                </LI>
             </UL>
 
             <H2 id="getpivot">GETPIVOTDATA</H2>
-            <P>When you click into a pivot table cell from elsewhere, Excel writes a <Code>GETPIVOTDATA</Code> formula. It looks scary but it's actually very stable — the cell reference doesn't break when the pivot reshapes.</P>
+            <P>
+                When you click into a pivot table cell from elsewhere, Excel writes a <Code>GETPIVOTDATA</Code> formula. It looks scary but it's
+                actually very stable — the cell reference doesn't break when the pivot reshapes.
+            </P>
             <CodeBlock
                 language="text"
                 code={`=GETPIVOTDATA(
@@ -2164,16 +2226,15 @@ const excelPivot: TutorialChapter = {
 )`}
             />
             <Callout kind="tip">
-                If you'd rather have a normal A1-style reference: <Strong>PivotTable Analyze → Options</Strong> → uncheck "Generate
-                GetPivotData".
+                If you'd rather have a normal A1-style reference: <Strong>PivotTable Analyze → Options</Strong> → uncheck "Generate GetPivotData".
             </Callout>
 
             <Takeaways
                 items={[
                     'Always source pivots from a Table (Ctrl+T) — they auto-extend.',
-                    "Field zones: Rows for grouping, Columns for cross-tabs, Values for aggregates, Filters for top-level.",
-                    "Calculated fields aggregate after summing — perfect for ratios like profit margin.",
-                    "Slicers + Timelines turn a pivot into an interactive dashboard.",
+                    'Field zones: Rows for grouping, Columns for cross-tabs, Values for aggregates, Filters for top-level.',
+                    'Calculated fields aggregate after summing — perfect for ratios like profit margin.',
+                    'Slicers + Timelines turn a pivot into an interactive dashboard.',
                     'GETPIVOTDATA is more stable than A1 references — let Excel write it.'
                 ]}
             />
@@ -2203,8 +2264,8 @@ const tableauIntro: TutorialChapter = {
     content: (
         <>
             <P>
-                Tableau popularised drag-and-drop analytics. The same chart-building gestures from 2003 still work today — and they're more
-                ergonomic than any code-first BI tool. This chapter covers the absolute essentials.
+                Tableau popularised drag-and-drop analytics. The same chart-building gestures from 2003 still work today — and they're more ergonomic
+                than any code-first BI tool. This chapter covers the absolute essentials.
             </P>
 
             <H2 id="why">Why Tableau?</H2>
@@ -2243,10 +2304,17 @@ const tableauIntro: TutorialChapter = {
 
             <H2 id="measures">Dimensions vs Measures</H2>
             <UL>
-                <LI><Strong>Dimensions</Strong> are categorical/qualitative fields — region, product, date. They <em>slice</em> data.</LI>
-                <LI><Strong>Measures</Strong> are numeric/quantitative fields — sales, profit, quantity. They get <em>aggregated</em> (default SUM).</LI>
+                <LI>
+                    <Strong>Dimensions</Strong> are categorical/qualitative fields — region, product, date. They <em>slice</em> data.
+                </LI>
+                <LI>
+                    <Strong>Measures</Strong> are numeric/quantitative fields — sales, profit, quantity. They get <em>aggregated</em> (default SUM).
+                </LI>
             </UL>
-            <P>You can convert one to the other via right-click → Convert to Dimension/Measure. Year-as-int often needs to be a Dimension, not a Measure.</P>
+            <P>
+                You can convert one to the other via right-click → Convert to Dimension/Measure. Year-as-int often needs to be a Dimension, not a
+                Measure.
+            </P>
 
             <H2 id="calc">Calculated fields</H2>
             <CodeBlock
@@ -2271,10 +2339,14 @@ WINDOW_SUM(SUM([Sales]), -6, 0)`}
             <H2 id="dashboard">Building a dashboard</H2>
             <UL>
                 <LI>Build 3–5 individual sheets first. Each sheet should answer one question.</LI>
-                <LI>Click the <Strong>New Dashboard</Strong> tab at the bottom (the +Dashboard icon).</LI>
+                <LI>
+                    Click the <Strong>New Dashboard</Strong> tab at the bottom (the +Dashboard icon).
+                </LI>
                 <LI>Drag sheets onto the canvas. Switch the layout from "Floating" to "Tiled" for predictable alignment.</LI>
                 <LI>Add a Filter (right-click a sheet → Filters → "Apply to other worksheets") to wire up cross-filtering.</LI>
-                <LI>Publish via <Strong>Server → Publish Workbook</Strong> to Tableau Server / Cloud / Public.</LI>
+                <LI>
+                    Publish via <Strong>Server → Publish Workbook</Strong> to Tableau Server / Cloud / Public.
+                </LI>
             </UL>
 
             <Takeaways
@@ -2312,8 +2384,8 @@ const statsDescriptive: TutorialChapter = {
     content: (
         <>
             <P>
-                Before any modelling, A/B test, or machine-learning pipeline, you summarise your data. Descriptive statistics are the toolkit —
-                six numbers that tell you almost everything about a column.
+                Before any modelling, A/B test, or machine-learning pipeline, you summarise your data. Descriptive statistics are the toolkit — six
+                numbers that tell you almost everything about a column.
             </P>
 
             <H2 id="why">Why descriptive stats?</H2>
@@ -2333,8 +2405,8 @@ const statsDescriptive: TutorialChapter = {
                 ]}
             />
             <Callout kind="tip">
-                Salaries, house prices, revenue per customer are almost always reported as <Strong>median</Strong>, not mean — the right tail
-                drags the mean way too high.
+                Salaries, house prices, revenue per customer are almost always reported as <Strong>median</Strong>, not mean — the right tail drags
+                the mean way too high.
             </Callout>
 
             <H2 id="spread">Measures of spread</H2>
@@ -2347,7 +2419,9 @@ const statsDescriptive: TutorialChapter = {
                     ['IQR', 'Q3 − Q1 (robust to outliers)']
                 ]}
             />
-            <P>For a roughly normal distribution, the <Strong>68/95/99.7 rule</Strong> holds:</P>
+            <P>
+                For a roughly normal distribution, the <Strong>68/95/99.7 rule</Strong> holds:
+            </P>
             <UL>
                 <LI>~68% of values fall within 1σ of the mean</LI>
                 <LI>~95% within 2σ</LI>
@@ -2355,13 +2429,23 @@ const statsDescriptive: TutorialChapter = {
             </UL>
 
             <H2 id="percentiles">Percentiles &amp; quartiles</H2>
-            <P>The Pth percentile is the value below which P% of the data falls. Quartiles (Q1, Q2, Q3) are the 25th, 50th, 75th percentiles. The <Strong>Inter-Quartile Range (IQR)</Strong> = Q3 − Q1.</P>
-            <P>Standard outlier rule: any value below <Code>Q1 − 1.5·IQR</Code> or above <Code>Q3 + 1.5·IQR</Code> is flagged as an outlier (this is what box-plot whiskers visualise).</P>
+            <P>
+                The Pth percentile is the value below which P% of the data falls. Quartiles (Q1, Q2, Q3) are the 25th, 50th, 75th percentiles. The{' '}
+                <Strong>Inter-Quartile Range (IQR)</Strong> = Q3 − Q1.
+            </P>
+            <P>
+                Standard outlier rule: any value below <Code>Q1 − 1.5·IQR</Code> or above <Code>Q3 + 1.5·IQR</Code> is flagged as an outlier (this is
+                what box-plot whiskers visualise).
+            </P>
 
             <H2 id="shape">Skewness &amp; kurtosis</H2>
             <UL>
-                <LI><Strong>Skewness</Strong> measures asymmetry. Right-skew (positive) is common in income & revenue data — a long right tail.</LI>
-                <LI><Strong>Kurtosis</Strong> measures tail-heaviness. High kurtosis = more extreme outliers than a normal distribution would predict.</LI>
+                <LI>
+                    <Strong>Skewness</Strong> measures asymmetry. Right-skew (positive) is common in income & revenue data — a long right tail.
+                </LI>
+                <LI>
+                    <Strong>Kurtosis</Strong> measures tail-heaviness. High kurtosis = more extreme outliers than a normal distribution would predict.
+                </LI>
             </UL>
 
             <H2 id="python">Computing them in Python</H2>
@@ -2384,8 +2468,8 @@ print(salaries.describe())        # all of the above in one go
 print(np.percentile(salaries, 95))`}
             />
             <Callout kind="info">
-                <Code>df.describe()</Code> is the fastest way to print mean/std/min/Q1/median/Q3/max for every numeric column at once. It's the
-                first thing every data scientist runs after loading a fresh dataset.
+                <Code>df.describe()</Code> is the fastest way to print mean/std/min/Q1/median/Q3/max for every numeric column at once. It's the first
+                thing every data scientist runs after loading a fresh dataset.
             </Callout>
 
             <Takeaways
@@ -2409,7 +2493,8 @@ const pythonDictionaries: TutorialChapter = {
     topicSlug: 'python',
     chapter: 'Chapter 7',
     title: 'Python Dictionaries',
-    description: 'Master Python dictionaries — creation, access patterns, CRUD operations, iteration, comprehensions, nested dicts, and common idioms.',
+    description:
+        'Master Python dictionaries — creation, access patterns, CRUD operations, iteration, comprehensions, nested dicts, and common idioms.',
     readMin: 18,
     tags: ['Python', 'Dictionaries', 'Key-Value'],
     prev: { slug: 'python/tuples-and-sets', title: 'Tuples & Sets' },
@@ -2614,8 +2699,8 @@ print(dict(by_city))
             <Takeaways
                 items={[
                     'Dicts are ordered (since Python 3.7), mutable hash maps with O(1) average lookup.',
-                    'Use d.get(k, default) for safe reads — never d[k] on data you don\'t fully trust.',
-                    "Iterate with .items() to get key and value at the same time.",
+                    "Use d.get(k, default) for safe reads — never d[k] on data you don't fully trust.",
+                    'Iterate with .items() to get key and value at the same time.',
                     'Dict comprehensions are the cleanest way to transform or filter mappings.',
                     'Counter and defaultdict cover 90% of "count" / "group" patterns elegantly.'
                 ]}
@@ -2668,10 +2753,14 @@ else:
 
 print(grade)   # A`}
             />
-            <P>Python uses indentation to mark blocks — no curly braces, no <Code>then</Code>.</P>
+            <P>
+                Python uses indentation to mark blocks — no curly braces, no <Code>then</Code>.
+            </P>
 
             <H2 id="truthy">Truthy &amp; falsy values</H2>
-            <P>Any value can be tested in an <Code>if</Code> — Python evaluates "truthiness". The following are all falsy:</P>
+            <P>
+                Any value can be tested in an <Code>if</Code> — Python evaluates "truthiness". The following are all falsy:
+            </P>
             <Table
                 headers={['Falsy values']}
                 rows={[
@@ -2719,7 +2808,9 @@ print(f"You are {'eligible' if age >= 18 else 'too young'} to vote.")`}
             </Callout>
 
             <H2 id="match">match-case (Python 3.10+)</H2>
-            <P>Python's pattern matching — like a smarter <Code>switch</Code>. Best for branching on the <em>shape</em> of data.</P>
+            <P>
+                Python's pattern matching — like a smarter <Code>switch</Code>. Best for branching on the <em>shape</em> of data.
+            </P>
             <CodeBlock
                 language="python"
                 code={`def describe(point):
@@ -2768,11 +2859,21 @@ def process(user):
 
             <H2 id="clean">Writing clean conditionals</H2>
             <UL>
-                <LI>Prefer <Strong>guard clauses</Strong> over nested <Code>if</Code> trees.</LI>
-                <LI>Use <Code>in</Code> for membership: <Code>if status in {'{"open", "pending"}'}:</Code>, not a chain of <Code>or</Code>s.</LI>
-                <LI>Extract complex conditions into named variables: <Code>is_eligible = age &gt;= 18 and has_id and not is_banned</Code>.</LI>
-                <LI>Reach for <Code>match-case</Code> when matching the shape of data, not for simple value checks.</LI>
-                <LI>Avoid double negatives: <Code>if not is_invalid:</Code> is harder to read than <Code>if is_valid:</Code>.</LI>
+                <LI>
+                    Prefer <Strong>guard clauses</Strong> over nested <Code>if</Code> trees.
+                </LI>
+                <LI>
+                    Use <Code>in</Code> for membership: <Code>if status in {'{"open", "pending"}'}:</Code>, not a chain of <Code>or</Code>s.
+                </LI>
+                <LI>
+                    Extract complex conditions into named variables: <Code>is_eligible = age &gt;= 18 and has_id and not is_banned</Code>.
+                </LI>
+                <LI>
+                    Reach for <Code>match-case</Code> when matching the shape of data, not for simple value checks.
+                </LI>
+                <LI>
+                    Avoid double negatives: <Code>if not is_invalid:</Code> is harder to read than <Code>if is_valid:</Code>.
+                </LI>
             </UL>
 
             <Takeaways
@@ -2813,8 +2914,8 @@ const pythonLoops: TutorialChapter = {
     content: (
         <>
             <P>
-                Looping is iterating over a sequence. Python's loops are clean — no manual indices, no off-by-one bugs — because the language
-                pushes you to iterate over <em>items</em>, not positions.
+                Looping is iterating over a sequence. Python's loops are clean — no manual indices, no off-by-one bugs — because the language pushes
+                you to iterate over <em>items</em>, not positions.
             </P>
 
             <H2 id="for">for loops</H2>
@@ -2840,7 +2941,9 @@ with open("data.csv") as f:
             />
 
             <H2 id="range">range()</H2>
-            <P><Code>range(stop)</Code>, <Code>range(start, stop)</Code>, <Code>range(start, stop, step)</Code>. The end is exclusive.</P>
+            <P>
+                <Code>range(stop)</Code>, <Code>range(start, stop)</Code>, <Code>range(start, stop, step)</Code>. The end is exclusive.
+            </P>
             <CodeBlock
                 language="python"
                 code={`for i in range(5):
@@ -2858,8 +2961,8 @@ for i in range(10, 0, -1):
 # 10 9 8 7 6 5 4 3 2 1`}
             />
             <Callout kind="tip">
-                If you find yourself writing <Code>for i in range(len(my_list)):</Code> followed by <Code>my_list[i]</Code>, you almost certainly
-                want <Code>enumerate()</Code> instead.
+                If you find yourself writing <Code>for i in range(len(my_list)):</Code> followed by <Code>my_list[i]</Code>, you almost certainly want{' '}
+                <Code>enumerate()</Code> instead.
             </Callout>
 
             <H2 id="enumerate">enumerate() &amp; zip()</H2>
@@ -2888,7 +2991,10 @@ for a, b in zip([1, 2, 3], ['a', 'b']):
             />
 
             <H2 id="while">while loops</H2>
-            <P>A <Code>while</Code> loop runs <em>as long as</em> a condition is true. Use it when you don't know how many iterations you need upfront.</P>
+            <P>
+                A <Code>while</Code> loop runs <em>as long as</em> a condition is true. Use it when you don't know how many iterations you need
+                upfront.
+            </P>
             <CodeBlock
                 language="python"
                 code={`# Read until EOF
@@ -2912,9 +3018,15 @@ else:
 
             <H2 id="break">break, continue, else</H2>
             <UL>
-                <LI><Code>break</Code> — exit the closest enclosing loop immediately.</LI>
-                <LI><Code>continue</Code> — skip the rest of this iteration and start the next.</LI>
-                <LI><Code>else</Code> on a loop — runs only if the loop completed <em>without</em> a <Code>break</Code>.</LI>
+                <LI>
+                    <Code>break</Code> — exit the closest enclosing loop immediately.
+                </LI>
+                <LI>
+                    <Code>continue</Code> — skip the rest of this iteration and start the next.
+                </LI>
+                <LI>
+                    <Code>else</Code> on a loop — runs only if the loop completed <em>without</em> a <Code>break</Code>.
+                </LI>
             </UL>
             <CodeBlock
                 language="python"
@@ -2973,7 +3085,7 @@ for a, b in pairwise(nums):
 
             <Takeaways
                 items={[
-                    "Iterate over items, not indices — for x in lst, never for i in range(len(lst)).",
+                    'Iterate over items, not indices — for x in lst, never for i in range(len(lst)).',
                     'enumerate() gives you (index, item); zip() pairs two iterables in lockstep.',
                     'while is for "until X happens"; for is for "for each item".',
                     'else on a loop runs only if it didn\'t break — useful for "search and report".',
@@ -3009,8 +3121,8 @@ const pythonFunctions: TutorialChapter = {
     content: (
         <>
             <P>
-                Functions are the smallest reusable unit in Python. Naming them well, choosing the right argument style, and writing useful
-                docstrings are skills that pay off across every project.
+                Functions are the smallest reusable unit in Python. Naming them well, choosing the right argument style, and writing useful docstrings
+                are skills that pay off across every project.
             </P>
 
             <H2 id="define">Defining functions</H2>
@@ -3048,8 +3160,8 @@ print(gst(1000, label="Service Tax"))  # Service Tax: ₹180.00
 print(gst(amount=1000, rate=0.12, label="Sales Tax"))`}
             />
             <Callout kind="warning">
-                Never use a mutable default like <Code>def add(item, basket=[])</Code> — the list is shared across calls. Use{' '}
-                <Code>basket=None</Code> as the sentinel.
+                Never use a mutable default like <Code>def add(item, basket=[])</Code> — the list is shared across calls. Use <Code>basket=None</Code>{' '}
+                as the sentinel.
             </Callout>
 
             <H2 id="args-kwargs">*args and **kwargs</H2>
@@ -3189,8 +3301,8 @@ print(round(calculate_emi(500_000, 0.09, 36), 2))
                 items={[
                     'Use keyword arguments at call sites — readability beats brevity.',
                     'Never use a mutable default; use None and create the value inside the function.',
-                    "*args collects extra positional args (tuple); **kwargs collects extra keyword args (dict).",
-                    "Closures let inner functions remember enclosing scope — use nonlocal to mutate it.",
+                    '*args collects extra positional args (tuple); **kwargs collects extra keyword args (dict).',
+                    'Closures let inner functions remember enclosing scope — use nonlocal to mutate it.',
                     'Lambdas are for short, throwaway transforms. Reach for comprehensions or named functions otherwise.',
                     'Always write a one-line docstring; add type hints — your editor and reviewer will thank you.'
                 ]}
@@ -3224,8 +3336,8 @@ const pythonFileHandling: TutorialChapter = {
     content: (
         <>
             <P>
-                Reading from disk is one of the first things any program needs to do — log files, data dumps, config, CSVs from analysts. Python
-                makes it short and safe. The golden rule: always use a <Code>with</Code> block.
+                Reading from disk is one of the first things any program needs to do — log files, data dumps, config, CSVs from analysts. Python makes
+                it short and safe. The golden rule: always use a <Code>with</Code> block.
             </P>
 
             <H2 id="open">open() and modes</H2>
@@ -3243,8 +3355,8 @@ const pythonFileHandling: TutorialChapter = {
 
             <H2 id="with">The with-statement</H2>
             <P>
-                Always open files inside a <Code>with</Code> block. The file is automatically closed when the block exits — even if an exception
-                is raised inside.
+                Always open files inside a <Code>with</Code> block. The file is automatically closed when the block exits — even if an exception is
+                raised inside.
             </P>
             <CodeBlock
                 language="python"
@@ -3301,7 +3413,10 @@ with open("nums.txt", "w") as f:
             />
 
             <H2 id="csv">CSV files</H2>
-            <P>The standard library's <Code>csv</Code> module handles quoting and escaping correctly. Don't roll your own with <Code>split(",")</Code>.</P>
+            <P>
+                The standard library's <Code>csv</Code> module handles quoting and escaping correctly. Don't roll your own with{' '}
+                <Code>split(",")</Code>.
+            </P>
             <CodeBlock
                 language="python"
                 code={`import csv
@@ -3348,7 +3463,9 @@ back  = json.loads('{"x": 1, "y": 2}') # JSON string -> dict`}
             />
 
             <H2 id="pathlib">Pathlib — modern paths</H2>
-            <P>Forget <Code>os.path.join</Code> — <Code>pathlib</Code> is cleaner, type-safe, and works the same on Windows / macOS / Linux.</P>
+            <P>
+                Forget <Code>os.path.join</Code> — <Code>pathlib</Code> is cleaner, type-safe, and works the same on Windows / macOS / Linux.
+            </P>
             <CodeBlock
                 language="python"
                 code={`from pathlib import Path
@@ -3411,8 +3528,8 @@ const pythonExceptions: TutorialChapter = {
     content: (
         <>
             <P>
-                Code that doesn't handle errors is broken. Python uses exceptions — events that interrupt normal flow when something goes wrong.
-                The trick isn't catching every exception; it's catching the right ones, at the right level, and letting the rest bubble up.
+                Code that doesn't handle errors is broken. Python uses exceptions — events that interrupt normal flow when something goes wrong. The
+                trick isn't catching every exception; it's catching the right ones, at the right level, and letting the rest bubble up.
             </P>
 
             <H2 id="why">Why exceptions?</H2>
@@ -3551,22 +3668,34 @@ except PaymentError as e:
 
             <H2 id="best">Best practices</H2>
             <UL>
-                <LI><Strong>Catch what you can handle.</Strong> Don't <Code>except Exception:</Code> just to make a problem disappear.</LI>
-                <LI><Strong>Catch narrowly.</Strong> <Code>except ValueError</Code> is better than <Code>except Exception</Code>.</LI>
-                <LI><Strong>Don't swallow errors.</Strong> A bare <Code>except: pass</Code> is almost always a bug waiting to happen.</LI>
-                <LI><Strong>Add context.</Strong> When re-raising, use <Code>from</Code> so the original traceback is preserved.</LI>
-                <LI><Strong>Use finally for cleanup</Strong> only when a context manager (<Code>with</Code>) won't do.</LI>
-                <LI><Strong>Define custom exception classes</Strong> for your domain — they read better and let callers catch a category.</LI>
+                <LI>
+                    <Strong>Catch what you can handle.</Strong> Don't <Code>except Exception:</Code> just to make a problem disappear.
+                </LI>
+                <LI>
+                    <Strong>Catch narrowly.</Strong> <Code>except ValueError</Code> is better than <Code>except Exception</Code>.
+                </LI>
+                <LI>
+                    <Strong>Don't swallow errors.</Strong> A bare <Code>except: pass</Code> is almost always a bug waiting to happen.
+                </LI>
+                <LI>
+                    <Strong>Add context.</Strong> When re-raising, use <Code>from</Code> so the original traceback is preserved.
+                </LI>
+                <LI>
+                    <Strong>Use finally for cleanup</Strong> only when a context manager (<Code>with</Code>) won't do.
+                </LI>
+                <LI>
+                    <Strong>Define custom exception classes</Strong> for your domain — they read better and let callers catch a category.
+                </LI>
             </UL>
 
             <Takeaways
                 items={[
                     "Exceptions interrupt control flow — they're better than sentinel return values.",
-                    "Catch the most specific exception class you can. except Exception is a code smell.",
+                    'Catch the most specific exception class you can. except Exception is a code smell.',
                     'else runs after try succeeds; finally runs no matter what.',
                     "raise SomeError('msg') from original_exc preserves the cause chain.",
                     'Define custom exception classes for your domain — InsufficientFunds reads better than ValueError.',
-                    "Never write `except: pass`. If you really mean it, log first."
+                    'Never write `except: pass`. If you really mean it, log first.'
                 ]}
             />
         </>
@@ -3676,9 +3805,9 @@ ORDER BY diff_from_avg DESC;`}
             <Table
                 headers={['Use a CTE when', 'Use a subquery when']}
                 rows={[
-                    ['Reusing the result more than once', 'It\'s used in exactly one place'],
+                    ['Reusing the result more than once', "It's used in exactly one place"],
                     ['You want named, readable steps', 'The logic is simple and inline'],
-                    ['Building up a multi-step analysis', 'You\'re returning a single scalar value'],
+                    ['Building up a multi-step analysis', "You're returning a single scalar value"],
                     ['Recursing (CTEs only)', 'Performance is critical (engine-dependent)']
                 ]}
             />
@@ -3710,11 +3839,11 @@ SELECT level, name FROM org ORDER BY level, name;`}
 
             <Takeaways
                 items={[
-                    "Scalar subqueries return one value; inline subqueries act as virtual tables.",
-                    "EXISTS short-circuits — usually faster than IN on big tables.",
-                    "CTEs (WITH) make multi-step analytics queries readable top-to-bottom.",
-                    "CTEs let you name and reuse intermediate results — much cleaner than nesting subqueries.",
-                    "Recursive CTEs handle hierarchies — anchor + recursive member joined by UNION ALL."
+                    'Scalar subqueries return one value; inline subqueries act as virtual tables.',
+                    'EXISTS short-circuits — usually faster than IN on big tables.',
+                    'CTEs (WITH) make multi-step analytics queries readable top-to-bottom.',
+                    'CTEs let you name and reuse intermediate results — much cleaner than nesting subqueries.',
+                    'Recursive CTEs handle hierarchies — anchor + recursive member joined by UNION ALL.'
                 ]}
             />
         </>
@@ -3729,7 +3858,8 @@ const sqlAggregations: TutorialChapter = {
     topicSlug: 'sql',
     chapter: 'Chapter 5',
     title: 'SQL Aggregations Deep Dive',
-    description: 'COUNT vs COUNT DISTINCT, conditional aggregation, GROUPING SETS, ROLLUP, CUBE, and the patterns that show up in real analytics work.',
+    description:
+        'COUNT vs COUNT DISTINCT, conditional aggregation, GROUPING SETS, ROLLUP, CUBE, and the patterns that show up in real analytics work.',
     readMin: 14,
     tags: ['SQL', 'Aggregations', 'GROUP BY'],
     prev: { slug: 'sql/subqueries-and-ctes', title: 'Subqueries & CTEs' },
@@ -3743,8 +3873,8 @@ const sqlAggregations: TutorialChapter = {
     content: (
         <>
             <P>
-                Beyond SUM and AVG, SQL has aggregation tools most analysts never learn — and they're the ones that solve real problems. This
-                chapter covers conditional aggregation, FILTER, and the GROUPING family.
+                Beyond SUM and AVG, SQL has aggregation tools most analysts never learn — and they're the ones that solve real problems. This chapter
+                covers conditional aggregation, FILTER, and the GROUPING family.
             </P>
 
             <H2 id="count">COUNT, COUNT DISTINCT, COUNT(*)</H2>
@@ -3770,7 +3900,10 @@ SELECT COUNT(DISTINCT customer_id) FROM orders;`}
             />
 
             <H2 id="conditional">Conditional aggregation</H2>
-            <P>The single most-asked SQL technique in 2026 analyst interviews. Use a <Code>CASE</Code> inside an aggregate to count or sum only specific rows.</P>
+            <P>
+                The single most-asked SQL technique in 2026 analyst interviews. Use a <Code>CASE</Code> inside an aggregate to count or sum only
+                specific rows.
+            </P>
             <CodeBlock
                 language="sql"
                 code={`-- Pivot order status counts on one row per region
@@ -3786,7 +3919,9 @@ GROUP BY region;`}
             />
 
             <H2 id="filter">FILTER (WHERE …) — the modern syntax</H2>
-            <P>Postgres, SQL Server, BigQuery and others support <Code>FILTER (WHERE …)</Code>, which is much cleaner than CASE-inside-SUM:</P>
+            <P>
+                Postgres, SQL Server, BigQuery and others support <Code>FILTER (WHERE …)</Code>, which is much cleaner than CASE-inside-SUM:
+            </P>
             <CodeBlock
                 language="sql"
                 code={`SELECT
@@ -3864,9 +3999,9 @@ GROUP BY cohort;`}
 
             <Takeaways
                 items={[
-                    "COUNT(*) counts rows; COUNT(col) skips NULLs; COUNT(DISTINCT col) deduplicates.",
-                    "Conditional aggregation (CASE-inside-SUM or FILTER WHERE) is the workhorse of analytics SQL.",
-                    "FILTER (WHERE …) reads better than CASE — use it where supported.",
+                    'COUNT(*) counts rows; COUNT(col) skips NULLs; COUNT(DISTINCT col) deduplicates.',
+                    'Conditional aggregation (CASE-inside-SUM or FILTER WHERE) is the workhorse of analytics SQL.',
+                    'FILTER (WHERE …) reads better than CASE — use it where supported.',
                     'ROLLUP gives subtotals + grand total; CUBE gives every combination; GROUPING SETS lets you pick.',
                     'Funnels, cohorts, and pivot tables all reduce to conditional aggregation patterns.'
                 ]}
@@ -3899,15 +4034,19 @@ const statsProbability: TutorialChapter = {
     content: (
         <>
             <P>
-                Probability is the language of uncertainty. Every A/B test, every confidence interval, every machine-learning model is grounded
-                in it. This chapter covers the three distributions you'll meet most often, plus the theorem that ties everything together.
+                Probability is the language of uncertainty. Every A/B test, every confidence interval, every machine-learning model is grounded in it.
+                This chapter covers the three distributions you'll meet most often, plus the theorem that ties everything together.
             </P>
 
             <H2 id="why">What is probability?</H2>
             <P>The chance of an event, between 0 (impossible) and 1 (certain). Two intuitions:</P>
             <UL>
-                <LI><Strong>Frequentist:</Strong> the long-run proportion of times the event happens.</LI>
-                <LI><Strong>Bayesian:</Strong> a degree of belief that updates as evidence arrives.</LI>
+                <LI>
+                    <Strong>Frequentist:</Strong> the long-run proportion of times the event happens.
+                </LI>
+                <LI>
+                    <Strong>Bayesian:</Strong> a degree of belief that updates as evidence arrives.
+                </LI>
             </UL>
 
             <H2 id="rules">Probability rules</H2>
@@ -3923,7 +4062,10 @@ const statsProbability: TutorialChapter = {
             />
 
             <H2 id="normal">The Normal distribution</H2>
-            <P>The bell curve. Defined by its mean (μ) and standard deviation (σ). Many natural measurements (heights, blood pressure, IQ scores, measurement errors) follow it.</P>
+            <P>
+                The bell curve. Defined by its mean (μ) and standard deviation (σ). Many natural measurements (heights, blood pressure, IQ scores,
+                measurement errors) follow it.
+            </P>
             <CodeBlock
                 language="python"
                 code={`from scipy.stats import norm
@@ -3942,7 +4084,10 @@ print(norm.ppf(0.95, loc=170, scale=8))   # 183.16`}
             </Callout>
 
             <H2 id="binomial">The Binomial distribution</H2>
-            <P>The number of successes in <em>n</em> independent Yes/No trials, each with the same success probability <em>p</em>. Coin flips, click-or-not, defect-or-not.</P>
+            <P>
+                The number of successes in <em>n</em> independent Yes/No trials, each with the same success probability <em>p</em>. Coin flips,
+                click-or-not, defect-or-not.
+            </P>
             <CodeBlock
                 language="python"
                 code={`from scipy.stats import binom
@@ -3960,7 +4105,10 @@ print(binom.var(1000, 0.05))    # 47.5`}
             />
 
             <H2 id="poisson">The Poisson distribution</H2>
-            <P>The number of events in a fixed interval, given an average rate (λ). Calls to a help-desk per minute, customers entering a shop per hour, typos per page.</P>
+            <P>
+                The number of events in a fixed interval, given an average rate (λ). Calls to a help-desk per minute, customers entering a shop per
+                hour, typos per page.
+            </P>
             <CodeBlock
                 language="python"
                 code={`from scipy.stats import poisson
@@ -3976,8 +4124,8 @@ print(poisson.pmf(0, mu=4))    # 0.0183
 print(1 - poisson.cdf(9, mu=4))  # 0.0081`}
             />
             <Callout kind="info">
-                A Poisson with mean λ ≥ 30 looks visually almost identical to a Normal(μ=λ, σ=√λ). That's why the Normal approximation works so
-                often for big λ.
+                A Poisson with mean λ ≥ 30 looks visually almost identical to a Normal(μ=λ, σ=√λ). That's why the Normal approximation works so often
+                for big λ.
             </Callout>
 
             <H2 id="clt">The Central Limit Theorem</H2>
@@ -4001,14 +4149,17 @@ plt.hist(sample_means, bins=50)
 plt.title("CLT in action: sample means of an exponential distribution")
 plt.show()`}
             />
-            <P>The CLT is what makes inference possible — it's why we can compute confidence intervals and run t-tests on real-world data that's almost never perfectly normal.</P>
+            <P>
+                The CLT is what makes inference possible — it's why we can compute confidence intervals and run t-tests on real-world data that's
+                almost never perfectly normal.
+            </P>
 
             <Takeaways
                 items={[
                     'Probability is bounded between 0 and 1; the rules cover complement, union, intersection, conditional.',
-                    "Normal distribution: bell-shaped, defined by μ and σ. The 68/95/99.7 rule is essential.",
-                    "Binomial: yes/no trials with fixed n and p. Use it for click-through rates and defect counts.",
-                    "Poisson: events per fixed interval. Use it for call volumes, arrivals, queue length.",
+                    'Normal distribution: bell-shaped, defined by μ and σ. The 68/95/99.7 rule is essential.',
+                    'Binomial: yes/no trials with fixed n and p. Use it for click-through rates and defect counts.',
+                    'Poisson: events per fixed interval. Use it for call volumes, arrivals, queue length.',
                     "The Central Limit Theorem says sample means tend toward Normal — that's why inference works on non-normal data."
                 ]}
             />
@@ -4040,18 +4191,28 @@ const statsHypothesis: TutorialChapter = {
     content: (
         <>
             <P>
-                Hypothesis testing is how we draw conclusions about a population from a sample. It's also the most-misunderstood part of
-                statistics. By the end of this chapter you'll know how to set up a test, choose the right one, and read the result without making
-                the classic mistakes.
+                Hypothesis testing is how we draw conclusions about a population from a sample. It's also the most-misunderstood part of statistics.
+                By the end of this chapter you'll know how to set up a test, choose the right one, and read the result without making the classic
+                mistakes.
             </P>
 
             <H2 id="framework">The framework</H2>
             <UL>
-                <LI><Strong>H₀ (null hypothesis):</Strong> "nothing's going on" — no difference, no effect.</LI>
-                <LI><Strong>H₁ (alternative):</Strong> the effect you actually want to detect.</LI>
-                <LI><Strong>α (significance level):</Strong> the false-positive rate you're willing to accept. Conventionally 0.05.</LI>
-                <LI><Strong>p-value:</Strong> probability of seeing data at least this extreme, <em>assuming H₀ is true</em>.</LI>
-                <LI>If <Code>p &lt; α</Code>, reject H₀. If <Code>p ≥ α</Code>, fail to reject — not the same as "accept H₀".</LI>
+                <LI>
+                    <Strong>H₀ (null hypothesis):</Strong> "nothing's going on" — no difference, no effect.
+                </LI>
+                <LI>
+                    <Strong>H₁ (alternative):</Strong> the effect you actually want to detect.
+                </LI>
+                <LI>
+                    <Strong>α (significance level):</Strong> the false-positive rate you're willing to accept. Conventionally 0.05.
+                </LI>
+                <LI>
+                    <Strong>p-value:</Strong> probability of seeing data at least this extreme, <em>assuming H₀ is true</em>.
+                </LI>
+                <LI>
+                    If <Code>p &lt; α</Code>, reject H₀. If <Code>p ≥ α</Code>, fail to reject — not the same as "accept H₀".
+                </LI>
             </UL>
 
             <H2 id="pvalue">p-values demystified</H2>
@@ -4059,7 +4220,11 @@ const statsHypothesis: TutorialChapter = {
                 A p-value is <Strong>NOT</Strong> the probability that H₀ is true. It's the probability of the observed data (or more extreme),{' '}
                 <em>assuming H₀ is true</em>. This single confusion sinks most data-analyst interviews.
             </Callout>
-            <P>If a coin returns 70 heads in 100 flips and the p-value is 0.0001, it means: <em>"if the coin were fair, we'd see results this extreme only 0.01% of the time"</em>. It does not mean the probability of fairness is 0.01%.</P>
+            <P>
+                If a coin returns 70 heads in 100 flips and the p-value is 0.0001, it means:{' '}
+                <em>"if the coin were fair, we'd see results this extreme only 0.01% of the time"</em>. It does not mean the probability of fairness
+                is 0.01%.
+            </P>
 
             <H2 id="errors">Type I &amp; Type II errors</H2>
             <Table
@@ -4070,8 +4235,8 @@ const statsHypothesis: TutorialChapter = {
                 ]}
             />
             <P>
-                <Strong>Power</Strong> = 1 − β — the probability of correctly detecting an effect when it exists. Aim for power ≥ 0.8 in
-                experiment design.
+                <Strong>Power</Strong> = 1 − β — the probability of correctly detecting an effect when it exists. Aim for power ≥ 0.8 in experiment
+                design.
             </P>
 
             <H2 id="tests">Picking the right test</H2>
@@ -4129,22 +4294,36 @@ print(f"chi² = {chi2:.3f}, p = {p:.4f}")
             />
 
             <H2 id="reading">Reading an A/B test result</H2>
-            <P>You ran an A/B test. The output says <Code>p = 0.03, lift = +4.2%</Code>. What's the right read?</P>
+            <P>
+                You ran an A/B test. The output says <Code>p = 0.03, lift = +4.2%</Code>. What's the right read?
+            </P>
             <UL>
-                <LI><Strong>p &lt; 0.05</Strong>: statistically significant at the 95% level. You reject the null.</LI>
-                <LI><Strong>+4.2% lift</Strong>: the point estimate of effect size. The actual effect could be smaller or larger.</LI>
-                <LI><Strong>Always look at confidence intervals.</Strong> A "+4.2% lift, 95% CI [0.5%, 8.0%]" is honest — the true effect could realistically be a tiny 0.5%.</LI>
-                <LI><Strong>Practical significance ≠ statistical significance.</Strong> A 0.05% lift can be statistically significant if your sample is huge — but might not justify shipping.</LI>
-                <LI><Strong>Stopping early invalidates the test.</Strong> Pre-register your sample size; don't peek and stop.</LI>
+                <LI>
+                    <Strong>p &lt; 0.05</Strong>: statistically significant at the 95% level. You reject the null.
+                </LI>
+                <LI>
+                    <Strong>+4.2% lift</Strong>: the point estimate of effect size. The actual effect could be smaller or larger.
+                </LI>
+                <LI>
+                    <Strong>Always look at confidence intervals.</Strong> A "+4.2% lift, 95% CI [0.5%, 8.0%]" is honest — the true effect could
+                    realistically be a tiny 0.5%.
+                </LI>
+                <LI>
+                    <Strong>Practical significance ≠ statistical significance.</Strong> A 0.05% lift can be statistically significant if your sample
+                    is huge — but might not justify shipping.
+                </LI>
+                <LI>
+                    <Strong>Stopping early invalidates the test.</Strong> Pre-register your sample size; don't peek and stop.
+                </LI>
             </UL>
 
             <Takeaways
                 items={[
                     'p-value = P(data | H₀), not P(H₀ | data). The reverse is the most common stats mistake.',
-                    "Type I (α): false positive. Type II (β): false negative. Power = 1 − β; target 0.8.",
+                    'Type I (α): false positive. Type II (β): false negative. Power = 1 − β; target 0.8.',
                     'Pick the test by question type — t-test for means, chi-squared for categorical, ANOVA for >2 groups.',
                     'In Python: scipy.stats covers t-test, chi-squared, ANOVA in one line each.',
-                    "Always report a confidence interval alongside the p-value. Practical significance > statistical significance."
+                    'Always report a confidence interval alongside the p-value. Practical significance > statistical significance.'
                 ]}
             />
         </>
@@ -4174,16 +4353,25 @@ const tableauLod: TutorialChapter = {
     content: (
         <>
             <P>
-                Level of Detail (LOD) expressions let you compute aggregates at a different grain than the view. They're Tableau's superpower —
-                and the topic interviewers ask about most. Once you understand <Code>{`{ FIXED }`}</Code>, the rest follows.
+                Level of Detail (LOD) expressions let you compute aggregates at a different grain than the view. They're Tableau's superpower — and
+                the topic interviewers ask about most. Once you understand <Code>{`{ FIXED }`}</Code>, the rest follows.
             </P>
 
             <H2 id="why">Why LOD?</H2>
-            <P>By default, Tableau aggregates to the view's level. If your view shows revenue per region, every measure on the canvas aggregates per region. LOD expressions let you escape that:</P>
+            <P>
+                By default, Tableau aggregates to the view's level. If your view shows revenue per region, every measure on the canvas aggregates per
+                region. LOD expressions let you escape that:
+            </P>
             <UL>
-                <LI><Strong>FIXED:</Strong> aggregate at <em>this fixed</em> level, ignoring the view.</LI>
-                <LI><Strong>INCLUDE:</Strong> aggregate at view-level <em>plus</em> these extra dimensions.</LI>
-                <LI><Strong>EXCLUDE:</Strong> aggregate at view-level <em>minus</em> these dimensions.</LI>
+                <LI>
+                    <Strong>FIXED:</Strong> aggregate at <em>this fixed</em> level, ignoring the view.
+                </LI>
+                <LI>
+                    <Strong>INCLUDE:</Strong> aggregate at view-level <em>plus</em> these extra dimensions.
+                </LI>
+                <LI>
+                    <Strong>EXCLUDE:</Strong> aggregate at view-level <em>minus</em> these dimensions.
+                </LI>
             </UL>
 
             <H2 id="fixed">FIXED — pin a granularity</H2>
@@ -4279,7 +4467,7 @@ SUM([Sales]) / { EXCLUDE [Region] : SUM([Sales]) }`}
                     'FIXED ignores the view; INCLUDE adds finer grain; EXCLUDE removes a dimension.',
                     'FIXED runs before dimension filters — use Context filters to influence it.',
                     "FIXED [Customer]: MIN([Order Date]) is the canonical 'first-order date' pattern.",
-                    "Wrap an INCLUDE in AVG/SUM/etc. to aggregate the per-row results.",
+                    'Wrap an INCLUDE in AVG/SUM/etc. to aggregate the per-row results.',
                     'When in doubt: write the FIXED first, then layer INCLUDE/EXCLUDE if needed.'
                 ]}
             />
@@ -4295,7 +4483,8 @@ const powerbiPowerQuery: TutorialChapter = {
     topicSlug: 'power-bi',
     chapter: 'Chapter 3',
     title: 'Power Query Deep Dive',
-    description: 'Connect, clean, and reshape data with Power Query — the M language, common transformations, parameters, and refresh-friendly patterns.',
+    description:
+        'Connect, clean, and reshape data with Power Query — the M language, common transformations, parameters, and refresh-friendly patterns.',
     readMin: 17,
     tags: ['Power BI', 'Power Query', 'M Language', 'ETL'],
     prev: { slug: 'power-bi/power-bi-dax', title: 'Introduction to DAX' },
@@ -4312,26 +4501,46 @@ const powerbiPowerQuery: TutorialChapter = {
     content: (
         <>
             <P>
-                Power Query is the ETL layer underneath Power BI, Excel, and Microsoft Fabric. Every Power BI dataset starts here — and almost
-                every dashboard performance problem can be traced back to bad Power Query habits. This chapter is the deep dive most learners
-                skip and later regret.
+                Power Query is the ETL layer underneath Power BI, Excel, and Microsoft Fabric. Every Power BI dataset starts here — and almost every
+                dashboard performance problem can be traced back to bad Power Query habits. This chapter is the deep dive most learners skip and later
+                regret.
             </P>
 
             <H2 id="why">Why Power Query?</H2>
             <UL>
-                <LI><Strong>Repeatable.</Strong> Steps are recorded as code. Refresh re-runs them; new rows flow through automatically.</LI>
-                <LI><Strong>Visual.</Strong> 90% of common transformations are point-and-click — no need to learn M for daily work.</LI>
-                <LI><Strong>Connector-rich.</Strong> 100+ connectors. SQL, REST APIs, SharePoint, Salesforce, Excel, JSON, all behave the same way once loaded.</LI>
-                <LI><Strong>Push-down friendly.</Strong> When connected to a database, Power Query pushes filters and joins back as native SQL — fast, even on huge tables.</LI>
+                <LI>
+                    <Strong>Repeatable.</Strong> Steps are recorded as code. Refresh re-runs them; new rows flow through automatically.
+                </LI>
+                <LI>
+                    <Strong>Visual.</Strong> 90% of common transformations are point-and-click — no need to learn M for daily work.
+                </LI>
+                <LI>
+                    <Strong>Connector-rich.</Strong> 100+ connectors. SQL, REST APIs, SharePoint, Salesforce, Excel, JSON, all behave the same way
+                    once loaded.
+                </LI>
+                <LI>
+                    <Strong>Push-down friendly.</Strong> When connected to a database, Power Query pushes filters and joins back as native SQL — fast,
+                    even on huge tables.
+                </LI>
             </UL>
 
             <H2 id="editor">The editor tour</H2>
-            <P>Click <Strong>Transform Data</Strong> on the Power BI ribbon to open the Power Query Editor. The four panes:</P>
+            <P>
+                Click <Strong>Transform Data</Strong> on the Power BI ribbon to open the Power Query Editor. The four panes:
+            </P>
             <UL>
-                <LI><Strong>Queries pane</Strong> (left) — every query in the file.</LI>
-                <LI><Strong>Preview grid</Strong> (centre) — first 1,000 rows of the current query.</LI>
-                <LI><Strong>Query Settings</Strong> (right) — the <em>step list</em>. Click any step to time-travel.</LI>
-                <LI><Strong>Formula bar</Strong> (top) — shows the M expression for the current step.</LI>
+                <LI>
+                    <Strong>Queries pane</Strong> (left) — every query in the file.
+                </LI>
+                <LI>
+                    <Strong>Preview grid</Strong> (centre) — first 1,000 rows of the current query.
+                </LI>
+                <LI>
+                    <Strong>Query Settings</Strong> (right) — the <em>step list</em>. Click any step to time-travel.
+                </LI>
+                <LI>
+                    <Strong>Formula bar</Strong> (top) — shows the M expression for the current step.
+                </LI>
             </UL>
 
             <H2 id="transforms">Common transformations</H2>
@@ -4382,8 +4591,13 @@ in
 
             <H2 id="merge-append">Merge &amp; Append queries</H2>
             <UL>
-                <LI><Strong>Append</Strong> — stack two tables vertically (same columns). Like SQL <Code>UNION ALL</Code>.</LI>
-                <LI><Strong>Merge</Strong> — join two tables on a key. Like SQL <Code>JOIN</Code>. Choose the join kind: Inner, Left Outer, Right Outer, Full Outer, Anti.</LI>
+                <LI>
+                    <Strong>Append</Strong> — stack two tables vertically (same columns). Like SQL <Code>UNION ALL</Code>.
+                </LI>
+                <LI>
+                    <Strong>Merge</Strong> — join two tables on a key. Like SQL <Code>JOIN</Code>. Choose the join kind: Inner, Left Outer, Right
+                    Outer, Full Outer, Anti.
+                </LI>
             </UL>
             <CodeBlock
                 language="text"
@@ -4399,22 +4613,34 @@ in
             <H2 id="parameters">Parameters &amp; functions</H2>
             <P>Parameters let you swap values at refresh time — e.g., switch from a dev database to prod without editing the query.</P>
             <UL>
-                <LI><Strong>Manage Parameters → New Parameter</Strong> — define a typed parameter (text, date, etc.) with a default.</LI>
+                <LI>
+                    <Strong>Manage Parameters → New Parameter</Strong> — define a typed parameter (text, date, etc.) with a default.
+                </LI>
                 <LI>Reference the parameter in any step instead of a hard-coded value.</LI>
                 <LI>Convert a query to a function (right-click → Create Function) to apply it across many files.</LI>
             </UL>
 
             <H2 id="best">Refresh-friendly patterns</H2>
             <UL>
-                <LI><Strong>Disable load on staging queries.</Strong> If a query is just an intermediate step (e.g., a lookup), right-click → Disable Load. Saves memory.</LI>
-                <LI><Strong>Filter early.</Strong> Push <Code>Table.SelectRows</Code> as close to the source as possible — Power Query may push it down to SQL.</LI>
-                <LI><Strong>Avoid wide unpivots in fact tables.</Strong> Reshape in the warehouse if you can; do it in PQ only if you must.</LI>
-                <LI><Strong>Don't use Excel as a source for production reports.</Strong> Switch to a database or dataflow once the analysis is real.</LI>
+                <LI>
+                    <Strong>Disable load on staging queries.</Strong> If a query is just an intermediate step (e.g., a lookup), right-click → Disable
+                    Load. Saves memory.
+                </LI>
+                <LI>
+                    <Strong>Filter early.</Strong> Push <Code>Table.SelectRows</Code> as close to the source as possible — Power Query may push it
+                    down to SQL.
+                </LI>
+                <LI>
+                    <Strong>Avoid wide unpivots in fact tables.</Strong> Reshape in the warehouse if you can; do it in PQ only if you must.
+                </LI>
+                <LI>
+                    <Strong>Don't use Excel as a source for production reports.</Strong> Switch to a database or dataflow once the analysis is real.
+                </LI>
             </UL>
 
             <Takeaways
                 items={[
-                    "Power Query is the ETL layer — visual on top, M language underneath, push-down friendly.",
+                    'Power Query is the ETL layer — visual on top, M language underneath, push-down friendly.',
                     "Set column types early; auto-detect doesn't survive locale changes.",
                     'M is case-sensitive: Table.SelectRows works, table.SelectRows errors.',
                     'Append = UNION ALL; Merge = JOIN with all the join-kind variants.',
@@ -4456,8 +4682,12 @@ const powerbiTimeIntelligence: TutorialChapter = {
             <H2 id="date-table">You need a Date table</H2>
             <P>A Date table is a separate dimension with one row per calendar date in your data range. It must:</P>
             <UL>
-                <LI>Have a <Strong>contiguous</Strong> date range — no gaps, even for weekends.</LI>
-                <LI>Be marked as a Date table (<em>Model view → right-click → Mark as date table</em>).</LI>
+                <LI>
+                    Have a <Strong>contiguous</Strong> date range — no gaps, even for weekends.
+                </LI>
+                <LI>
+                    Be marked as a Date table (<em>Model view → right-click → Mark as date table</em>).
+                </LI>
                 <LI>Be related to your fact table on the date column.</LI>
             </UL>
             <CodeBlock
@@ -4532,8 +4762,8 @@ CALCULATE(
 )`}
             />
             <Callout kind="tip">
-                For rolling windows, use <Code>DATESINPERIOD</Code> rather than <Code>DATESBETWEEN</Code> — it's anchored to the latest date in
-                the filter context, so the window slides automatically.
+                For rolling windows, use <Code>DATESINPERIOD</Code> rather than <Code>DATESBETWEEN</Code> — it's anchored to the latest date in the
+                filter context, so the window slides automatically.
             </Callout>
 
             <H2 id="fiscal">Fiscal calendars</H2>
@@ -4610,46 +4840,79 @@ const excelPowerQuery: TutorialChapter = {
     content: (
         <>
             <P>
-                Power Query in Excel is the same engine that lives in Power BI. Most analysts using Excel for the past 10 years have never opened
-                it — and it would have saved them thousands of hours. This chapter is the catch-up.
+                Power Query in Excel is the same engine that lives in Power BI. Most analysts using Excel for the past 10 years have never opened it —
+                and it would have saved them thousands of hours. This chapter is the catch-up.
             </P>
 
             <H2 id="why">Why Power Query in Excel?</H2>
             <UL>
-                <LI><Strong>Repeatable cleanup.</Strong> Record once, refresh forever. New file? Drop it in the same folder and click Refresh.</LI>
-                <LI><Strong>No VBA.</Strong> Replaces 80% of the macro recordings analysts inherit but don't understand.</LI>
-                <LI><Strong>Same skills as Power BI.</Strong> Everything you learn here transfers to Power BI Desktop one-for-one.</LI>
+                <LI>
+                    <Strong>Repeatable cleanup.</Strong> Record once, refresh forever. New file? Drop it in the same folder and click Refresh.
+                </LI>
+                <LI>
+                    <Strong>No VBA.</Strong> Replaces 80% of the macro recordings analysts inherit but don't understand.
+                </LI>
+                <LI>
+                    <Strong>Same skills as Power BI.</Strong> Everything you learn here transfers to Power BI Desktop one-for-one.
+                </LI>
             </UL>
 
             <H2 id="launch">Launching the editor</H2>
-            <P>From a blank workbook: <Strong>Data → Get Data</Strong> → pick your source. From a Table: <Strong>Data → From Table/Range</Strong>.</P>
-            <P>The editor opens in its own window. The same four panes as Power BI: Queries (left), Preview grid (centre), Applied Steps (right), Formula bar (top).</P>
+            <P>
+                From a blank workbook: <Strong>Data → Get Data</Strong> → pick your source. From a Table: <Strong>Data → From Table/Range</Strong>.
+            </P>
+            <P>
+                The editor opens in its own window. The same four panes as Power BI: Queries (left), Preview grid (centre), Applied Steps (right),
+                Formula bar (top).
+            </P>
 
             <H2 id="cleanup">Cleaning a messy file</H2>
-            <P>The classic scenario: someone sent a "monthly report" Excel file with a logo image, a merged title row, blank rows between sections, and totals at the bottom. Here's the recipe:</P>
+            <P>
+                The classic scenario: someone sent a "monthly report" Excel file with a logo image, a merged title row, blank rows between sections,
+                and totals at the bottom. Here's the recipe:
+            </P>
             <UL>
-                <LI><Strong>Home → Remove Rows → Remove Top Rows</Strong> — strip the title.</LI>
-                <LI><Strong>Home → Use First Row as Headers</Strong> — promote the proper header row.</LI>
-                <LI><Strong>Right-click "Total" column header → Remove Rows → Remove Bottom Rows</Strong>.</LI>
-                <LI><Strong>Filter the column for "(blank)"</Strong> → uncheck → drops the section dividers.</LI>
-                <LI><Strong>Right-click columns → Change Type</Strong> for date and number columns.</LI>
-                <LI><Strong>Home → Close &amp; Load</Strong> → drops the cleaned data into a new sheet as a Table.</LI>
+                <LI>
+                    <Strong>Home → Remove Rows → Remove Top Rows</Strong> — strip the title.
+                </LI>
+                <LI>
+                    <Strong>Home → Use First Row as Headers</Strong> — promote the proper header row.
+                </LI>
+                <LI>
+                    <Strong>Right-click "Total" column header → Remove Rows → Remove Bottom Rows</Strong>.
+                </LI>
+                <LI>
+                    <Strong>Filter the column for "(blank)"</Strong> → uncheck → drops the section dividers.
+                </LI>
+                <LI>
+                    <Strong>Right-click columns → Change Type</Strong> for date and number columns.
+                </LI>
+                <LI>
+                    <Strong>Home → Close &amp; Load</Strong> → drops the cleaned data into a new sheet as a Table.
+                </LI>
             </UL>
             <Callout kind="tip">
-                Click any step in the Applied Steps panel to time-travel back to that point. Made a mistake? Delete the step instead of starting
-                over.
+                Click any step in the Applied Steps panel to time-travel back to that point. Made a mistake? Delete the step instead of starting over.
             </Callout>
 
             <H2 id="combine">Combine files in a folder</H2>
             <P>The single most-loved Power Query feature. You have 12 monthly Excel files with the same structure — combine them in one click.</P>
             <UL>
-                <LI><Strong>Data → Get Data → From File → From Folder</Strong> — point to the folder.</LI>
-                <LI>Click <Strong>Combine &amp; Transform Data</Strong>. Power Query auto-builds a function that processes one file, then maps it across all files.</LI>
+                <LI>
+                    <Strong>Data → Get Data → From File → From Folder</Strong> — point to the folder.
+                </LI>
+                <LI>
+                    Click <Strong>Combine &amp; Transform Data</Strong>. Power Query auto-builds a function that processes one file, then maps it
+                    across all files.
+                </LI>
                 <LI>The result is one big Table that auto-refreshes when you drop new files into the folder.</LI>
             </UL>
 
             <H2 id="unpivot">Unpivot wide reports</H2>
-            <P>Source data often arrives "wide" — months as columns. For analysis, you want it "tall" — one row per (entity, month, value). Power Query does this in three clicks.</P>
+            <P>
+                Source data often arrives "wide" — months as columns. For analysis, you want it "tall" — one row per (entity, month, value). Power
+                Query does this in three clicks.
+            </P>
             <CodeBlock
                 language="text"
                 title="before — wide"
@@ -4658,7 +4921,9 @@ const excelPowerQuery: TutorialChapter = {
 North    100   120   140   180
 South     80    90   110   130`}
             />
-            <P>Select the "Region" column → <Strong>Transform → Unpivot Other Columns</Strong>:</P>
+            <P>
+                Select the "Region" column → <Strong>Transform → Unpivot Other Columns</Strong>:
+            </P>
             <CodeBlock
                 language="text"
                 title="after — tall"
@@ -4675,18 +4940,24 @@ South    Feb          90
 
             <H2 id="refresh">Refresh &amp; connections</H2>
             <UL>
-                <LI><Strong>Refresh All</Strong> (Ctrl + Alt + F5) — re-runs every query in the workbook.</LI>
-                <LI><Strong>Data → Queries &amp; Connections</Strong> — see every query, edit it, or refresh individually.</LI>
-                <LI><Strong>Right-click query → Properties</Strong> — set "Refresh every N minutes" or "Refresh on file open".</LI>
+                <LI>
+                    <Strong>Refresh All</Strong> (Ctrl + Alt + F5) — re-runs every query in the workbook.
+                </LI>
+                <LI>
+                    <Strong>Data → Queries &amp; Connections</Strong> — see every query, edit it, or refresh individually.
+                </LI>
+                <LI>
+                    <Strong>Right-click query → Properties</Strong> — set "Refresh every N minutes" or "Refresh on file open".
+                </LI>
             </UL>
 
             <Takeaways
                 items={[
-                    "Power Query in Excel is the same engine as Power BI — skills are 100% transferable.",
+                    'Power Query in Excel is the same engine as Power BI — skills are 100% transferable.',
                     'Replaces 80% of macros for cleaning/combining files. No VBA needed.',
                     'Combine Files from Folder is the killer feature — drop new files, click refresh.',
                     'Unpivot Other Columns turns wide reports into analysis-ready tall data.',
-                    "Click any step in Applied Steps to time-travel — never start over from scratch."
+                    'Click any step in Applied Steps to time-travel — never start over from scratch.'
                 ]}
             />
         </>
@@ -4735,52 +5006,86 @@ const excelCharts: TutorialChapter = {
                 ]}
             />
             <Callout kind="warning">
-                Pie charts work for at most 2 slices. Three or more, switch to a horizontal bar — humans are bad at comparing angles. Donut charts
-                are pies in disguise; same problem.
+                Pie charts work for at most 2 slices. Three or more, switch to a horizontal bar — humans are bad at comparing angles. Donut charts are
+                pies in disguise; same problem.
             </Callout>
 
             <H2 id="format">Formatting that works</H2>
             <UL>
-                <LI><Strong>Remove chart junk.</Strong> Delete legend if obvious; remove gridlines on bars; thin the axes.</LI>
-                <LI><Strong>One accent colour, neutral rest.</Strong> Highlight the bar that matters; grey out the others.</LI>
-                <LI><Strong>Sort bars by value.</Strong> Default alphabetical sort is almost never what you want.</LI>
-                <LI><Strong>Direct-label important values.</Strong> Put numbers next to the bar; remove the y-axis if the labels do the job.</LI>
-                <LI><Strong>Title is a sentence, not a label.</Strong> "Q1 revenue grew 12% YoY" beats "Revenue by Quarter".</LI>
+                <LI>
+                    <Strong>Remove chart junk.</Strong> Delete legend if obvious; remove gridlines on bars; thin the axes.
+                </LI>
+                <LI>
+                    <Strong>One accent colour, neutral rest.</Strong> Highlight the bar that matters; grey out the others.
+                </LI>
+                <LI>
+                    <Strong>Sort bars by value.</Strong> Default alphabetical sort is almost never what you want.
+                </LI>
+                <LI>
+                    <Strong>Direct-label important values.</Strong> Put numbers next to the bar; remove the y-axis if the labels do the job.
+                </LI>
+                <LI>
+                    <Strong>Title is a sentence, not a label.</Strong> "Q1 revenue grew 12% YoY" beats "Revenue by Quarter".
+                </LI>
             </UL>
 
             <H2 id="pivotcharts">PivotCharts</H2>
-            <P>Build a pivot table first, then click <Strong>PivotTable Analyze → PivotChart</Strong>. The chart stays linked — add a row to the pivot, the chart updates.</P>
+            <P>
+                Build a pivot table first, then click <Strong>PivotTable Analyze → PivotChart</Strong>. The chart stays linked — add a row to the
+                pivot, the chart updates.
+            </P>
             <UL>
                 <LI>Drill in: double-click any data point to open the underlying rows.</LI>
                 <LI>Hide field buttons on the chart (right-click → Hide All Field Buttons) — they look messy on dashboards.</LI>
             </UL>
 
             <H2 id="slicers">Slicers &amp; timelines</H2>
-            <P>One slicer can drive multiple charts. <Strong>Slicer → Report Connections</Strong> → tick every PivotTable / PivotChart it should filter.</P>
+            <P>
+                One slicer can drive multiple charts. <Strong>Slicer → Report Connections</Strong> → tick every PivotTable / PivotChart it should
+                filter.
+            </P>
             <UL>
-                <LI><Strong>Slicer:</Strong> for any categorical field — region, product, segment.</LI>
-                <LI><Strong>Timeline:</Strong> only for date fields — slide-through filtering by month/quarter/year.</LI>
+                <LI>
+                    <Strong>Slicer:</Strong> for any categorical field — region, product, segment.
+                </LI>
+                <LI>
+                    <Strong>Timeline:</Strong> only for date fields — slide-through filtering by month/quarter/year.
+                </LI>
             </UL>
 
             <H2 id="layout">Dashboard layout</H2>
             <UL>
-                <LI><Strong>Header row:</Strong> 4-6 KPI tiles. Big number, small label, single colour for direction (red/green sparingly).</LI>
-                <LI><Strong>Main panel:</Strong> 1-2 large charts that tell the headline story.</LI>
-                <LI><Strong>Side panel:</Strong> 3-4 smaller breakdowns (by category, geography, segment).</LI>
-                <LI><Strong>Filter bar:</Strong> place slicers / timelines at the top — users find them faster.</LI>
-                <LI><Strong>Same chart type on the same row.</Strong> Visual rhythm reduces cognitive load.</LI>
+                <LI>
+                    <Strong>Header row:</Strong> 4-6 KPI tiles. Big number, small label, single colour for direction (red/green sparingly).
+                </LI>
+                <LI>
+                    <Strong>Main panel:</Strong> 1-2 large charts that tell the headline story.
+                </LI>
+                <LI>
+                    <Strong>Side panel:</Strong> 3-4 smaller breakdowns (by category, geography, segment).
+                </LI>
+                <LI>
+                    <Strong>Filter bar:</Strong> place slicers / timelines at the top — users find them faster.
+                </LI>
+                <LI>
+                    <Strong>Same chart type on the same row.</Strong> Visual rhythm reduces cognitive load.
+                </LI>
             </UL>
             <Callout kind="tip">
-                Set sheet view to <Strong>Page Layout</Strong> while designing. It shows page breaks and prevents the dreaded "exports to 12
-                pages" surprise.
+                Set sheet view to <Strong>Page Layout</Strong> while designing. It shows page breaks and prevents the dreaded "exports to 12 pages"
+                surprise.
             </Callout>
 
             <H2 id="sparklines">Sparklines &amp; in-cell charts</H2>
             <P>Tiny charts inside a single cell — perfect for tables where each row needs a trend.</P>
             <UL>
-                <LI><Strong>Insert → Sparklines → Line / Column / Win-Loss</Strong>.</LI>
+                <LI>
+                    <Strong>Insert → Sparklines → Line / Column / Win-Loss</Strong>.
+                </LI>
                 <LI>Select the data range and the location range (one cell per row).</LI>
-                <LI>Use <Strong>Sparkline → High Point / Low Point</Strong> markers for instant readability.</LI>
+                <LI>
+                    Use <Strong>Sparkline → High Point / Low Point</Strong> markers for instant readability.
+                </LI>
             </UL>
             <CodeBlock
                 language="text"
@@ -4811,7 +5116,8 @@ const tableauCalcs: TutorialChapter = {
     topicSlug: 'tableau',
     chapter: 'Chapter 3',
     title: 'Calculated Fields & Table Calculations',
-    description: 'Master row-level vs aggregate calcs, IF/CASE logic, and table calculations — running totals, % of total, rank, and moving averages.',
+    description:
+        'Master row-level vs aggregate calcs, IF/CASE logic, and table calculations — running totals, % of total, rank, and moving averages.',
     readMin: 14,
     tags: ['Tableau', 'Calculations', 'Table Calcs'],
     prev: { slug: 'tableau/lod-expressions', title: 'LOD Expressions' },
@@ -4822,7 +5128,7 @@ const tableauCalcs: TutorialChapter = {
         { id: 'agg', label: 'Aggregate calculations' },
         { id: 'logic', label: 'IF / CASE / SWITCH' },
         { id: 'table-calcs', label: 'Table calculations' },
-        { id: 'recipes', label: 'Recipes you\'ll reuse' }
+        { id: 'recipes', label: "Recipes you'll reuse" }
     ],
     content: (
         <>
@@ -4924,8 +5230,8 @@ WINDOW_AVG(SUM([Sales]), -6, 0)
 SUM([Sales]) - LOOKUP(SUM([Sales]), -1)`}
             />
             <Callout kind="info">
-                Table calcs depend on the <Strong>direction</Strong> they compute along. Right-click the field → <em>Compute Using</em> → pick
-                the dimension. "Table (Across)", "Pane (Down)", or a specific field.
+                Table calcs depend on the <Strong>direction</Strong> they compute along. Right-click the field → <em>Compute Using</em> → pick the
+                dimension. "Table (Across)", "Pane (Down)", or a specific field.
             </Callout>
 
             <H2 id="recipes">Recipes you'll reuse</H2>
@@ -4988,10 +5294,18 @@ const tableauDashboard: TutorialChapter = {
 
             <H2 id="why">What makes a dashboard get used?</H2>
             <UL>
-                <LI><Strong>One job.</Strong> Every dashboard answers one primary question. If you can't state it in one sentence, split into two.</LI>
-                <LI><Strong>Top-down hierarchy.</Strong> KPIs at the top, breakdowns below, detail at the bottom — the inverted pyramid.</LI>
-                <LI><Strong>Filterable by the things stakeholders care about.</Strong> Region, time, segment.</LI>
-                <LI><Strong>Loads in &lt; 10 seconds.</Strong> Speed is a feature; people abandon slow dashboards quickly.</LI>
+                <LI>
+                    <Strong>One job.</Strong> Every dashboard answers one primary question. If you can't state it in one sentence, split into two.
+                </LI>
+                <LI>
+                    <Strong>Top-down hierarchy.</Strong> KPIs at the top, breakdowns below, detail at the bottom — the inverted pyramid.
+                </LI>
+                <LI>
+                    <Strong>Filterable by the things stakeholders care about.</Strong> Region, time, segment.
+                </LI>
+                <LI>
+                    <Strong>Loads in &lt; 10 seconds.</Strong> Speed is a feature; people abandon slow dashboards quickly.
+                </LI>
             </UL>
 
             <H2 id="sizing">Sizing &amp; device layouts</H2>
@@ -5003,28 +5317,46 @@ const tableauDashboard: TutorialChapter = {
                     ['Range', 'fixes minimums but allows growth — most middle-of-the-road reports']
                 ]}
             />
-            <P>Once your desktop layout works, click <Strong>Device Preview</Strong> → add a <Strong>Tablet</Strong> and <Strong>Phone</Strong> layout. Drag-and-drop sheets to rearrange for the smaller screens.</P>
+            <P>
+                Once your desktop layout works, click <Strong>Device Preview</Strong> → add a <Strong>Tablet</Strong> and <Strong>Phone</Strong>{' '}
+                layout. Drag-and-drop sheets to rearrange for the smaller screens.
+            </P>
 
             <H2 id="containers">Layout containers</H2>
             <P>Containers are how Tableau dashboards stay aligned. Two flavours:</P>
             <UL>
-                <LI><Strong>Horizontal container</Strong> — children are placed side by side.</LI>
-                <LI><Strong>Vertical container</Strong> — children stack top to bottom.</LI>
+                <LI>
+                    <Strong>Horizontal container</Strong> — children are placed side by side.
+                </LI>
+                <LI>
+                    <Strong>Vertical container</Strong> — children stack top to bottom.
+                </LI>
             </UL>
             <P>Drop everything into containers from the start; resizing one sheet then ripples through the whole dashboard cleanly.</P>
             <Callout kind="tip">
-                Hold <Code>Shift</Code> while dragging a sheet onto the canvas — Tableau places it inside the existing container instead of as a
-                new floating element.
+                Hold <Code>Shift</Code> while dragging a sheet onto the canvas — Tableau places it inside the existing container instead of as a new
+                floating element.
             </Callout>
 
             <H2 id="actions">Filter, highlight, navigation actions</H2>
             <UL>
-                <LI><Strong>Filter action:</Strong> click a region in chart A → chart B filters to that region. The bread-and-butter interaction.</LI>
-                <LI><Strong>Highlight action:</Strong> click a row in the table → the corresponding bar in the chart highlights without filtering others.</LI>
-                <LI><Strong>Go to URL action:</Strong> click an order ID → opens that order in the order-management system.</LI>
-                <LI><Strong>Go to Sheet:</Strong> click a customer → navigate to a customer-detail dashboard with that customer pre-filtered.</LI>
+                <LI>
+                    <Strong>Filter action:</Strong> click a region in chart A → chart B filters to that region. The bread-and-butter interaction.
+                </LI>
+                <LI>
+                    <Strong>Highlight action:</Strong> click a row in the table → the corresponding bar in the chart highlights without filtering
+                    others.
+                </LI>
+                <LI>
+                    <Strong>Go to URL action:</Strong> click an order ID → opens that order in the order-management system.
+                </LI>
+                <LI>
+                    <Strong>Go to Sheet:</Strong> click a customer → navigate to a customer-detail dashboard with that customer pre-filtered.
+                </LI>
             </UL>
-            <P><Strong>Dashboard → Actions</Strong> manages all four kinds.</P>
+            <P>
+                <Strong>Dashboard → Actions</Strong> manages all four kinds.
+            </P>
 
             <H2 id="parameters">Parameters for what-if</H2>
             <CodeBlock
@@ -5038,7 +5370,10 @@ CASE [Metric Choice]
     WHEN "Margin"  THEN SUM([Profit]) / SUM([Sales])
 END`}
             />
-            <P>Drop the parameter on the dashboard via <Strong>Parameter → Show Parameter Control</Strong>. Now stakeholders can switch metrics without you rebuilding the dashboard.</P>
+            <P>
+                Drop the parameter on the dashboard via <Strong>Parameter → Show Parameter Control</Strong>. Now stakeholders can switch metrics
+                without you rebuilding the dashboard.
+            </P>
 
             <H2 id="polish">Polish checklist</H2>
             <UL>
@@ -5049,16 +5384,18 @@ END`}
                 <LI>Remove gridlines &amp; field buttons; thin the axes.</LI>
                 <LI>Hide unused fields from the data pane (right-click → Hide).</LI>
                 <LI>Test on the device your audience will actually use.</LI>
-                <LI>Run <Strong>Performance Recording</Strong> if a viz takes more than ~3 seconds.</LI>
+                <LI>
+                    Run <Strong>Performance Recording</Strong> if a viz takes more than ~3 seconds.
+                </LI>
             </UL>
 
             <Takeaways
                 items={[
-                    'A good dashboard answers one question. Split it if you can\'t state the question in one sentence.',
+                    "A good dashboard answers one question. Split it if you can't state the question in one sentence.",
                     'Build everything inside layout containers — they keep alignment after every resize.',
                     'Filter actions are the workhorse interaction; highlight and navigation cover the rest.',
                     'Parameters + CASE turn one chart into a metric-swap; stakeholders love it.',
-                    "Speed is a feature. Use Performance Recording on anything slower than 3 seconds."
+                    'Speed is a feature. Use Performance Recording on anything slower than 3 seconds.'
                 ]}
             />
         </>
@@ -5089,16 +5426,18 @@ const statsRegression: TutorialChapter = {
     content: (
         <>
             <P>
-                Linear regression is the gateway model — most ML courses, every analyst's first model, the foundation of A/B testing analysis,
-                price modelling, demand forecasting, and the "predicted next month sales" sheet your CFO sends you. Worth learning properly.
+                Linear regression is the gateway model — most ML courses, every analyst's first model, the foundation of A/B testing analysis, price
+                modelling, demand forecasting, and the "predicted next month sales" sheet your CFO sends you. Worth learning properly.
             </P>
 
             <H2 id="why">What is regression?</H2>
             <P>
-                Regression is the family of methods that estimate the relationship between a <Strong>dependent variable</Strong> (y, what you
-                want to predict) and one or more <Strong>independent variables</Strong> (x, the inputs).
+                Regression is the family of methods that estimate the relationship between a <Strong>dependent variable</Strong> (y, what you want to
+                predict) and one or more <Strong>independent variables</Strong> (x, the inputs).
             </P>
-            <P>"Linear" means: we assume the relationship is well-approximated by a straight line — <Code>y = β₀ + β₁x + ε</Code>.</P>
+            <P>
+                "Linear" means: we assume the relationship is well-approximated by a straight line — <Code>y = β₀ + β₁x + ε</Code>.
+            </P>
 
             <H2 id="simple">Simple linear regression</H2>
             <CodeBlock
@@ -5122,12 +5461,18 @@ print(f"At ₹50k spend → ₹{predicted:.0f}k revenue")
             />
             <P>Interpretation:</P>
             <UL>
-                <LI><Strong>β₁ = 2.27</Strong> — for every ₹1k more spend, revenue rises by ₹2.27k.</LI>
-                <LI><Strong>β₀ = 60.4</Strong> — predicted revenue at zero spend (intercept). Often not meaningful, just an anchor.</LI>
+                <LI>
+                    <Strong>β₁ = 2.27</Strong> — for every ₹1k more spend, revenue rises by ₹2.27k.
+                </LI>
+                <LI>
+                    <Strong>β₀ = 60.4</Strong> — predicted revenue at zero spend (intercept). Often not meaningful, just an anchor.
+                </LI>
             </UL>
 
             <H2 id="multiple">Multiple regression</H2>
-            <P>More than one input. <Code>y = β₀ + β₁x₁ + β₂x₂ + … + βₙxₙ + ε</Code>. Each coefficient now means "all else equal":</P>
+            <P>
+                More than one input. <Code>y = β₀ + β₁x₁ + β₂x₂ + … + βₙxₙ + ε</Code>. Each coefficient now means "all else equal":
+            </P>
             <CodeBlock
                 language="python"
                 code={`# House prices: depend on size (sqft) AND number of bedrooms
@@ -5156,12 +5501,25 @@ print(f"At ₹50k spend → ₹{predicted:.0f}k revenue")
             </Callout>
 
             <H2 id="assumptions">The four assumptions</H2>
-            <P>Linear regression has four classical assumptions. Violating them doesn't crash the model — it makes the coefficients and standard errors unreliable.</P>
+            <P>
+                Linear regression has four classical assumptions. Violating them doesn't crash the model — it makes the coefficients and standard
+                errors unreliable.
+            </P>
             <UL>
-                <LI><Strong>Linearity:</Strong> y is a linear function of x. Check with a scatter plot of residuals vs predictions — should look like a random cloud.</LI>
-                <LI><Strong>Independence:</Strong> observations are independent of each other. Time series usually violate this.</LI>
-                <LI><Strong>Homoscedasticity:</Strong> residual variance is constant across predictions. The "fan shape" in residual plots is the telltale violation.</LI>
-                <LI><Strong>Normality of residuals:</Strong> for hypothesis tests on coefficients. Less critical for prediction.</LI>
+                <LI>
+                    <Strong>Linearity:</Strong> y is a linear function of x. Check with a scatter plot of residuals vs predictions — should look like
+                    a random cloud.
+                </LI>
+                <LI>
+                    <Strong>Independence:</Strong> observations are independent of each other. Time series usually violate this.
+                </LI>
+                <LI>
+                    <Strong>Homoscedasticity:</Strong> residual variance is constant across predictions. The "fan shape" in residual plots is the
+                    telltale violation.
+                </LI>
+                <LI>
+                    <Strong>Normality of residuals:</Strong> for hypothesis tests on coefficients. Less critical for prediction.
+                </LI>
             </UL>
 
             <H2 id="sklearn">In Python with scikit-learn</H2>
@@ -5228,18 +5586,29 @@ const statsAbTesting: TutorialChapter = {
     content: (
         <>
             <P>
-                A/B testing is how product teams ship changes with confidence. It's also how teams accidentally ship bad ideas because they
-                misread results. This chapter is the playbook — design, sample size, reading results, and the traps that take down even
-                experienced teams.
+                A/B testing is how product teams ship changes with confidence. It's also how teams accidentally ship bad ideas because they misread
+                results. This chapter is the playbook — design, sample size, reading results, and the traps that take down even experienced teams.
             </P>
 
             <H2 id="design">Designing an A/B test</H2>
             <UL>
-                <LI><Strong>Hypothesis:</Strong> "Showing the price more prominently will increase conversion by ≥ 5%."</LI>
-                <LI><Strong>Primary metric:</Strong> the one number that decides ship/don't ship. <em>Secondary</em> metrics watch for unintended damage.</LI>
-                <LI><Strong>Unit of randomisation:</Strong> usually the user — never the session, or you'll get the same user in both arms.</LI>
-                <LI><Strong>Control vs treatment:</Strong> treatment is what you're testing; control is the existing experience.</LI>
-                <LI><Strong>Pre-register:</Strong> write down the hypothesis, sample size, and stopping rule <em>before</em> the test starts. Stick to it.</LI>
+                <LI>
+                    <Strong>Hypothesis:</Strong> "Showing the price more prominently will increase conversion by ≥ 5%."
+                </LI>
+                <LI>
+                    <Strong>Primary metric:</Strong> the one number that decides ship/don't ship. <em>Secondary</em> metrics watch for unintended
+                    damage.
+                </LI>
+                <LI>
+                    <Strong>Unit of randomisation:</Strong> usually the user — never the session, or you'll get the same user in both arms.
+                </LI>
+                <LI>
+                    <Strong>Control vs treatment:</Strong> treatment is what you're testing; control is the existing experience.
+                </LI>
+                <LI>
+                    <Strong>Pre-register:</Strong> write down the hypothesis, sample size, and stopping rule <em>before</em> the test starts. Stick to
+                    it.
+                </LI>
             </UL>
 
             <H2 id="sample">Sample size &amp; power</H2>
@@ -5274,44 +5643,75 @@ print(f"~{round(n_per_arm):,} users per arm")
 
             <H2 id="peeking">The peeking problem</H2>
             <P>
-                If you check the test daily and stop the moment <Code>p &lt; 0.05</Code>, you'll see "significant" results from pure noise{' '}
-                roughly <Strong>30%</Strong> of the time. Stopping rules baked into traditional tests assume a single look at a fixed sample size.
+                If you check the test daily and stop the moment <Code>p &lt; 0.05</Code>, you'll see "significant" results from pure noise roughly{' '}
+                <Strong>30%</Strong> of the time. Stopping rules baked into traditional tests assume a single look at a fixed sample size.
             </P>
             <UL>
-                <LI><Strong>The fix:</Strong> pre-commit to a sample size and only check the result at that point.</LI>
-                <LI><Strong>Or:</Strong> use sequential / Bayesian methods that account for repeated looks (e.g., always-valid p-values).</LI>
+                <LI>
+                    <Strong>The fix:</Strong> pre-commit to a sample size and only check the result at that point.
+                </LI>
+                <LI>
+                    <Strong>Or:</Strong> use sequential / Bayesian methods that account for repeated looks (e.g., always-valid p-values).
+                </LI>
             </UL>
 
             <H2 id="reading">Reading the result</H2>
             <P>You ran the test. The dashboard says "treatment lift = +4.3%, p = 0.028". What do you actually conclude?</P>
             <UL>
-                <LI><Strong>Statistically significant?</Strong> Yes — at α = 0.05.</LI>
-                <LI><Strong>Confidence interval?</Strong> "95% CI: +0.4% to +8.1%" — the true effect could realistically be much smaller.</LI>
-                <LI><Strong>Practical significance?</Strong> If 0.4% lift wouldn't justify ship, the result is statistically significant but practically inconclusive.</LI>
-                <LI><Strong>Secondary metrics?</Strong> Did latency get worse? Cancellation rate? Don't tunnel-vision on the primary.</LI>
-                <LI><Strong>Pre-registered hypothesis?</Strong> If you ran 12 segment cuts and one became significant, that's not a discovery — that's multiple-testing.</LI>
+                <LI>
+                    <Strong>Statistically significant?</Strong> Yes — at α = 0.05.
+                </LI>
+                <LI>
+                    <Strong>Confidence interval?</Strong> "95% CI: +0.4% to +8.1%" — the true effect could realistically be much smaller.
+                </LI>
+                <LI>
+                    <Strong>Practical significance?</Strong> If 0.4% lift wouldn't justify ship, the result is statistically significant but
+                    practically inconclusive.
+                </LI>
+                <LI>
+                    <Strong>Secondary metrics?</Strong> Did latency get worse? Cancellation rate? Don't tunnel-vision on the primary.
+                </LI>
+                <LI>
+                    <Strong>Pre-registered hypothesis?</Strong> If you ran 12 segment cuts and one became significant, that's not a discovery — that's
+                    multiple-testing.
+                </LI>
             </UL>
 
             <H2 id="segments">Segmentation traps</H2>
             <P>"The treatment didn't work overall, but it was great for users in the South!" — be careful.</P>
             <UL>
                 <LI>Every additional segment cut multiplies your false-positive rate.</LI>
-                <LI>Pre-register segments you'll look at; treat post-hoc segments as <em>hypotheses for the next test</em>, not conclusions.</LI>
+                <LI>
+                    Pre-register segments you'll look at; treat post-hoc segments as <em>hypotheses for the next test</em>, not conclusions.
+                </LI>
                 <LI>Apply a Bonferroni or Holm correction if you're testing many segments simultaneously.</LI>
             </UL>
 
             <H2 id="pitfalls">Real-world pitfalls</H2>
             <UL>
-                <LI><Strong>Sample-ratio mismatch (SRM):</Strong> if the actual split isn't ~50/50, your randomisation broke. Investigate before reading the result.</LI>
-                <LI><Strong>Network effects:</Strong> social products (think Facebook, Slack) violate independence — treatment users interact with control users.</LI>
-                <LI><Strong>Novelty effects:</Strong> any change shows a short-term lift just because it's different. Run long enough to see steady-state.</LI>
-                <LI><Strong>Day-of-week effects:</Strong> Mondays and Fridays behave differently. Run for at least one full week — ideally two.</LI>
-                <LI><Strong>Outlier-driven results:</Strong> one whale account can swing a small test. Cap or winsorise extreme values.</LI>
+                <LI>
+                    <Strong>Sample-ratio mismatch (SRM):</Strong> if the actual split isn't ~50/50, your randomisation broke. Investigate before
+                    reading the result.
+                </LI>
+                <LI>
+                    <Strong>Network effects:</Strong> social products (think Facebook, Slack) violate independence — treatment users interact with
+                    control users.
+                </LI>
+                <LI>
+                    <Strong>Novelty effects:</Strong> any change shows a short-term lift just because it's different. Run long enough to see
+                    steady-state.
+                </LI>
+                <LI>
+                    <Strong>Day-of-week effects:</Strong> Mondays and Fridays behave differently. Run for at least one full week — ideally two.
+                </LI>
+                <LI>
+                    <Strong>Outlier-driven results:</Strong> one whale account can swing a small test. Cap or winsorise extreme values.
+                </LI>
             </UL>
 
             <Takeaways
                 items={[
-                    'Pre-register: hypothesis, primary metric, sample size, stopping rule. Don\'t deviate.',
+                    "Pre-register: hypothesis, primary metric, sample size, stopping rule. Don't deviate.",
                     'Compute sample size before starting — typical α=0.05, power=0.80, MDE business-driven.',
                     "Don't peek-and-stop — it inflates false positives to ~30%. Pre-commit to one look.",
                     'Always look at the confidence interval and practical significance, not just the p-value.',
@@ -5337,18 +5737,102 @@ export const tutorialTopics: TutorialTopic[] = [
         name: 'Python',
         description: 'Master Python from basics to advanced — data types, loops, functions, OOP, and real-world projects.',
         chapters: [
-            { slug: 'python/python-fundamentals', chapter: 'Chapter 1', title: 'Python Fundamentals', description: 'Installation, variables, data types, input/output, comments, and your first programs.', readMin: 11, tags: ['Python', 'Basics'] },
-            { slug: 'python/python-operators', chapter: 'Chapter 2', title: 'Python Operators', description: 'Arithmetic, comparison, logical, assignment, bitwise, membership, identity.', readMin: 14, tags: ['Python', 'Operators'] },
-            { slug: 'python/python-data-types', chapter: 'Chapter 3', title: 'Python Data Types', description: "Integers, floats, strings, booleans, None, type conversion, and how they work.", readMin: 18, tags: ['Python', 'Data Types'] },
-            { slug: 'python/python-lists', chapter: 'Chapter 4', title: 'Python Lists', description: 'Creation, indexing, slicing, methods, iteration, comprehensions, nested lists.', readMin: 22, tags: ['Python', 'Lists'] },
-            { slug: 'python/python-strings', chapter: 'Chapter 5', title: 'Python Strings', description: 'Indexing, slicing, methods, formatting, regex basics and real-world use.', readMin: 20, tags: ['Python', 'Strings'] },
-            { slug: 'python/tuples-and-sets', chapter: 'Chapter 6', title: 'Tuples & Sets', description: 'Immutable tuples and unique-element sets — operations, methods, when to use which.', readMin: 16, tags: ['Python', 'Tuples', 'Sets'] },
-            { slug: 'python/python-dictionaries', chapter: 'Chapter 7', title: 'Python Dictionaries', description: 'CRUD operations, iteration, comprehensions, nested dicts, common idioms (Counter, defaultdict).', readMin: 18, tags: ['Python', 'Dictionaries'] },
-            { slug: 'python/conditional-statements', chapter: 'Chapter 8', title: 'Conditional Statements', description: 'if / elif / else, ternary expressions, match-case, guard clauses, and clean conditionals.', readMin: 14, tags: ['Python', 'Control Flow'] },
-            { slug: 'python/python-loops', chapter: 'Chapter 9', title: 'Python Loops', description: 'for / while loops, range, enumerate, zip, break, continue, nested loops, iteration patterns.', readMin: 16, tags: ['Python', 'Loops'] },
-            { slug: 'python/python-functions', chapter: 'Chapter 10', title: 'Python Functions', description: 'Define and call functions, *args/**kwargs, lambdas, scope/closures, docstrings, type hints.', readMin: 18, tags: ['Python', 'Functions'] },
-            { slug: 'python/file-handling', chapter: 'Chapter 11', title: 'File Handling', description: 'Read & write text / CSV / JSON, with-statement, modes, encoding, and modern Pathlib.', readMin: 16, tags: ['Python', 'File I/O'] },
-            { slug: 'python/exception-handling', chapter: 'Chapter 12', title: 'Exception Handling', description: 'try / except / else / finally, raising, custom exceptions, and error-handling best practices.', readMin: 15, tags: ['Python', 'Exceptions'] }
+            {
+                slug: 'python/python-fundamentals',
+                chapter: 'Chapter 1',
+                title: 'Python Fundamentals',
+                description: 'Installation, variables, data types, input/output, comments, and your first programs.',
+                readMin: 11,
+                tags: ['Python', 'Basics']
+            },
+            {
+                slug: 'python/python-operators',
+                chapter: 'Chapter 2',
+                title: 'Python Operators',
+                description: 'Arithmetic, comparison, logical, assignment, bitwise, membership, identity.',
+                readMin: 14,
+                tags: ['Python', 'Operators']
+            },
+            {
+                slug: 'python/python-data-types',
+                chapter: 'Chapter 3',
+                title: 'Python Data Types',
+                description: 'Integers, floats, strings, booleans, None, type conversion, and how they work.',
+                readMin: 18,
+                tags: ['Python', 'Data Types']
+            },
+            {
+                slug: 'python/python-lists',
+                chapter: 'Chapter 4',
+                title: 'Python Lists',
+                description: 'Creation, indexing, slicing, methods, iteration, comprehensions, nested lists.',
+                readMin: 22,
+                tags: ['Python', 'Lists']
+            },
+            {
+                slug: 'python/python-strings',
+                chapter: 'Chapter 5',
+                title: 'Python Strings',
+                description: 'Indexing, slicing, methods, formatting, regex basics and real-world use.',
+                readMin: 20,
+                tags: ['Python', 'Strings']
+            },
+            {
+                slug: 'python/tuples-and-sets',
+                chapter: 'Chapter 6',
+                title: 'Tuples & Sets',
+                description: 'Immutable tuples and unique-element sets — operations, methods, when to use which.',
+                readMin: 16,
+                tags: ['Python', 'Tuples', 'Sets']
+            },
+            {
+                slug: 'python/python-dictionaries',
+                chapter: 'Chapter 7',
+                title: 'Python Dictionaries',
+                description: 'CRUD operations, iteration, comprehensions, nested dicts, common idioms (Counter, defaultdict).',
+                readMin: 18,
+                tags: ['Python', 'Dictionaries']
+            },
+            {
+                slug: 'python/conditional-statements',
+                chapter: 'Chapter 8',
+                title: 'Conditional Statements',
+                description: 'if / elif / else, ternary expressions, match-case, guard clauses, and clean conditionals.',
+                readMin: 14,
+                tags: ['Python', 'Control Flow']
+            },
+            {
+                slug: 'python/python-loops',
+                chapter: 'Chapter 9',
+                title: 'Python Loops',
+                description: 'for / while loops, range, enumerate, zip, break, continue, nested loops, iteration patterns.',
+                readMin: 16,
+                tags: ['Python', 'Loops']
+            },
+            {
+                slug: 'python/python-functions',
+                chapter: 'Chapter 10',
+                title: 'Python Functions',
+                description: 'Define and call functions, *args/**kwargs, lambdas, scope/closures, docstrings, type hints.',
+                readMin: 18,
+                tags: ['Python', 'Functions']
+            },
+            {
+                slug: 'python/file-handling',
+                chapter: 'Chapter 11',
+                title: 'File Handling',
+                description: 'Read & write text / CSV / JSON, with-statement, modes, encoding, and modern Pathlib.',
+                readMin: 16,
+                tags: ['Python', 'File I/O']
+            },
+            {
+                slug: 'python/exception-handling',
+                chapter: 'Chapter 12',
+                title: 'Exception Handling',
+                description: 'try / except / else / finally, raising, custom exceptions, and error-handling best practices.',
+                readMin: 15,
+                tags: ['Python', 'Exceptions']
+            }
         ]
     },
     {
@@ -5356,11 +5840,46 @@ export const tutorialTopics: TutorialTopic[] = [
         name: 'SQL',
         description: 'Queries, joins, subqueries, window functions and database design for analytics work.',
         chapters: [
-            { slug: 'sql/sql-intro', chapter: 'Chapter 1', title: 'SQL Intro — SELECT, WHERE, ORDER BY', description: 'Get started with SQL — the SELECT statement, filtering, sorting, and basic aggregations.', readMin: 14, tags: ['SQL', 'Basics'] },
-            { slug: 'sql/sql-joins', chapter: 'Chapter 2', title: 'SQL Joins', description: 'INNER, LEFT, RIGHT, FULL OUTER joins and finding missing matches.', readMin: 15, tags: ['SQL', 'Joins'] },
-            { slug: 'sql/sql-window-functions', chapter: 'Chapter 3', title: 'SQL Window Functions', description: 'OVER, PARTITION BY, ROW_NUMBER, RANK, LAG and running totals.', readMin: 17, tags: ['SQL', 'Window Functions'] },
-            { slug: 'sql/subqueries-and-ctes', chapter: 'Chapter 4', title: 'SQL Subqueries & CTEs', description: 'Scalar / inline subqueries, IN / EXISTS, WITH-statements, recursive CTEs for hierarchies.', readMin: 16, tags: ['SQL', 'CTEs', 'WITH'] },
-            { slug: 'sql/aggregations-deep-dive', chapter: 'Chapter 5', title: 'Aggregations Deep Dive', description: 'COUNT distinct, conditional aggregation, FILTER, ROLLUP/CUBE, funnels & cohorts.', readMin: 14, tags: ['SQL', 'Aggregations'] }
+            {
+                slug: 'sql/sql-intro',
+                chapter: 'Chapter 1',
+                title: 'SQL Intro — SELECT, WHERE, ORDER BY',
+                description: 'Get started with SQL — the SELECT statement, filtering, sorting, and basic aggregations.',
+                readMin: 14,
+                tags: ['SQL', 'Basics']
+            },
+            {
+                slug: 'sql/sql-joins',
+                chapter: 'Chapter 2',
+                title: 'SQL Joins',
+                description: 'INNER, LEFT, RIGHT, FULL OUTER joins and finding missing matches.',
+                readMin: 15,
+                tags: ['SQL', 'Joins']
+            },
+            {
+                slug: 'sql/sql-window-functions',
+                chapter: 'Chapter 3',
+                title: 'SQL Window Functions',
+                description: 'OVER, PARTITION BY, ROW_NUMBER, RANK, LAG and running totals.',
+                readMin: 17,
+                tags: ['SQL', 'Window Functions']
+            },
+            {
+                slug: 'sql/subqueries-and-ctes',
+                chapter: 'Chapter 4',
+                title: 'SQL Subqueries & CTEs',
+                description: 'Scalar / inline subqueries, IN / EXISTS, WITH-statements, recursive CTEs for hierarchies.',
+                readMin: 16,
+                tags: ['SQL', 'CTEs', 'WITH']
+            },
+            {
+                slug: 'sql/aggregations-deep-dive',
+                chapter: 'Chapter 5',
+                title: 'Aggregations Deep Dive',
+                description: 'COUNT distinct, conditional aggregation, FILTER, ROLLUP/CUBE, funnels & cohorts.',
+                readMin: 14,
+                tags: ['SQL', 'Aggregations']
+            }
         ]
     },
     {
@@ -5368,10 +5887,38 @@ export const tutorialTopics: TutorialTopic[] = [
         name: 'Power BI',
         description: 'Build interactive dashboards, DAX formulas, data modelling, and business intelligence reports.',
         chapters: [
-            { slug: 'power-bi/power-bi-intro', chapter: 'Chapter 1', title: 'Power BI Intro & Data Modelling', description: 'Power BI Desktop, Power Query, star schemas, and your first dashboard.', readMin: 16, tags: ['Power BI', 'Modelling'] },
-            { slug: 'power-bi/power-bi-dax', chapter: 'Chapter 2', title: 'Introduction to DAX', description: 'CALCULATE, time intelligence, iterators, and the patterns analysts use daily.', readMin: 18, tags: ['Power BI', 'DAX'] },
-            { slug: 'power-bi/power-query-deep-dive', chapter: 'Chapter 3', title: 'Power Query Deep Dive', description: 'M language, common transformations, parameters, merge/append, and refresh-friendly patterns.', readMin: 17, tags: ['Power BI', 'Power Query', 'ETL'] },
-            { slug: 'power-bi/time-intelligence', chapter: 'Chapter 4', title: 'Time Intelligence in DAX', description: 'YTD, MTD, Same-Period-Last-Year, rolling averages, and the Date table that makes them all work.', readMin: 16, tags: ['Power BI', 'DAX', 'Time Intelligence'] }
+            {
+                slug: 'power-bi/power-bi-intro',
+                chapter: 'Chapter 1',
+                title: 'Power BI Intro & Data Modelling',
+                description: 'Power BI Desktop, Power Query, star schemas, and your first dashboard.',
+                readMin: 16,
+                tags: ['Power BI', 'Modelling']
+            },
+            {
+                slug: 'power-bi/power-bi-dax',
+                chapter: 'Chapter 2',
+                title: 'Introduction to DAX',
+                description: 'CALCULATE, time intelligence, iterators, and the patterns analysts use daily.',
+                readMin: 18,
+                tags: ['Power BI', 'DAX']
+            },
+            {
+                slug: 'power-bi/power-query-deep-dive',
+                chapter: 'Chapter 3',
+                title: 'Power Query Deep Dive',
+                description: 'M language, common transformations, parameters, merge/append, and refresh-friendly patterns.',
+                readMin: 17,
+                tags: ['Power BI', 'Power Query', 'ETL']
+            },
+            {
+                slug: 'power-bi/time-intelligence',
+                chapter: 'Chapter 4',
+                title: 'Time Intelligence in DAX',
+                description: 'YTD, MTD, Same-Period-Last-Year, rolling averages, and the Date table that makes them all work.',
+                readMin: 16,
+                tags: ['Power BI', 'DAX', 'Time Intelligence']
+            }
         ]
     },
     {
@@ -5379,10 +5926,38 @@ export const tutorialTopics: TutorialTopic[] = [
         name: 'Excel',
         description: 'Formulas, pivot tables, Power Query, dashboarding and advanced analytics in Excel.',
         chapters: [
-            { slug: 'excel/excel-formulas', chapter: 'Chapter 1', title: 'Excel Formulas — Foundations', description: 'IF, SUMIFS, COUNTIFS, XLOOKUP, INDEX/MATCH, dynamic arrays, and text functions.', readMin: 16, tags: ['Excel', 'Formulas'] },
-            { slug: 'excel/excel-pivot-tables', chapter: 'Chapter 2', title: 'Excel Pivot Tables', description: 'Build, slice, customise pivot tables — calculated fields, slicers, GETPIVOTDATA.', readMin: 14, tags: ['Excel', 'Pivot'] },
-            { slug: 'excel/power-query-in-excel', chapter: 'Chapter 3', title: 'Power Query in Excel', description: 'Connect, clean and combine messy data — replaces 80% of macros, no VBA needed.', readMin: 15, tags: ['Excel', 'Power Query'] },
-            { slug: 'excel/charts-and-dashboards', chapter: 'Chapter 4', title: 'Charts & Dashboards', description: 'Picking the right chart, formatting, slicers, and dashboard layout patterns analysts ship.', readMin: 14, tags: ['Excel', 'Charts'] }
+            {
+                slug: 'excel/excel-formulas',
+                chapter: 'Chapter 1',
+                title: 'Excel Formulas — Foundations',
+                description: 'IF, SUMIFS, COUNTIFS, XLOOKUP, INDEX/MATCH, dynamic arrays, and text functions.',
+                readMin: 16,
+                tags: ['Excel', 'Formulas']
+            },
+            {
+                slug: 'excel/excel-pivot-tables',
+                chapter: 'Chapter 2',
+                title: 'Excel Pivot Tables',
+                description: 'Build, slice, customise pivot tables — calculated fields, slicers, GETPIVOTDATA.',
+                readMin: 14,
+                tags: ['Excel', 'Pivot']
+            },
+            {
+                slug: 'excel/power-query-in-excel',
+                chapter: 'Chapter 3',
+                title: 'Power Query in Excel',
+                description: 'Connect, clean and combine messy data — replaces 80% of macros, no VBA needed.',
+                readMin: 15,
+                tags: ['Excel', 'Power Query']
+            },
+            {
+                slug: 'excel/charts-and-dashboards',
+                chapter: 'Chapter 4',
+                title: 'Charts & Dashboards',
+                description: 'Picking the right chart, formatting, slicers, and dashboard layout patterns analysts ship.',
+                readMin: 14,
+                tags: ['Excel', 'Charts']
+            }
         ]
     },
     {
@@ -5390,10 +5965,38 @@ export const tutorialTopics: TutorialTopic[] = [
         name: 'Tableau',
         description: 'Create stunning data visualisations, calculated fields, and interactive storytelling dashboards.',
         chapters: [
-            { slug: 'tableau/tableau-intro', chapter: 'Chapter 1', title: 'Tableau Intro & First Dashboard', description: 'Connect, build sheets, design dashboards — the authoring model in 14 minutes.', readMin: 14, tags: ['Tableau', 'Dashboards'] },
-            { slug: 'tableau/lod-expressions', chapter: 'Chapter 2', title: 'LOD Expressions', description: 'FIXED, INCLUDE, EXCLUDE — order of operations, real-world cohort & % patterns.', readMin: 14, tags: ['Tableau', 'LOD'] },
-            { slug: 'tableau/calculated-fields-and-table-calcs', chapter: 'Chapter 3', title: 'Calculated Fields & Table Calculations', description: 'Row-level vs aggregate calcs, IF/CASE logic, RUNNING_SUM, WINDOW_AVG, LOOKUP recipes.', readMin: 14, tags: ['Tableau', 'Calculations'] },
-            { slug: 'tableau/dashboard-design', chapter: 'Chapter 4', title: 'Dashboard Design', description: 'Layout containers, sizing, actions, parameters, mobile layouts — design patterns that get used.', readMin: 14, tags: ['Tableau', 'Design'] }
+            {
+                slug: 'tableau/tableau-intro',
+                chapter: 'Chapter 1',
+                title: 'Tableau Intro & First Dashboard',
+                description: 'Connect, build sheets, design dashboards — the authoring model in 14 minutes.',
+                readMin: 14,
+                tags: ['Tableau', 'Dashboards']
+            },
+            {
+                slug: 'tableau/lod-expressions',
+                chapter: 'Chapter 2',
+                title: 'LOD Expressions',
+                description: 'FIXED, INCLUDE, EXCLUDE — order of operations, real-world cohort & % patterns.',
+                readMin: 14,
+                tags: ['Tableau', 'LOD']
+            },
+            {
+                slug: 'tableau/calculated-fields-and-table-calcs',
+                chapter: 'Chapter 3',
+                title: 'Calculated Fields & Table Calculations',
+                description: 'Row-level vs aggregate calcs, IF/CASE logic, RUNNING_SUM, WINDOW_AVG, LOOKUP recipes.',
+                readMin: 14,
+                tags: ['Tableau', 'Calculations']
+            },
+            {
+                slug: 'tableau/dashboard-design',
+                chapter: 'Chapter 4',
+                title: 'Dashboard Design',
+                description: 'Layout containers, sizing, actions, parameters, mobile layouts — design patterns that get used.',
+                readMin: 14,
+                tags: ['Tableau', 'Design']
+            }
         ]
     },
     {
@@ -5401,11 +6004,46 @@ export const tutorialTopics: TutorialTopic[] = [
         name: 'Statistics',
         description: 'Descriptive & inferential statistics, hypothesis testing, regression, and data interpretation.',
         chapters: [
-            { slug: 'statistics/descriptive-statistics', chapter: 'Chapter 1', title: 'Descriptive Statistics', description: 'Mean, median, mode, variance, std dev, percentiles — the toolkit for summarising data.', readMin: 14, tags: ['Statistics', 'Descriptive'] },
-            { slug: 'statistics/probability-and-distributions', chapter: 'Chapter 2', title: 'Probability & Distributions', description: 'Probability rules, Normal / Binomial / Poisson distributions, the Central Limit Theorem.', readMin: 16, tags: ['Statistics', 'Probability'] },
-            { slug: 'statistics/hypothesis-testing', chapter: 'Chapter 3', title: 'Hypothesis Testing', description: 'p-values, Type I/II errors, t-tests, chi-squared, and reading A/B test results.', readMin: 16, tags: ['Statistics', 'A/B Testing'] },
-            { slug: 'statistics/linear-regression', chapter: 'Chapter 4', title: 'Linear Regression', description: 'Simple & multiple linear regression — fitting, R², residuals, coefficients, assumptions.', readMin: 16, tags: ['Statistics', 'Regression'] },
-            { slug: 'statistics/ab-testing', chapter: 'Chapter 5', title: 'A/B Testing in Practice', description: 'Design, sample sizing, peeking, segmentation, and the pitfalls that ruin tests.', readMin: 15, tags: ['Statistics', 'Experiments'] }
+            {
+                slug: 'statistics/descriptive-statistics',
+                chapter: 'Chapter 1',
+                title: 'Descriptive Statistics',
+                description: 'Mean, median, mode, variance, std dev, percentiles — the toolkit for summarising data.',
+                readMin: 14,
+                tags: ['Statistics', 'Descriptive']
+            },
+            {
+                slug: 'statistics/probability-and-distributions',
+                chapter: 'Chapter 2',
+                title: 'Probability & Distributions',
+                description: 'Probability rules, Normal / Binomial / Poisson distributions, the Central Limit Theorem.',
+                readMin: 16,
+                tags: ['Statistics', 'Probability']
+            },
+            {
+                slug: 'statistics/hypothesis-testing',
+                chapter: 'Chapter 3',
+                title: 'Hypothesis Testing',
+                description: 'p-values, Type I/II errors, t-tests, chi-squared, and reading A/B test results.',
+                readMin: 16,
+                tags: ['Statistics', 'A/B Testing']
+            },
+            {
+                slug: 'statistics/linear-regression',
+                chapter: 'Chapter 4',
+                title: 'Linear Regression',
+                description: 'Simple & multiple linear regression — fitting, R², residuals, coefficients, assumptions.',
+                readMin: 16,
+                tags: ['Statistics', 'Regression']
+            },
+            {
+                slug: 'statistics/ab-testing',
+                chapter: 'Chapter 5',
+                title: 'A/B Testing in Practice',
+                description: 'Design, sample sizing, peeking, segmentation, and the pitfalls that ruin tests.',
+                readMin: 15,
+                tags: ['Statistics', 'Experiments']
+            }
         ]
     }
 ]
@@ -5414,18 +6052,45 @@ export const tutorialTopics: TutorialTopic[] = [
 
 const allChapters: TutorialChapter[] = [
     // Python
-    pythonFundamentals, pythonOperators, pythonDataTypes, pythonLists, pythonStrings, pythonTuplesAndSets,
-    pythonDictionaries, pythonConditionals, pythonLoops, pythonFunctions, pythonFileHandling, pythonExceptions,
+    pythonFundamentals,
+    pythonOperators,
+    pythonDataTypes,
+    pythonLists,
+    pythonStrings,
+    pythonTuplesAndSets,
+    pythonDictionaries,
+    pythonConditionals,
+    pythonLoops,
+    pythonFunctions,
+    pythonFileHandling,
+    pythonExceptions,
     // SQL
-    sqlIntro, sqlJoins, sqlWindow, sqlSubqueriesCtes, sqlAggregations,
+    sqlIntro,
+    sqlJoins,
+    sqlWindow,
+    sqlSubqueriesCtes,
+    sqlAggregations,
     // Power BI
-    powerbiIntro, powerbiDax, powerbiPowerQuery, powerbiTimeIntelligence,
+    powerbiIntro,
+    powerbiDax,
+    powerbiPowerQuery,
+    powerbiTimeIntelligence,
     // Excel
-    excelFormulas, excelPivot, excelPowerQuery, excelCharts,
+    excelFormulas,
+    excelPivot,
+    excelPowerQuery,
+    excelCharts,
     // Tableau
-    tableauIntro, tableauLod, tableauCalcs, tableauDashboard,
+    tableauIntro,
+    tableauLod,
+    tableauCalcs,
+    tableauDashboard,
     // Statistics
-    statsDescriptive, statsProbability, statsHypothesis, statsRegression, statsAbTesting
+    statsDescriptive,
+    statsProbability,
+    statsHypothesis,
+    statsRegression,
+    statsAbTesting
 ]
 
 export function findChapter(slug: string) {

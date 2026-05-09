@@ -34,7 +34,13 @@ const programs: Program[] = [
                 tag: 'For self-starters',
                 price: '₹35,000',
                 emi: '₹3,500/mo on EMI',
-                features: ['Lifetime program access', 'Recorded sessions + transcripts', 'Async project reviews', 'Community forum access', 'Completion certificate']
+                features: [
+                    'Lifetime program access',
+                    'Recorded sessions + transcripts',
+                    'Async project reviews',
+                    'Community forum access',
+                    'Completion certificate'
+                ]
             },
             {
                 name: 'Mentor-Led',
@@ -42,14 +48,27 @@ const programs: Program[] = [
                 price: '₹65,000',
                 emi: '₹6,500/mo on EMI',
                 recommended: true,
-                features: ['Everything in Self-Paced', 'Live cohort (3–4/week)', 'Weekly 1:1 mentor sessions', 'Resume + LinkedIn rebuild', '4 mock interviews', 'Industry certificate']
+                features: [
+                    'Everything in Self-Paced',
+                    'Live cohort (3–4/week)',
+                    'Weekly 1:1 mentor sessions',
+                    'Resume + LinkedIn rebuild',
+                    '4 mock interviews',
+                    'Industry certificate'
+                ]
             },
             {
                 name: 'Career Pro',
                 tag: 'Aggressive switchers',
                 price: '₹95,000',
                 emi: '₹9,500/mo on EMI',
-                features: ['Everything in Mentor-Led', 'Dedicated career coach', 'Direct hiring referrals', 'Salary negotiation prep', 'Placement until offer']
+                features: [
+                    'Everything in Mentor-Led',
+                    'Dedicated career coach',
+                    'Direct hiring referrals',
+                    'Salary negotiation prep',
+                    'Placement until offer'
+                ]
             }
         ]
     },
@@ -65,7 +84,13 @@ const programs: Program[] = [
                 tag: 'For self-starters',
                 price: '₹40,000',
                 emi: '₹4,000/mo on EMI',
-                features: ['Lifetime program access', 'Recorded SQL/Python labs', 'Async project reviews', 'Community forum access', 'Completion certificate']
+                features: [
+                    'Lifetime program access',
+                    'Recorded SQL/Python labs',
+                    'Async project reviews',
+                    'Community forum access',
+                    'Completion certificate'
+                ]
             },
             {
                 name: 'Mentor-Led',
@@ -73,14 +98,27 @@ const programs: Program[] = [
                 price: '₹75,000',
                 emi: '₹7,500/mo on EMI',
                 recommended: true,
-                features: ['Everything in Self-Paced', 'Live cohort (3–4/week)', 'Weekly 1:1 mentor sessions', 'Capstone with real data', '6 mock interviews', 'Industry certificate']
+                features: [
+                    'Everything in Self-Paced',
+                    'Live cohort (3–4/week)',
+                    'Weekly 1:1 mentor sessions',
+                    'Capstone with real data',
+                    '6 mock interviews',
+                    'Industry certificate'
+                ]
             },
             {
                 name: 'Career Pro',
                 tag: 'Aggressive switchers',
                 price: '₹1,15,000',
                 emi: '₹11,500/mo on EMI',
-                features: ['Everything in Mentor-Led', 'Dedicated career coach', 'Direct hiring referrals', 'GitHub portfolio audit', 'Placement until offer']
+                features: [
+                    'Everything in Mentor-Led',
+                    'Dedicated career coach',
+                    'Direct hiring referrals',
+                    'GitHub portfolio audit',
+                    'Placement until offer'
+                ]
             }
         ]
     },
@@ -96,7 +134,13 @@ const programs: Program[] = [
                 tag: 'For self-starters',
                 price: '₹55,000',
                 emi: '₹5,500/mo on EMI',
-                features: ['Lifetime program access', 'Recorded ML & GenAI labs', 'Async project reviews', 'Community forum access', 'Completion certificate']
+                features: [
+                    'Lifetime program access',
+                    'Recorded ML & GenAI labs',
+                    'Async project reviews',
+                    'Community forum access',
+                    'Completion certificate'
+                ]
             },
             {
                 name: 'Mentor-Led',
@@ -104,14 +148,27 @@ const programs: Program[] = [
                 price: '₹95,000',
                 emi: '₹9,500/mo on EMI',
                 recommended: true,
-                features: ['Everything in Self-Paced', 'Live cohort (3–4/week)', 'Weekly 1:1 with ML mentors', 'Capstone with LLMs/MLOps', '6 mock interviews', 'Industry certificate']
+                features: [
+                    'Everything in Self-Paced',
+                    'Live cohort (3–4/week)',
+                    'Weekly 1:1 with ML mentors',
+                    'Capstone with LLMs/MLOps',
+                    '6 mock interviews',
+                    'Industry certificate'
+                ]
             },
             {
                 name: 'Career Pro',
                 tag: 'Aggressive switchers',
                 price: '₹1,45,000',
                 emi: '₹14,500/mo on EMI',
-                features: ['Everything in Mentor-Led', 'Dedicated career coach', 'Direct hiring referrals', 'Research-paper guidance', 'Placement until offer']
+                features: [
+                    'Everything in Mentor-Led',
+                    'Dedicated career coach',
+                    'Direct hiring referrals',
+                    'Research-paper guidance',
+                    'Placement until offer'
+                ]
             }
         ]
     },
@@ -135,14 +192,27 @@ const programs: Program[] = [
                 price: '₹85,000',
                 emi: '₹8,500/mo on EMI',
                 recommended: true,
-                features: ['Everything in Self-Paced', 'Live cohort (3–4/week)', 'Weekly code reviews', 'Production-grade capstones', '6 mock interviews', 'Industry certificate']
+                features: [
+                    'Everything in Self-Paced',
+                    'Live cohort (3–4/week)',
+                    'Weekly code reviews',
+                    'Production-grade capstones',
+                    '6 mock interviews',
+                    'Industry certificate'
+                ]
             },
             {
                 name: 'Career Pro',
                 tag: 'Aggressive switchers',
                 price: '₹1,25,000',
                 emi: '₹12,500/mo on EMI',
-                features: ['Everything in Mentor-Led', 'Dedicated career coach', 'Direct hiring referrals', 'System-design interview prep', 'Placement until offer']
+                features: [
+                    'Everything in Mentor-Led',
+                    'Dedicated career coach',
+                    'Direct hiring referrals',
+                    'System-design interview prep',
+                    'Placement until offer'
+                ]
             }
         ]
     }
@@ -179,7 +249,9 @@ export default function EnrollmentTiers() {
                         className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
                         style={{ color: 'var(--text-primary)' }}>
                         Pricing for{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
                             every program.
                         </span>
                     </h2>
@@ -232,10 +304,14 @@ export default function EnrollmentTiers() {
                                     <program.Icon size={20} />
                                 </div>
                                 <div className="leading-tight">
-                                    <div className="font-display text-[18px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display text-[18px] font-semibold"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {program.name}
                                     </div>
-                                    <div className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[12px] mt-0.5"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {program.duration} · Live + Mentored · Beginner-friendly
                                     </div>
                                 </div>
@@ -305,9 +381,7 @@ export default function EnrollmentTiers() {
                                                     className="flex-shrink-0 mt-0.5"
                                                     style={{ color: t.recommended ? 'var(--accent)' : 'var(--brand)' }}
                                                 />
-                                                <span style={{ color: t.recommended ? 'rgba(255,255,255,0.92)' : 'var(--text-secondary)' }}>
-                                                    {f}
-                                                </span>
+                                                <span style={{ color: t.recommended ? 'rgba(255,255,255,0.92)' : 'var(--text-secondary)' }}>{f}</span>
                                             </li>
                                         ))}
                                     </ul>

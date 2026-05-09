@@ -65,7 +65,10 @@ export default function RefundPolicy() {
             </Section>
 
             <Section title="5. Deductions & Administrative Charges">
-                <p>Approved refunds may include reasonable deductions such as payment gateway charges, administrative processing fees, cost of resources or materials already accessed, and value of sessions attended.</p>
+                <p>
+                    Approved refunds may include reasonable deductions such as payment gateway charges, administrative processing fees, cost of
+                    resources or materials already accessed, and value of sessions attended.
+                </p>
             </Section>
 
             <Section title="6. EMI & Installment Plans">
@@ -90,7 +93,10 @@ export default function RefundPolicy() {
             </Section>
 
             <Section title="8. Special Circumstances">
-                <p>Refund exceptions may be considered for medical emergencies, serious personal/family situations, or unforeseen critical events. All such requests are reviewed case-by-case, with supporting documentation.</p>
+                <p>
+                    Refund exceptions may be considered for medical emergencies, serious personal/family situations, or unforeseen critical events.
+                    All such requests are reviewed case-by-case, with supporting documentation.
+                </p>
             </Section>
 
             <Section title="9. Non-Refundable Components">
@@ -106,7 +112,10 @@ export default function RefundPolicy() {
             </Section>
 
             <Section title="10. Dispute Resolution">
-                <p>If you disagree with a refund decision, you may submit a formal escalation within 15 days. Our team will conduct a secondary review and decisions are made after internal evaluation.</p>
+                <p>
+                    If you disagree with a refund decision, you may submit a formal escalation within 15 days. Our team will conduct a secondary
+                    review and decisions are made after internal evaluation.
+                </p>
             </Section>
         </PolicyLayout>
     )

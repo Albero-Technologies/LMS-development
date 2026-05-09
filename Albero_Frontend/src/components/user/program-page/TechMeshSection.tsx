@@ -94,7 +94,12 @@ export const TechMeshSection = ({
                         }>
                         <Cpu size={12} /> Your toolkit
                     </div>
-                    <SectionHeadingAdaptive heading={heading} accent={accent} description={description} isDark={isDark} />
+                    <SectionHeadingAdaptive
+                        heading={heading}
+                        accent={accent}
+                        description={description}
+                        isDark={isDark}
+                    />
                 </div>
 
                 <div className="grid lg:grid-cols-[1.4fr_1fr] gap-8 lg:gap-10 items-center">
@@ -128,7 +133,12 @@ export const TechMeshSection = ({
                             className="absolute inset-x-0 top-0 h-[2px]"
                             style={{ background: 'var(--gradient-aurora)' }}
                         />
-                        <ArmorCodeHero nodes={nodes} hubLabel={hubLabel} hubGlyph={hubGlyph} height={480} />
+                        <ArmorCodeHero
+                            nodes={nodes}
+                            hubLabel={hubLabel}
+                            hubGlyph={hubGlyph}
+                            height={480}
+                        />
                     </div>
 
                     {/* Three pillar callouts — the "why this is a system, not a
@@ -189,17 +199,7 @@ const SectionHeadingAdaptive = ({
     </>
 )
 
-const PillarCard = ({
-    icon,
-    title,
-    body,
-    isDark
-}: {
-    icon: React.ReactNode
-    title: string
-    body: string
-    isDark: boolean
-}) => {
+const PillarCard = ({ icon, title, body, isDark }: { icon: React.ReactNode; title: string; body: string; isDark: boolean }) => {
     const [ref, visible] = useScrollReveal<HTMLLIElement>(0.2)
     return (
         <li
@@ -209,15 +209,11 @@ const PillarCard = ({
                 // Mirror the canvas card — emerald-tinted in dark, pure
                 // white in light. Keeps the trio visually unified with the
                 // section identity instead of looking like grey chiclets.
-                background: isDark
-                    ? 'linear-gradient(180deg, rgba(20,120,95,0.16) 0%, rgba(13,79,60,0.08) 100%)'
-                    : '#ffffff',
+                background: isDark ? 'linear-gradient(180deg, rgba(20,120,95,0.16) 0%, rgba(13,79,60,0.08) 100%)' : '#ffffff',
                 border: `1px solid ${isDark ? 'rgba(52,211,153,0.16)' : 'var(--hairline)'}`,
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                boxShadow: isDark
-                    ? '0 16px 36px rgba(0,0,0,0.32), inset 0 1px 0 rgba(52,211,153,0.1)'
-                    : 'var(--card-shadow-soft)',
+                boxShadow: isDark ? '0 16px 36px rgba(0,0,0,0.32), inset 0 1px 0 rgba(52,211,153,0.1)' : 'var(--card-shadow-soft)',
                 opacity: visible ? 1 : 0,
                 transform: visible ? 'translateY(0)' : 'translateY(12px)'
             }}>

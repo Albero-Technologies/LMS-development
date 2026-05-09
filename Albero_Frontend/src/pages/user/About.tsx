@@ -31,9 +31,27 @@ const values = [
 ]
 
 const founders = [
-    { name: 'Aditi Rao', role: 'Co-founder & CEO', bio: 'Ex-McKinsey, IIT Bombay. Led analytics for retail brands across India before starting Albero.', initials: 'AR', tint: 'oklch(0.623 0.214 259.815)' },
-    { name: 'Karan Bhatt', role: 'Co-founder & CTO', bio: 'Ex-Microsoft, BITS Pilani. Built data platforms used by millions across edtech and SaaS.', initials: 'KB', tint: 'oklch(0.696 0.17 162)' },
-    { name: 'Meera Chand', role: 'Head of Curriculum', bio: 'Ex-Coursera, IIM Ahmedabad. Designed flagship analytics curricula taken by 200,000+ learners.', initials: 'MC', tint: 'oklch(0.795 0.184 86.047)' }
+    {
+        name: 'Aditi Rao',
+        role: 'Co-founder & CEO',
+        bio: 'Ex-McKinsey, IIT Bombay. Led analytics for retail brands across India before starting Albero.',
+        initials: 'AR',
+        tint: 'oklch(0.623 0.214 259.815)'
+    },
+    {
+        name: 'Karan Bhatt',
+        role: 'Co-founder & CTO',
+        bio: 'Ex-Microsoft, BITS Pilani. Built data platforms used by millions across edtech and SaaS.',
+        initials: 'KB',
+        tint: 'oklch(0.696 0.17 162)'
+    },
+    {
+        name: 'Meera Chand',
+        role: 'Head of Curriculum',
+        bio: 'Ex-Coursera, IIM Ahmedabad. Designed flagship analytics curricula taken by 200,000+ learners.',
+        initials: 'MC',
+        tint: 'oklch(0.795 0.184 86.047)'
+    }
 ]
 
 const milestones = [
@@ -87,7 +105,10 @@ export default function AboutPage() {
                         <div
                             className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full mb-7 text-[12px] font-semibold tracking-tight"
                             style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-secondary)' }}>
-                            <Sparkles size={13} style={{ color: 'var(--brand)' }} />
+                            <Sparkles
+                                size={13}
+                                style={{ color: 'var(--brand)' }}
+                            />
                             Who we are
                         </div>
 
@@ -96,7 +117,9 @@ export default function AboutPage() {
                             style={{ color: 'var(--text-primary)' }}>
                             <span className="font-medium">A school built by</span>
                             <br />
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 practitioners, for practitioners.
                             </span>
                         </h1>
@@ -143,10 +166,14 @@ export default function AboutPage() {
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 + i * 0.07 }}>
-                                    <div className="font-display text-[28px] leading-none font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display text-[28px] leading-none font-semibold"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         {s.v}
                                     </div>
-                                    <div className="text-[11px] tracking-[0.16em] uppercase mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[11px] tracking-[0.16em] uppercase mt-2"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {s.l}
                                     </div>
                                 </motion.div>
@@ -157,7 +184,9 @@ export default function AboutPage() {
             </section>
 
             {/* ── Mission quote block ── */}
-            <section className="px-5 md:px-8 py-20" style={{ background: 'var(--page-bg-soft)' }}>
+            <section
+                className="px-5 md:px-8 py-20"
+                style={{ background: 'var(--page-bg-soft)' }}>
                 <div className="max-w-[1080px] mx-auto">
                     <div
                         className="rounded-3xl p-8 md:p-14 relative overflow-hidden"
@@ -167,19 +196,25 @@ export default function AboutPage() {
                             style={{ color: 'var(--brand-soft)' }}
                             className="absolute top-6 right-6 opacity-50"
                         />
-                        <div className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4" style={{ color: 'var(--brand)' }}>
+                        <div
+                            className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4"
+                            style={{ color: 'var(--brand)' }}>
                             Our mission
                         </div>
                         <p
                             className="font-display text-[26px] md:text-[42px] leading-[1.18] tracking-[-0.01em] font-medium max-w-[800px]"
                             style={{ color: 'var(--text-primary)' }}>
                             "Make a high-leverage tech career{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 actually accessible
                             </span>{' '}
                             — to anyone willing to put in the work, regardless of where they start."
                         </p>
-                        <div className="mt-7 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
+                        <div
+                            className="mt-7 text-[13px]"
+                            style={{ color: 'var(--text-tertiary)' }}>
                             — The Albero founding team, 2024
                         </div>
                     </div>
@@ -232,10 +267,14 @@ export default function AboutPage() {
                                     border: '1px solid var(--line)'
                                 }}>
                                 <div className="leading-tight">
-                                    <div className="text-[10.5px] tracking-[0.16em] uppercase font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                                    <div
+                                        className="text-[10.5px] tracking-[0.16em] uppercase font-semibold"
+                                        style={{ color: 'var(--text-secondary)' }}>
                                         Constellation
                                     </div>
-                                    <div className="font-display text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    <div
+                                        className="font-display text-[14px] font-semibold"
+                                        style={{ color: 'var(--text-primary)' }}>
                                         12,000+ alumni — and counting.
                                     </div>
                                 </div>
@@ -266,15 +305,17 @@ export default function AboutPage() {
                                     lineHeight: 1.04
                                 }}>
                                 A network that{' '}
-                                <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                                <span
+                                    className="italic font-light"
+                                    style={{ color: 'var(--brand)' }}>
                                     works for you.
                                 </span>
                             </h2>
                             <p
                                 className="mt-5 text-[15.5px] leading-relaxed max-w-[520px]"
                                 style={{ color: 'var(--text-secondary)' }}>
-                                Each point in the cloud is an alum, a mentor, a hiring partner. Your cohort isn't just the
-                                people on your call — it's everyone who has ever shipped through Albero. Hover the canvas to pause it.
+                                Each point in the cloud is an alum, a mentor, a hiring partner. Your cohort isn't just the people on your call — it's
+                                everyone who has ever shipped through Albero. Hover the canvas to pause it.
                             </p>
                             <div className="mt-7 grid grid-cols-3 gap-4 max-w-[460px]">
                                 {[
@@ -283,10 +324,14 @@ export default function AboutPage() {
                                     { v: '3×', l: 'Faster shortlist' }
                                 ].map((s) => (
                                     <div key={s.l}>
-                                        <div className="font-display text-[26px] leading-none font-semibold" style={{ color: 'var(--brand)' }}>
+                                        <div
+                                            className="font-display text-[26px] leading-none font-semibold"
+                                            style={{ color: 'var(--brand)' }}>
                                             {s.v}
                                         </div>
-                                        <div className="text-[10.5px] tracking-[0.16em] uppercase mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                                        <div
+                                            className="text-[10.5px] tracking-[0.16em] uppercase mt-1.5"
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             {s.l}
                                         </div>
                                     </div>
@@ -301,12 +346,18 @@ export default function AboutPage() {
             <section className="px-5 md:px-8 py-24">
                 <div className="max-w-[1180px] mx-auto">
                     <div className="text-center max-w-[760px] mx-auto mb-14">
-                        <div className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4" style={{ color: 'var(--brand)' }}>
+                        <div
+                            className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4"
+                            style={{ color: 'var(--brand)' }}>
                             What we believe
                         </div>
-                        <h2 className="font-display text-[40px] md:text-[58px] leading-[0.96] tracking-[-0.02em] font-medium" style={{ color: 'var(--text-primary)' }}>
+                        <h2
+                            className="font-display text-[40px] md:text-[58px] leading-[0.96] tracking-[-0.02em] font-medium"
+                            style={{ color: 'var(--text-primary)' }}>
                             Four things we{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 refuse
                             </span>{' '}
                             to compromise on.
@@ -335,7 +386,9 @@ export default function AboutPage() {
                                         style={{ color: 'var(--text-primary)' }}>
                                         {v.title}
                                     </h3>
-                                    <p className="text-[14.5px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                    <p
+                                        className="text-[14.5px] leading-relaxed"
+                                        style={{ color: 'var(--text-secondary)' }}>
                                         {v.body}
                                     </p>
                                 </motion.div>
@@ -346,23 +399,31 @@ export default function AboutPage() {
             </section>
 
             {/* ── Founders ── */}
-            <section className="px-5 md:px-8 py-24" style={{ background: 'var(--page-bg-soft)' }}>
+            <section
+                className="px-5 md:px-8 py-24"
+                style={{ background: 'var(--page-bg-soft)' }}>
                 <div className="max-w-[1180px] mx-auto">
                     <div className="grid md:grid-cols-[1fr_1.4fr] gap-10 items-end mb-12">
                         <div>
-                            <div className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4" style={{ color: 'var(--brand)' }}>
+                            <div
+                                className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4"
+                                style={{ color: 'var(--brand)' }}>
                                 Founding team
                             </div>
                             <h2
                                 className="font-display text-[40px] md:text-[54px] leading-[0.96] tracking-[-0.02em] font-medium"
                                 style={{ color: 'var(--text-primary)' }}>
                                 Built by people who've{' '}
-                                <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                                <span
+                                    className="italic font-light"
+                                    style={{ color: 'var(--brand)' }}>
                                     done the work.
                                 </span>
                             </h2>
                         </div>
-                        <p className="text-[16px] leading-relaxed max-w-[520px] md:justify-self-end" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="text-[16px] leading-relaxed max-w-[520px] md:justify-self-end"
+                            style={{ color: 'var(--text-secondary)' }}>
                             Three operators across consulting, big-tech, and edtech. We've been the analyst, the engineer, and the curriculum
                             designer. We're building the school we wished we had.
                         </p>
@@ -383,13 +444,19 @@ export default function AboutPage() {
                                     style={{ background: f.tint, color: '#fff' }}>
                                     {f.initials}
                                 </div>
-                                <h3 className="font-display text-[22px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                                <h3
+                                    className="font-display text-[22px] font-semibold mb-1"
+                                    style={{ color: 'var(--text-primary)' }}>
                                     {f.name}
                                 </h3>
-                                <div className="text-[12.5px] mb-3" style={{ color: 'var(--brand)' }}>
+                                <div
+                                    className="text-[12.5px] mb-3"
+                                    style={{ color: 'var(--brand)' }}>
                                     {f.role}
                                 </div>
-                                <p className="text-[14px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                <p
+                                    className="text-[14px] leading-relaxed"
+                                    style={{ color: 'var(--text-secondary)' }}>
                                     {f.bio}
                                 </p>
                             </motion.div>
@@ -402,14 +469,18 @@ export default function AboutPage() {
             <section className="px-5 md:px-8 py-24">
                 <div className="max-w-[920px] mx-auto">
                     <div className="text-center mb-14">
-                        <div className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4" style={{ color: 'var(--brand)' }}>
+                        <div
+                            className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4"
+                            style={{ color: 'var(--brand)' }}>
                             Our story so far
                         </div>
                         <h2
                             className="font-display text-[40px] md:text-[54px] leading-[0.96] tracking-[-0.02em] font-medium"
                             style={{ color: 'var(--text-primary)' }}>
                             From{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 a small Noida room
                             </span>{' '}
                             to a national network.
@@ -437,7 +508,9 @@ export default function AboutPage() {
                                             style={{ background: 'var(--brand)', boxShadow: '0 0 0 4px var(--page-bg)' }}
                                         />
                                     </div>
-                                    <div className="pl-5 pb-2 border-l" style={{ borderColor: 'var(--line)' }}>
+                                    <div
+                                        className="pl-5 pb-2 border-l"
+                                        style={{ borderColor: 'var(--line)' }}>
                                         <div
                                             className="font-mono text-[12px] font-semibold tracking-[0.16em]"
                                             style={{ color: 'var(--brand)' }}>
@@ -448,7 +521,9 @@ export default function AboutPage() {
                                             style={{ color: 'var(--text-primary)' }}>
                                             {m.t}
                                         </h3>
-                                        <p className="text-[14px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                        <p
+                                            className="text-[14px] leading-relaxed"
+                                            style={{ color: 'var(--text-secondary)' }}>
                                             {m.d}
                                         </p>
                                     </div>
@@ -474,11 +549,15 @@ export default function AboutPage() {
                             className="font-display text-[32px] md:text-[44px] font-semibold tracking-[-0.02em] mb-3"
                             style={{ color: 'var(--text-primary)' }}>
                             Ready to build a career{' '}
-                            <span className="italic" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic"
+                                style={{ color: 'var(--brand)' }}>
                                 worth waking up for?
                             </span>
                         </h2>
-                        <p className="mb-7 max-w-xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="mb-7 max-w-xl mx-auto"
+                            style={{ color: 'var(--text-secondary)' }}>
                             Pick a program, talk to a counsellor, or download our brochure — whichever helps you decide.
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-3">

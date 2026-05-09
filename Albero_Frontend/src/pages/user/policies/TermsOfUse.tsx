@@ -10,7 +10,10 @@ export default function TermsOfUse() {
             updated="May 1, 2026">
             <Section title="1. Your Agreement with Us">
                 <p>By accessing or using Albero Academy, you enter into a legally binding agreement with us.</p>
-                <p>If something here doesn’t feel right to you, we recommend not using the platform — because your continued use means you fully agree to these terms.</p>
+                <p>
+                    If something here doesn’t feel right to you, we recommend not using the platform — because your continued use means you fully
+                    agree to these terms.
+                </p>
             </Section>
 
             <Section title="2. What We Offer">
@@ -34,10 +37,19 @@ export default function TermsOfUse() {
             </Section>
 
             <Section title="4. Ownership & Intellectual Property">
-                <p>Everything you access on Albero Academy — courses, videos, dashboards, frameworks, and content — is built with significant expertise and effort.</p>
+                <p>
+                    Everything you access on Albero Academy — courses, videos, dashboards, frameworks, and content — is built with significant
+                    expertise and effort.
+                </p>
                 <p>All rights belong to Albero Academy.</p>
                 <p>You may:</p>
-                <Bullets items={['Use content for personal learning', 'Not copy, distribute, record, or resell any material', 'Not reuse content for commercial or public purposes']} />
+                <Bullets
+                    items={[
+                        'Use content for personal learning',
+                        'Not copy, distribute, record, or resell any material',
+                        'Not reuse content for commercial or public purposes'
+                    ]}
+                />
                 <p>This ensures we can continue delivering high-quality, original learning experiences.</p>
             </Section>
 
@@ -82,7 +94,10 @@ export default function TermsOfUse() {
             <Section title="8. Career Support & Placement Assistance">
                 <p>Our career services may include:</p>
                 <Bullets items={['Resume and portfolio building', 'Mock interviews and mentorship', 'Job referrals and opportunity access']} />
-                <p>However, placement is not guaranteed and opportunities depend on your readiness and eligibility. We open doors — you walk through them.</p>
+                <p>
+                    However, placement is not guaranteed and opportunities depend on your readiness and eligibility. We open doors — you walk through
+                    them.
+                </p>
             </Section>
 
             <Section title="9. Limitation of Liability">
@@ -96,11 +111,17 @@ export default function TermsOfUse() {
             </Section>
 
             <Section title="10. Updates to These Terms">
-                <p>We may update these Terms to reflect improvements or legal changes. Updates will be communicated via email or website. Continued use means you accept the revised terms.</p>
+                <p>
+                    We may update these Terms to reflect improvements or legal changes. Updates will be communicated via email or website. Continued
+                    use means you accept the revised terms.
+                </p>
             </Section>
 
             <Section title="11. Suspension or Termination">
-                <p>We reserve the right to suspend or terminate access if these Terms are violated, platform integrity is at risk, or misuse / unethical behavior is observed.</p>
+                <p>
+                    We reserve the right to suspend or terminate access if these Terms are violated, platform integrity is at risk, or misuse /
+                    unethical behavior is observed.
+                </p>
             </Section>
 
             <Section title="12. Governing Law">

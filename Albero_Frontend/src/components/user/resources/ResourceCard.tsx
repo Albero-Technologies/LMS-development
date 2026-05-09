@@ -2,16 +2,7 @@ import { motion } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
 import type { ComponentType } from 'react'
 
-export type ResourceAccent =
-    | 'brand'
-    | 'accent'
-    | 'neutral'
-    | 'blue'
-    | 'amber'
-    | 'emerald'
-    | 'rose'
-    | 'purple'
-    | 'orange'
+export type ResourceAccent = 'brand' | 'accent' | 'neutral' | 'blue' | 'amber' | 'emerald' | 'rose' | 'purple' | 'orange'
 
 export interface ResourceCardData {
     badge?: string

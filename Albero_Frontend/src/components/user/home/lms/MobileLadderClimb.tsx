@@ -65,7 +65,9 @@ export default function MobileLadderClimb() {
                         lineHeight: 1.1
                     }}>
                     Six months,{' '}
-                    <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                    <span
+                        className="italic font-light"
+                        style={{ color: 'var(--brand)' }}>
                         one rung at a time.
                     </span>
                 </h2>
@@ -113,7 +115,9 @@ function Rung({ index, title, body, accent }: { index: number; title: string; bo
             {/* Rail column — fixed-width gutter that holds the dot centred on the
                 vertical rail. Card sits in the flex-1 column to the right so the
                 dot can never overlap card text. */}
-            <div className="relative flex-shrink-0" style={{ width: 32 }}>
+            <div
+                className="relative flex-shrink-0"
+                style={{ width: 32 }}>
                 <motion.span
                     aria-hidden="true"
                     initial={{ scale: 0, opacity: 0 }}
@@ -185,7 +189,9 @@ function FinaleRung() {
             ref={ref}
             className="relative flex items-stretch gap-4 pt-2">
             {/* Rail column with trophy badge centred on the rail */}
-            <div className="relative flex-shrink-0" style={{ width: 32 }}>
+            <div
+                className="relative flex-shrink-0"
+                style={{ width: 32 }}>
                 <motion.div
                     initial={{ scale: 0, rotate: -45, opacity: 0 }}
                     animate={inView ? { scale: 1, rotate: 0, opacity: 1 } : { scale: 0, rotate: -45, opacity: 0 }}

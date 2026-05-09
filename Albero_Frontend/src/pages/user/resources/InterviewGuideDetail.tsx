@@ -1,7 +1,20 @@
 import { useParams, Link, Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowLeft, ArrowRight, ChevronRight, Plus, Code2, Database, BarChart3, FileSpreadsheet, Calculator, PieChart, Clock, Sparkles } from 'lucide-react'
+import {
+    ArrowLeft,
+    ArrowRight,
+    ChevronRight,
+    Plus,
+    Code2,
+    Database,
+    BarChart3,
+    FileSpreadsheet,
+    Calculator,
+    PieChart,
+    Clock,
+    Sparkles
+} from 'lucide-react'
 import CodeBlock from '@/components/ui/code-block'
 import { findGuide, listGuides } from '@/constants/interview-guide-content'
 
@@ -32,7 +45,13 @@ export default function InterviewGuideDetail() {
         window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     }, [location.pathname])
 
-    if (!guide) return <Navigate to="/resources/interview-guides" replace />
+    if (!guide)
+        return (
+            <Navigate
+                to="/resources/interview-guides"
+                replace
+            />
+        )
 
     const Icon = iconMap[guide.iconKey]
     const related = all.filter((g) => g.slug !== guide.slug).slice(0, 4)
@@ -51,8 +70,12 @@ export default function InterviewGuideDetail() {
                     style={{ background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)', filter: 'blur(50px)' }}
                 />
                 <div className="max-w-[1180px] mx-auto relative z-[1]">
-                    <nav className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap" style={{ color: 'var(--text-tertiary)' }}>
-                        <Link to="/resources/interview-guides" className="hover:underline">
+                    <nav
+                        className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap"
+                        style={{ color: 'var(--text-tertiary)' }}>
+                        <Link
+                            to="/resources/interview-guides"
+                            className="hover:underline">
                             Interview Guides
                         </Link>
                         <ChevronRight size={12} />
@@ -60,7 +83,10 @@ export default function InterviewGuideDetail() {
                     </nav>
 
                     <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-start">
-                        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}>
                             <div className="flex flex-wrap items-center gap-2 mb-5">
                                 <span
                                     className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-md"
@@ -81,10 +107,14 @@ export default function InterviewGuideDetail() {
                                 style={{ color: 'var(--text-primary)' }}>
                                 {guide.title}
                             </h1>
-                            <p className="font-display italic font-light text-[18px] md:text-[20px] mb-5" style={{ color: 'var(--brand)' }}>
+                            <p
+                                className="font-display italic font-light text-[18px] md:text-[20px] mb-5"
+                                style={{ color: 'var(--brand)' }}>
                                 {guide.tagline}
                             </p>
-                            <p className="text-[15.5px] leading-relaxed max-w-[720px] mb-7" style={{ color: 'var(--text-secondary)' }}>
+                            <p
+                                className="text-[15.5px] leading-relaxed max-w-[720px] mb-7"
+                                style={{ color: 'var(--text-secondary)' }}>
                                 {guide.description}
                             </p>
 
@@ -125,7 +155,10 @@ export default function InterviewGuideDetail() {
                                     interview prep
                                 </span>
                             </div>
-                            <Icon size={56} className="text-white/40 absolute top-6 right-6" />
+                            <Icon
+                                size={56}
+                                className="text-white/40 absolute top-6 right-6"
+                            />
                         </motion.div>
                     </div>
                 </div>
@@ -174,25 +207,10 @@ export default function InterviewGuideDetail() {
                                     onClick={() => setFilter(d)}
                                     className="px-2.5 py-1 rounded-full text-[12px] font-semibold transition-colors"
                                     style={{
-                                        background:
-                                            filter === d
-                                                ? d === 'all'
-                                                    ? 'var(--brand)'
-                                                    : difficultyColor[d].bg
-                                                : 'transparent',
+                                        background: filter === d ? (d === 'all' ? 'var(--brand)' : difficultyColor[d].bg) : 'transparent',
                                         color:
-                                            filter === d
-                                                ? d === 'all'
-                                                    ? 'var(--text-on-inverse)'
-                                                    : difficultyColor[d].fg
-                                                : 'var(--text-secondary)',
-                                        border: `1px solid ${
-                                            filter === d
-                                                ? d === 'all'
-                                                    ? 'var(--brand)'
-                                                    : difficultyColor[d].fg
-                                                : 'var(--line)'
-                                        }`
+                                            filter === d ? (d === 'all' ? 'var(--text-on-inverse)' : difficultyColor[d].fg) : 'var(--text-secondary)',
+                                        border: `1px solid ${filter === d ? (d === 'all' ? 'var(--brand)' : difficultyColor[d].fg) : 'var(--line)'}`
                                     }}>
                                     {d === 'all' ? 'All' : d}
                                 </button>
@@ -209,9 +227,14 @@ export default function InterviewGuideDetail() {
                         const visible = sec.qas.filter((qa) => filter === 'all' || qa.difficulty === filter)
                         if (visible.length === 0) return null
                         return (
-                            <div key={sectionIdx} id={`section-${sectionIdx}`} className="mb-14 scroll-mt-32">
+                            <div
+                                key={sectionIdx}
+                                id={`section-${sectionIdx}`}
+                                className="mb-14 scroll-mt-32">
                                 <div className="flex items-baseline gap-4 mb-6">
-                                    <span className="font-display text-[20px] md:text-[24px] font-light italic" style={{ color: 'var(--brand)' }}>
+                                    <span
+                                        className="font-display text-[20px] md:text-[24px] font-light italic"
+                                        style={{ color: 'var(--brand)' }}>
                                         {String(sectionIdx + 1).padStart(2, '0')}.
                                     </span>
                                     <h2
@@ -330,7 +353,9 @@ export default function InterviewGuideDetail() {
 
             {/* Related */}
             {related.length > 0 && (
-                <section className="px-5 md:px-8 pb-24" style={{ background: 'var(--page-bg-soft)' }}>
+                <section
+                    className="px-5 md:px-8 pb-24"
+                    style={{ background: 'var(--page-bg-soft)' }}>
                     <div className="max-w-[1180px] mx-auto pt-16">
                         <div className="flex items-end justify-between mb-8">
                             <h2
@@ -361,7 +386,10 @@ export default function InterviewGuideDetail() {
                                             <span className="font-display font-semibold text-[18px] tracking-tight">
                                                 {g.title.replace('Fundamentals of ', '')}
                                             </span>
-                                            <RelIcon size={28} className="text-white/40" />
+                                            <RelIcon
+                                                size={28}
+                                                className="text-white/40"
+                                            />
                                         </div>
                                         <div className="p-5">
                                             <h3
@@ -369,7 +397,9 @@ export default function InterviewGuideDetail() {
                                                 style={{ color: 'var(--text-primary)' }}>
                                                 {g.title}
                                             </h3>
-                                            <p className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+                                            <p
+                                                className="text-[12px]"
+                                                style={{ color: 'var(--text-tertiary)' }}>
                                                 {g.questionCount} questions · {g.readMin} min
                                             </p>
                                         </div>

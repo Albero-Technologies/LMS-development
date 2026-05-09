@@ -13,16 +13,187 @@ interface CodeBlockProps {
 
 const KEYWORDS: Record<string, string[]> = {
     python: [
-        'def','class','return','if','elif','else','for','while','in','not','and','or','None','True','False','import','from','as','with','try','except','finally','raise','pass','break','continue','lambda','yield','global','nonlocal','is','del','async','await','print'
+        'def',
+        'class',
+        'return',
+        'if',
+        'elif',
+        'else',
+        'for',
+        'while',
+        'in',
+        'not',
+        'and',
+        'or',
+        'None',
+        'True',
+        'False',
+        'import',
+        'from',
+        'as',
+        'with',
+        'try',
+        'except',
+        'finally',
+        'raise',
+        'pass',
+        'break',
+        'continue',
+        'lambda',
+        'yield',
+        'global',
+        'nonlocal',
+        'is',
+        'del',
+        'async',
+        'await',
+        'print'
     ],
     sql: [
-        'SELECT','FROM','WHERE','JOIN','LEFT','RIGHT','INNER','OUTER','ON','GROUP','BY','ORDER','HAVING','LIMIT','OFFSET','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','DROP','ALTER','AS','AND','OR','NOT','NULL','IS','IN','LIKE','BETWEEN','UNION','ALL','DISTINCT','COUNT','SUM','AVG','MIN','MAX','CASE','WHEN','THEN','END','WITH'
+        'SELECT',
+        'FROM',
+        'WHERE',
+        'JOIN',
+        'LEFT',
+        'RIGHT',
+        'INNER',
+        'OUTER',
+        'ON',
+        'GROUP',
+        'BY',
+        'ORDER',
+        'HAVING',
+        'LIMIT',
+        'OFFSET',
+        'INSERT',
+        'INTO',
+        'VALUES',
+        'UPDATE',
+        'SET',
+        'DELETE',
+        'CREATE',
+        'TABLE',
+        'DROP',
+        'ALTER',
+        'AS',
+        'AND',
+        'OR',
+        'NOT',
+        'NULL',
+        'IS',
+        'IN',
+        'LIKE',
+        'BETWEEN',
+        'UNION',
+        'ALL',
+        'DISTINCT',
+        'COUNT',
+        'SUM',
+        'AVG',
+        'MIN',
+        'MAX',
+        'CASE',
+        'WHEN',
+        'THEN',
+        'END',
+        'WITH'
     ],
     javascript: [
-        'const','let','var','function','return','if','else','for','while','do','switch','case','break','continue','class','extends','super','new','this','import','from','export','default','async','await','try','catch','finally','throw','typeof','instanceof','of','in','null','undefined','true','false'
+        'const',
+        'let',
+        'var',
+        'function',
+        'return',
+        'if',
+        'else',
+        'for',
+        'while',
+        'do',
+        'switch',
+        'case',
+        'break',
+        'continue',
+        'class',
+        'extends',
+        'super',
+        'new',
+        'this',
+        'import',
+        'from',
+        'export',
+        'default',
+        'async',
+        'await',
+        'try',
+        'catch',
+        'finally',
+        'throw',
+        'typeof',
+        'instanceof',
+        'of',
+        'in',
+        'null',
+        'undefined',
+        'true',
+        'false'
     ],
     typescript: [
-        'const','let','var','function','return','if','else','for','while','do','switch','case','break','continue','class','extends','super','new','this','import','from','export','default','async','await','try','catch','finally','throw','typeof','instanceof','of','in','null','undefined','true','false','interface','type','enum','as','readonly','public','private','protected','static','implements','keyof','infer','never','unknown','any','number','string','boolean','void'
+        'const',
+        'let',
+        'var',
+        'function',
+        'return',
+        'if',
+        'else',
+        'for',
+        'while',
+        'do',
+        'switch',
+        'case',
+        'break',
+        'continue',
+        'class',
+        'extends',
+        'super',
+        'new',
+        'this',
+        'import',
+        'from',
+        'export',
+        'default',
+        'async',
+        'await',
+        'try',
+        'catch',
+        'finally',
+        'throw',
+        'typeof',
+        'instanceof',
+        'of',
+        'in',
+        'null',
+        'undefined',
+        'true',
+        'false',
+        'interface',
+        'type',
+        'enum',
+        'as',
+        'readonly',
+        'public',
+        'private',
+        'protected',
+        'static',
+        'implements',
+        'keyof',
+        'infer',
+        'never',
+        'unknown',
+        'any',
+        'number',
+        'string',
+        'boolean',
+        'void'
     ],
     bash: [],
     output: [],
@@ -43,7 +214,11 @@ function tokenize(line: string, lang: string): Token[] {
         const ch = line[i]
 
         // Comments
-        if ((lang === 'python' && ch === '#') || ((lang === 'javascript' || lang === 'typescript') && ch === '/' && line[i + 1] === '/') || (lang === 'sql' && ch === '-' && line[i + 1] === '-')) {
+        if (
+            (lang === 'python' && ch === '#') ||
+            ((lang === 'javascript' || lang === 'typescript') && ch === '/' && line[i + 1] === '/') ||
+            (lang === 'sql' && ch === '-' && line[i + 1] === '-')
+        ) {
             tokens.push({ kind: 'cmt', value: line.slice(i) })
             return tokens
         }
@@ -122,7 +297,14 @@ function tokenColor(kind: Token['kind']): string {
 export default function CodeBlock({ code, language = 'python', title, showLines = true }: CodeBlockProps) {
     const [copied, setCopied] = useState(false)
 
-    const lines = useMemo(() => code.replace(/\n$/, '').split('\n').map((l) => tokenize(l, language)), [code, language])
+    const lines = useMemo(
+        () =>
+            code
+                .replace(/\n$/, '')
+                .split('\n')
+                .map((l) => tokenize(l, language)),
+        [code, language]
+    )
 
     const onCopy = async () => {
         try {
@@ -163,9 +345,18 @@ export default function CodeBlock({ code, language = 'python', title, showLines 
                 style={{ borderColor: 'var(--code-divider)', background: 'var(--code-bg-soft)' }}>
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#ef4444' }} />
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#f59e0b' }} />
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#10b981' }} />
+                        <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ background: '#ef4444' }}
+                        />
+                        <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ background: '#f59e0b' }}
+                        />
+                        <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ background: '#10b981' }}
+                        />
                     </div>
                     <div
                         className="hidden sm:flex items-center gap-1.5 ml-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono"
@@ -194,7 +385,9 @@ export default function CodeBlock({ code, language = 'python', title, showLines 
                 style={{ fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)' }}>
                 <pre className="m-0 px-4">
                     {lines.map((tokens, lineIdx) => (
-                        <div key={lineIdx} className="flex">
+                        <div
+                            key={lineIdx}
+                            className="flex">
                             {showLines && (
                                 <span
                                     className="inline-block text-right pr-4 select-none flex-shrink-0"
@@ -207,7 +400,9 @@ export default function CodeBlock({ code, language = 'python', title, showLines 
                                     <span>{' '}</span>
                                 ) : (
                                     tokens.map((t, j) => (
-                                        <span key={j} style={{ color: tokenColor(t.kind), fontStyle: t.kind === 'cmt' ? 'italic' : undefined }}>
+                                        <span
+                                            key={j}
+                                            style={{ color: tokenColor(t.kind), fontStyle: t.kind === 'cmt' ? 'italic' : undefined }}>
                                             {t.value}
                                         </span>
                                     ))

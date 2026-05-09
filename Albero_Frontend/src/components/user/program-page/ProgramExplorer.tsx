@@ -59,8 +59,15 @@ export const ProgramExplorer = ({
     if (programs.length === 0) return null
 
     return (
-        <SectionShell tone="white" spacing="normal">
-            <SectionHeading eyebrow="Our programs" title={heading} accent={accent} description={description} />
+        <SectionShell
+            tone="white"
+            spacing="normal">
+            <SectionHeading
+                eyebrow="Our programs"
+                title={heading}
+                accent={accent}
+                description={description}
+            />
             <div className="grid lg:grid-cols-[280px_1fr] gap-5">
                 <ul
                     id="program-explorer-list"
@@ -83,11 +90,16 @@ export const ProgramExplorer = ({
                                 }}>
                                 <div className="flex-1 min-w-0">
                                     <div className="font-display text-[14.5px] font-semibold leading-tight">{p.title}</div>
-                                    <div className="text-[11.5px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                                    <div
+                                        className="text-[11.5px] mt-0.5"
+                                        style={{ color: 'var(--text-tertiary)' }}>
                                         {p.duration} · {p.badge}
                                     </div>
                                 </div>
-                                <ArrowRight size={14} className="shrink-0 opacity-60" />
+                                <ArrowRight
+                                    size={14}
+                                    className="shrink-0 opacity-60"
+                                />
                             </button>
                         </li>
                     ))}
@@ -108,22 +120,38 @@ export const ProgramExplorer = ({
                                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                                 {current.badge}
                             </span>
-                            <h3 className="font-display text-[24px] md:text-[28px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                            <h3
+                                className="font-display text-[24px] md:text-[28px] font-semibold leading-tight"
+                                style={{ color: 'var(--text-primary)' }}>
                                 {current.title}
                             </h3>
-                            <p className="mt-1.5 text-[13.5px]" style={{ color: 'var(--text-tertiary)' }}>
+                            <p
+                                className="mt-1.5 text-[13.5px]"
+                                style={{ color: 'var(--text-tertiary)' }}>
                                 {current.duration}
                             </p>
                         </div>
                         {current.certBadgeUrl && (
-                            <img src={current.certBadgeUrl} alt="" className="h-9 object-contain" loading="lazy" />
+                            <img
+                                src={current.certBadgeUrl}
+                                alt=""
+                                className="h-9 object-contain"
+                                loading="lazy"
+                            />
                         )}
                     </div>
 
                     <ul className="mt-4 space-y-2">
                         {current.bullets.map((b) => (
-                            <li key={b} className="flex items-start gap-2 text-[14px]" style={{ color: 'var(--text-secondary)' }}>
-                                <CheckCircle2 size={15} style={{ color: 'var(--brand)' }} className="mt-0.5 shrink-0" />
+                            <li
+                                key={b}
+                                className="flex items-start gap-2 text-[14px]"
+                                style={{ color: 'var(--text-secondary)' }}>
+                                <CheckCircle2
+                                    size={15}
+                                    style={{ color: 'var(--brand)' }}
+                                    className="mt-0.5 shrink-0"
+                                />
                                 <span>{b}</span>
                             </li>
                         ))}
@@ -140,13 +168,19 @@ export const ProgramExplorer = ({
                         ))}
                     </div>
 
-                    <div className="mt-6 pt-5 flex flex-wrap items-center justify-between gap-3 border-t" style={{ borderColor: 'var(--hairline)' }}>
+                    <div
+                        className="mt-6 pt-5 flex flex-wrap items-center justify-between gap-3 border-t"
+                        style={{ borderColor: 'var(--hairline)' }}>
                         {current.priceLabel && (
                             <div>
-                                <div className="text-[10.5px] font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--text-tertiary)' }}>
+                                <div
+                                    className="text-[10.5px] font-bold uppercase tracking-[0.16em]"
+                                    style={{ color: 'var(--text-tertiary)' }}>
                                     Investment
                                 </div>
-                                <div className="font-display text-[20px] font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                                <div
+                                    className="font-display text-[20px] font-semibold mt-0.5"
+                                    style={{ color: 'var(--text-primary)' }}>
                                     {current.priceLabel}
                                 </div>
                             </div>

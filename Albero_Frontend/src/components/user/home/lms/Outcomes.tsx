@@ -26,10 +26,7 @@ function StatNumber({ stat }: { stat: Stat }) {
         suffix: stat.suffix,
         decimals: stat.decimals ?? 0,
         duration: 1800,
-        format:
-            stat.end >= 1000 && (stat.decimals ?? 0) === 0
-                ? (n) => Math.round(n).toLocaleString('en-IN')
-                : undefined
+        format: stat.end >= 1000 && (stat.decimals ?? 0) === 0 ? (n) => Math.round(n).toLocaleString('en-IN') : undefined
     })
     return (
         <div
@@ -56,7 +53,9 @@ export default function Outcomes() {
                         className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium max-w-[820px] mx-auto"
                         style={{ color: 'var(--text-primary)' }}>
                         We measure ourselves on{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
                             offers
                         </span>
                         , not enrollments.

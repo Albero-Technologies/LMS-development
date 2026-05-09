@@ -183,7 +183,9 @@ export default function Mentors() {
                             className="font-display text-[40px] md:text-[58px] leading-[0.96] tracking-[-0.02em] font-medium"
                             style={{ color: 'var(--text-primary)' }}>
                             Meet your{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 mentors.
                             </span>
                         </h2>
@@ -219,7 +221,12 @@ export default function Mentors() {
                     className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
                     style={{ scrollPaddingLeft: 24, scrollPaddingRight: 24 }}>
                     {mentors.map((m, i) => (
-                        <MentorCard key={m.name} m={m} i={i} active={active} />
+                        <MentorCard
+                            key={m.name}
+                            m={m}
+                            i={i}
+                            active={active}
+                        />
                     ))}
                 </div>
 
@@ -281,8 +288,7 @@ function MentorCard({ m, i, active }: { m: Mentor; i: number; active: number }) 
                         aria-hidden="true"
                         className="absolute inset-0 opacity-30"
                         style={{
-                            backgroundImage:
-                                'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)',
+                            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)',
                             backgroundSize: '14px 14px'
                         }}
                     />
@@ -294,13 +300,20 @@ function MentorCard({ m, i, active }: { m: Mentor; i: number; active: number }) 
                     <span
                         className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold tracking-tight"
                         style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(6px)' }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#34d399' }} />
+                        <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: '#34d399' }}
+                        />
                         {m.badge}
                     </span>
                     <span
                         className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10.5px] font-bold"
                         style={{ background: 'rgba(255,255,255,0.92)', color: 'var(--accent)' }}>
-                        <Star size={11} fill="currentColor" /> {m.rating}
+                        <Star
+                            size={11}
+                            fill="currentColor"
+                        />{' '}
+                        {m.rating}
                     </span>
                 </div>
 
@@ -310,11 +323,15 @@ function MentorCard({ m, i, active }: { m: Mentor; i: number; active: number }) 
                         style={{ color: 'var(--text-primary)' }}>
                         {m.name}
                     </h3>
-                    <div className="text-[12.5px] mb-3" style={{ color: 'var(--brand)' }}>
+                    <div
+                        className="text-[12.5px] mb-3"
+                        style={{ color: 'var(--brand)' }}>
                         {m.role} · {m.company}
                     </div>
 
-                    <div className="flex items-center gap-3 text-[11.5px] mb-4" style={{ color: 'var(--text-tertiary)' }}>
+                    <div
+                        className="flex items-center gap-3 text-[11.5px] mb-4"
+                        style={{ color: 'var(--text-tertiary)' }}>
                         <span className="inline-flex items-center gap-1">
                             <Briefcase size={11} /> {m.experience}
                         </span>

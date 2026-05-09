@@ -39,7 +39,9 @@ export const Ticker = ({ items, direction = 'left', durationSeconds = 40, classN
                 {tripled.map((item, i) => (
                     // Index suffix on the key because the list is duplicated 3×;
                     // React would otherwise complain about repeated keys.
-                    <div key={`${item.key}-${i}`} className="shrink-0">
+                    <div
+                        key={`${item.key}-${i}`}
+                        className="shrink-0">
                         {item.content}
                     </div>
                 ))}

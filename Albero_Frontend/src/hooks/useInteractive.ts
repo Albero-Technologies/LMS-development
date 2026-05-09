@@ -117,14 +117,7 @@ interface CountUpOptions {
 // Smooth ease-out — matches anime's "easeOutExpo".
 const easeOutExpo = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t))
 
-export function useCountUp<T extends HTMLElement>({
-    end,
-    duration = 1600,
-    decimals = 0,
-    format,
-    prefix = '',
-    suffix = ''
-}: CountUpOptions) {
+export function useCountUp<T extends HTMLElement>({ end, duration = 1600, decimals = 0, format, prefix = '', suffix = '' }: CountUpOptions) {
     const ref = useRef<T | null>(null)
     const started = useRef(false)
 
@@ -195,12 +188,7 @@ interface SplitRevealOptions {
     ease?: string
 }
 
-export function useSplitReveal<T extends HTMLElement>({
-    stagger = 0.025,
-    duration = 0.6,
-    yFrom = 18,
-    ease = 'power3.out'
-}: SplitRevealOptions = {}) {
+export function useSplitReveal<T extends HTMLElement>({ stagger = 0.025, duration = 0.6, yFrom = 18, ease = 'power3.out' }: SplitRevealOptions = {}) {
     const ref = useRef<T | null>(null)
 
     useEffect(() => {

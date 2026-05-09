@@ -206,13 +206,10 @@ export default function StaircaseClimb() {
                     aria-hidden="true"
                     className="absolute inset-0 pointer-events-none opacity-[0.5]"
                     style={{
-                        backgroundImage:
-                            'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
+                        backgroundImage: 'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
                         backgroundSize: '32px 32px',
-                        maskImage:
-                            'radial-gradient(ellipse 70% 80% at 50% 50%, #000 50%, transparent 95%)',
-                        WebkitMaskImage:
-                            'radial-gradient(ellipse 70% 80% at 50% 50%, #000 50%, transparent 95%)'
+                        maskImage: 'radial-gradient(ellipse 70% 80% at 50% 50%, #000 50%, transparent 95%)',
+                        WebkitMaskImage: 'radial-gradient(ellipse 70% 80% at 50% 50%, #000 50%, transparent 95%)'
                     }}
                 />
                 <div
@@ -242,7 +239,9 @@ export default function StaircaseClimb() {
                                 lineHeight: 1.04
                             }}>
                             Six months,{' '}
-                            <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
                                 one stair at a time.
                             </span>
                         </h2>
@@ -254,23 +253,53 @@ export default function StaircaseClimb() {
                     </div>
 
                     {/* Climbing stage */}
-                    <div className="flex-1 relative w-full" style={{ minHeight: 0 }}>
+                    <div
+                        className="flex-1 relative w-full"
+                        style={{ minHeight: 0 }}>
                         <svg
                             viewBox={`0 0 ${VB_W} ${VB_H}`}
                             preserveAspectRatio="xMidYMax meet"
                             className="absolute inset-0 w-full h-full">
                             <defs>
-                                <linearGradient id="alb-stair-fill" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--brand-soft)" stopOpacity="0.7" />
-                                    <stop offset="100%" stopColor="var(--brand-soft)" stopOpacity="0.18" />
+                                <linearGradient
+                                    id="alb-stair-fill"
+                                    x1="0"
+                                    x2="0"
+                                    y1="0"
+                                    y2="1">
+                                    <stop
+                                        offset="0%"
+                                        stopColor="var(--brand-soft)"
+                                        stopOpacity="0.7"
+                                    />
+                                    <stop
+                                        offset="100%"
+                                        stopColor="var(--brand-soft)"
+                                        stopOpacity="0.18"
+                                    />
                                 </linearGradient>
-                                <filter id="alb-stair-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                                    <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="rgba(13,79,60,0.20)" />
+                                <filter
+                                    id="alb-stair-shadow"
+                                    x="-20%"
+                                    y="-20%"
+                                    width="140%"
+                                    height="140%">
+                                    <feDropShadow
+                                        dx="0"
+                                        dy="6"
+                                        stdDeviation="6"
+                                        floodColor="rgba(13,79,60,0.20)"
+                                    />
                                 </filter>
                             </defs>
 
                             {/* Floor / staircase fill */}
-                            <path d={STAIR_PATH} fill="url(#alb-stair-fill)" stroke="var(--line-strong)" strokeWidth="1.5" />
+                            <path
+                                d={STAIR_PATH}
+                                fill="url(#alb-stair-fill)"
+                                stroke="var(--line-strong)"
+                                strokeWidth="1.5"
+                            />
 
                             {/* Light dashed guide line tracing the figure's path */}
                             <polyline
@@ -289,7 +318,11 @@ export default function StaircaseClimb() {
                                 const rangeStart = i / STEP_COUNT
                                 const rangeEnd = (i + 1) / STEP_COUNT
                                 const stepProgress =
-                                    climbProgress < rangeStart ? 0 : climbProgress > rangeEnd ? 1 : (climbProgress - rangeStart) / (rangeEnd - rangeStart)
+                                    climbProgress < rangeStart
+                                        ? 0
+                                        : climbProgress > rangeEnd
+                                          ? 1
+                                          : (climbProgress - rangeStart) / (rangeEnd - rangeStart)
                                 const fadeIn = Math.min(1, stepProgress * 1.4)
                                 return (
                                     <g
@@ -344,8 +377,20 @@ export default function StaircaseClimb() {
                                 transform={`translate(${TROPHY_POINT.x - 28} ${TROPHY_POINT.y - 70})`}
                                 opacity={Math.min(1, trophyProgress * 2)}
                                 style={{ transition: 'opacity 250ms ease' }}>
-                                <circle cx="28" cy="28" r="34" fill="var(--accent-soft)" opacity={0.55 + trophyProgress * 0.4} />
-                                <circle cx="28" cy="28" r="22" fill="var(--accent)" opacity={trophyProgress} />
+                                <circle
+                                    cx="28"
+                                    cy="28"
+                                    r="34"
+                                    fill="var(--accent-soft)"
+                                    opacity={0.55 + trophyProgress * 0.4}
+                                />
+                                <circle
+                                    cx="28"
+                                    cy="28"
+                                    r="22"
+                                    fill="var(--accent)"
+                                    opacity={trophyProgress}
+                                />
                                 <foreignObject
                                     x="9"
                                     y="9"
@@ -363,7 +408,10 @@ export default function StaircaseClimb() {
                                             transform: `scale(${0.8 + trophyProgress * 0.4})`,
                                             transition: 'transform 200ms ease'
                                         }}>
-                                        <Trophy size={20} fill="#fff" />
+                                        <Trophy
+                                            size={20}
+                                            fill="#fff"
+                                        />
                                     </div>
                                 </foreignObject>
                                 {/* Sparkle bursts when nearly complete */}
@@ -396,18 +444,33 @@ export default function StaircaseClimb() {
                                 <ellipse
                                     cx={a.x + (b.x - a.x) * ((segT - PHASE_TAKEOFF) / (PHASE_LAND - PHASE_TAKEOFF))}
                                     cy={a.y + (b.y - a.y) * ((segT - PHASE_TAKEOFF) / (PHASE_LAND - PHASE_TAKEOFF)) - 1}
-                                    rx={14 * Math.max(0.4, 1 - Math.abs(figureY - (a.y + (b.y - a.y) * ((segT - PHASE_TAKEOFF) / (PHASE_LAND - PHASE_TAKEOFF)))) / 80)}
+                                    rx={
+                                        14 *
+                                        Math.max(
+                                            0.4,
+                                            1 - Math.abs(figureY - (a.y + (b.y - a.y) * ((segT - PHASE_TAKEOFF) / (PHASE_LAND - PHASE_TAKEOFF)))) / 80
+                                        )
+                                    }
                                     ry={3}
                                     fill="rgba(10,14,31,0.18)"
                                 />
                             ) : (
-                                <ellipse cx={figureX} cy={figureY - 1} rx={14} ry={3} fill="rgba(10,14,31,0.25)" />
+                                <ellipse
+                                    cx={figureX}
+                                    cy={figureY - 1}
+                                    rx={14}
+                                    ry={3}
+                                    fill="rgba(10,14,31,0.25)"
+                                />
                             )}
 
                             <g
                                 transform={`translate(${figureX} ${figureY - 4}) scale(1, ${squat})`}
                                 style={{ transition: 'transform 70ms linear', transformBox: 'fill-box', transformOrigin: 'center bottom' }}>
-                                <Jumper airborne={airborne} segT={segT} />
+                                <Jumper
+                                    airborne={airborne}
+                                    segT={segT}
+                                />
                             </g>
                         </svg>
                     </div>
@@ -426,10 +489,10 @@ export default function StaircaseClimb() {
                                     style={{ color: 'var(--text-primary)' }}>
                                     {progress >= 0.95 ? 'Offer in hand 🎉' : steps[activeStep].title}
                                 </div>
-                                <div className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
-                                    {progress >= 0.95
-                                        ? "You climbed every step — that's the Albero promise."
-                                        : steps[activeStep].body}
+                                <div
+                                    className="text-[12px]"
+                                    style={{ color: 'var(--text-tertiary)' }}>
+                                    {progress >= 0.95 ? "You climbed every step — that's the Albero promise." : steps[activeStep].body}
                                 </div>
                             </div>
                         </div>
@@ -446,8 +509,7 @@ export default function StaircaseClimb() {
                                     className="h-full rounded-full"
                                     style={{
                                         width: `${progress * 100}%`,
-                                        background:
-                                            'linear-gradient(90deg, var(--brand), var(--accent))',
+                                        background: 'linear-gradient(90deg, var(--brand), var(--accent))',
                                         transition: 'width 80ms linear'
                                     }}
                                 />
@@ -511,8 +573,20 @@ function Jumper({ airborne, segT }: { airborne: boolean; segT: number }) {
     return (
         <g transform="translate(0,-46)">
             {/* Head */}
-            <circle cx="0" cy="6" r="6" fill="var(--brand)" />
-            <circle cx="0" cy="6" r="6" fill="none" stroke="var(--text-primary)" strokeWidth="1.2" />
+            <circle
+                cx="0"
+                cy="6"
+                r="6"
+                fill="var(--brand)"
+            />
+            <circle
+                cx="0"
+                cy="6"
+                r="6"
+                fill="none"
+                stroke="var(--text-primary)"
+                strokeWidth="1.2"
+            />
 
             {/* Body */}
             <line
@@ -526,7 +600,15 @@ function Jumper({ airborne, segT }: { airborne: boolean; segT: number }) {
             />
 
             {/* Backpack — slightly offset back, follows body */}
-            <rect x="-8" y="12" width="6" height="10" rx="1.5" fill="var(--accent)" opacity="0.85" />
+            <rect
+                x="-8"
+                y="12"
+                width="6"
+                height="10"
+                rx="1.5"
+                fill="var(--accent)"
+                opacity="0.85"
+            />
 
             {/* Arms — both reach forward when airborne for that triumphant leap shape */}
             <line
@@ -550,7 +632,15 @@ function Jumper({ airborne, segT }: { airborne: boolean; segT: number }) {
 
             {/* Legs — drawn as two segments (hip → knee → foot) so the tuck looks natural */}
             {/* Left leg */}
-            <line x1="0" y1="28" x2={-3} y2={kneeY} stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round" />
+            <line
+                x1="0"
+                y1="28"
+                x2={-3}
+                y2={kneeY}
+                stroke="var(--text-primary)"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+            />
             <line
                 x1={-3}
                 y1={kneeY}
@@ -561,7 +651,15 @@ function Jumper({ airborne, segT }: { airborne: boolean; segT: number }) {
                 strokeLinecap="round"
             />
             {/* Right leg */}
-            <line x1="0" y1="28" x2={3} y2={kneeY} stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round" />
+            <line
+                x1="0"
+                y1="28"
+                x2={3}
+                y2={kneeY}
+                stroke="var(--text-primary)"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+            />
             <line
                 x1={3}
                 y1={kneeY}
@@ -574,9 +672,23 @@ function Jumper({ airborne, segT }: { airborne: boolean; segT: number }) {
 
             {/* Tiny motion lines while airborne for extra readability */}
             {airborne && (
-                <g opacity={0.5} stroke="var(--brand)" strokeWidth="1.5" strokeLinecap="round">
-                    <line x1={-14} y1={20} x2={-22} y2={22} />
-                    <line x1={-14} y1={26} x2={-20} y2={28} />
+                <g
+                    opacity={0.5}
+                    stroke="var(--brand)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round">
+                    <line
+                        x1={-14}
+                        y1={20}
+                        x2={-22}
+                        y2={22}
+                    />
+                    <line
+                        x1={-14}
+                        y1={26}
+                        x2={-20}
+                        y2={28}
+                    />
                 </g>
             )}
         </g>

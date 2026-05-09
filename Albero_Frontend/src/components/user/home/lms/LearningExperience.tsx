@@ -56,8 +56,7 @@ export default function LearningExperience() {
                 aria-hidden="true"
                 className="absolute inset-0 pointer-events-none opacity-[0.4]"
                 style={{
-                    backgroundImage:
-                        'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
+                    backgroundImage: 'radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
                     backgroundSize: '32px 32px',
                     maskImage: 'radial-gradient(ellipse 70% 80% at 50% 50%, #000 50%, transparent 95%)',
                     WebkitMaskImage: 'radial-gradient(ellipse 70% 80% at 50% 50%, #000 50%, transparent 95%)'
@@ -75,7 +74,9 @@ export default function LearningExperience() {
                         className="font-display text-[40px] md:text-[58px] leading-[0.96] tracking-[-0.02em] font-medium"
                         style={{ color: 'var(--text-primary)' }}>
                         Built around your{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
                             outcome,
                         </span>
                         <br />
@@ -103,10 +104,27 @@ export default function LearningExperience() {
                         viewBox="0 0 1200 20"
                         preserveAspectRatio="none">
                         <defs>
-                            <linearGradient id="albRoadmapGradient" x1="0" x2="1" y1="0" y2="0">
-                                <stop offset="0%" stopColor="var(--brand)" stopOpacity="0.08" />
-                                <stop offset="50%" stopColor="var(--brand)" stopOpacity="0.55" />
-                                <stop offset="100%" stopColor="var(--brand)" stopOpacity="0.08" />
+                            <linearGradient
+                                id="albRoadmapGradient"
+                                x1="0"
+                                x2="1"
+                                y1="0"
+                                y2="0">
+                                <stop
+                                    offset="0%"
+                                    stopColor="var(--brand)"
+                                    stopOpacity="0.08"
+                                />
+                                <stop
+                                    offset="50%"
+                                    stopColor="var(--brand)"
+                                    stopOpacity="0.55"
+                                />
+                                <stop
+                                    offset="100%"
+                                    stopColor="var(--brand)"
+                                    stopOpacity="0.08"
+                                />
                             </linearGradient>
                         </defs>
 

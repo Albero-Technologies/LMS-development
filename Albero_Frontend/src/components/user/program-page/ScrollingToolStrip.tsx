@@ -32,13 +32,7 @@ interface Props {
 //     unified strip even on dark backgrounds
 //   - Per-pill glow on hover + brand-coloured icon halo
 //   - Single-row mobile fallback with reduced pill density
-export const ScrollingToolStrip = ({
-    tools,
-    heading,
-    accent,
-    description,
-    tone = 'soft'
-}: Props) => {
+export const ScrollingToolStrip = ({ tools, heading, accent, description, tone = 'soft' }: Props) => {
     const [headingRef, headingVisible] = useScrollReveal<HTMLDivElement>(0.2)
     const { theme } = useTheme()
     if (tools.length === 0) return null
@@ -46,7 +40,12 @@ export const ScrollingToolStrip = ({
     const isDarkSection = tone === 'deep' && theme === 'dark'
     const items: TickerItem[] = tools.map((t) => ({
         key: t.name,
-        content: <ToolPill tool={t} onDarkSection={isDarkSection} />
+        content: (
+            <ToolPill
+                tool={t}
+                onDarkSection={isDarkSection}
+            />
+        )
     }))
     const row1 = items.filter((_, i) => i % 2 === 0)
     const row2 = items.filter((_, i) => i % 2 === 1)
@@ -98,13 +97,23 @@ export const ScrollingToolStrip = ({
         : {}
 
     return (
-        <section className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8" style={sectionStyle}>
+        <section
+            className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8"
+            style={sectionStyle}>
             {/* Soft top + bottom gradient seams when on dark — keeps the
                 section from looking "boxy" against the next light section. */}
             {isDark && (
                 <>
-                    <div aria-hidden="true" className="absolute inset-x-0 top-0 h-16" style={{ background: 'linear-gradient(180deg, rgba(245,243,234,0.04) 0%, transparent 100%)' }} />
-                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-16" style={{ background: 'linear-gradient(0deg, rgba(245,243,234,0.04) 0%, transparent 100%)' }} />
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-x-0 top-0 h-16"
+                        style={{ background: 'linear-gradient(180deg, rgba(245,243,234,0.04) 0%, transparent 100%)' }}
+                    />
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-x-0 bottom-0 h-16"
+                        style={{ background: 'linear-gradient(0deg, rgba(245,243,234,0.04) 0%, transparent 100%)' }}
+                    />
                 </>
             )}
 
@@ -126,8 +135,14 @@ export const ScrollingToolStrip = ({
                         ...eyebrowStyle
                     }}>
                     <span className="relative inline-flex w-1.5 h-1.5">
-                        <span className="absolute inset-0 rounded-full" style={{ background: 'var(--brand)' }} />
-                        <span className="absolute inset-0 rounded-full animate-ping" style={{ background: 'var(--brand)', opacity: 0.7 }} />
+                        <span
+                            className="absolute inset-0 rounded-full"
+                            style={{ background: 'var(--brand)' }}
+                        />
+                        <span
+                            className="absolute inset-0 rounded-full animate-ping"
+                            style={{ background: 'var(--brand)', opacity: 0.7 }}
+                        />
                     </span>
                     Industry Toolkit
                 </div>
@@ -151,15 +166,19 @@ export const ScrollingToolStrip = ({
                     <p
                         className="mt-5 text-[15px] md:text-[16.5px] leading-relaxed max-w-2xl mx-auto"
                         style={{ color: isDark ? 'rgba(245,243,234,0.72)' : 'var(--text-secondary)' }}>
-                        {description ??
-                            'Hands-on labs use the exact stack hiring teams expect — no toy projects, no outdated frameworks.'}
+                        {description ?? 'Hands-on labs use the exact stack hiring teams expect — no toy projects, no outdated frameworks.'}
                     </p>
                 )}
 
                 {/* Hint chip — small "live count" line so the section feels
                     data-driven rather than static marketing copy. */}
-                <div className="mt-7 inline-flex items-center gap-2 text-[12px] font-semibold" style={{ color: isDark ? 'rgba(245,243,234,0.6)' : 'var(--text-tertiary)' }}>
-                    <Sparkles size={13} style={{ color: 'var(--brand)' }} />
+                <div
+                    className="mt-7 inline-flex items-center gap-2 text-[12px] font-semibold"
+                    style={{ color: isDark ? 'rgba(245,243,234,0.6)' : 'var(--text-tertiary)' }}>
+                    <Sparkles
+                        size={13}
+                        style={{ color: 'var(--brand)' }}
+                    />
                     <span>{tools.length} tools in this program · all production-grade</span>
                 </div>
             </div>
@@ -189,10 +208,18 @@ export const ScrollingToolStrip = ({
                     style={{ background: 'var(--gradient-aurora)' }}
                 />
                 <div className="space-y-4 md:space-y-5">
-                    <Ticker items={row1.length ? row1 : items} direction="left" durationSeconds={20} />
+                    <Ticker
+                        items={row1.length ? row1 : items}
+                        direction="left"
+                        durationSeconds={20}
+                    />
                     {row2.length > 0 && (
                         <div className="hidden md:block">
-                            <Ticker items={row2} direction="right" durationSeconds={24} />
+                            <Ticker
+                                items={row2}
+                                direction="right"
+                                durationSeconds={24}
+                            />
                         </div>
                     )}
                 </div>
@@ -208,13 +235,9 @@ export const ScrollingToolStrip = ({
 // so the pills sit *on top of* the plate AND keep the section's emerald
 // identity coherent (instead of looking like neutral slate chiclets).
 const ToolPill = ({ tool, onDarkSection = false }: { tool: ToolStripItem; onDarkSection?: boolean }) => {
-    const restBg = onDarkSection
-        ? 'linear-gradient(180deg, rgba(20,120,95,0.28) 0%, rgba(13,79,60,0.18) 100%)'
-        : 'var(--surface)'
+    const restBg = onDarkSection ? 'linear-gradient(180deg, rgba(20,120,95,0.28) 0%, rgba(13,79,60,0.18) 100%)' : 'var(--surface)'
     const restBorder = onDarkSection ? 'rgba(52,211,153,0.28)' : 'var(--hairline)'
-    const restShadow = onDarkSection
-        ? '0 6px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(52,211,153,0.14)'
-        : 'var(--card-shadow-soft)'
+    const restShadow = onDarkSection ? '0 6px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(52,211,153,0.14)' : 'var(--card-shadow-soft)'
     const hoverShadow = onDarkSection
         ? '0 12px 28px rgba(0,0,0,0.5), 0 0 0 4px rgba(52,211,153,0.24)'
         : 'var(--card-shadow-hover), 0 0 0 4px rgba(13,79,60,0.06)'
@@ -239,7 +262,14 @@ const ToolPill = ({ tool, onDarkSection = false }: { tool: ToolStripItem; onDark
                 <div
                     className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                     style={{ background: iconCellBg, border: `1px solid ${iconCellBorder}` }}>
-                    <img src={tool.iconUrl} alt="" className="w-4 h-4 object-contain" loading="lazy" width={16} height={16} />
+                    <img
+                        src={tool.iconUrl}
+                        alt=""
+                        className="w-4 h-4 object-contain"
+                        loading="lazy"
+                        width={16}
+                        height={16}
+                    />
                 </div>
             ) : (
                 <ToolIcon name={tool.name} />

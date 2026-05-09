@@ -7,7 +7,13 @@ export default function TutorialTopic() {
     const { slug = '' } = useParams<{ slug?: string }>()
     const topic = findTopic(slug)
 
-    if (!topic) return <Navigate to="/resources/tutorials" replace />
+    if (!topic)
+        return (
+            <Navigate
+                to="/resources/tutorials"
+                replace
+            />
+        )
 
     const totalMin = topic.chapters.reduce((acc, c) => acc + c.readMin, 0)
     const totalH = Math.floor(totalMin / 60)
@@ -31,7 +37,10 @@ export default function TutorialTopic() {
                         <ArrowLeft size={14} /> All tutorials
                     </Link>
 
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}>
                         <div
                             className="inline-block text-[11px] font-bold tracking-[0.16em] uppercase px-3 py-1 rounded-md mb-5"
                             style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
@@ -40,17 +49,26 @@ export default function TutorialTopic() {
                         <h1
                             className="font-display text-[44px] md:text-[64px] lg:text-[80px] font-medium tracking-[-0.02em] leading-[0.96] mb-5"
                             style={{ color: 'var(--text-primary)' }}>
-                            {topic.name} <span className="italic font-light" style={{ color: 'var(--brand)' }}>tutorials</span>
+                            {topic.name}{' '}
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
+                                tutorials
+                            </span>
                         </h1>
                         <p
                             className="text-[16px] md:text-[18px] leading-relaxed max-w-[720px] mb-7"
                             style={{ color: 'var(--text-secondary)' }}>
                             {topic.description}
                         </p>
-                        <div className="flex flex-wrap items-center gap-5 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
+                        <div
+                            className="flex flex-wrap items-center gap-5 text-[13px]"
+                            style={{ color: 'var(--text-tertiary)' }}>
                             <span>{topic.chapters.length} chapters</span>
                             <span>·</span>
-                            <span>{totalH}h {remMin}m total reading</span>
+                            <span>
+                                {totalH}h {remMin}m total reading
+                            </span>
                             <span>·</span>
                             <span>Beginner to Advanced</span>
                         </div>
@@ -90,7 +108,9 @@ export default function TutorialTopic() {
                                     <div
                                         className="flex items-center justify-between pt-3 border-t"
                                         style={{ borderColor: 'var(--line)' }}>
-                                        <span className="inline-flex items-center gap-1.5 text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+                                        <span
+                                            className="inline-flex items-center gap-1.5 text-[12px]"
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             <Clock size={11} /> {c.readMin} min read
                                         </span>
                                         <span

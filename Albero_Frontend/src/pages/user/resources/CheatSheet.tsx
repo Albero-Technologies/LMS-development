@@ -88,10 +88,11 @@ export default function CheatSheet() {
                             <div
                                 className="aspect-[4/3] flex items-end justify-between p-5"
                                 style={{ background: s.accentGradient, color: '#fff' }}>
-                                <span className="font-display font-semibold text-[22px] tracking-tight">
-                                    {s.title.split(' ')[0]}
-                                </span>
-                                <Icon size={32} className="text-white/40" />
+                                <span className="font-display font-semibold text-[22px] tracking-tight">{s.title.split(' ')[0]}</span>
+                                <Icon
+                                    size={32}
+                                    className="text-white/40"
+                                />
                             </div>
                             <div className="p-5">
                                 <h3
@@ -109,7 +110,11 @@ export default function CheatSheet() {
                                         <span
                                             key={j}
                                             className="px-2 py-0.5 rounded-md text-[10.5px]"
-                                            style={{ background: 'var(--surface-2)', color: 'var(--text-tertiary)', border: '1px solid var(--line)' }}>
+                                            style={{
+                                                background: 'var(--surface-2)',
+                                                color: 'var(--text-tertiary)',
+                                                border: '1px solid var(--line)'
+                                            }}>
                                             #{t}
                                         </span>
                                     ))}

@@ -290,292 +290,295 @@ const Navbar = () => {
 
     return (
         <>
-        <header
-            className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
-            style={{
-                background: scrolled ? 'var(--page-bg)' : 'transparent',
-                borderBottom: scrolled ? '1px solid var(--line)' : '1px solid transparent',
-                backdropFilter: scrolled ? 'saturate(180%) blur(8px)' : 'none',
-                WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(8px)' : 'none'
-            }}>
-            {/* ── Utility strip ── */}
-            <div
-                className="hidden md:block border-b text-[12px]"
-                style={{ borderColor: 'var(--line-soft)', background: 'var(--page-bg-soft)' }}>
-                <div className="max-w-[1280px] mx-auto px-6 h-9 flex items-center justify-between">
-                    <div
-                        className="flex items-center gap-2"
-                        style={{ color: 'var(--text-tertiary)' }}>
-                        <Sparkles
-                            size={13}
-                            style={{ color: 'var(--accent)' }}
-                        />
-                        <span>New cohort starts <strong style={{ color: 'var(--text-primary)' }}>12 May 2026</strong> — early-bird seats limited.</span>
-                    </div>
-                    <div className="flex items-center gap-5">
-                        <a
-                            href="/about"
-                            className="hover:underline"
+            <header
+                className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
+                style={{
+                    background: scrolled ? 'var(--page-bg)' : 'transparent',
+                    borderBottom: scrolled ? '1px solid var(--line)' : '1px solid transparent',
+                    backdropFilter: scrolled ? 'saturate(180%) blur(8px)' : 'none',
+                    WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(8px)' : 'none'
+                }}>
+                {/* ── Utility strip ── */}
+                <div
+                    className="hidden md:block border-b text-[12px]"
+                    style={{ borderColor: 'var(--line-soft)', background: 'var(--page-bg-soft)' }}>
+                    <div className="max-w-[1280px] mx-auto px-6 h-9 flex items-center justify-between">
+                        <div
+                            className="flex items-center gap-2"
                             style={{ color: 'var(--text-tertiary)' }}>
-                            About
-                        </a>
-                        <a
-                            href="/resources/blogs"
-                            className="hover:underline"
-                            style={{ color: 'var(--text-tertiary)' }}>
-                            Blog
-                        </a>
-                        <a
-                            href="mailto:support@alberoacademy.com"
-                            className="hover:underline"
-                            style={{ color: 'var(--text-tertiary)' }}>
-                            Help
-                        </a>
-                        <ThemeToggle size="sm" />
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Main bar ── */}
-            <div
-                className="border-b"
-                style={{ borderColor: scrolled ? 'var(--line)' : 'transparent' }}>
-                <div className="max-w-[1280px] mx-auto px-5 md:px-6 h-[68px] flex items-center justify-between gap-6">
-                    <Wordmark
-                        titleColor={lightOverlay ? '#f8f6ee' : undefined}
-                        subColor={lightOverlay ? 'rgba(248,246,238,0.6)' : undefined}
-                    />
-
-                    {/* Desktop nav */}
-                    <nav className="hidden lg:flex items-center gap-8">
-                        <NavItem
-                            label="Home"
-                            active={isHome}
-                            onClick={() => goLink('#home')}
-                            color={navTextColor}
-                            activeColor={activeColor}
-                        />
-                        <MegaMenu
-                            label="Programs"
-                            items={navbarData.programs}
-                            columns={2}
-                            labelColor={navTextColor}
-                            active={isPrograms}
-                            activeColor={activeColor}
-                        />
-                        <MegaMenu
-                            label="Resources"
-                            items={navbarData.resources}
-                            columns={2}
-                            labelColor={navTextColor}
-                            active={isResources}
-                            activeColor={activeColor}
-                        />
-                        <NavItem
-                            label="Pricing"
-                            active={isPricing}
-                            onClick={() => goLink('/pricing')}
-                            color={navTextColor}
-                            activeColor={activeColor}
-                        />
-                        <NavItem
-                            label="Contact"
-                            active={isContact}
-                            onClick={() => goLink('/contact')}
-                            color={navTextColor}
-                            activeColor={activeColor}
-                        />
-                    </nav>
-
-                    {/* Right cluster */}
-                    <div className="flex items-center gap-2 md:gap-3">
-                        <div className="md:hidden">
+                            <Sparkles
+                                size={13}
+                                style={{ color: 'var(--accent)' }}
+                            />
+                            <span>
+                                New cohort starts <strong style={{ color: 'var(--text-primary)' }}>12 May 2026</strong> — early-bird seats limited.
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-5">
+                            <a
+                                href="/about"
+                                className="hover:underline"
+                                style={{ color: 'var(--text-tertiary)' }}>
+                                About
+                            </a>
+                            <a
+                                href="/resources/blogs"
+                                className="hover:underline"
+                                style={{ color: 'var(--text-tertiary)' }}>
+                                Blog
+                            </a>
+                            <a
+                                href="mailto:support@alberoacademy.com"
+                                className="hover:underline"
+                                style={{ color: 'var(--text-tertiary)' }}>
+                                Help
+                            </a>
                             <ThemeToggle size="sm" />
                         </div>
-
-                        <button
-                            onClick={() => {
-                                window.location.href = dashboardLoginUrl()
-                            }}
-                            className="hidden md:inline-flex items-center gap-1.5 text-[13.5px] font-semibold transition-colors"
-                            style={{ color: navTextColor }}>
-                            <LogIn size={14} /> Sign in
-                        </button>
-
-                        <button
-                            onClick={() => goLink('/pricing')}
-                            className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-semibold transition-all hover:translate-y-[-1px]"
-                            style={{
-                                background: lightOverlay ? '#a7f3d0' : 'var(--brand)',
-                                color: lightOverlay ? '#04081a' : 'var(--text-on-inverse)',
-                                boxShadow: '0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 16px rgba(13,79,60,0.30)'
-                            }}>
-                            Enroll Now <ArrowUpRight size={14} />
-                        </button>
-
-                        {/* Mobile menu */}
-                        <button
-                            className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-full"
-                            style={{ background: navHover, border: `1px solid ${navBorder}`, color: navTextColor }}
-                            onClick={() => setIsOpen(true)}>
-                            <Menu size={18} />
-                        </button>
                     </div>
                 </div>
-            </div>
 
-        </header>
+                {/* ── Main bar ── */}
+                <div
+                    className="border-b"
+                    style={{ borderColor: scrolled ? 'var(--line)' : 'transparent' }}>
+                    <div className="max-w-[1280px] mx-auto px-5 md:px-6 h-[68px] flex items-center justify-between gap-6">
+                        <Wordmark
+                            titleColor={lightOverlay ? '#f8f6ee' : undefined}
+                            subColor={lightOverlay ? 'rgba(248,246,238,0.6)' : undefined}
+                        />
 
-        {/* ── Mobile drawer — portalled to document.body so the parent
-            <header>'s backdrop-filter doesn't trap its `position: fixed`
-            inside the header's containing block. Without this, the drawer
-            renders only inside the header and the page bleeds through. */}
-        {createPortal(
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-                        className="fixed inset-0 z-[100] lg:hidden"
-                        // Inline a solid hex fallback in case the CSS var is
-                        // overridden by an ancestor in some theme.
-                        style={{ background: 'var(--page-bg, #fbfaf6)' }}>
-                        <div
-                            className="h-[68px] px-5 flex items-center justify-between border-b"
-                            style={{ borderColor: 'var(--line)', background: 'var(--page-bg, #fbfaf6)' }}>
-                            <Wordmark />
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="w-10 h-10 rounded-full inline-flex items-center justify-center"
-                                style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}>
-                                <X size={18} />
-                            </button>
-                        </div>
+                        {/* Desktop nav */}
+                        <nav className="hidden lg:flex items-center gap-8">
+                            <NavItem
+                                label="Home"
+                                active={isHome}
+                                onClick={() => goLink('#home')}
+                                color={navTextColor}
+                                activeColor={activeColor}
+                            />
+                            <MegaMenu
+                                label="Programs"
+                                items={navbarData.programs}
+                                columns={2}
+                                labelColor={navTextColor}
+                                active={isPrograms}
+                                activeColor={activeColor}
+                            />
+                            <MegaMenu
+                                label="Resources"
+                                items={navbarData.resources}
+                                columns={2}
+                                labelColor={navTextColor}
+                                active={isResources}
+                                activeColor={activeColor}
+                            />
+                            <NavItem
+                                label="Pricing"
+                                active={isPricing}
+                                onClick={() => goLink('/pricing')}
+                                color={navTextColor}
+                                activeColor={activeColor}
+                            />
+                            <NavItem
+                                label="Contact"
+                                active={isContact}
+                                onClick={() => goLink('/contact')}
+                                color={navTextColor}
+                                activeColor={activeColor}
+                            />
+                        </nav>
 
-                        <div
-                            className="px-5 py-6 overflow-y-auto h-[calc(100vh-68px)]"
-                            style={{ background: 'var(--page-bg, #fbfaf6)' }}>
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-[11px] tracking-[0.2em] uppercase" style={{ color: 'var(--text-tertiary)' }}>
-                                    Theme
-                                </span>
+                        {/* Right cluster */}
+                        <div className="flex items-center gap-2 md:gap-3">
+                            <div className="md:hidden">
                                 <ThemeToggle size="sm" />
                             </div>
 
-                            <MobileLink
-                                label="Home"
-                                active={isHome}
+                            <button
                                 onClick={() => {
-                                    setIsOpen(false)
-                                    goLink('#home')
+                                    window.location.href = dashboardLoginUrl()
                                 }}
-                            />
+                                className="hidden md:inline-flex items-center gap-1.5 text-[13.5px] font-semibold transition-colors"
+                                style={{ color: navTextColor }}>
+                                <LogIn size={14} /> Sign in
+                            </button>
 
-                            <Accordion
-                                label="Programs"
-                                active={isPrograms}
-                                open={mobilePanel === 'programs'}
-                                onToggle={() => setMobilePanel(mobilePanel === 'programs' ? null : 'programs')}>
-                                {navbarData.programs.map((p) => {
-                                    const Icon = iconMap[p.iconKey as IconKey]
-                                    return (
-                                        <button
-                                            key={p.href}
-                                            onClick={() => {
-                                                setIsOpen(false)
-                                                navigate(p.href)
-                                            }}
-                                            className="w-full flex items-center gap-3 py-3 text-left">
-                                            <div
-                                                className="w-9 h-9 rounded-lg inline-flex items-center justify-center"
-                                                style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                                                <Icon size={16} />
-                                            </div>
-                                            <span style={{ color: 'var(--text-primary)' }}>{p.label}</span>
-                                        </button>
-                                    )
-                                })}
-                            </Accordion>
+                            <button
+                                onClick={() => goLink('/pricing')}
+                                className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-semibold transition-all hover:translate-y-[-1px]"
+                                style={{
+                                    background: lightOverlay ? '#a7f3d0' : 'var(--brand)',
+                                    color: lightOverlay ? '#04081a' : 'var(--text-on-inverse)',
+                                    boxShadow: '0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 16px rgba(13,79,60,0.30)'
+                                }}>
+                                Enroll Now <ArrowUpRight size={14} />
+                            </button>
 
-                            <Accordion
-                                label="Resources"
-                                active={isResources}
-                                open={mobilePanel === 'resources'}
-                                onToggle={() => setMobilePanel(mobilePanel === 'resources' ? null : 'resources')}>
-                                {navbarData.resources.map((r) => {
-                                    const Icon = iconMap[r.iconKey as IconKey]
-                                    return (
-                                        <button
-                                            key={r.href}
-                                            onClick={() => {
-                                                setIsOpen(false)
-                                                navigate(r.href)
-                                            }}
-                                            className="w-full flex items-center gap-3 py-3 text-left">
-                                            <div
-                                                className="w-9 h-9 rounded-lg inline-flex items-center justify-center"
-                                                style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                                                <Icon size={16} />
-                                            </div>
-                                            <span style={{ color: 'var(--text-primary)' }}>{r.label}</span>
-                                        </button>
-                                    )
-                                })}
-                            </Accordion>
+                            {/* Mobile menu */}
+                            <button
+                                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-full"
+                                style={{ background: navHover, border: `1px solid ${navBorder}`, color: navTextColor }}
+                                onClick={() => setIsOpen(true)}>
+                                <Menu size={18} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-                            <MobileLink
-                                label="Pricing"
-                                active={isPricing}
-                                onClick={() => {
-                                    setIsOpen(false)
-                                    goLink('/pricing')
-                                }}
-                            />
-                            <MobileLink
-                                label="About"
-                                active={path.startsWith('/about')}
-                                onClick={() => {
-                                    setIsOpen(false)
-                                    goLink('/about')
-                                }}
-                            />
-                            <MobileLink
-                                label="Contact"
-                                active={isContact}
-                                onClick={() => {
-                                    setIsOpen(false)
-                                    goLink('/contact')
-                                }}
-                            />
-
-                            <div className="mt-6 grid grid-cols-2 gap-3">
+            {/* ── Mobile drawer — portalled to document.body so the parent
+            <header>'s backdrop-filter doesn't trap its `position: fixed`
+            inside the header's containing block. Without this, the drawer
+            renders only inside the header and the page bleeds through. */}
+            {createPortal(
+                <AnimatePresence>
+                    {isOpen && (
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                            className="fixed inset-0 z-[100] lg:hidden"
+                            // Inline a solid hex fallback in case the CSS var is
+                            // overridden by an ancestor in some theme.
+                            style={{ background: 'var(--page-bg, #fbfaf6)' }}>
+                            <div
+                                className="h-[68px] px-5 flex items-center justify-between border-b"
+                                style={{ borderColor: 'var(--line)', background: 'var(--page-bg, #fbfaf6)' }}>
+                                <Wordmark />
                                 <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="w-10 h-10 rounded-full inline-flex items-center justify-center"
+                                    style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            <div
+                                className="px-5 py-6 overflow-y-auto h-[calc(100vh-68px)]"
+                                style={{ background: 'var(--page-bg, #fbfaf6)' }}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span
+                                        className="text-[11px] tracking-[0.2em] uppercase"
+                                        style={{ color: 'var(--text-tertiary)' }}>
+                                        Theme
+                                    </span>
+                                    <ThemeToggle size="sm" />
+                                </div>
+
+                                <MobileLink
+                                    label="Home"
+                                    active={isHome}
                                     onClick={() => {
                                         setIsOpen(false)
-                                        window.location.href = dashboardLoginUrl()
+                                        goLink('#home')
                                     }}
-                                    className="py-3 rounded-full font-semibold"
-                                    style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line)' }}>
-                                    Sign in
-                                </button>
-                                <button
+                                />
+
+                                <Accordion
+                                    label="Programs"
+                                    active={isPrograms}
+                                    open={mobilePanel === 'programs'}
+                                    onToggle={() => setMobilePanel(mobilePanel === 'programs' ? null : 'programs')}>
+                                    {navbarData.programs.map((p) => {
+                                        const Icon = iconMap[p.iconKey as IconKey]
+                                        return (
+                                            <button
+                                                key={p.href}
+                                                onClick={() => {
+                                                    setIsOpen(false)
+                                                    navigate(p.href)
+                                                }}
+                                                className="w-full flex items-center gap-3 py-3 text-left">
+                                                <div
+                                                    className="w-9 h-9 rounded-lg inline-flex items-center justify-center"
+                                                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                                                    <Icon size={16} />
+                                                </div>
+                                                <span style={{ color: 'var(--text-primary)' }}>{p.label}</span>
+                                            </button>
+                                        )
+                                    })}
+                                </Accordion>
+
+                                <Accordion
+                                    label="Resources"
+                                    active={isResources}
+                                    open={mobilePanel === 'resources'}
+                                    onToggle={() => setMobilePanel(mobilePanel === 'resources' ? null : 'resources')}>
+                                    {navbarData.resources.map((r) => {
+                                        const Icon = iconMap[r.iconKey as IconKey]
+                                        return (
+                                            <button
+                                                key={r.href}
+                                                onClick={() => {
+                                                    setIsOpen(false)
+                                                    navigate(r.href)
+                                                }}
+                                                className="w-full flex items-center gap-3 py-3 text-left">
+                                                <div
+                                                    className="w-9 h-9 rounded-lg inline-flex items-center justify-center"
+                                                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                                                    <Icon size={16} />
+                                                </div>
+                                                <span style={{ color: 'var(--text-primary)' }}>{r.label}</span>
+                                            </button>
+                                        )
+                                    })}
+                                </Accordion>
+
+                                <MobileLink
+                                    label="Pricing"
+                                    active={isPricing}
                                     onClick={() => {
                                         setIsOpen(false)
                                         goLink('/pricing')
                                     }}
-                                    className="py-3 rounded-full font-semibold"
-                                    style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                                    Enroll Now
-                                </button>
+                                />
+                                <MobileLink
+                                    label="About"
+                                    active={path.startsWith('/about')}
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        goLink('/about')
+                                    }}
+                                />
+                                <MobileLink
+                                    label="Contact"
+                                    active={isContact}
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        goLink('/contact')
+                                    }}
+                                />
+
+                                <div className="mt-6 grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setIsOpen(false)
+                                            window.location.href = dashboardLoginUrl()
+                                        }}
+                                        className="py-3 rounded-full font-semibold"
+                                        style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line)' }}>
+                                        Sign in
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsOpen(false)
+                                            goLink('/pricing')
+                                        }}
+                                        className="py-3 rounded-full font-semibold"
+                                        style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
+                                        Enroll Now
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>,
-            document.body
-        )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </>
     )
 }
@@ -594,7 +597,9 @@ function Accordion({
     children: React.ReactNode
 }) {
     return (
-        <div className="border-b" style={{ borderColor: 'var(--line)' }}>
+        <div
+            className="border-b"
+            style={{ borderColor: 'var(--line)' }}>
             <button
                 onClick={onToggle}
                 className="w-full flex items-center justify-between py-4 text-base"

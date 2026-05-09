@@ -52,16 +52,28 @@ export default function TutorialChapter() {
                         <h1
                             className="font-display text-[40px] md:text-[56px] font-medium tracking-[-0.02em] leading-[0.98] mb-4"
                             style={{ color: 'var(--text-primary)' }}>
-                            This chapter is <span className="italic font-light" style={{ color: 'var(--brand)' }}>coming soon.</span>
+                            This chapter is{' '}
+                            <span
+                                className="italic font-light"
+                                style={{ color: 'var(--brand)' }}>
+                                coming soon.
+                            </span>
                         </h1>
-                        <p className="text-[16px]" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="text-[16px]"
+                            style={{ color: 'var(--text-secondary)' }}>
                             We're publishing new chapters every week. In the meantime, start with the fundamentals.
                         </p>
                     </div>
                 </div>
             )
         }
-        return <Navigate to="/resources/tutorials" replace />
+        return (
+            <Navigate
+                to="/resources/tutorials"
+                replace
+            />
+        )
     }
 
     return (
@@ -83,18 +95,25 @@ export default function TutorialChapter() {
                     <nav
                         className="flex items-center gap-2 text-[12.5px] mb-7 flex-wrap"
                         style={{ color: 'var(--text-tertiary)' }}>
-                        <Link to="/resources/tutorials" className="hover:underline">
+                        <Link
+                            to="/resources/tutorials"
+                            className="hover:underline">
                             Tutorials
                         </Link>
                         <ChevronRight size={12} />
-                        <Link to={`/resources/tutorials/${chapter.topicSlug}`} className="hover:underline">
+                        <Link
+                            to={`/resources/tutorials/${chapter.topicSlug}`}
+                            className="hover:underline">
                             {chapter.topic}
                         </Link>
                         <ChevronRight size={12} />
                         <span style={{ color: 'var(--text-primary)' }}>{chapter.chapter}</span>
                     </nav>
 
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}>
                         <div
                             className="inline-block text-[11px] font-bold tracking-[0.16em] uppercase px-3 py-1 rounded-md mb-5"
                             style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
@@ -106,11 +125,15 @@ export default function TutorialChapter() {
                             style={{ color: 'var(--text-primary)' }}>
                             {chapter.title}
                         </h1>
-                        <p className="text-[16px] md:text-[18px] leading-relaxed max-w-[720px] mb-7" style={{ color: 'var(--text-secondary)' }}>
+                        <p
+                            className="text-[16px] md:text-[18px] leading-relaxed max-w-[720px] mb-7"
+                            style={{ color: 'var(--text-secondary)' }}>
                             {chapter.description}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
+                        <div
+                            className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]"
+                            style={{ color: 'var(--text-tertiary)' }}>
                             <span className="inline-flex items-center gap-1.5">
                                 <Clock size={13} /> {chapter.readMin} min read
                             </span>
@@ -195,7 +218,9 @@ export default function TutorialChapter() {
                                     style={{ color: 'var(--text-tertiary)' }}>
                                     <ArrowLeft size={12} /> Previous
                                 </div>
-                                <div className="font-display text-[18px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                <div
+                                    className="font-display text-[18px] font-semibold"
+                                    style={{ color: 'var(--text-primary)' }}>
                                     {chapter.prev.title}
                                 </div>
                             </Link>
