@@ -10,7 +10,7 @@
       <TileImage         src="/icons/mstile-150x150.png"/>
     </tile>
     <notification>
-      <polling-uri  src="https://www.albero.in/notifications/tile1.xml"/>
+      <polling-uri  src="https://www.alberoacademy.com/notifications/tile1.xml"/>
       <frequency>30</frequency>
       <cycle>1</cycle>
     </notification>

@@ -3,172 +3,172 @@
     "@graph": [
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/#breadcrumb-home",
+            "@id": "https://www.alberoacademy.com/#breadcrumb-home",
             "name": "Home Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/about#breadcrumb",
+            "@id": "https://www.alberoacademy.com/about#breadcrumb",
             "name": "About Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "About Us",
-                    "item": "https://www.albero.in/about"
+                    "item": "https://www.alberoacademy.com/about"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/work#breadcrumb",
+            "@id": "https://www.alberoacademy.com/work#breadcrumb",
             "name": "Work Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Case Studies & Work",
-                    "item": "https://www.albero.in/work"
+                    "item": "https://www.alberoacademy.com/work"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/work#breadcrumb-web",
+            "@id": "https://www.alberoacademy.com/work#breadcrumb-web",
             "name": "Web Development Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Case Studies",
-                    "item": "https://www.albero.in/work"
+                    "item": "https://www.alberoacademy.com/work"
                 },
                 {
                     "@type": "ListItem",
                     "position": 3,
                     "name": "Web & Software Development",
-                    "item": "https://www.albero.in/work#it-web"
+                    "item": "https://www.alberoacademy.com/work#it-web"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/work#breadcrumb-ecom",
+            "@id": "https://www.alberoacademy.com/work#breadcrumb-ecom",
             "name": "E-Commerce Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Case Studies",
-                    "item": "https://www.albero.in/work"
+                    "item": "https://www.alberoacademy.com/work"
                 },
                 {
                     "@type": "ListItem",
                     "position": 3,
                     "name": "E-Commerce & SaaS Platforms",
-                    "item": "https://www.albero.in/work#it-ecom"
+                    "item": "https://www.alberoacademy.com/work#it-ecom"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/work#breadcrumb-ai",
+            "@id": "https://www.alberoacademy.com/work#breadcrumb-ai",
             "name": "AI Services Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Case Studies",
-                    "item": "https://www.albero.in/work"
+                    "item": "https://www.alberoacademy.com/work"
                 },
                 {
                     "@type": "ListItem",
                     "position": 3,
                     "name": "AI & Innovation Services",
-                    "item": "https://www.albero.in/work#ai-services"
+                    "item": "https://www.alberoacademy.com/work#ai-services"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/refund-policy#breadcrumb",
+            "@id": "https://www.alberoacademy.com/refund-policy#breadcrumb",
             "name": "Refund Policy Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Refund Policy",
-                    "item": "https://www.albero.in/refund-policy"
+                    "item": "https://www.alberoacademy.com/refund-policy"
                 }
             ]
         },
 
         {
             "@type": "BreadcrumbList",
-            "@id": "https://www.albero.in/terms-and-policies#breadcrumb",
+            "@id": "https://www.alberoacademy.com/terms-and-policies#breadcrumb",
             "name": "Terms Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://www.albero.in/"
+                    "item": "https://www.alberoacademy.com/"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Terms & Policies",
-                    "item": "https://www.albero.in/terms-and-policies"
+                    "item": "https://www.alberoacademy.com/terms-and-policies"
                 }
             ]
         }

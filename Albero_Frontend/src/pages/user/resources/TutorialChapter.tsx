@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Clock, ChevronRight, BookOpen } from 'lucide-react'
 import { findChapter, findTopic } from '@/constants/tutorial-content'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildTutorialChapterSEO } from '@/constants/seo'
 
 export default function TutorialChapter() {
     const { topic = '', chapter: chapterParam = '' } = useParams<{ topic?: string; chapter?: string }>()
@@ -76,6 +79,21 @@ export default function TutorialChapter() {
         )
     }
 
+    const seo = buildTutorialChapterSEO({
+        topic,
+        chapter: chapterParam,
+        title: chapter.title,
+        description: chapter.description ?? chapter.title,
+        keywords: `${topic} tutorial, ${chapter.title}, learn ${topic}`
+    })
+    const topicName = findTopic(topic)?.name ?? topic
+    const breadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/tutorials' },
+        { name: 'Tutorials', url: 'https://www.alberoacademy.com/resources/tutorials' },
+        { name: topicName, url: `https://www.alberoacademy.com/resources/tutorials/${topic}` },
+        { name: chapter.title, url: seo.url }
+    ])
+
     return (
         // NOTE: avoid `overflow-hidden` on this root — it breaks the sticky
         // TOC `position: sticky; top: 8rem` on the right rail. Decorative
@@ -83,6 +101,16 @@ export default function TutorialChapter() {
         <div
             className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={breadcrumbs} />
             {/* Hero */}
             <section className="relative pt-[140px] pb-10 px-5 md:px-8">
                 <div

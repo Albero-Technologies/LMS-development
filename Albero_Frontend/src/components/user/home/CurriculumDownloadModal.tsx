@@ -77,9 +77,11 @@ export const CurriculumDownloadModal = ({ open, onClose }: Props) => {
                 name: form.name.trim(),
                 email: form.email.trim(),
                 phone: form.phone.trim(),
-                course: picked.key,
+                course: picked.label,
                 message: `Curriculum download request — ${picked.label}`,
-                source: 'curriculum-download'
+                // Backend derives `source: 'utm:curriculum-download'` from
+                // utmSource — a top-level `source` field gets dropped by zod.
+                utmSource: 'curriculum-download'
             })
             // Open the brochure PDF in a new tab when one is configured —
             // this is the user-visible confirmation that the click did

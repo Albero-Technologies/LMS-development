@@ -5,21 +5,21 @@ import { Helmet } from 'react-helmet'
 const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': 'https://www.albero.in/#organization',
+    '@id': 'https://www.alberoacademy.com/#organization',
     name: 'Albero Academy',
     legalName: 'Albero Academy Pvt Ltd',
-    url: 'https://www.albero.in',
+    url: 'https://www.alberoacademy.com',
     logo: {
         '@type': 'ImageObject',
-        url: 'https://www.albero.in/logo.png',
+        url: 'https://www.alberoacademy.com/logo.png',
         width: 200,
         height: 60
     },
-    image: 'https://www.albero.in/og-image.png',
+    image: 'https://www.alberoacademy.com/og-image.png',
     description:
         'Albero Academy is a product engineering and SaaS-driven technology company helping businesses launch faster, automate operations, and scale with high-performance digital systems.',
     foundingDate: '2021',
-    email: 'info@albero.in',
+    email: 'info@alberoacademy.com',
     telephone: '+91-9170780671',
     address: {
         '@type': 'PostalAddress',
@@ -34,7 +34,7 @@ const organizationSchema = {
             '@type': 'ContactPoint',
             telephone: '+91-9170780671',
             contactType: 'customer service',
-            email: 'info@albero.in',
+            email: 'info@alberoacademy.com',
             availableLanguage: ['English', 'Hindi'],
             areaServed: 'IN'
         }
@@ -50,17 +50,17 @@ const organizationSchema = {
 const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': 'https://www.albero.in/#website',
-    url: 'https://www.albero.in',
+    '@id': 'https://www.alberoacademy.com/#website',
+    url: 'https://www.alberoacademy.com',
     name: 'Albero Academy',
     description: 'High-performance websites, SaaS platforms, and AI-powered systems for business growth.',
-    publisher: { '@id': 'https://www.albero.in/#organization' },
+    publisher: { '@id': 'https://www.alberoacademy.com/#organization' },
     inLanguage: 'en-IN',
     potentialAction: {
         '@type': 'SearchAction',
         target: {
             '@type': 'EntryPoint',
-            urlTemplate: 'https://www.albero.in/?q={search_term_string}'
+            urlTemplate: 'https://www.alberoacademy.com/?q={search_term_string}'
         },
         'query-input': 'required name=search_term_string'
     }
@@ -69,12 +69,12 @@ const websiteSchema = {
 const localBusinessSchema = {
     '@context': 'https://schema.org',
     '@type': ['LocalBusiness', 'ProfessionalService'],
-    '@id': 'https://www.albero.in/#local-business',
+    '@id': 'https://www.alberoacademy.com/#local-business',
     name: 'Albero Academy',
-    url: 'https://www.albero.in',
+    url: 'https://www.alberoacademy.com',
     telephone: '+91-9170780671',
-    email: 'info@albero.in',
-    image: 'https://www.albero.in/og-image.png',
+    email: 'info@alberoacademy.com',
+    image: 'https://www.alberoacademy.com/og-image.png',
     address: {
         '@type': 'PostalAddress',
         streetAddress: 'Noida',
@@ -137,7 +137,7 @@ const faqSchema = {
             name: 'Do you offer free consultations?',
             acceptedAnswer: {
                 '@type': 'Answer',
-                text: 'Yes. Albero Academy offers a free 30-minute strategy call where we help you plan your website, e-commerce store, or automation system. You can book it through the contact form at albero.in.'
+                text: 'Yes. Albero Academy offers a free 30-minute strategy call where we help you plan your website, e-commerce store, or automation system. You can book it through the contact form at alberoacademy.com.'
             }
         },
         {
@@ -176,24 +176,93 @@ function buildBreadcrumbs(items: { name: string; url: string }[]) {
 
 // ─── Page-level breadcrumb presets ───────────────────────────────────────────
 
+const SITE = 'https://www.alberoacademy.com'
+
 export const breadcrumbs = {
-    home: buildBreadcrumbs([{ name: 'Home', url: 'https://www.albero.in/' }]),
+    home: buildBreadcrumbs([{ name: 'Home', url: `${SITE}/` }]),
     about: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.albero.in/' },
-        { name: 'About Us', url: 'https://www.albero.in/about' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'About Us', url: `${SITE}/about` }
     ]),
     work: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.albero.in/' },
-        { name: 'Case Studies', url: 'https://www.albero.in/work' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Case Studies', url: `${SITE}/work` }
+    ]),
+    pricing: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Pricing', url: `${SITE}/pricing` }
+    ]),
+    contact: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Contact', url: `${SITE}/contact` }
+    ]),
+    programs: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Programs', url: `${SITE}/#programs` }
+    ]),
+    resources: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/blogs` }
+    ]),
+    blogs: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/blogs` },
+        { name: 'Blogs', url: `${SITE}/resources/blogs` }
+    ]),
+    tutorials: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/tutorials` },
+        { name: 'Tutorials', url: `${SITE}/resources/tutorials` }
+    ]),
+    softSkills: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/soft-skills` },
+        { name: 'Soft Skills', url: `${SITE}/resources/soft-skills` }
+    ]),
+    caseStudies: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/case-studies` },
+        { name: 'Case Studies', url: `${SITE}/resources/case-studies` }
+    ]),
+    interviewGuides: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/interview-guides` },
+        { name: 'Interview Guides', url: `${SITE}/resources/interview-guides` }
+    ]),
+    cheatSheets: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/cheatsheet` },
+        { name: 'Cheat Sheets', url: `${SITE}/resources/cheatsheet` }
     ]),
     refund: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.albero.in/' },
-        { name: 'Refund Policy', url: 'https://www.albero.in/refund-policy' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Refund Policy', url: `${SITE}/policies/refund` }
     ]),
     terms: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.albero.in/' },
-        { name: 'Terms & Policies', url: 'https://www.albero.in/terms-and-policies' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Terms of Use', url: `${SITE}/policies/terms` }
+    ]),
+    privacy: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Privacy Policy', url: `${SITE}/policies/privacy` }
+    ]),
+    escalation: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Escalation Policy', url: `${SITE}/policies/escalation` }
+    ]),
+    examination: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Examination Policy', url: `${SITE}/policies/examination` }
     ])
+}
+
+export function buildDetailBreadcrumbs(items: { name: string; url: string }[]) {
+    return buildBreadcrumbs([{ name: 'Home', url: `${SITE}/` }, ...items])
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -205,13 +274,16 @@ interface StructuredDataProps {
     isHomePage?: boolean
     /** Pass additional custom schema objects */
     extra?: object[]
+    /** Override breadcrumbs entirely (used by dynamic detail pages) */
+    breadcrumbOverride?: object
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function StructuredData({ page = 'home', isHomePage = false, extra = [] }: StructuredDataProps) {
+export default function StructuredData({ page = 'home', isHomePage = false, extra = [], breadcrumbOverride }: StructuredDataProps) {
     // Always include sitewide schemas
-    const schemas: object[] = [organizationSchema, websiteSchema, localBusinessSchema, breadcrumbs[page]]
+    const breadcrumb = breadcrumbOverride ?? breadcrumbs[page]
+    const schemas: object[] = [organizationSchema, websiteSchema, localBusinessSchema, breadcrumb]
 
     // Homepage-only schemas
     if (isHomePage) {

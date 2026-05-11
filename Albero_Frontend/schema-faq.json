@@ -1,73 +1,73 @@
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "@id": "https://www.albero.in/#faq",
-    "name": "Frequently Asked Questions — Albero Academy",
-    "url": "https://www.albero.in",
-    "mainEntity": [
-        {
-            "@type": "Question",
-            "name": "What courses does Albero Academy offer?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Albero Academy offers industry-focused courses in web development, full-stack development, artificial intelligence, and software engineering. Our programs are designed to help students and professionals gain job-ready skills."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "Are Albero Academy courses beginner-friendly?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. Our courses are designed for beginners as well as intermediate learners. We start with fundamentals and gradually move to advanced concepts with real-world projects."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "Do you provide certificates after course completion?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. Students receive a certificate of completion from Albero Academy after successfully finishing their course and projects."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "Do you provide job assistance or placement support?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. Albero Academy provides career support including resume building, interview preparation, and guidance to help students secure job opportunities."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "How are the courses delivered?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Courses are delivered through a combination of recorded lectures, live sessions, assignments, and real-world projects to ensure practical learning."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "How long does it take to complete a course?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Course duration varies depending on the program. Most courses range from 4 to 12 weeks, depending on depth and learning pace."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "Do you offer refunds on course purchases?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Refunds are subject to our refund policy. In general, refunds may be available before course access begins or under specific conditions. Please refer to our refund policy page for full details."
-            }
-        },
-        {
-            "@type": "Question",
-            "name": "Who can enroll in Albero Academy courses?",
-            "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Anyone interested in learning tech skills can enroll, including students, working professionals, and career switchers."
-            }
-        }
-    ]
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": "https://www.alberoacademy.com/#faq",
+  "name": "Frequently Asked Questions — Albero Academy",
+  "url": "https://www.alberoacademy.com",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What courses does Albero Academy offer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Albero Academy offers industry-focused courses in web development, full-stack development, artificial intelligence, and software engineering. Our programs are designed to help students and professionals gain job-ready skills."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are Albero Academy courses beginner-friendly?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Our courses are designed for beginners as well as intermediate learners. We start with fundamentals and gradually move to advanced concepts with real-world projects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you provide certificates after course completion?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Students receive a certificate of completion from Albero Academy after successfully finishing their course and projects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you provide job assistance or placement support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Albero Academy provides career support including resume building, interview preparation, and guidance to help students secure job opportunities."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How are the courses delivered?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Courses are delivered through a combination of recorded lectures, live sessions, assignments, and real-world projects to ensure practical learning."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to complete a course?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Course duration varies depending on the program. Most courses range from 4 to 12 weeks, depending on depth and learning pace."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you offer refunds on course purchases?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Refunds are subject to our refund policy. In general, refunds may be available before course access begins or under specific conditions. Please refer to our refund policy page for full details."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who can enroll in Albero Academy courses?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Anyone interested in learning tech skills can enroll, including students, working professionals, and career switchers."
+      }
+    }
+  ]
 }

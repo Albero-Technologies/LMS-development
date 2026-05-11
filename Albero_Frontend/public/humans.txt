@@ -1,8 +1,8 @@
 /* TEAM */
   Company: Albero Academy Pvt Ltd
   Founder & Lead Developer: Jitendra Kumar
-  Site: https://www.albero.in
-  Contact: info@albero.in
+  Site: https://www.alberoacademy.com
+  Contact: info@alberoacademy.com
   Location: Noida, Uttar Pradesh, India
 
 /* THANKS */
@@ -14,7 +14,6 @@
   Database:    PostgreSQL, MongoDB, Redis
   Cloud:       AWS, Vercel, Netlify
   Design:      Figma
-  AI:          OpenAI GPT-4, Anthropic Claude, LangChain
 
 /* SITE */
   Last update: 2025/04/01

@@ -231,20 +231,19 @@ export default defineConfig(({ mode }) => {
 
                 output: {
                     // ── Manual chunk splitting (improves LCP / FCP scores) ──
+                    // IMPORTANT: any library that touches `React.createContext` at module
+                    // init (Radix, Headless UI, react-helmet-async, react-router, etc.)
+                    // must live in the SAME chunk as React itself, otherwise it can be
+                    // evaluated before React is defined → "Cannot read properties of
+                    // undefined (reading 'createContext')" in production.
                     manualChunks(id) {
-                        // Vendor: React core
-                        if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-                            return 'vendor-react'
-                        }
-                        // Vendor: Router
-                        if (id.includes('node_modules/react-router')) {
-                            return 'vendor-router'
-                        }
-                        // Vendor: Animation libraries
-                        if (id.includes('node_modules/framer-motion') || id.includes('node_modules/motion')) {
+                        if (!id.includes('node_modules')) return
+
+                        // Leaf libraries that don't depend on React internals are safe
+                        // to split out. Order matters — check these BEFORE the catch-all.
+                        if (id.includes('node_modules/framer-motion') || id.includes('node_modules/motion/')) {
                             return 'vendor-motion'
                         }
-                        // Vendor: Icons
                         if (
                             id.includes('node_modules/lucide-react') ||
                             id.includes('node_modules/react-icons') ||
@@ -252,10 +251,10 @@ export default defineConfig(({ mode }) => {
                         ) {
                             return 'vendor-icons'
                         }
-                        // Vendor: Everything else from node_modules
-                        if (id.includes('node_modules')) {
-                            return 'vendor-misc'
-                        }
+
+                        // Everything else (React + every library that uses React) goes
+                        // into one chunk so load order can never go wrong.
+                        return 'vendor'
                     },
 
                     // Deterministic filenames for better caching

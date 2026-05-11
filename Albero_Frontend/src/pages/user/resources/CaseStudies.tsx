@@ -6,6 +6,9 @@ import { listCaseStudies, type CaseStudyEntry } from '@/constants/case-study-con
 import { useCollection } from '@/hooks/useContent'
 import { CompanyMark } from '@/components/user/program-page/CompanyMark'
 import { resolveCompanyMark } from '@/components/user/program-page/company-marks'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { caseStudiesHubSEO } from '@/constants/seo'
 
 const stats = [
     { v: '12+', l: 'Global brands analysed', icon: Building2 },
@@ -86,6 +89,17 @@ export default function CaseStudies() {
     const everything = all
 
     return (
+        <>
+            <SEO
+                title={caseStudiesHubSEO.title}
+                description={caseStudiesHubSEO.description}
+                keywords={caseStudiesHubSEO.keywords}
+                url={caseStudiesHubSEO.url}
+                canonical={caseStudiesHubSEO.canonical}
+                image={caseStudiesHubSEO.image}
+                type={caseStudiesHubSEO.type}
+            />
+            <StructuredData page="caseStudies" />
         <ResourceLayout
             eyebrow={`${all.length} In-Depth Case Studies`}
             title="Learn from the"
@@ -237,6 +251,7 @@ export default function CaseStudies() {
                 </div>
             </div>
         </ResourceLayout>
+        </>
     )
 }
 

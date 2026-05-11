@@ -37,8 +37,7 @@ const COMPANY_REGISTRY: Record<string, CompanyDef> = {
     'goldman sachs': { monogram: 'GS', color: '#7399C6', sector: 'Finance' },
     'jp morgan': { monogram: 'JP', color: '#00377C', sector: 'Finance' },
     morganstanley: { monogram: 'MS', color: '#003D8F', sector: 'Finance' },
-    openai: { monogram: 'AI', color: '#10A37F', sector: 'AI' },
-    anthropic: { monogram: 'C', color: '#D97757', sector: 'AI' }
+    openai:        { monogram: 'AI', color: '#10A37F', sector: 'AI' }
 }
 
 const FALLBACK_TONE = '#14785f' // Albero emerald.

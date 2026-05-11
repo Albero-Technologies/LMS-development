@@ -1,28 +1,104 @@
 # ============================================================
 # robots.txt — Albero Academy
-# https://www.albero.in
+# https://www.alberoacademy.com
 # ============================================================
 
-# ── Allow all well-behaved crawlers ──────────────────────────
+# ── Default policy: allow all well-behaved crawlers ─────────
 User-agent: *
 Allow: /
 
-# ── Block non-public paths ───────────────────────────────────
-Disallow: /api/
-Disallow: /_next/
+# ── Public content sections (explicit allow for clarity) ────
+Allow: /about
+Allow: /work
+Allow: /pricing
+Allow: /contact
+Allow: /programs/
+Allow: /resources/
+Allow: /policies/
+
+# ── Block non-public / private paths ─────────────────────────
 Disallow: /admin/
+Disallow: /login
+Disallow: /api/
 Disallow: /dashboard/
-Disallow: /*.json$
+Disallow: /_next/
 Disallow: /node_modules/
+Disallow: /dev-dist/
+Disallow: /*.json$
+Disallow: /*?*utm_
+Disallow: /*?*ref=
+Disallow: /*?*fbclid=
+Disallow: /*?*gclid=
 
-# ── Block AI training crawlers (optional — remove if unwanted)
-User-agent: GPTBot
-Disallow: /
+# ── Block draft / preview & legacy stub paths ────────────────
+Disallow: /draft/
+Disallow: /preview/
 
+# ── Google ───────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /api/
+Crawl-delay: 1
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /favicon/
+Allow: /og-image.png
+
+User-agent: Googlebot-News
+Allow: /resources/blogs/
+
+# ── Bing ─────────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Crawl-delay: 2
+
+# ── DuckDuckGo / Yandex / Baidu ──────────────────────────────
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 3
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 5
+
+# ── Social / link-preview crawlers (let them render) ─────────
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+# ── AI assistants & retrieval bots ───────────────────────────
+# Albero Academy IS a learning resource — surfacing in AI answers
+# brings qualified traffic. Allow well-known retrieval bots; block
+# the training-only bots from sites that don't credit sources.
 User-agent: ChatGPT-User
 Allow: /
 
-User-agent: CCBot
+User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: anthropic-ai
@@ -31,18 +107,49 @@ Allow: /
 User-agent: Claude-Web
 Allow: /
 
-# ── Google-specific hints ─────────────────────────────────────
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 2
-
-User-agent: Googlebot-Image
+User-agent: ClaudeBot
 Allow: /
 
-# ── Bing ─────────────────────────────────────────────────────
-User-agent: Bingbot
+User-agent: PerplexityBot
 Allow: /
-Crawl-delay: 3
 
-# ── Sitemap location ──────────────────────────────────────────
-Sitemap: https://www.albero.in/sitemap.xml
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Block training-only crawlers that don't drive traffic back.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+# ── Crawl-budget hygiene: block aggressive SEO scrapers ──────
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# ── Sitemap location ────────────────────────────────────────
+Sitemap: https://www.alberoacademy.com/sitemap.xml
+
+# ── Canonical host ──────────────────────────────────────────
+Host: https://www.alberoacademy.com

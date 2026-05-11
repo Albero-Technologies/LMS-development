@@ -33,3 +33,36 @@ export const sendContactForm = async (data: ContactData) => {
     const res = await apiClient.post('/enquiries', payload)
     return res.data.data
 }
+
+// Short-form lead capture for callback forms (Program counsellor side-card,
+// FinalCTA on the home page, curriculum download modal). Same backend endpoint
+// as sendContactForm — what differs is the source tag (so admins can filter
+// the pipeline by funnel surface) and the optional program slug.
+export interface LeadData {
+    name: string
+    email: string
+    phone: string
+    /** Program slug or display name. Falls back to "General enquiry". */
+    course?: string
+    /** Free-text note (optional — curriculum modal uses it; callback forms skip). */
+    message?: string
+    /**
+     * Which surface produced the lead. Stored on the backend as `utmSource`
+     * → `source: 'utm:<surface>'` so the admin pipeline can group by funnel.
+     */
+    surface: 'callback-final-cta' | 'callback-program-card' | 'curriculum-download' | 'home-hero' | 'contact-page'
+}
+
+export const sendLeadForm = async (data: LeadData) => {
+    const payload = {
+        tenantSlug: TENANT_SLUG,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        course: data.course || 'General enquiry',
+        message: data.message,
+        utmSource: data.surface
+    }
+    const res = await apiClient.post('/enquiries', payload)
+    return res.data.data
+}

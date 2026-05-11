@@ -12,6 +12,17 @@
     # Real secrets (VITE_API_BASE_URL, VITE_SENTRY_DSN, etc.) are set in the
     # Netlify dashboard, not here. Anything VITE_* prefixed reaches the browser.
 
+# API proxy — keep API calls same-origin from the browser's POV (no CORS
+# preflights, cookies just work). Must come BEFORE the SPA fallback below,
+# otherwise `/api/*` would resolve to `index.html` and you'd get 404 HTML
+# back from your axios calls. `force = true` makes this redirect win even
+# if a static file with the same name happens to exist in `dist/`.
+[[redirects]]
+    from = "/api/*"
+    to = "https://lms-development.onrender.com/api/:splat"
+    status = 200
+    force = true
+
 # SPA fallback — React Router owns client-side routing; without this every
 # refresh on /app/foo would 404. The same redirect is also written to
 # `public/_redirects` so it ends up in `dist/_redirects` after build (Netlify

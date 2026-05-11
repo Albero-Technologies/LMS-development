@@ -3,7 +3,13 @@ import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Clock, Users, GraduationCap, Sparkles, ArrowRight, Award, Briefcase, Compass } from 'lucide-react'
 import { findProgram } from '@/constants/programs'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildProgramSEO } from '@/constants/seo'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
+import { sendLeadForm } from '@/services/contactService'
+import { showError, showSuccess } from '@/lib/toast'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 import { useCollectionItem } from '@/hooks/useContent'
 import type { PaymentType } from '@/services/purchaseService'
 import { TechMeshSection } from '@/components/user/program-page/TechMeshSection'
@@ -79,6 +85,9 @@ export default function ProgramPage() {
     const navigate = useNavigate()
     const fallback = slug ? findProgram(slug) : undefined
     const [enrollOpen, setEnrollOpen] = useState(false)
+    const [callbackForm, setCallbackForm] = useState({ name: '', email: '', phone: '' })
+    const [callbackLoading, setCallbackLoading] = useState(false)
+    const [callbackSent, setCallbackSent] = useState(false)
 
     // Recommended-tier default (Mentor-Led on every program). Picks a sensible
     // mid-priced default when no tier is flagged recommended.
@@ -132,6 +141,35 @@ export default function ProgramPage() {
         setEnrollOpen(true)
     }
 
+    const submitCallback = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (callbackLoading) return
+        if (!callbackForm.name.trim() || !callbackForm.email.trim() || !callbackForm.phone.trim()) {
+            showError('Please fill in all the fields.')
+            return
+        }
+        setCallbackLoading(true)
+        try {
+            await sendLeadForm({
+                name: callbackForm.name.trim(),
+                email: callbackForm.email.trim(),
+                phone: callbackForm.phone.trim(),
+                course: `${program.title} ${program.highlight}`.trim(),
+                surface: 'callback-program-card'
+            })
+            setCallbackSent(true)
+            showSuccess('Callback request received — a counsellor will reach out shortly.')
+        } catch (err) {
+            const message =
+                typeof err === 'object' && err !== null && 'response' in err
+                    ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                    : undefined
+            showError(message || 'Could not submit your request — please try again.')
+        } finally {
+            setCallbackLoading(false)
+        }
+    }
+
     // ──────────────────────────────────────────────────────────────────
     // Per-program data assembly — pulls from constants/program-extras
     // with sensible defaults so a fresh slug never shows empty sections.
@@ -156,10 +194,58 @@ export default function ProgramPage() {
         }))
     }))
 
+    const seo = buildProgramSEO(program.slug, `${program.title} ${program.highlight}`.trim(), program.description)
+    const courseSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: `${program.title} ${program.highlight}`.trim(),
+        description: program.description,
+        provider: {
+            '@type': 'Organization',
+            name: 'Albero Academy',
+            sameAs: 'https://www.alberoacademy.com'
+        },
+        url: seo.url,
+        image: seo.image,
+        educationalLevel: program.level,
+        timeRequired: program.duration,
+        hasCourseInstance: {
+            '@type': 'CourseInstance',
+            courseMode: program.mode,
+            startDate: program.enrollDate,
+            inLanguage: 'en-IN'
+        },
+        offers: program.fees.map((f) => ({
+            '@type': 'Offer',
+            name: f.plan,
+            price: f.price.replace(/[^0-9]/g, ''),
+            priceCurrency: 'INR',
+            category: f.plan,
+            availability: 'https://schema.org/InStock'
+        }))
+    }
+    const programBreadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Programs', url: 'https://www.alberoacademy.com/#programs' },
+        { name: `${program.title} ${program.highlight}`.trim(), url: seo.url }
+    ])
+
     return (
         <div
             className="min-h-screen relative overflow-hidden"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData
+                breadcrumbOverride={programBreadcrumbs}
+                extra={[courseSchema]}
+            />
             {/* ──────────────────────────────────────────────────────────
                 1. HERO — title + counsellor side card + ArmorCode canvas
             ────────────────────────────────────────────────────────── */}
@@ -284,26 +370,69 @@ export default function ProgramPage() {
                             Quick 15-min call — get program details, eligibility, and fee structure.
                         </p>
 
-                        <div className="space-y-3">
-                            {[
-                                { ph: 'Full name', t: 'text' },
-                                { ph: 'Email', t: 'email' },
-                                { ph: 'Phone (WhatsApp)', t: 'tel' }
-                            ].map((f) => (
+                        {callbackSent ? (
+                            <div
+                                className="rounded-xl p-4 flex items-start gap-3"
+                                style={{ background: 'var(--brand-soft)', color: 'var(--brand)', border: '1px solid var(--brand)' }}>
+                                <CheckCircle2
+                                    size={18}
+                                    className="mt-0.5 shrink-0"
+                                />
+                                <div className="text-[13px] leading-relaxed">
+                                    <div className="font-semibold mb-0.5">Request received.</div>
+                                    A counsellor will WhatsApp you within 30 minutes between 10 AM – 9 PM IST.
+                                </div>
+                            </div>
+                        ) : (
+                            <form
+                                onSubmit={submitCallback}
+                                className="space-y-3">
                                 <input
-                                    key={f.ph}
-                                    type={f.t}
-                                    placeholder={f.ph}
+                                    type="text"
+                                    required
+                                    value={callbackForm.name}
+                                    onChange={(e) => setCallbackForm({ ...callbackForm, name: e.target.value })}
+                                    placeholder="Full name"
                                     className="w-full rounded-lg px-3 py-2.5 text-[14px] outline-none transition-colors"
                                     style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}
                                 />
-                            ))}
-                            <button
-                                className="w-full rounded-lg py-2.5 font-semibold text-[14px] transition-all hover:opacity-90"
-                                style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                                Request a Callback
-                            </button>
-                        </div>
+                                <input
+                                    type="email"
+                                    required
+                                    value={callbackForm.email}
+                                    onChange={(e) => setCallbackForm({ ...callbackForm, email: e.target.value })}
+                                    placeholder="Email"
+                                    className="w-full rounded-lg px-3 py-2.5 text-[14px] outline-none transition-colors"
+                                    style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}
+                                />
+                                <input
+                                    type="tel"
+                                    required
+                                    value={callbackForm.phone}
+                                    onChange={(e) => setCallbackForm({ ...callbackForm, phone: e.target.value })}
+                                    placeholder="Phone (WhatsApp)"
+                                    className="w-full rounded-lg px-3 py-2.5 text-[14px] outline-none transition-colors"
+                                    style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={callbackLoading}
+                                    className="w-full rounded-lg py-2.5 font-semibold text-[14px] transition-all hover:opacity-90 inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
+                                    {callbackLoading ? (
+                                        <>
+                                            <Loader2
+                                                size={14}
+                                                className="animate-spin"
+                                            />
+                                            Sending…
+                                        </>
+                                    ) : (
+                                        'Request a Callback'
+                                    )}
+                                </button>
+                            </form>
+                        )}
 
                         <div
                             className="grid grid-cols-2 gap-3 mt-6 pt-6 border-t"

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Linkedin, Star, Calendar, Briefcase } from 'lucide-react'
 import { useTilt } from '@/hooks/useInteractive'
 
@@ -255,6 +256,7 @@ export default function Mentors() {
 // ─── MentorCard — extracted so each instance can own its own tilt ref ─────────
 function MentorCard({ m, i, active }: { m: Mentor; i: number; active: number }) {
     const tiltRef = useTilt<HTMLDivElement>({ max: 5, glareSelector: '[data-glare]' })
+    const navigate = useNavigate()
     return (
         <motion.article
             initial={{ opacity: 0, y: 18 }}
@@ -362,6 +364,7 @@ function MentorCard({ m, i, active }: { m: Mentor; i: number; active: number }) 
 
                     <div className="flex items-center justify-between">
                         <button
+                            onClick={() => navigate('/contact')}
                             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-colors"
                             style={{
                                 background: 'var(--brand)',

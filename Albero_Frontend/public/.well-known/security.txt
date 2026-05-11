@@ -1,12 +1,12 @@
 # ============================================================
 # security.txt — Albero Academy
-# Placed at https://www.albero.in/.well-known/security.txt
+# Placed at https://www.alberoacademy.com/.well-known/security.txt
 # RFC 9116 compliant
 # ============================================================
 
-Contact:   mailto:info@albero.in
-Contact:   https://www.albero.in/#contact
+Contact:   mailto:info@alberoacademy.com
+Contact:   https://www.alberoacademy.com/#contact
 Expires:   2026-04-01T00:00:00.000Z
 Preferred-Languages: en, hi
-Canonical: https://www.albero.in/.well-known/security.txt
-Policy:    https://www.albero.in/terms-and-policies
+Canonical: https://www.alberoacademy.com/.well-known/security.txt
+Policy:    https://www.alberoacademy.com/terms-and-policies

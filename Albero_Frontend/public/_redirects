@@ -4,21 +4,31 @@
 # ============================================================
 
 # ── Canonical: force www ──────────────────────────────────────
-https://albero.in/*          https://www.albero.in/:splat        301!
+https://alberoacademy.com/*          https://www.alberoacademy.com/:splat        301!
 
 # ── Legacy / vanity URL aliases ──────────────────────────────
+# NOTE: /pricing, /contact are NOT redirected — they're real pages now.
 /case-studies                /work                                301
 /portfolio                   /work                                301
 /services                    /#services                           301
-/pricing                     /#pricing                            301
-/contact                     /#contact                            301
-/blog                        /                                    302
+/blog                        /resources/blogs                     301
+/blogs                       /resources/blogs                     301
+/tutorials                   /resources/tutorials                 301
+/cheatsheet                  /resources/cheatsheet                301
+/interview-guides            /resources/interview-guides          301
+/soft-skills                 /resources/soft-skills               301
+/refund-policy               /policies/refund                     301
+/terms-and-policies          /policies/terms                      301
+/privacy                     /policies/privacy                    301
+/privacy-policy              /policies/privacy                    301
+/terms                       /policies/terms                      301
 
 # ── Remove trailing slashes ───────────────────────────────────
 /about/                      /about                               301
 /work/                       /work                                301
-/refund-policy/              /refund-policy                       301
-/terms-and-policies/         /terms-and-policies                  301
+/pricing/                    /pricing                             301
+/contact/                    /contact                             301
+/programs/                   /                                    301
 
 # ── React SPA catch-all — must be LAST ───────────────────────
 /*                           /index.html                          200

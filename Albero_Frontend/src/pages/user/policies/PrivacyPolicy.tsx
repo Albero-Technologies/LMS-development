@@ -1,7 +1,21 @@
 import PolicyLayout, { Section, Bullets } from '@/components/user/policies/PolicyLayout'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { privacySEO } from '@/constants/seo'
 
 export default function PrivacyPolicy() {
     return (
+        <>
+            <SEO
+                title={privacySEO.title}
+                description={privacySEO.description}
+                keywords={privacySEO.keywords}
+                url={privacySEO.url}
+                canonical={privacySEO.canonical}
+                image={privacySEO.image}
+                type={privacySEO.type}
+            />
+            <StructuredData page="privacy" />
         <PolicyLayout
             eyebrow="Legal"
             title="Privacy Policy"
@@ -86,5 +100,6 @@ export default function PrivacyPolicy() {
                 <p>We may revise this Privacy Policy periodically. Material changes will be notified via email or platform announcements.</p>
             </Section>
         </PolicyLayout>
+        </>
     )
 }

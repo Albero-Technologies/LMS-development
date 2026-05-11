@@ -3,7 +3,10 @@ import '../../styles/work.css'
 import ParticleCanvas from '@/components/workui/ParticleCanvas'
 import CursorGlow from '@/components/workui/CursorGlow'
 import ScrollReveal from '@/components/workui/ScrollReveal'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
 import { workData } from '@/constants/work'
+import { workSEO } from '@/constants/seo'
 
 export default function WorkPage() {
     const { hero, collection, projects, industries, techStack, process, aiServices, steamPackages, testimonials, clients, presence, cta } = workData
@@ -25,6 +28,16 @@ export default function WorkPage() {
 
     return (
         <div className="work-page">
+            <SEO
+                title={workSEO.title}
+                description={workSEO.description}
+                keywords={workSEO.keywords}
+                url={workSEO.url}
+                canonical={workSEO.canonical}
+                image={workSEO.image}
+                type={workSEO.type}
+            />
+            <StructuredData page="work" />
             <ParticleCanvas />
             <CursorGlow />
             <ScrollReveal />
