@@ -1,7 +1,21 @@
 import PolicyLayout, { Section, Bullets, PolicyTable } from '@/components/user/policies/PolicyLayout'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { escalationSEO } from '@/constants/seo'
 
 export default function EscalationPolicy() {
     return (
+        <>
+            <SEO
+                title={escalationSEO.title}
+                description={escalationSEO.description}
+                keywords={escalationSEO.keywords}
+                url={escalationSEO.url}
+                canonical={escalationSEO.canonical}
+                image={escalationSEO.image}
+                type={escalationSEO.type}
+            />
+            <StructuredData page="escalation" />
         <PolicyLayout
             eyebrow="Legal"
             title="Escalation & Grievance Resolution"
@@ -105,5 +119,6 @@ export default function EscalationPolicy() {
                 />
             </Section>
         </PolicyLayout>
+        </>
     )
 }

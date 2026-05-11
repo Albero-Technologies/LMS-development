@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { Target, Sparkles, Code2, FileSpreadsheet, BarChart3, Database, Calculator, PieChart, ArrowRight, Clock } from 'lucide-react'
 import { listGuides } from '@/constants/interview-guide-content'
 import { useCollection } from '@/hooks/useContent'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { interviewGuidesHubSEO } from '@/constants/seo'
 
 const iconMap = {
     python: Code2,
@@ -61,6 +64,17 @@ export default function InterviewGuides() {
     const totalQ = all.reduce((acc, g) => acc + g.questionCount, 0)
 
     return (
+        <>
+            <SEO
+                title={interviewGuidesHubSEO.title}
+                description={interviewGuidesHubSEO.description}
+                keywords={interviewGuidesHubSEO.keywords}
+                url={interviewGuidesHubSEO.url}
+                canonical={interviewGuidesHubSEO.canonical}
+                image={interviewGuidesHubSEO.image}
+                type={interviewGuidesHubSEO.type}
+            />
+            <StructuredData page="interviewGuides" />
         <ResourceLayout
             eyebrow="Interview Preparation"
             title="Crack every interview"
@@ -249,5 +263,6 @@ export default function InterviewGuides() {
                 </div>
             </div>
         </ResourceLayout>
+        </>
     )
 }

@@ -4,6 +4,9 @@ import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Clock, Calendar, ChevronRight, Share2, Bookmark } from 'lucide-react'
 import { findPost, listPosts, type BlogPost } from '@/constants/blog-content'
 import { useCollectionItem } from '@/hooks/useContent'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildResourceDetailSEO } from '@/constants/seo'
 
 const DEFAULT_GRADIENT = 'linear-gradient(135deg,#0d4f3c,#34d399)'
 
@@ -82,10 +85,50 @@ export default function BlogPostPage() {
         .join('')
         .slice(0, 2)
 
+    const seo = buildResourceDetailSEO({
+        section: 'blogs',
+        slug: post.slug,
+        title: post.title,
+        description: post.description,
+        keywords: post.tags?.join(', ') ?? ''
+    })
+    const blogBreadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/blogs' },
+        { name: 'Blogs', url: 'https://www.alberoacademy.com/resources/blogs' },
+        { name: post.title, url: seo.url }
+    ])
+    const articleSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.description,
+        author: { '@type': 'Person', name: post.author.name },
+        datePublished: post.date,
+        publisher: {
+            '@type': 'Organization',
+            name: 'Albero Academy',
+            logo: { '@type': 'ImageObject', url: 'https://www.alberoacademy.com/og-image.png' }
+        },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': seo.url },
+        keywords: post.tags?.join(', ') ?? '',
+        articleSection: post.category,
+        url: seo.url
+    }
+
     return (
         <div
             className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={blogBreadcrumbs} extra={[articleSchema]} />
             {/* ── Hero with cover ── */}
             <section className="relative pt-[140px] pb-10 px-5 md:px-8">
                 <div

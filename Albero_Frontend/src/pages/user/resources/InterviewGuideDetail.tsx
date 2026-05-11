@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'motion/react'
 import { ArrowLeft, ArrowRight, ChevronRight, Plus, Code2, Database, BarChart3, FileSpreadsheet, Calculator, PieChart, Clock, Sparkles } from 'lucide-react'
 import CodeBlock from '@/components/ui/code-block'
 import { findGuide, listGuides } from '@/constants/interview-guide-content'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildResourceDetailSEO } from '@/constants/seo'
 
 const iconMap = {
     python: Code2,
@@ -39,10 +42,33 @@ export default function InterviewGuideDetail() {
 
     const totalQ = guide.sections.reduce((acc, s) => acc + s.qas.length, 0)
 
+    const seo = buildResourceDetailSEO({
+        section: 'interview-guides',
+        slug: guide.slug,
+        title: guide.title,
+        description: guide.description ?? `${totalQ} interview questions and answers for ${guide.title}.`,
+        keywords: `${guide.title} interview questions, ${guide.title} interview prep`
+    })
+    const breadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/interview-guides' },
+        { name: 'Interview Guides', url: 'https://www.alberoacademy.com/resources/interview-guides' },
+        { name: guide.title, url: seo.url }
+    ])
+
     return (
         <div
             className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={breadcrumbs} />
             {/* Hero */}
             <section className="relative pt-[140px] pb-12 px-5 md:px-8">
                 <div

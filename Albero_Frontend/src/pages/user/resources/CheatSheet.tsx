@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowUpRight, FileText, Code2, Database, BarChart3, FileSpreadsheet, Calculator, PieChart, Brain, Sparkles } from 'lucide-react'
 import { listSheets } from '@/constants/cheatsheet-content'
 import { useCollection } from '@/hooks/useContent'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { cheatSheetsHubSEO } from '@/constants/seo'
 
 const iconMap = {
     python: Code2,
@@ -56,6 +59,17 @@ export default function CheatSheet() {
     const all = [...cmsItems, ...fallback.filter((s) => !cmsSlugs.has(s.slug))]
 
     return (
+        <>
+            <SEO
+                title={cheatSheetsHubSEO.title}
+                description={cheatSheetsHubSEO.description}
+                keywords={cheatSheetsHubSEO.keywords}
+                url={cheatSheetsHubSEO.url}
+                canonical={cheatSheetsHubSEO.canonical}
+                image={cheatSheetsHubSEO.image}
+                type={cheatSheetsHubSEO.type}
+            />
+            <StructuredData page="cheatSheets" />
         <ResourceLayout
             eyebrow="Quick Reference"
             title="One-page cheat sheets for"
@@ -134,5 +148,6 @@ export default function CheatSheet() {
                 })}
             </div>
         </ResourceLayout>
+        </>
     )
 }

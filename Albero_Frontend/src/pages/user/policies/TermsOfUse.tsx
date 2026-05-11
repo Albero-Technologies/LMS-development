@@ -1,7 +1,21 @@
 import PolicyLayout, { Section, Bullets } from '@/components/user/policies/PolicyLayout'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { termsSEO } from '@/constants/seo'
 
 export default function TermsOfUse() {
     return (
+        <>
+            <SEO
+                title={termsSEO.title}
+                description={termsSEO.description}
+                keywords={termsSEO.keywords}
+                url={termsSEO.url}
+                canonical={termsSEO.canonical}
+                image={termsSEO.image}
+                type={termsSEO.type}
+            />
+            <StructuredData page="terms" />
         <PolicyLayout
             eyebrow="Legal"
             title="Terms of Use"
@@ -107,5 +121,6 @@ export default function TermsOfUse() {
                 <p>These Terms are governed by the laws of India. Any disputes will fall under the jurisdiction of courts in Noida, Uttar Pradesh.</p>
             </Section>
         </PolicyLayout>
+        </>
     )
 }

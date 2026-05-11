@@ -16,6 +16,8 @@ import {
     Loader2
 } from 'lucide-react'
 import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { contactSEO } from '@/constants/seo'
 import { useContactForm } from '@/hooks/user/useContactForm'
 
 const contactCards = [
@@ -81,11 +83,15 @@ export default function ContactPage() {
     return (
         <div>
             <SEO
-                title="Contact — Albero Academy"
-                description="Talk to a senior Albero counsellor. We'll map your goals to the right programme — and tell you honestly if Albero isn't right for you."
-                url="/contact"
-                canonical="/contact"
+                title={contactSEO.title}
+                description={contactSEO.description}
+                keywords={contactSEO.keywords}
+                url={contactSEO.url}
+                canonical={contactSEO.canonical}
+                image={contactSEO.image}
+                type={contactSEO.type}
             />
+            <StructuredData page="contact" />
 
             {/* ── HERO ── */}
             <section

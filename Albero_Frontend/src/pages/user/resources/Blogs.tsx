@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import ResourceLayout from '@/components/user/resources/ResourceLayout'
 import ResourceCard from '@/components/user/resources/ResourceCard'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { blogsHubSEO } from '@/constants/seo'
 import { Pen, BookOpen, Database, Brain, Code2, BarChart3, Briefcase, ArrowUpRight, Clock, Check, Loader2 } from 'lucide-react'
 import { useCollection } from '@/hooks/useContent'
 import { subscribeToNewsletter } from '@/services/newsletterService'
@@ -144,6 +147,17 @@ export default function Blogs() {
     const allPosts = [...remotePosts, ...posts]
 
     return (
+        <>
+            <SEO
+                title={blogsHubSEO.title}
+                description={blogsHubSEO.description}
+                keywords={blogsHubSEO.keywords}
+                url={blogsHubSEO.url}
+                canonical={blogsHubSEO.canonical}
+                image={blogsHubSEO.image}
+                type={blogsHubSEO.type}
+            />
+            <StructuredData page="blogs" />
         <ResourceLayout
             eyebrow="Free Resources"
             title="Insights, Guides &"
@@ -360,5 +374,6 @@ export default function Blogs() {
                 </aside>
             </div>
         </ResourceLayout>
+        </>
     )
 }

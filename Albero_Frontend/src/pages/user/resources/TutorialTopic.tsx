@@ -2,6 +2,9 @@ import { useParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Clock } from 'lucide-react'
 import { findTopic } from '@/constants/tutorial-content'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildResourceDetailSEO } from '@/constants/seo'
 
 export default function TutorialTopic() {
     const { slug = '' } = useParams<{ slug?: string }>()
@@ -13,10 +16,33 @@ export default function TutorialTopic() {
     const totalH = Math.floor(totalMin / 60)
     const remMin = totalMin % 60
 
+    const seo = buildResourceDetailSEO({
+        section: 'tutorials',
+        slug: topic.slug,
+        title: `${topic.name} Tutorials`,
+        description: `Free, structured ${topic.name} tutorials — ${topic.chapters.length} chapters across ${totalH ? `${totalH}h ` : ''}${remMin}m of guided learning.`,
+        keywords: `${topic.name} tutorial, learn ${topic.name}, free ${topic.name} course`
+    })
+    const breadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/tutorials' },
+        { name: 'Tutorials', url: 'https://www.alberoacademy.com/resources/tutorials' },
+        { name: topic.name, url: seo.url }
+    ])
+
     return (
         <div
             className="min-h-screen relative overflow-hidden"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={breadcrumbs} />
             <section className="relative pt-[140px] pb-12 px-5 md:px-8">
                 <div
                     aria-hidden="true"

@@ -3,6 +3,9 @@ import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Clock, Users, GraduationCap, Sparkles, ArrowRight, Award, Briefcase, Compass } from 'lucide-react'
 import { findProgram } from '@/constants/programs'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildProgramSEO } from '@/constants/seo'
 import EnrollModal from '@/components/user/enroll/EnrollModal'
 import { useCollectionItem } from '@/hooks/useContent'
 import type { PaymentType } from '@/services/purchaseService'
@@ -150,8 +153,53 @@ export default function ProgramPage() {
         }))
     }))
 
+    const seo = buildProgramSEO(program.slug, `${program.title} ${program.highlight}`.trim(), program.description)
+    const courseSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: `${program.title} ${program.highlight}`.trim(),
+        description: program.description,
+        provider: {
+            '@type': 'Organization',
+            name: 'Albero Academy',
+            sameAs: 'https://www.alberoacademy.com'
+        },
+        url: seo.url,
+        image: seo.image,
+        educationalLevel: program.level,
+        timeRequired: program.duration,
+        hasCourseInstance: {
+            '@type': 'CourseInstance',
+            courseMode: program.mode,
+            startDate: program.enrollDate,
+            inLanguage: 'en-IN'
+        },
+        offers: program.fees.map((f) => ({
+            '@type': 'Offer',
+            name: f.plan,
+            price: f.price.replace(/[^0-9]/g, ''),
+            priceCurrency: 'INR',
+            category: f.plan,
+            availability: 'https://schema.org/InStock'
+        }))
+    }
+    const programBreadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Programs', url: 'https://www.alberoacademy.com/#programs' },
+        { name: `${program.title} ${program.highlight}`.trim(), url: seo.url }
+    ])
+
     return (
         <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={programBreadcrumbs} extra={[courseSchema]} />
             {/* ──────────────────────────────────────────────────────────
                 1. HERO — title + counsellor side card + ArmorCode canvas
             ────────────────────────────────────────────────────────── */}

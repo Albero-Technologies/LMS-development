@@ -1,7 +1,21 @@
 import PolicyLayout, { Section, Bullets } from '@/components/user/policies/PolicyLayout'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { refundSEO } from '@/constants/seo'
 
 export default function RefundPolicy() {
     return (
+        <>
+            <SEO
+                title={refundSEO.title}
+                description={refundSEO.description}
+                keywords={refundSEO.keywords}
+                url={refundSEO.url}
+                canonical={refundSEO.canonical}
+                image={refundSEO.image}
+                type={refundSEO.type}
+            />
+            <StructuredData page="refund" />
         <PolicyLayout
             eyebrow="Legal"
             title="Refund & Cancellation Policy"
@@ -109,5 +123,6 @@ export default function RefundPolicy() {
                 <p>If you disagree with a refund decision, you may submit a formal escalation within 15 days. Our team will conduct a secondary review and decisions are made after internal evaluation.</p>
             </Section>
         </PolicyLayout>
+        </>
     )
 }

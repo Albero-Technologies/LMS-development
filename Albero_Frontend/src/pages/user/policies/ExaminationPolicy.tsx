@@ -1,7 +1,21 @@
 import PolicyLayout, { Section, Bullets, PolicyTable } from '@/components/user/policies/PolicyLayout'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { examinationSEO } from '@/constants/seo'
 
 export default function ExaminationPolicy() {
     return (
+        <>
+            <SEO
+                title={examinationSEO.title}
+                description={examinationSEO.description}
+                keywords={examinationSEO.keywords}
+                url={examinationSEO.url}
+                canonical={examinationSEO.canonical}
+                image={examinationSEO.image}
+                type={examinationSEO.type}
+            />
+            <StructuredData page="examination" />
         <PolicyLayout
             eyebrow="Academic"
             title="Examination & Certification Policy"
@@ -111,5 +125,6 @@ export default function ExaminationPolicy() {
                 <p>You may request re-evaluation within 7 days of result declaration. Requests must include valid justification. Re-evaluation decisions are final.</p>
             </Section>
         </PolicyLayout>
+        </>
     )
 }
