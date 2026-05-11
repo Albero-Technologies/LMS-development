@@ -98,10 +98,15 @@ function QRGrid({ seed }: { seed: string }) {
         return v > 42
     })
     return (
-        <div className="w-14 h-14 rounded-md grid grid-cols-6 gap-[2px] p-1"
+        <div
+            className="w-14 h-14 rounded-md grid grid-cols-6 gap-[2px] p-1"
             style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
             {dots.map((on, k) => (
-                <span key={k} className="rounded-[1px]" style={{ background: on ? 'var(--text-primary)' : 'transparent' }} />
+                <span
+                    key={k}
+                    className="rounded-[1px]"
+                    style={{ background: on ? 'var(--text-primary)' : 'transparent' }}
+                />
             ))}
         </div>
     )
@@ -115,43 +120,59 @@ export default function Certifications() {
         <section
             className="relative py-24 px-5 md:px-8 overflow-hidden"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
-
-            <div aria-hidden="true" className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-            <div aria-hidden="true" className="absolute bottom-[-30%] right-[-15%] w-[600px] h-[600px] rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)', filter: 'blur(70px)' }} />
+            <div
+                aria-hidden="true"
+                className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full pointer-events-none"
+                style={{ background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)', filter: 'blur(60px)' }}
+            />
+            <div
+                aria-hidden="true"
+                className="absolute bottom-[-30%] right-[-15%] w-[600px] h-[600px] rounded-full pointer-events-none"
+                style={{ background: 'radial-gradient(circle, var(--brand-soft) 0%, transparent 70%)', filter: 'blur(70px)' }}
+            />
 
             <div className="max-w-[1280px] mx-auto relative z-[1]">
-
                 {/* Header */}
                 <div className="text-center max-w-[760px] mx-auto mb-14">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-[11px] font-semibold tracking-[0.18em] uppercase"
+                    <div
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-[11px] font-semibold tracking-[0.18em] uppercase"
                         style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                         <BadgeCheck size={12} /> Certifications
                     </div>
-                    <h2 className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
+                    <h2
+                        className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
                         style={{ color: 'var(--text-primary)' }}>
                         Credentials hiring managers{' '}
-                        <span className="italic font-light" style={{ color: 'var(--brand)' }}>actually trust.</span>
+                        <span
+                            className="italic font-light"
+                            style={{ color: 'var(--brand)' }}>
+                            actually trust.
+                        </span>
                     </h2>
-                    <p className="mt-4 text-[15.5px]" style={{ color: 'var(--text-secondary)' }}>
+                    <p
+                        className="mt-4 text-[15.5px]"
+                        style={{ color: 'var(--text-secondary)' }}>
                         Verifiable, project-backed, and partner-aligned — every certificate has a unique ID employers can verify online.
                     </p>
                 </div>
 
                 {/* Two-column: Certificate LEFT | Selector + Stats RIGHT */}
                 <div className="grid lg:grid-cols-[1.25fr_1fr] gap-6 items-start">
-
                     {/* ── LEFT: Live certificate ── */}
                     <div className="relative">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={active.certId + '-glow'}
-                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
                                 transition={{ duration: 0.5 }}
                                 aria-hidden="true"
                                 className="absolute -inset-8 rounded-[48px] pointer-events-none"
-                                style={{ background: `radial-gradient(ellipse at 40% 50%, ${active.color}1A 0%, transparent 70%)`, filter: 'blur(24px)' }}
+                                style={{
+                                    background: `radial-gradient(ellipse at 40% 50%, ${active.color}1A 0%, transparent 70%)`,
+                                    filter: 'blur(24px)'
+                                }}
                             />
                         </AnimatePresence>
 
@@ -166,11 +187,12 @@ export default function Certifications() {
                                 border: '1px solid var(--line)',
                                 boxShadow: 'var(--card-shadow-hover)'
                             }}>
-
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={active.certId + '-bar'}
-                                    initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} exit={{ scaleX: 0 }}
+                                    initial={{ scaleX: 0 }}
+                                    animate={{ scaleX: 1 }}
+                                    exit={{ scaleX: 0 }}
                                     transition={{ duration: 0.4, ease: 'easeOut' }}
                                     className="absolute top-0 left-0 right-0 h-[3px] origin-left rounded-t-3xl"
                                     style={{ background: active.color }}
@@ -180,7 +202,9 @@ export default function Certifications() {
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={active.certId}
-                                    initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }}
+                                    initial={{ opacity: 0, y: 14 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -14 }}
                                     transition={{ duration: 0.35, ease: 'easeOut' }}
                                     className="relative rounded-2xl p-6 md:p-8 overflow-hidden"
                                     style={{
@@ -188,9 +212,9 @@ export default function Certifications() {
                                         border: `1.5px solid ${active.color}44`,
                                         boxShadow: `inset 0 0 0 6px var(--page-bg-soft)`
                                     }}>
-
                                     {/* Watermark */}
-                                    <div aria-hidden="true"
+                                    <div
+                                        aria-hidden="true"
                                         className="absolute inset-0 flex items-center justify-center pointer-events-none font-display italic select-none overflow-hidden"
                                         style={{ fontSize: 150, color: active.color, opacity: 0.04, lineHeight: 1 }}>
                                         {active.issuer}
@@ -199,25 +223,59 @@ export default function Certifications() {
                                     {/* Top row */}
                                     <div className="relative z-[1] flex items-start justify-between mb-6">
                                         <div className="flex items-center gap-3">
-                                            <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0"
+                                            <span
+                                                className="inline-flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0"
                                                 style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-                                                    <path d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-                                                    <path d="M12 8 L12 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    width="20"
+                                                    height="20"
+                                                    fill="none">
+                                                    <path
+                                                        d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z"
+                                                        stroke="currentColor"
+                                                        strokeWidth="1.6"
+                                                        strokeLinejoin="round"
+                                                    />
+                                                    <path
+                                                        d="M12 8 L12 21"
+                                                        stroke="currentColor"
+                                                        strokeWidth="1.6"
+                                                        strokeLinecap="round"
+                                                    />
                                                 </svg>
                                             </span>
                                             <div className="leading-tight">
-                                                <div className="font-display text-[17px] font-semibold" style={{ color: 'var(--text-primary)' }}>Albero Academy</div>
-                                                <div className="text-[9.5px] tracking-[0.22em] uppercase font-semibold" style={{ color: 'var(--brand)' }}>Certificate of Completion</div>
+                                                <div
+                                                    className="font-display text-[17px] font-semibold"
+                                                    style={{ color: 'var(--text-primary)' }}>
+                                                    Albero Academy
+                                                </div>
+                                                <div
+                                                    className="text-[9.5px] tracking-[0.22em] uppercase font-semibold"
+                                                    style={{ color: 'var(--brand)' }}>
+                                                    Certificate of Completion
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0">
-                                            <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-full"
-                                                style={{ background: 'var(--surface)', border: `1px solid ${active.color}44`, minWidth: 64, height: 32 }}>
-                                                <img src={active.logoUrl} alt={active.issuer} loading="lazy"
-                                                    style={{ maxHeight: 16, width: 'auto', maxWidth: 72, objectFit: 'contain' }} />
+                                            <div
+                                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-full"
+                                                style={{
+                                                    background: 'var(--surface)',
+                                                    border: `1px solid ${active.color}44`,
+                                                    minWidth: 64,
+                                                    height: 32
+                                                }}>
+                                                <img
+                                                    src={active.logoUrl}
+                                                    alt={active.issuer}
+                                                    loading="lazy"
+                                                    style={{ maxHeight: 16, width: 'auto', maxWidth: 72, objectFit: 'contain' }}
+                                                />
                                             </div>
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[9.5px] font-bold tracking-[0.14em] uppercase"
+                                            <span
+                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[9.5px] font-bold tracking-[0.14em] uppercase"
                                                 style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
                                                 <Sparkles size={9} /> Verified
                                             </span>
@@ -226,35 +284,66 @@ export default function Certifications() {
 
                                     {/* Body */}
                                     <div className="relative z-[1] mb-6">
-                                        <div className="text-[11px] tracking-[0.18em] uppercase font-semibold mb-2" style={{ color: 'var(--text-tertiary)' }}>
+                                        <div
+                                            className="text-[11px] tracking-[0.18em] uppercase font-semibold mb-2"
+                                            style={{ color: 'var(--text-tertiary)' }}>
                                             This certifies that
                                         </div>
-                                        <div className="font-display text-[34px] md:text-[42px] leading-tight italic" style={{ color: 'var(--text-primary)' }}>
+                                        <div
+                                            className="font-display text-[34px] md:text-[42px] leading-tight italic"
+                                            style={{ color: 'var(--text-primary)' }}>
                                             {active.recipientName}
                                         </div>
-                                        <div className="mt-3 text-[13.5px] max-w-[500px]" style={{ color: 'var(--text-secondary)' }}>
+                                        <div
+                                            className="mt-3 text-[13.5px] max-w-[500px]"
+                                            style={{ color: 'var(--text-secondary)' }}>
                                             has successfully completed the{' '}
-                                            <span className="font-semibold" style={{ color: active.color }}>{active.program}</span>{' '}
+                                            <span
+                                                className="font-semibold"
+                                                style={{ color: active.color }}>
+                                                {active.program}
+                                            </span>{' '}
                                             program with capstone projects reviewed and approved by industry mentors.
                                         </div>
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="relative z-[1] grid grid-cols-3 gap-4 pt-4 border-t"
+                                    <div
+                                        className="relative z-[1] grid grid-cols-3 gap-4 pt-4 border-t"
                                         style={{ borderColor: `${active.color}2E` }}>
                                         <div>
-                                            <div className="font-display italic text-[15px]" style={{ color: 'var(--text-primary)' }}>{active.mentor}</div>
-                                            <div className="text-[9.5px] mt-1 tracking-[0.14em] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>{active.mentorTitle}</div>
+                                            <div
+                                                className="font-display italic text-[15px]"
+                                                style={{ color: 'var(--text-primary)' }}>
+                                                {active.mentor}
+                                            </div>
+                                            <div
+                                                className="text-[9.5px] mt-1 tracking-[0.14em] uppercase font-semibold"
+                                                style={{ color: 'var(--text-tertiary)' }}>
+                                                {active.mentorTitle}
+                                            </div>
                                         </div>
                                         <div>
-                                            <div className="font-display italic text-[15px]" style={{ color: 'var(--text-primary)' }}>{active.partner}</div>
-                                            <div className="text-[9.5px] mt-1 tracking-[0.14em] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>{active.partnerTitle}</div>
+                                            <div
+                                                className="font-display italic text-[15px]"
+                                                style={{ color: 'var(--text-primary)' }}>
+                                                {active.partner}
+                                            </div>
+                                            <div
+                                                className="text-[9.5px] mt-1 tracking-[0.14em] uppercase font-semibold"
+                                                style={{ color: 'var(--text-tertiary)' }}>
+                                                {active.partnerTitle}
+                                            </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="inline-flex items-center gap-1 mb-1.5 text-[9.5px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+                                            <div
+                                                className="inline-flex items-center gap-1 mb-1.5 text-[9.5px] font-mono"
+                                                style={{ color: 'var(--text-secondary)' }}>
                                                 <ScanLine size={10} /> {active.certId}
                                             </div>
-                                            <div className="flex justify-end"><QRGrid seed={active.certId} /></div>
+                                            <div className="flex justify-end">
+                                                <QRGrid seed={active.certId} />
+                                            </div>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -264,14 +353,18 @@ export default function Certifications() {
 
                     {/* ── RIGHT: Partner selector + stats ── */}
                     <div className="flex flex-col gap-4">
-
                         {/* Section label */}
                         <div className="flex items-center gap-2.5">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-[0.18em] uppercase"
+                            <div
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-[0.18em] uppercase"
                                 style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
                                 <BadgeCheck size={10} /> Certified by
                             </div>
-                            <span className="text-[12.5px]" style={{ color: 'var(--text-tertiary)' }}>Click a partner to preview</span>
+                            <span
+                                className="text-[12.5px]"
+                                style={{ color: 'var(--text-tertiary)' }}>
+                                Click a partner to preview
+                            </span>
                         </div>
 
                         {/* 2×2 partner selector */}
@@ -290,7 +383,6 @@ export default function Certifications() {
                                             border: `1.5px solid ${isActive ? c.color : 'var(--line)'}`,
                                             boxShadow: isActive ? `0 0 0 3px ${c.color}1A, var(--card-shadow-hover)` : 'var(--card-shadow)'
                                         }}>
-
                                         {isActive && (
                                             <motion.span
                                                 layoutId="activeDot"
@@ -309,28 +401,41 @@ export default function Certifications() {
                                                 style={{
                                                     maxHeight: 20,
                                                     width: 'auto',
-                                                    maxWidth: c.issuer === 'Google' ? 60 : c.issuer === 'Microsoft' ? 80 : c.issuer === 'IBM' ? 40 : 44,
+                                                    maxWidth:
+                                                        c.issuer === 'Google' ? 60 : c.issuer === 'Microsoft' ? 80 : c.issuer === 'IBM' ? 40 : 44,
                                                     objectFit: 'contain'
                                                 }}
                                             />
                                         </div>
 
-                                        <div className="text-[12px] font-semibold leading-snug mb-1" style={{ color: 'var(--text-primary)' }}>
+                                        <div
+                                            className="text-[12px] font-semibold leading-snug mb-1"
+                                            style={{ color: 'var(--text-primary)' }}>
                                             {c.title}
                                         </div>
-                                        <div className="text-[10.5px] mb-2.5" style={{ color: 'var(--brand)' }}>
+                                        <div
+                                            className="text-[10.5px] mb-2.5"
+                                            style={{ color: 'var(--brand)' }}>
                                             {c.audience}
                                         </div>
                                         <ul className="space-y-1">
                                             {c.bullets.map((b, j) => (
-                                                <li key={j} className="flex items-start gap-1.5 text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                    <span className="mt-[5px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: c.color }} />
+                                                <li
+                                                    key={j}
+                                                    className="flex items-start gap-1.5 text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}>
+                                                    <span
+                                                        className="mt-[5px] w-1 h-1 rounded-full flex-shrink-0"
+                                                        style={{ background: c.color }}
+                                                    />
                                                     {b}
                                                 </li>
                                             ))}
                                         </ul>
                                         {isActive && (
-                                            <div className="mt-2.5 text-[9.5px] font-bold tracking-[0.14em] uppercase" style={{ color: c.color }}>
+                                            <div
+                                                className="mt-2.5 text-[9.5px] font-bold tracking-[0.14em] uppercase"
+                                                style={{ color: c.color }}>
                                                 ↑ Previewing
                                             </div>
                                         )}
@@ -350,17 +455,26 @@ export default function Certifications() {
                                     transition={{ duration: 0.4, delay: i * 0.06 }}
                                     className="rounded-2xl p-4"
                                     style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--card-shadow)' }}>
-                                    <div className="font-display text-[24px] leading-none font-semibold tracking-[-0.02em]"
-                                        style={{ color: 'var(--brand)' }}>{s.v}</div>
-                                    <div className="text-[11px] font-semibold mt-1.5" style={{ color: 'var(--text-primary)' }}>{s.l}</div>
-                                    <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{s.sub}</div>
+                                    <div
+                                        className="font-display text-[24px] leading-none font-semibold tracking-[-0.02em]"
+                                        style={{ color: 'var(--brand)' }}>
+                                        {s.v}
+                                    </div>
+                                    <div
+                                        className="text-[11px] font-semibold mt-1.5"
+                                        style={{ color: 'var(--text-primary)' }}>
+                                        {s.l}
+                                    </div>
+                                    <div
+                                        className="text-[10px] mt-0.5"
+                                        style={{ color: 'var(--text-tertiary)' }}>
+                                        {s.sub}
+                                    </div>
                                 </motion.div>
                             ))}
                         </div>
-
                     </div>
                 </div>
-
             </div>
         </section>
     )

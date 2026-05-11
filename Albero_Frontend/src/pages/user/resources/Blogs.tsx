@@ -165,233 +165,233 @@ export default function Blogs() {
                 type={blogsHubSEO.type}
             />
             <StructuredData page="blogs" />
-        <ResourceLayout
-            eyebrow="Free Resources"
-            title="Insights, Guides &"
-            highlight="Career Intelligence"
-            description="Practical tutorials and career guides written by industry experts — from investment banking to AI, data engineering to software development."
-            icon={Pen}
-            stats={[
-                { value: '15+', label: 'Articles' },
-                { value: '5', label: 'Topics' },
-                { value: 'Free', label: 'Always' }
-            ]}>
-            <div className="grid lg:grid-cols-[1fr_280px] gap-8 mt-4">
-                <div className="space-y-5">
-                    {/* Featured */}
-                    <motion.button
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        whileHover={{ y: -3 }}
-                        onClick={() => navigate(`/resources/blogs/${featured.slug}`)}
-                        className="group relative w-full rounded-3xl p-7 md:p-9 text-left overflow-hidden transition-all"
-                        style={{
-                            background: 'var(--surface)',
-                            border: '1px solid var(--line)',
-                            boxShadow: 'var(--card-shadow)'
-                        }}>
-                        <div
-                            aria-hidden="true"
-                            className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
-                            style={{ background: 'var(--brand-soft)', filter: 'blur(70px)' }}
-                        />
-                        <div className="relative z-[1] grid md:grid-cols-[1fr_180px] gap-6 items-start">
-                            <div>
-                                <div className="flex items-center gap-2 mb-4 flex-wrap">
-                                    <span
-                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-[0.14em] uppercase"
-                                        style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-                                        ✦ Featured
-                                    </span>
-                                    <span
-                                        className="text-[12px] font-semibold inline-flex items-center gap-1.5"
-                                        style={{ color: 'var(--brand)' }}>
-                                        <featured.Icon size={13} />
-                                        {featured.category}
-                                    </span>
-                                    <span style={{ color: 'var(--text-tertiary)' }}>·</span>
-                                    <span
-                                        className="text-[12.5px]"
-                                        style={{ color: 'var(--text-tertiary)' }}>
-                                        Meritshot
-                                    </span>
-                                </div>
+            <ResourceLayout
+                eyebrow="Free Resources"
+                title="Insights, Guides &"
+                highlight="Career Intelligence"
+                description="Practical tutorials and career guides written by industry experts — from investment banking to AI, data engineering to software development."
+                icon={Pen}
+                stats={[
+                    { value: '15+', label: 'Articles' },
+                    { value: '5', label: 'Topics' },
+                    { value: 'Free', label: 'Always' }
+                ]}>
+                <div className="grid lg:grid-cols-[1fr_280px] gap-8 mt-4">
+                    <div className="space-y-5">
+                        {/* Featured */}
+                        <motion.button
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            whileHover={{ y: -3 }}
+                            onClick={() => navigate(`/resources/blogs/${featured.slug}`)}
+                            className="group relative w-full rounded-3xl p-7 md:p-9 text-left overflow-hidden transition-all"
+                            style={{
+                                background: 'var(--surface)',
+                                border: '1px solid var(--line)',
+                                boxShadow: 'var(--card-shadow)'
+                            }}>
+                            <div
+                                aria-hidden="true"
+                                className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
+                                style={{ background: 'var(--brand-soft)', filter: 'blur(70px)' }}
+                            />
+                            <div className="relative z-[1] grid md:grid-cols-[1fr_180px] gap-6 items-start">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4 flex-wrap">
+                                        <span
+                                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-[0.14em] uppercase"
+                                            style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+                                            ✦ Featured
+                                        </span>
+                                        <span
+                                            className="text-[12px] font-semibold inline-flex items-center gap-1.5"
+                                            style={{ color: 'var(--brand)' }}>
+                                            <featured.Icon size={13} />
+                                            {featured.category}
+                                        </span>
+                                        <span style={{ color: 'var(--text-tertiary)' }}>·</span>
+                                        <span
+                                            className="text-[12.5px]"
+                                            style={{ color: 'var(--text-tertiary)' }}>
+                                            Meritshot
+                                        </span>
+                                    </div>
 
-                                <h2
-                                    className="font-display text-[26px] md:text-[34px] font-semibold leading-tight tracking-[-0.01em] mb-3"
-                                    style={{ color: 'var(--text-primary)' }}>
-                                    {featured.title}
-                                </h2>
-                                <p
-                                    className="text-[15px] leading-relaxed mb-5"
-                                    style={{ color: 'var(--text-secondary)' }}>
-                                    {featured.description}
-                                </p>
+                                    <h2
+                                        className="font-display text-[26px] md:text-[34px] font-semibold leading-tight tracking-[-0.01em] mb-3"
+                                        style={{ color: 'var(--text-primary)' }}>
+                                        {featured.title}
+                                    </h2>
+                                    <p
+                                        className="text-[15px] leading-relaxed mb-5"
+                                        style={{ color: 'var(--text-secondary)' }}>
+                                        {featured.description}
+                                    </p>
+
+                                    <div
+                                        className="flex items-center flex-wrap gap-3 text-[12.5px]"
+                                        style={{ color: 'var(--text-tertiary)' }}>
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Clock size={12} /> {featured.meta}
+                                        </span>
+                                        <span>·</span>
+                                        {featured.tags.map((t, i) => (
+                                            <span key={i}>#{t}</span>
+                                        ))}
+                                    </div>
+                                </div>
 
                                 <div
-                                    className="flex items-center flex-wrap gap-3 text-[12.5px]"
-                                    style={{ color: 'var(--text-tertiary)' }}>
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <Clock size={12} /> {featured.meta}
-                                    </span>
-                                    <span>·</span>
-                                    {featured.tags.map((t, i) => (
-                                        <span key={i}>#{t}</span>
-                                    ))}
+                                    className="hidden md:flex items-center justify-center w-full aspect-square rounded-2xl"
+                                    style={{
+                                        background: 'linear-gradient(135deg,#0ea5e9,#3b82f6)',
+                                        color: '#fff'
+                                    }}>
+                                    <featured.Icon
+                                        size={56}
+                                        className="opacity-80"
+                                    />
                                 </div>
                             </div>
 
                             <div
-                                className="hidden md:flex items-center justify-center w-full aspect-square rounded-2xl"
-                                style={{
-                                    background: 'linear-gradient(135deg,#0ea5e9,#3b82f6)',
-                                    color: '#fff'
-                                }}>
-                                <featured.Icon
-                                    size={56}
-                                    className="opacity-80"
-                                />
+                                className="absolute bottom-7 right-7 w-11 h-11 rounded-full inline-flex items-center justify-center transition-transform group-hover:rotate-45"
+                                style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
+                                <ArrowUpRight size={18} />
                             </div>
-                        </div>
+                        </motion.button>
 
-                        <div
-                            className="absolute bottom-7 right-7 w-11 h-11 rounded-full inline-flex items-center justify-center transition-transform group-hover:rotate-45"
-                            style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                            <ArrowUpRight size={18} />
-                        </div>
-                    </motion.button>
-
-                    {/* Posts grid */}
-                    <div className="grid sm:grid-cols-2 gap-5">
-                        {allPosts.map((post, i) => (
-                            <ResourceCard
-                                key={`${post.slug}-${i}`}
-                                index={i}
-                                {...post}
-                                href={`/resources/blogs/${post.slug}`}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Sidebar */}
-                <aside className="space-y-5">
-                    <div
-                        className="rounded-2xl p-5"
-                        style={{
-                            background: 'var(--surface)',
-                            border: '1px solid var(--line)',
-                            boxShadow: 'var(--card-shadow)'
-                        }}>
-                        <div
-                            className="text-[11px] tracking-[0.18em] uppercase font-semibold mb-4"
-                            style={{ color: 'var(--text-tertiary)' }}>
-                            Categories
-                        </div>
-                        <ul className="space-y-1">
-                            {categories.map((c, i) => (
-                                <li key={i}>
-                                    <button
-                                        className="w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-colors"
-                                        style={{ color: 'var(--text-primary)' }}
-                                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
-                                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                                        <span className="text-[14px]">{c.name}</span>
-                                        <span
-                                            className="text-[11px] px-2 py-0.5 rounded-full"
-                                            style={{ background: 'var(--surface-2)', color: 'var(--text-tertiary)' }}>
-                                            {c.count}
-                                        </span>
-                                    </button>
-                                </li>
+                        {/* Posts grid */}
+                        <div className="grid sm:grid-cols-2 gap-5">
+                            {allPosts.map((post, i) => (
+                                <ResourceCard
+                                    key={`${post.slug}-${i}`}
+                                    index={i}
+                                    {...post}
+                                    href={`/resources/blogs/${post.slug}`}
+                                />
                             ))}
-                        </ul>
+                        </div>
                     </div>
 
-                    <div
-                        className="rounded-2xl p-5"
-                        style={{
-                            background: 'var(--accent-soft)',
-                            border: '1px solid var(--accent)'
-                        }}>
+                    {/* Sidebar */}
+                    <aside className="space-y-5">
                         <div
-                            className="text-[11px] tracking-[0.18em] uppercase font-semibold mb-2"
-                            style={{ color: 'var(--accent)' }}>
-                            Newsletter
-                        </div>
-                        <h4
-                            className="font-display text-[18px] font-semibold mb-2"
-                            style={{ color: 'var(--text-primary)' }}>
-                            Get weekly career insights
-                        </h4>
-                        <p
-                            className="text-[12.5px] mb-4 leading-relaxed"
-                            style={{ color: 'var(--text-secondary)' }}>
-                            Practitioner-written, ad-free. One email a week.
-                        </p>
-                        {newsletterStatus === 'success' ? (
+                            className="rounded-2xl p-5"
+                            style={{
+                                background: 'var(--surface)',
+                                border: '1px solid var(--line)',
+                                boxShadow: 'var(--card-shadow)'
+                            }}>
                             <div
-                                className="w-full rounded-lg px-3 py-3 text-[13px] inline-flex items-center gap-2 font-semibold"
-                                style={{ background: 'var(--surface)', color: 'var(--brand)', border: '1px solid var(--brand)' }}
-                                role="status">
-                                <Check size={14} /> You're on the list — check your inbox.
+                                className="text-[11px] tracking-[0.18em] uppercase font-semibold mb-4"
+                                style={{ color: 'var(--text-tertiary)' }}>
+                                Categories
                             </div>
-                        ) : (
-                            <form
-                                onSubmit={handleNewsletterSubmit}
-                                noValidate>
-                                <input
-                                    type="email"
-                                    required
-                                    value={newsletterEmail}
-                                    onChange={(e) => {
-                                        setNewsletterEmail(e.target.value)
-                                        if (newsletterStatus === 'error') {
-                                            setNewsletterStatus('idle')
-                                            setNewsletterError(null)
-                                        }
-                                    }}
-                                    placeholder="you@example.com"
-                                    disabled={newsletterStatus === 'loading'}
-                                    aria-invalid={newsletterStatus === 'error'}
-                                    className="w-full rounded-lg px-3 py-2 text-[13px] outline-none mb-2 disabled:opacity-60"
-                                    style={{
-                                        background: 'var(--surface)',
-                                        border: `1px solid ${newsletterStatus === 'error' ? '#dc2626' : 'var(--line-strong)'}`,
-                                        color: 'var(--text-primary)'
-                                    }}
-                                />
-                                {newsletterError && (
-                                    <div
-                                        className="text-[11.5px] mb-2"
-                                        style={{ color: '#dc2626' }}>
-                                        {newsletterError}
-                                    </div>
-                                )}
-                                <button
-                                    type="submit"
-                                    disabled={newsletterStatus === 'loading'}
-                                    className="w-full rounded-lg py-2 text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    style={{ background: 'var(--accent)', color: '#fff' }}>
-                                    {newsletterStatus === 'loading' ? (
-                                        <>
-                                            <Loader2
-                                                size={13}
-                                                className="animate-spin"
-                                            />{' '}
-                                            Subscribing…
-                                        </>
-                                    ) : (
-                                        'Subscribe'
+                            <ul className="space-y-1">
+                                {categories.map((c, i) => (
+                                    <li key={i}>
+                                        <button
+                                            className="w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-colors"
+                                            style={{ color: 'var(--text-primary)' }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
+                                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                                            <span className="text-[14px]">{c.name}</span>
+                                            <span
+                                                className="text-[11px] px-2 py-0.5 rounded-full"
+                                                style={{ background: 'var(--surface-2)', color: 'var(--text-tertiary)' }}>
+                                                {c.count}
+                                            </span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div
+                            className="rounded-2xl p-5"
+                            style={{
+                                background: 'var(--accent-soft)',
+                                border: '1px solid var(--accent)'
+                            }}>
+                            <div
+                                className="text-[11px] tracking-[0.18em] uppercase font-semibold mb-2"
+                                style={{ color: 'var(--accent)' }}>
+                                Newsletter
+                            </div>
+                            <h4
+                                className="font-display text-[18px] font-semibold mb-2"
+                                style={{ color: 'var(--text-primary)' }}>
+                                Get weekly career insights
+                            </h4>
+                            <p
+                                className="text-[12.5px] mb-4 leading-relaxed"
+                                style={{ color: 'var(--text-secondary)' }}>
+                                Practitioner-written, ad-free. One email a week.
+                            </p>
+                            {newsletterStatus === 'success' ? (
+                                <div
+                                    className="w-full rounded-lg px-3 py-3 text-[13px] inline-flex items-center gap-2 font-semibold"
+                                    style={{ background: 'var(--surface)', color: 'var(--brand)', border: '1px solid var(--brand)' }}
+                                    role="status">
+                                    <Check size={14} /> You're on the list — check your inbox.
+                                </div>
+                            ) : (
+                                <form
+                                    onSubmit={handleNewsletterSubmit}
+                                    noValidate>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={newsletterEmail}
+                                        onChange={(e) => {
+                                            setNewsletterEmail(e.target.value)
+                                            if (newsletterStatus === 'error') {
+                                                setNewsletterStatus('idle')
+                                                setNewsletterError(null)
+                                            }
+                                        }}
+                                        placeholder="you@example.com"
+                                        disabled={newsletterStatus === 'loading'}
+                                        aria-invalid={newsletterStatus === 'error'}
+                                        className="w-full rounded-lg px-3 py-2 text-[13px] outline-none mb-2 disabled:opacity-60"
+                                        style={{
+                                            background: 'var(--surface)',
+                                            border: `1px solid ${newsletterStatus === 'error' ? '#dc2626' : 'var(--line-strong)'}`,
+                                            color: 'var(--text-primary)'
+                                        }}
+                                    />
+                                    {newsletterError && (
+                                        <div
+                                            className="text-[11.5px] mb-2"
+                                            style={{ color: '#dc2626' }}>
+                                            {newsletterError}
+                                        </div>
                                     )}
-                                </button>
-                            </form>
-                        )}
-                    </div>
-                </aside>
-            </div>
-        </ResourceLayout>
+                                    <button
+                                        type="submit"
+                                        disabled={newsletterStatus === 'loading'}
+                                        className="w-full rounded-lg py-2 text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        style={{ background: 'var(--accent)', color: '#fff' }}>
+                                        {newsletterStatus === 'loading' ? (
+                                            <>
+                                                <Loader2
+                                                    size={13}
+                                                    className="animate-spin"
+                                                />{' '}
+                                                Subscribing…
+                                            </>
+                                        ) : (
+                                            'Subscribe'
+                                        )}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </aside>
+                </div>
+            </ResourceLayout>
         </>
     )
 }

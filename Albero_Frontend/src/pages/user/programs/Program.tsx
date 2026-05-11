@@ -379,8 +379,8 @@ export default function ProgramPage() {
                                     className="mt-0.5 shrink-0"
                                 />
                                 <div className="text-[13px] leading-relaxed">
-                                    <div className="font-semibold mb-0.5">Request received.</div>
-                                    A counsellor will WhatsApp you within 30 minutes between 10 AM – 9 PM IST.
+                                    <div className="font-semibold mb-0.5">Request received.</div>A counsellor will WhatsApp you within 30 minutes
+                                    between 10 AM – 9 PM IST.
                                 </div>
                             </div>
                         ) : (

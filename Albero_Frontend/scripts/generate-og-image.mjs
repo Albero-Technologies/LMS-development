@@ -235,9 +235,7 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 
 writeFileSync(OUT_SVG, svg, 'utf8')
 
-await sharp(Buffer.from(svg))
-    .png({ compressionLevel: 9, quality: 95 })
-    .toFile(OUT_PNG)
+await sharp(Buffer.from(svg)).png({ compressionLevel: 9, quality: 95 }).toFile(OUT_PNG)
 
 const meta = await sharp(OUT_PNG).metadata()
 console.log(`✓ Wrote ${OUT_PNG}  (${meta.width}×${meta.height}, ${meta.size ?? '?'} bytes)`)

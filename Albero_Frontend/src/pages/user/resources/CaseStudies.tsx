@@ -100,157 +100,161 @@ export default function CaseStudies() {
                 type={caseStudiesHubSEO.type}
             />
             <StructuredData page="caseStudies" />
-        <ResourceLayout
-            eyebrow={`${all.length} In-Depth Case Studies`}
-            title="Learn from the"
-            highlight="world's best brands"
-            description="In-depth case studies breaking down the business models, marketing strategies, and growth stories behind the world's most successful companies."
-            icon={FolderOpen}>
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 md:gap-6 mb-16 max-w-3xl mx-auto">
-                {stats.map((s, i) => {
-                    const Icon = s.icon
-                    return (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.08 }}
-                            className="rounded-2xl p-5 text-center"
-                            style={{
-                                background: 'var(--surface)',
-                                border: '1px solid var(--line)',
-                                boxShadow: 'var(--card-shadow)'
-                            }}>
-                            <Icon
-                                size={24}
-                                className="mx-auto mb-3"
-                                style={{ color: 'var(--brand)' }}
-                            />
-                            <div
-                                className="font-display text-[28px] md:text-[34px] font-semibold leading-none"
-                                style={{ color: 'var(--text-primary)' }}>
-                                {s.v}
-                            </div>
-                            <div
-                                className="text-[11px] tracking-[0.16em] uppercase font-semibold mt-2"
-                                style={{ color: 'var(--text-tertiary)' }}>
-                                {s.l}
-                            </div>
-                        </motion.div>
-                    )
-                })}
-            </div>
+            <ResourceLayout
+                eyebrow={`${all.length} In-Depth Case Studies`}
+                title="Learn from the"
+                highlight="world's best brands"
+                description="In-depth case studies breaking down the business models, marketing strategies, and growth stories behind the world's most successful companies."
+                icon={FolderOpen}>
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-4 md:gap-6 mb-16 max-w-3xl mx-auto">
+                    {stats.map((s, i) => {
+                        const Icon = s.icon
+                        return (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.08 }}
+                                className="rounded-2xl p-5 text-center"
+                                style={{
+                                    background: 'var(--surface)',
+                                    border: '1px solid var(--line)',
+                                    boxShadow: 'var(--card-shadow)'
+                                }}>
+                                <Icon
+                                    size={24}
+                                    className="mx-auto mb-3"
+                                    style={{ color: 'var(--brand)' }}
+                                />
+                                <div
+                                    className="font-display text-[28px] md:text-[34px] font-semibold leading-none"
+                                    style={{ color: 'var(--text-primary)' }}>
+                                    {s.v}
+                                </div>
+                                <div
+                                    className="text-[11px] tracking-[0.16em] uppercase font-semibold mt-2"
+                                    style={{ color: 'var(--text-tertiary)' }}>
+                                    {s.l}
+                                </div>
+                            </motion.div>
+                        )
+                    })}
+                </div>
 
-            {/* Brand grid — premium logo tiles. Each card pairs the brand
+                {/* Brand grid — premium logo tiles. Each card pairs the brand
                 monogram (CompanyMark) with the company name + sector chip,
                 so the wall reads as "real partnerships" instead of plain
                 colour swatches. Theme-aware via CSS variables. */}
-            <div className="mb-20">
-                <div className="text-center mb-8">
-                    <h2
-                        className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em] mb-3"
-                        style={{ color: 'var(--text-primary)' }}>
-                        Explore by brand
-                    </h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Click any brand to read the full case study.</p>
+                <div className="mb-20">
+                    <div className="text-center mb-8">
+                        <h2
+                            className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em] mb-3"
+                            style={{ color: 'var(--text-primary)' }}>
+                            Explore by brand
+                        </h2>
+                        <p style={{ color: 'var(--text-secondary)' }}>Click any brand to read the full case study.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                        {everything.map((c, i) => (
+                            <BrandTile
+                                key={c.slug}
+                                entry={c}
+                                index={i}
+                                onClick={() => navigate(`/resources/case-studies/${c.slug}`)}
+                            />
+                        ))}
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-                    {everything.map((c, i) => (
-                        <BrandTile
-                            key={c.slug}
-                            entry={c}
-                            index={i}
-                            onClick={() => navigate(`/resources/case-studies/${c.slug}`)}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Top picks — always-dark "spotlight" stage. Hardcoded colours
+                {/* Top picks — always-dark "spotlight" stage. Hardcoded colours
                 rather than --surface-inverse because that token flips with
                 the active theme; this card is meant to read as a curated
                 dark surface in BOTH light + dark mode. */}
-            <div
-                className="mb-20 rounded-3xl p-8 md:p-12 relative overflow-hidden"
-                style={{
-                    background:
-                        'radial-gradient(60% 60% at 20% 10%, rgba(20,120,95,0.45) 0%, transparent 60%), ' +
-                        'radial-gradient(50% 50% at 85% 25%, rgba(52,211,153,0.35) 0%, transparent 60%), ' +
-                        'radial-gradient(70% 60% at 50% 110%, rgba(13,79,60,0.4) 0%, transparent 70%), ' +
-                        '#06140f',
-                    color: '#f5f3ea',
-                    border: '1px solid rgba(52,211,153,0.18)'
-                }}>
-                {/* Brand stripe across the top — same anchor used by the
+                <div
+                    className="mb-20 rounded-3xl p-8 md:p-12 relative overflow-hidden"
+                    style={{
+                        background:
+                            'radial-gradient(60% 60% at 20% 10%, rgba(20,120,95,0.45) 0%, transparent 60%), ' +
+                            'radial-gradient(50% 50% at 85% 25%, rgba(52,211,153,0.35) 0%, transparent 60%), ' +
+                            'radial-gradient(70% 60% at 50% 110%, rgba(13,79,60,0.4) 0%, transparent 70%), ' +
+                            '#06140f',
+                        color: '#f5f3ea',
+                        border: '1px solid rgba(52,211,153,0.18)'
+                    }}>
+                    {/* Brand stripe across the top — same anchor used by the
                     Industry Toolkit + TechMesh cards, keeps the section
                     identity consistent. */}
-                <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 top-0 h-[2px]"
-                    style={{ background: 'linear-gradient(90deg, #0d4f3c, #14785f, #34d399)' }}
-                />
+                    <span
+                        aria-hidden="true"
+                        className="absolute inset-x-0 top-0 h-[2px]"
+                        style={{ background: 'linear-gradient(90deg, #0d4f3c, #14785f, #34d399)' }}
+                    />
 
-                <div className="text-center mb-10">
-                    <div
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-4 text-[12px] font-bold tracking-[0.2em] uppercase"
-                        style={{ background: 'rgba(52,211,153,0.14)', border: '1px solid rgba(52,211,153,0.3)', color: 'rgba(245,243,234,0.92)' }}>
-                        <Award
-                            size={13}
-                            style={{ color: '#34d399' }}
-                        />{' '}
-                        Mentor Recommendations
+                    <div className="text-center mb-10">
+                        <div
+                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-4 text-[12px] font-bold tracking-[0.2em] uppercase"
+                            style={{
+                                background: 'rgba(52,211,153,0.14)',
+                                border: '1px solid rgba(52,211,153,0.3)',
+                                color: 'rgba(245,243,234,0.92)'
+                            }}>
+                            <Award
+                                size={13}
+                                style={{ color: '#34d399' }}
+                            />{' '}
+                            Mentor Recommendations
+                        </div>
+                        <h2
+                            className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em] mb-3"
+                            style={{ color: '#f5f3ea' }}>
+                            Top picks by our <span className="alb-gradient-text italic font-medium">mentors.</span>
+                        </h2>
+                        <p style={{ color: 'rgba(245,243,234,0.7)', maxWidth: 640, margin: '0 auto' }}>
+                            Hand-picked by industry experts who mentor at Albero — the case studies every student should read.
+                        </p>
                     </div>
-                    <h2
-                        className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em] mb-3"
-                        style={{ color: '#f5f3ea' }}>
-                        Top picks by our <span className="alb-gradient-text italic font-medium">mentors.</span>
-                    </h2>
-                    <p style={{ color: 'rgba(245,243,234,0.7)', maxWidth: 640, margin: '0 auto' }}>
-                        Hand-picked by industry experts who mentor at Albero — the case studies every student should read.
-                    </p>
-                </div>
 
-                <div className="grid md:grid-cols-3 gap-5">
-                    {featured.map((f, i) => (
-                        <FeaturedCaseCard
-                            key={f.slug}
-                            entry={f}
-                            index={i}
-                            onClick={() => navigate(`/resources/case-studies/${f.slug}`)}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* All studies — list view with brand mark + meta + arrow. */}
-            <div>
-                <div className="text-center mb-10">
-                    <div
-                        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 text-[11px] font-bold tracking-[0.18em] uppercase"
-                        style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
-                        <Sparkles size={12} /> Full Library
+                    <div className="grid md:grid-cols-3 gap-5">
+                        {featured.map((f, i) => (
+                            <FeaturedCaseCard
+                                key={f.slug}
+                                entry={f}
+                                index={i}
+                                onClick={() => navigate(`/resources/case-studies/${f.slug}`)}
+                            />
+                        ))}
                     </div>
-                    <h2
-                        className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em]"
-                        style={{ color: 'var(--text-primary)' }}>
-                        All case studies
-                    </h2>
                 </div>
-                <div className="space-y-4">
-                    {everything.map((s, i) => (
-                        <CaseStudyListRow
-                            key={s.slug}
-                            entry={s}
-                            index={i}
-                            onClick={() => navigate(`/resources/case-studies/${s.slug}`)}
-                        />
-                    ))}
+
+                {/* All studies — list view with brand mark + meta + arrow. */}
+                <div>
+                    <div className="text-center mb-10">
+                        <div
+                            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 text-[11px] font-bold tracking-[0.18em] uppercase"
+                            style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
+                            <Sparkles size={12} /> Full Library
+                        </div>
+                        <h2
+                            className="font-display text-[32px] md:text-[44px] font-medium tracking-[-0.02em]"
+                            style={{ color: 'var(--text-primary)' }}>
+                            All case studies
+                        </h2>
+                    </div>
+                    <div className="space-y-4">
+                        {everything.map((s, i) => (
+                            <CaseStudyListRow
+                                key={s.slug}
+                                entry={s}
+                                index={i}
+                                onClick={() => navigate(`/resources/case-studies/${s.slug}`)}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
-        </ResourceLayout>
+            </ResourceLayout>
         </>
     )
 }

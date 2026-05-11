@@ -134,7 +134,10 @@ export default function BlogPostPage() {
                 image={seo.image}
                 type={seo.type}
             />
-            <StructuredData breadcrumbOverride={blogBreadcrumbs} extra={[articleSchema]} />
+            <StructuredData
+                breadcrumbOverride={blogBreadcrumbs}
+                extra={[articleSchema]}
+            />
             {/* ── Hero with cover ── */}
             <section className="relative pt-[140px] pb-10 px-5 md:px-8">
                 <div

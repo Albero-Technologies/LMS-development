@@ -28,7 +28,7 @@ const mentors: Mentor[] = [
         rating: '4.9',
         experience: '3+ years',
         bio: 'Builds production data-science systems at PwC, formerly at Amazon. Mentors AI/ML and Data Science cohorts.',
-        skills: ['Data Science', 'Image Analytics', 'Python', 'SQL'],
+        skills: ['Data Science', 'Image Analytics', 'Python', 'SQL']
         // image: '/mentors/heena-arora.jpg'  // ← uncomment and set path when photo is available
     },
     {
@@ -41,7 +41,7 @@ const mentors: Mentor[] = [
         rating: '4.9',
         experience: '1+ year',
         bio: 'Drives product analytics at Google. Reviews capstones for the Data Analytics cohort and runs SQL deep-dives.',
-        skills: ['Data Analytics', 'Big Data', 'Product Analytics'],
+        skills: ['Data Analytics', 'Big Data', 'Product Analytics']
         // image: '/mentors/anand-tripathi.jpg'
     },
     {
@@ -54,7 +54,7 @@ const mentors: Mentor[] = [
         rating: '4.9',
         experience: '3+ years',
         bio: 'Specialises in machine learning systems and MLOps. Mentors AI/ML cohort and runs production ML reviews.',
-        skills: ['Python', 'Machine Learning', 'SQL'],
+        skills: ['Python', 'Machine Learning', 'SQL']
         // image: '/mentors/shubham-verma.jpg'
     },
     {
@@ -67,7 +67,7 @@ const mentors: Mentor[] = [
         rating: '4.8',
         experience: '3+ years',
         bio: 'Designs finance BI systems at Autodesk. Mentors Business Analytics cohort with a strong storytelling lens.',
-        skills: ['Power BI', 'Python', 'SQL'],
+        skills: ['Power BI', 'Python', 'SQL']
         // image: '/mentors/akshat-khandelwal.jpg'
     },
     {
@@ -80,7 +80,7 @@ const mentors: Mentor[] = [
         rating: '4.9',
         experience: '8 years',
         bio: '8 years building recommender systems and large-scale personalisation. Mentors AI/ML cohort.',
-        skills: ['Recommender Systems', 'PyTorch', 'Python'],
+        skills: ['Recommender Systems', 'PyTorch', 'Python']
         // image: '/mentors/aanya-sharma.jpg'
     },
     {
@@ -93,7 +93,7 @@ const mentors: Mentor[] = [
         rating: '5.0',
         experience: '10 years',
         bio: 'Hires Full-Stack engineers at Razorpay. Reviews capstone projects and runs system-design rounds.',
-        skills: ['React', 'Node', 'System Design'],
+        skills: ['React', 'Node', 'System Design']
         // image: '/mentors/rahul-krishnan.jpg'
     },
     {
@@ -106,7 +106,7 @@ const mentors: Mentor[] = [
         rating: '4.9',
         experience: '6 years',
         bio: 'Mentors Business Analytics cohort. Trains for IB & consulting interviews with case-frameworks.',
-        skills: ['SQL', 'Power BI', 'Case Frameworks'],
+        skills: ['SQL', 'Power BI', 'Case Frameworks']
         // image: '/mentors/priya-verma.jpg'
     },
     {
@@ -119,7 +119,7 @@ const mentors: Mentor[] = [
         rating: '4.9',
         experience: '9 years',
         bio: 'Specialises in MLOps and production ML systems. Capstone reviewer for the AI/ML flagship.',
-        skills: ['MLOps', 'Kubernetes', 'AWS'],
+        skills: ['MLOps', 'Kubernetes', 'AWS']
         // image: '/mentors/neeraj-bhatt.jpg'
     }
 ]
