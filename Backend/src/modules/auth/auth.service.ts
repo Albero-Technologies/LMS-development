@@ -326,7 +326,14 @@ export const setPasswordWithToken = async (
 
     const tokens = await issueTokens(updated, { ipAddress: req.ip, userAgent: req.headers['user-agent'] })
     await writeAudit(
-        { action: 'auth.password_set_with_token', entityType: 'User', entityId: updated.id, tenantId: updated.tenantId, userId: updated.id, metadata: { purpose: row.purpose } },
+        {
+            action: 'auth.password_set_with_token',
+            entityType: 'User',
+            entityId: updated.id,
+            tenantId: updated.tenantId,
+            userId: updated.id,
+            metadata: { purpose: row.purpose }
+        },
         req
     )
     return { ...tokens, user: { id: updated.id, tenantId: updated.tenantId, email: updated.email } }

@@ -1,4 +1,14 @@
-import { CoursePublishState, EnrollmentAccessTier, EnrollmentStatus, InvoiceStatus, PaymentEventStatus, PaymentGateway, type Prisma, Role, UserStatus } from '@prisma/client'
+import {
+    CoursePublishState,
+    EnrollmentAccessTier,
+    EnrollmentStatus,
+    InvoiceStatus,
+    PaymentEventStatus,
+    PaymentGateway,
+    type Prisma,
+    Role,
+    UserStatus
+} from '@prisma/client'
 import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
@@ -386,8 +396,7 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string) 
                     }
                 })
                 const remaining = outstanding._sum.totalAmount ?? 0
-                const shouldUpgrade =
-                    enrollmentSnapshot?.accessTier === EnrollmentAccessTier.DEMO && remaining === 0
+                const shouldUpgrade = enrollmentSnapshot?.accessTier === EnrollmentAccessTier.DEMO && remaining === 0
                 await tx.enrollment.update({
                     where: { id: invoice.enrollmentId },
                     data: {

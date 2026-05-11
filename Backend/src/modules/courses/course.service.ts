@@ -303,8 +303,7 @@ export const updateLesson = async (
             order: input.order,
             freePreview: input.freePreview,
             demoAccess: input.demoAccess,
-            resources:
-                input.resources === undefined ? undefined : ((input.resources ?? null) as unknown as Prisma.InputJsonValue)
+            resources: input.resources === undefined ? undefined : ((input.resources ?? null) as unknown as Prisma.InputJsonValue)
         }
     })
 }

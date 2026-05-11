@@ -32,7 +32,7 @@ if (!cmd) {
 // right Windows .cmd shim or POSIX symlink automatically.
 const localBin = path.resolve(__dirname, '..', 'node_modules', '.bin')
 const env = { ...process.env }
-const pathKey = process.platform === 'win32' ? Object.keys(env).find((k) => k.toLowerCase() === 'path') ?? 'Path' : 'PATH'
+const pathKey = process.platform === 'win32' ? (Object.keys(env).find((k) => k.toLowerCase() === 'path') ?? 'Path') : 'PATH'
 env[pathKey] = `${localBin}${path.delimiter}${env[pathKey] ?? ''}`
 
 const result = spawnSync(cmd, rest, {

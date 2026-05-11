@@ -28,11 +28,7 @@ export const pay = async (req: Request, res: Response): Promise<void> => {
 // using the tenant's Razorpay credentials.
 export const payEnrollmentBalance = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) return
-    const result = await service.createOrderForEnrollmentBalance(
-        req.auth.tenantId,
-        req.auth.userId,
-        req.params.enrollmentId
-    )
+    const result = await service.createOrderForEnrollmentBalance(req.auth.tenantId, req.auth.userId, req.params.enrollmentId)
     await writeAudit({ action: 'payment.order_created', entityType: 'Invoice', entityId: result.invoiceId }, req)
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)
 }

@@ -128,7 +128,10 @@ const readPriceTiers = (raw: unknown): CoursePriceTier[] => {
 // Resolve the authoritative full-fee amount for a course. If the request
 // names a tierKey AND that key exists in Course.priceTiers, charge the tier
 // price; otherwise fall back to Course.price (legacy single-price flow).
-const resolveFullPriceMinor = (course: { price: number; priceTiers: unknown }, tierKey: string | undefined): { priceMinor: number; tier: CoursePriceTier | null } => {
+const resolveFullPriceMinor = (
+    course: { price: number; priceTiers: unknown },
+    tierKey: string | undefined
+): { priceMinor: number; tier: CoursePriceTier | null } => {
     const tiers = readPriceTiers(course.priceTiers)
     if (tierKey) {
         const tier = tiers.find((t) => t.key === tierKey)
@@ -282,8 +285,7 @@ export const verifyPurchase = async (input: TVerifyPurchaseInput) => {
             loginUrl: `${config.STUDENT_PORTAL_URL}/login`,
             paymentType: intent.paymentType,
             amountPaidMinor: intent.totalAmount,
-            balanceDueMinor:
-                intent.paymentType === 'REGISTRATION' ? Math.max(intent.fullCourseFeeMinor - intent.priceMinor, 0) : 0
+            balanceDueMinor: intent.paymentType === 'REGISTRATION' ? Math.max(intent.fullCourseFeeMinor - intent.priceMinor, 0) : 0
         }
     }
 

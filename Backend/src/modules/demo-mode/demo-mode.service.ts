@@ -103,12 +103,7 @@ export const listDemoEnrolments = async (input: TListDemoEnrolmentsInput, ctx: S
     }
 }
 
-const applyDemoUpdate = async (
-    enrolmentId: string,
-    ctx: ScopeContext,
-    input: TUpdateDemoEnrolmentInput,
-    options: { auditNote?: string } = {}
-) => {
+const applyDemoUpdate = async (enrolmentId: string, ctx: ScopeContext, input: TUpdateDemoEnrolmentInput, options: { auditNote?: string } = {}) => {
     const enrolment = await db.client.enrollment.findFirst({
         where: { id: enrolmentId, ...(ctx.role === Role.SUPER_ADMIN ? {} : { tenantId: ctx.tenantId }) }
     })
@@ -199,9 +194,7 @@ export const sendPaymentReminder = async (input: TSendPaymentReminderInput, ctx:
     })
     if (!enrolment) throw AppError.notFound(responseMessage.NOT_FOUND('Enrolment'), 'ENROLMENT_NOT_FOUND')
 
-    const pendingAmount = enrolment.invoices
-        .filter((i) => i.status === 'DUE' || i.status === 'DRAFT')
-        .reduce((n, i) => n + i.totalAmount, 0)
+    const pendingAmount = enrolment.invoices.filter((i) => i.status === 'DUE' || i.status === 'DRAFT').reduce((n, i) => n + i.totalAmount, 0)
 
     await enqueueNotification({
         tenantId: enrolment.tenantId,

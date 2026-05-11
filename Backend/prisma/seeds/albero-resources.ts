@@ -191,12 +191,28 @@ const blogSections = (): LandingSectionShape[] => [
 // ---- Tutorials -------------------------------------------------------------
 
 const TUTORIAL_TOPICS = [
-    { title: 'Python', description: 'Master Python from basics to advanced — data types, loops, functions, OOP, and real-world projects.', count: '50+ Lessons' },
+    {
+        title: 'Python',
+        description: 'Master Python from basics to advanced — data types, loops, functions, OOP, and real-world projects.',
+        count: '50+ Lessons'
+    },
     { title: 'Power BI', description: 'Build interactive dashboards, DAX formulas, data modelling, and BI reports.', count: '40+ Lessons' },
-    { title: 'Tableau', description: 'Create stunning visualisations, calculated fields, and interactive storytelling dashboards.', count: '35+ Lessons' },
+    {
+        title: 'Tableau',
+        description: 'Create stunning visualisations, calculated fields, and interactive storytelling dashboards.',
+        count: '35+ Lessons'
+    },
     { title: 'SQL', description: 'Write efficient queries — joins, subqueries, window functions, and database optimisation.', count: '60+ Lessons' },
-    { title: 'Excel', description: 'Go beyond basics — pivot tables, VLOOKUP, macros, data analysis, and automation techniques.', count: '45+ Lessons' },
-    { title: 'Statistics', description: 'Probability, hypothesis testing, regression, distributions — the math behind data science.', count: '30+ Lessons' }
+    {
+        title: 'Excel',
+        description: 'Go beyond basics — pivot tables, VLOOKUP, macros, data analysis, and automation techniques.',
+        count: '45+ Lessons'
+    },
+    {
+        title: 'Statistics',
+        description: 'Probability, hypothesis testing, regression, distributions — the math behind data science.',
+        count: '30+ Lessons'
+    }
 ]
 
 const tutorialSections = (): LandingSectionShape[] => [
@@ -267,7 +283,13 @@ const SOFT_MODULES = [
         n: '01',
         title: 'Digital Identity & Career Branding',
         description: 'Lay the foundation of your professional persona for the modern workplace.',
-        lessons: ['Creating Your Digital Identity', 'Power of Online Networking', 'Crafting Your Online Presence', 'Resume Assessment & Optimization', 'Interview Tips and Tricks']
+        lessons: [
+            'Creating Your Digital Identity',
+            'Power of Online Networking',
+            'Crafting Your Online Presence',
+            'Resume Assessment & Optimization',
+            'Interview Tips and Tricks'
+        ]
     },
     {
         n: '02',
@@ -321,18 +343,20 @@ const softSkillsSections = (): LandingSectionShape[] => [
             pillars: SOFT_FREE_TUTORIALS.map((t) => ({ title: t.title, description: t.blurb }))
         }
     },
-    ...SOFT_MODULES.map((m, i): LandingSectionShape => ({
-        id: sid('soft', 10 + i),
-        type: 'features',
-        variant: 'list',
-        data: {
-            title: `Module ${m.n} · ${m.title}`,
-            pillars: [
-                { title: 'About this module', description: m.description },
-                ...m.lessons.map((l) => ({ title: l, description: 'Practical lesson with real-world examples and exercises.' }))
-            ]
-        }
-    })),
+    ...SOFT_MODULES.map(
+        (m, i): LandingSectionShape => ({
+            id: sid('soft', 10 + i),
+            type: 'features',
+            variant: 'list',
+            data: {
+                title: `Module ${m.n} · ${m.title}`,
+                pillars: [
+                    { title: 'About this module', description: m.description },
+                    ...m.lessons.map((l) => ({ title: l, description: 'Practical lesson with real-world examples and exercises.' }))
+                ]
+            }
+        })
+    ),
     {
         id: sid('soft', 90),
         type: 'features',
@@ -340,9 +364,18 @@ const softSkillsSections = (): LandingSectionShape[] => [
         data: {
             title: 'Built for every stage of your career',
             pillars: [
-                { title: 'Students', description: 'Stand out in campus placements · Build a professional online identity · Develop confidence for interviews.' },
-                { title: 'Fresh Graduates', description: 'Ace your first interviews · Master workplace communication · Learn corporate etiquette fast.' },
-                { title: 'Working Professionals', description: 'Elevate your personal brand · Sharpen leadership & presentation · Stay productive with modern tools.' }
+                {
+                    title: 'Students',
+                    description: 'Stand out in campus placements · Build a professional online identity · Develop confidence for interviews.'
+                },
+                {
+                    title: 'Fresh Graduates',
+                    description: 'Ace your first interviews · Master workplace communication · Learn corporate etiquette fast.'
+                },
+                {
+                    title: 'Working Professionals',
+                    description: 'Elevate your personal brand · Sharpen leadership & presentation · Stay productive with modern tools.'
+                }
             ]
         }
     },
@@ -392,7 +425,8 @@ const INTERVIEW_GUIDES = [
     },
     {
         title: 'Fundamentals of Statistics',
-        description: '50 essential statistics interview questions covering descriptive stats, probability, distributions, hypothesis testing, and regression.',
+        description:
+            '50 essential statistics interview questions covering descriptive stats, probability, distributions, hypothesis testing, and regression.',
         questions: '50 Questions',
         readTime: '17 min read'
     },
@@ -481,10 +515,38 @@ const interviewSections = (): LandingSectionShape[] => [
 // ---- Case Studies ----------------------------------------------------------
 
 const CASE_BRANDS = [
-    'Google', 'Microsoft', 'Apple', 'Amazon', 'Meta', 'Netflix', 'Spotify', 'Adobe',
-    'Tesla', 'Uber', 'Airbnb', 'Nike', 'Starbucks', 'Samsung', 'Intel', 'Oracle',
-    'IBM', 'Cisco', 'Uniqlo', 'Zara', "McDonald's", 'Louis Vuitton', 'H&M', 'Mastercard',
-    'Twitter', 'LinkedIn', 'Pinterest', 'Snapchat', 'Reddit', 'Discord', 'Figma', 'Notion'
+    'Google',
+    'Microsoft',
+    'Apple',
+    'Amazon',
+    'Meta',
+    'Netflix',
+    'Spotify',
+    'Adobe',
+    'Tesla',
+    'Uber',
+    'Airbnb',
+    'Nike',
+    'Starbucks',
+    'Samsung',
+    'Intel',
+    'Oracle',
+    'IBM',
+    'Cisco',
+    'Uniqlo',
+    'Zara',
+    "McDonald's",
+    'Louis Vuitton',
+    'H&M',
+    'Mastercard',
+    'Twitter',
+    'LinkedIn',
+    'Pinterest',
+    'Snapchat',
+    'Reddit',
+    'Discord',
+    'Figma',
+    'Notion'
 ]
 
 const CASE_TOP_PICKS = [
@@ -497,7 +559,7 @@ const CASE_TOP_PICKS = [
     {
         label: 'Top Pick',
         brand: 'Zara',
-        mentor: 'Sneha Kapoor · Brand Director, ex-L\'Oréal',
+        mentor: "Sneha Kapoor · Brand Director, ex-L'Oréal",
         quote: "Zara's ability to turn runway trends into store-ready fashion in two weeks is remarkable."
     },
     {
@@ -513,7 +575,8 @@ const CASE_STUDIES = [
         title: 'Zara Case Study — Business Model, Marketing Strategy & Fast Fashion Innovation',
         date: '23 Mar 2026',
         readTime: '18 min read',
-        description: "From a small dressmaking shop in Spain to the world's largest fast-fashion retailer. Inside Zara's supply-chain advantage and trend-to-store cadence."
+        description:
+            "From a small dressmaking shop in Spain to the world's largest fast-fashion retailer. Inside Zara's supply-chain advantage and trend-to-store cadence."
     },
     {
         title: 'Pinterest Case Study — Visual Discovery Platform',
@@ -531,25 +594,29 @@ const CASE_STUDIES = [
         title: 'Uniqlo Case Study — LifeWear Philosophy',
         date: '20 Mar 2026',
         readTime: '21 min read',
-        description: 'From a single Hiroshima menswear shop to the third-largest apparel retailer worldwide. LifeWear philosophy, fabric innovation, and global expansion.'
+        description:
+            'From a single Hiroshima menswear shop to the third-largest apparel retailer worldwide. LifeWear philosophy, fabric innovation, and global expansion.'
     },
     {
         title: 'Uber Case Study — Ride-Hailing Revolution',
         date: '19 Mar 2026',
         readTime: '18 min read',
-        description: 'From a phone-summoned cab idea to a $150B mobility and delivery platform. Disruptive model, growth tactics, and global expansion.'
+        description:
+            'From a phone-summoned cab idea to a $150B mobility and delivery platform. Disruptive model, growth tactics, and global expansion.'
     },
     {
         title: 'Mastercard Case Study — From Crisis to AI Payments Giant',
         date: '15 Apr 2025',
         readTime: '13 min read',
-        description: 'How Mastercard rebuilt itself into a $400B data-intelligence and multi-rail payments platform — AI, acquisitions, and an expanded TAM.'
+        description:
+            'How Mastercard rebuilt itself into a $400B data-intelligence and multi-rail payments platform — AI, acquisitions, and an expanded TAM.'
     },
     {
         title: 'Airbnb Case Study — Marketplace Disruption',
         date: '15 Feb 2025',
         readTime: '11 min read',
-        description: 'Three airbeds in San Francisco to a $70B global marketplace. History, business model, marketing strategy, and the disruption playbook.'
+        description:
+            'Three airbeds in San Francisco to a $70B global marketplace. History, business model, marketing strategy, and the disruption playbook.'
     },
     {
         title: 'H&M Case Study — Fast-Fashion Revolution',
@@ -561,7 +628,8 @@ const CASE_STUDIES = [
         title: 'Louis Vuitton Case Study — Luxury Empire',
         date: '28 Jan 2025',
         readTime: '13 min read',
-        description: 'From a Paris trunk-making workshop to the most valuable luxury brand. Heritage, exclusivity, and masterful brand management at LVMH.'
+        description:
+            'From a Paris trunk-making workshop to the most valuable luxury brand. Heritage, exclusivity, and masterful brand management at LVMH.'
     },
     {
         title: 'Starbucks Case Study — Global Coffee Expansion',
@@ -591,7 +659,8 @@ const caseStudySections = (): LandingSectionShape[] => [
         data: {
             eyebrow: 'In-Depth Case Studies',
             title: "Learn From the World's Best Brands",
-            subtitle: "In-depth case studies breaking down the business models, marketing strategies, and growth stories behind the world's most successful companies.",
+            subtitle:
+                "In-depth case studies breaking down the business models, marketing strategies, and growth stories behind the world's most successful companies.",
             primaryCtaLabel: 'Talk to a mentor',
             primaryCtaLink: 'enquiry',
             imageUrl: IMG_BRAND,
@@ -1008,8 +1077,7 @@ RUNNING_SUM(SUM([Sales]))
         variant: 'card',
         data: {
             title: 'Want the deeper version?',
-            subtitle:
-                'These quick references pair with our full tutorials. Go from "I remember the syntax" to "I can ship this in production."',
+            subtitle: 'These quick references pair with our full tutorials. Go from "I remember the syntax" to "I can ship this in production."',
             buttonLabel: 'Browse tutorials',
             buttonLink: 'tutorials'
         }
@@ -1049,7 +1117,8 @@ export const RESOURCE_PAGES: ResourcePage[] = [
         slug: '/interview-guides',
         name: 'Interview Guides',
         title: 'Interview Guides · Crack Every Interview with Confidence — Albero Academy',
-        seoDescription: 'Curated interview questions, expert answers, and proven strategies across Excel, Power BI, Python, SQL, Statistics, and Tableau.',
+        seoDescription:
+            'Curated interview questions, expert answers, and proven strategies across Excel, Power BI, Python, SQL, Statistics, and Tableau.',
         sections: interviewSections()
     },
     {
@@ -1057,7 +1126,8 @@ export const RESOURCE_PAGES: ResourcePage[] = [
         slug: '/case-studies',
         name: 'Case Studies',
         title: "Case Studies · Learn From the World's Best Brands — Albero Academy",
-        seoDescription: 'In-depth case studies on the business models, marketing strategies, and growth stories of the world\'s most successful companies.',
+        seoDescription:
+            "In-depth case studies on the business models, marketing strategies, and growth stories of the world's most successful companies.",
         sections: caseStudySections()
     },
     {

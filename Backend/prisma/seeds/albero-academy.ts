@@ -115,8 +115,7 @@ const STYLE_CLASSES = [
     {
         id: 'sc-spotlight',
         name: 'Section · Spotlight',
-        background:
-            'radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--color-brand-500) 22%, transparent) 0%, transparent 70%), #ffffff',
+        background: 'radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--color-brand-500) 22%, transparent) 0%, transparent 70%), #ffffff',
         paddingY: 'xl' as const
     },
     {
@@ -243,8 +242,7 @@ const homeSections = (): unknown[] => [
                 },
                 {
                     title: 'AI/ML Engineer',
-                    description:
-                        '24-week intensive.\nTransformers · RAG · LLM apps · MLOps.\n\nFor engineers ready to ship production AI systems.'
+                    description: '24-week intensive.\nTransformers · RAG · LLM apps · MLOps.\n\nFor engineers ready to ship production AI systems.'
                 }
             ]
         }
@@ -408,33 +406,27 @@ const homeSections = (): unknown[] => [
             items: [
                 {
                     question: 'Do I need prior coding experience?',
-                    answer:
-                        'For Business Analytics — no. For Data Analytics Mastery and AI/ML Engineer — basic programming helps but is not required. Every cohort gets a free 2-week pre-cohort warm-up that covers Python and SQL fundamentals.'
+                    answer: 'For Business Analytics — no. For Data Analytics Mastery and AI/ML Engineer — basic programming helps but is not required. Every cohort gets a free 2-week pre-cohort warm-up that covers Python and SQL fundamentals.'
                 },
                 {
                     question: 'What if I miss a live class?',
-                    answer:
-                        'Every class is recorded and uploaded the same day. Your mentor also runs office hours twice a week so you can catch up live and get unblocked.'
+                    answer: 'Every class is recorded and uploaded the same day. Your mentor also runs office hours twice a week so you can catch up live and get unblocked.'
                 },
                 {
                     question: 'Is the placement guarantee real?',
-                    answer:
-                        'Yes. If you graduate, meet the program engagement criteria (attendance + assignments + capstone), and do not get placed within 6 months — we refund 100% of your fee. The criteria are spelled out in your enrolment letter, and the refund is processed within 30 days of the 6-month mark.'
+                    answer: 'Yes. If you graduate, meet the program engagement criteria (attendance + assignments + capstone), and do not get placed within 6 months — we refund 100% of your fee. The criteria are spelled out in your enrolment letter, and the refund is processed within 30 days of the 6-month mark.'
                 },
                 {
                     question: 'Do you have EMI and scholarships?',
-                    answer:
-                        'Yes. No-cost EMI starts at ₹3,500/month with every major bank (3, 6, or 12 month tenors). Need-based scholarships up to 30% are available — your counsellor can walk you through eligibility on the discovery call.'
+                    answer: 'Yes. No-cost EMI starts at ₹3,500/month with every major bank (3, 6, or 12 month tenors). Need-based scholarships up to 30% are available — your counsellor can walk you through eligibility on the discovery call.'
                 },
                 {
                     question: 'How is Albero different from other bootcamps?',
-                    answer:
-                        'Two things. First — our mentors are senior practitioners from product companies (Razorpay, Flipkart, Microsoft, Swiggy). They review your work the way they review their own team. Second — our placement guarantee. Most bootcamps promise placement support; we put our money on it.'
+                    answer: 'Two things. First — our mentors are senior practitioners from product companies (Razorpay, Flipkart, Microsoft, Swiggy). They review your work the way they review their own team. Second — our placement guarantee. Most bootcamps promise placement support; we put our money on it.'
                 },
                 {
                     question: 'What is the daily / weekly time commitment?',
-                    answer:
-                        '8-10 hours per week for Business Analytics. 12-14 hours per week for Data Analytics Mastery. 14-16 hours per week for AI/ML Engineer. Live classes are 2 evenings + Saturday morning. Everything else is hands-on lab time.'
+                    answer: '8-10 hours per week for Business Analytics. 12-14 hours per week for Data Analytics Mastery. 14-16 hours per week for AI/ML Engineer. Live classes are 2 evenings + Saturday morning. Everything else is hands-on lab time.'
                 }
             ]
         }
@@ -456,8 +448,7 @@ const homeSections = (): unknown[] => [
         data: {
             eyebrow: 'Get in touch',
             title: 'Talk to a senior counsellor',
-            subtitle:
-                'Tell us where you are in your career and what you want next — we will recommend the right program with no sales script.',
+            subtitle: 'Tell us where you are in your career and what you want next — we will recommend the right program with no sales script.',
             submitLabel: 'Request a callback',
             successMessage: 'Got it — your counsellor will call within one working day.',
             showQualification: true,
@@ -1907,7 +1898,8 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
         {
             slug: 'programs',
             name: 'Programs',
-            description: 'Public-site program landing pages. Editing a row here updates the marketing copy on /programs/:slug — pricing still comes from the Course row.',
+            description:
+                'Public-site program landing pages. Editing a row here updates the marketing copy on /programs/:slug — pricing still comes from the Course row.',
             fields: [
                 { key: 'title', label: 'Title', type: 'text', required: true },
                 { key: 'subtitle', label: 'Subtitle', type: 'text' },
@@ -2075,7 +2067,8 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
         {
             slug: 'tutorials',
             name: 'Tutorials',
-            description: 'Step-by-step coding walkthroughs surfaced at /resources/tutorials. Group multiple items under the same topic to build a chapter sequence.',
+            description:
+                'Step-by-step coding walkthroughs surfaced at /resources/tutorials. Group multiple items under the same topic to build a chapter sequence.',
             fields: [
                 { key: 'title', label: 'Chapter title', type: 'text', required: true },
                 { key: 'topic', label: 'Topic / track', type: 'text', required: true },
@@ -2093,7 +2086,8 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                         title: 'SQL Joins 101: Inner, Left, Right, Full',
                         topic: 'SQL',
                         chapter: 1,
-                        description: 'A practical walkthrough of every join type with a single shared dataset so you can see exactly what each one returns.',
+                        description:
+                            'A practical walkthrough of every join type with a single shared dataset so you can see exactly what each one returns.',
                         readMin: 8,
                         coverImage: IMG.blogChart,
                         body: '<p>Joins are how SQL stitches rows from multiple tables together...</p>',
@@ -2107,7 +2101,8 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                         title: 'Pandas in 20 minutes',
                         topic: 'Python',
                         chapter: 1,
-                        description: 'The 10 Pandas verbs that handle 90% of analyst work — read, filter, group, aggregate, pivot, merge, sort, dropna, apply, to_csv.',
+                        description:
+                            'The 10 Pandas verbs that handle 90% of analyst work — read, filter, group, aggregate, pivot, merge, sort, dropna, apply, to_csv.',
                         readMin: 20,
                         coverImage: IMG.blogStudying,
                         body: '<p>Pandas is the data-frame library that makes Python a serious analyst tool...</p>',
@@ -2152,7 +2147,8 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                         tagline: 'STAR stories that actually land',
                         duration: '60 min',
                         level: 'Beginner',
-                        keyOutcomes: 'Build a 6-story bank that covers every prompt\nAnswer with structure, not autobiography\nHandle "weakness" without flinching',
+                        keyOutcomes:
+                            'Build a 6-story bank that covers every prompt\nAnswer with structure, not autobiography\nHandle "weakness" without flinching',
                         body: '<p>Behavioural interviews are won in story selection, not delivery...</p>',
                         coverImage: IMG.blogStudying
                     },
@@ -2222,10 +2218,12 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'sql-50',
                     data: {
                         title: 'SQL 50: the questions every analyst should know',
-                        description: 'A curated set of 50 SQL interview questions covering joins, window functions, performance, and pitfalls — with annotated solutions.',
+                        description:
+                            'A curated set of 50 SQL interview questions covering joins, window functions, performance, and pitfalls — with annotated solutions.',
                         difficulty: 'Medium',
                         targetCompanies: 'Razorpay, Flipkart, Swiggy, Zomato, Paytm',
-                        sections: '## Joins (1–10)\n## Window functions (11–25)\n## CTEs & recursion (26–35)\n## Performance (36–45)\n## Curveballs (46–50)',
+                        sections:
+                            '## Joins (1–10)\n## Window functions (11–25)\n## CTEs & recursion (26–35)\n## Performance (36–45)\n## Curveballs (46–50)',
                         body: '<p>If you can answer these 50 cold, you can answer any analyst SQL round...</p>',
                         coverImage: IMG.blogChart
                     },
@@ -2235,7 +2233,8 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
                     slug: 'pm-product-sense',
                     data: {
                         title: 'PM Product-Sense: 30 prompts with rubrics',
-                        description: 'Thirty real product-sense prompts ("Design X for Y") with the four-section answer structure top PM coaches use.',
+                        description:
+                            'Thirty real product-sense prompts ("Design X for Y") with the four-section answer structure top PM coaches use.',
                         difficulty: 'Hard',
                         targetCompanies: 'Google, Meta, Amazon, Flipkart, Swiggy',
                         sections: '## User & user pain\n## Goals & success metric\n## Solutions ranked\n## Tradeoffs + roadmap',
@@ -2254,7 +2253,12 @@ export async function seedAlberoAcademy(prisma: Prisma): Promise<void> {
             fields: [
                 { key: 'title', label: 'Title', type: 'text', required: true },
                 { key: 'description', label: 'Short description', type: 'longtext' },
-                { key: 'category', label: 'Category', type: 'select', options: ['SQL', 'Python', 'Statistics', 'Excel', 'Power BI', 'Pandas', 'Git'] },
+                {
+                    key: 'category',
+                    label: 'Category',
+                    type: 'select',
+                    options: ['SQL', 'Python', 'Statistics', 'Excel', 'Power BI', 'Pandas', 'Git']
+                },
                 { key: 'body', label: 'Body', type: 'richtext' },
                 { key: 'code', label: 'Code samples / snippets', type: 'longtext' },
                 { key: 'coverImage', label: 'Cover image URL', type: 'image' }

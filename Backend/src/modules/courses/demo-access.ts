@@ -45,7 +45,12 @@ export const buildLessonGateMap = (ctx: DemoAccessContext): Map<string, LessonGa
     const flatLessons = ctx.sections
         .slice()
         .sort((a, b) => a.order - b.order)
-        .flatMap((s) => s.lessons.slice().sort((a, b) => a.order - b.order).map((l) => ({ ...l, sectionDemo: s.demoSection })))
+        .flatMap((s) =>
+            s.lessons
+                .slice()
+                .sort((a, b) => a.order - b.order)
+                .map((l) => ({ ...l, sectionDemo: s.demoSection }))
+        )
 
     if (ctx.enrollment.accessTier === EnrollmentAccessTier.FULL) {
         for (const l of flatLessons) map.set(l.id, { lessonId: l.id, locked: false })

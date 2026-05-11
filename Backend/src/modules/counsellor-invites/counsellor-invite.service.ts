@@ -299,7 +299,10 @@ export const shareCredentials = async (tenantId: string, role: Role, actorId: st
         throw AppError.forbidden(responseMessage.FORBIDDEN, 'NOT_SIGNUP_OWNER')
     }
     if (!signup.initialPassword) {
-        throw AppError.badRequest('Initial credentials are no longer available — student has signed in. Regenerate to issue a fresh password.', 'CREDS_CONSUMED')
+        throw AppError.badRequest(
+            'Initial credentials are no longer available — student has signed in. Regenerate to issue a fresh password.',
+            'CREDS_CONSUMED'
+        )
     }
 
     await db.client.studentSignup.update({

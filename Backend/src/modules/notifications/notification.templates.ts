@@ -260,12 +260,7 @@ ${data.invoiceNumber ? `<p>Invoice: <code>${String(data.invoiceNumber)}</code></
 // (firstName, courseTitle, …) can come from user input on the public
 // purchase form. Escape everything before substituting into the template.
 const esc = (raw: string): string =>
-    raw
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
+    raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 
 // Branded enrollment-welcome HTML email. Inline CSS only (Gmail strips
 // <style> blocks), max-width 600px, white card on light grey background,
@@ -381,4 +376,3 @@ const renderEnrollmentCredentialsHtml = (input: {
 </body>
 </html>`
 }
-

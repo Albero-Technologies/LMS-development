@@ -154,11 +154,7 @@ export const createOrderForInvoice = async (tenantId: string, userId: string, in
 // and just (re-)issue a Razorpay order against it. Order creation goes
 // through `resolveRazorpay(tenantId)` so each tenant pays into its own
 // Razorpay account, with the platform key as the documented fallback.
-export const createOrderForEnrollmentBalance = async (
-    tenantId: string,
-    userId: string,
-    enrollmentId: string
-) => {
+export const createOrderForEnrollmentBalance = async (tenantId: string, userId: string, enrollmentId: string) => {
     const enrollment = await db.client.enrollment.findFirst({
         where: { id: enrollmentId, tenantId, userId },
         include: {
@@ -181,9 +177,7 @@ export const createOrderForEnrollmentBalance = async (
     // Compute the implied balance the same way `listMyEnrollments` does so
     // the UI banner and the actual charge agree to the paise.
     const coursePriceMinor = enrollment.course.price ?? 0
-    const paidPrincipalMinor = enrollment.invoices
-        .filter((i) => i.status === InvoiceStatus.PAID)
-        .reduce((n, i) => n + i.amount, 0)
+    const paidPrincipalMinor = enrollment.invoices.filter((i) => i.status === InvoiceStatus.PAID).reduce((n, i) => n + i.amount, 0)
     const remainingPrincipal = Math.max(0, coursePriceMinor - paidPrincipalMinor)
     const gstPct = enrollment.course.gstPercent ?? 18
     const gstAmount = Math.round((remainingPrincipal * gstPct) / 100)
@@ -247,11 +241,7 @@ export const createOrderForEnrollmentBalance = async (
 // flow turns this into a real PDF without needing a server-side PDF
 // library. Tenant branding (color + logo + contact email) flows through
 // so each receipt looks like the institute issued it.
-export const renderInvoiceReceipt = async (
-    tenantId: string,
-    invoiceId: string,
-    actor: { userId: string; role: string }
-): Promise<string> => {
+export const renderInvoiceReceipt = async (tenantId: string, invoiceId: string, actor: { userId: string; role: string }): Promise<string> => {
     const invoice = await db.client.invoice.findFirst({
         where: { id: invoiceId, tenantId },
         include: {
@@ -275,11 +265,9 @@ export const renderInvoiceReceipt = async (
     const studentName = `${invoice.user.firstName} ${invoice.user.lastName}`.trim() || invoice.user.email
     const courseTitle = invoice.enrollment?.course?.title ?? '—'
     const fmt = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`
-    const date = (d: Date | null) =>
-        d ? d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+    const date = (d: Date | null) => (d ? d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
 
-    const esc = (s: string): string =>
-        s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
     return `<!DOCTYPE html>
 <html lang="en"><head>

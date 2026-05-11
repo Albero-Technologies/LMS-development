@@ -19,7 +19,10 @@ interface ScopeContext {
 // Resolve the tenant filter for the actor. SA can pick any tenant via
 // tenantSlug ("__all__" disables the filter); everyone else is locked to
 // their own tenant — silently ignoring slugs they shouldn't see.
-const resolveTenantScope = async (slug: string | undefined, ctx: ScopeContext): Promise<{ tenantWhere: Prisma.UserWhereInput; tenantId: string | null }> => {
+const resolveTenantScope = async (
+    slug: string | undefined,
+    ctx: ScopeContext
+): Promise<{ tenantWhere: Prisma.UserWhereInput; tenantId: string | null }> => {
     if (ctx.role === Role.SUPER_ADMIN) {
         if (!slug || slug === '__all__') {
             return { tenantWhere: { tenant: { slug: { not: 'platform' } } }, tenantId: null }
@@ -92,11 +95,7 @@ const applyCategoryWhere = (where: Prisma.UserWhereInput, category: StudentCateg
             ]
             return
         case 'INACTIVE':
-            where.OR = [
-                ...(Array.isArray(where.OR) ? where.OR : []),
-                { lastLoginAt: null },
-                { lastLoginAt: { lt: inactivityCutoff } }
-            ]
+            where.OR = [...(Array.isArray(where.OR) ? where.OR : []), { lastLoginAt: null }, { lastLoginAt: { lt: inactivityCutoff } }]
             where.status = { not: UserStatus.SUSPENDED }
             return
         case 'ACTIVE':
@@ -175,7 +174,10 @@ const computeFlags = (
         !dead &&
         !active &&
         !allEnrolmentsCompleted &&
-        (enrollments.length === 0 || (!recentLogin && enrollments.some((e) => e.progressPct < 30)) || enquiryStage === EnquiryStage.NEW || enquiryStage === EnquiryStage.DEMO_SCHEDULED)
+        (enrollments.length === 0 ||
+            (!recentLogin && enrollments.some((e) => e.progressPct < 30)) ||
+            enquiryStage === EnquiryStage.NEW ||
+            enquiryStage === EnquiryStage.DEMO_SCHEDULED)
 
     // DEMO is set by the caller from the enrolment.accessTier check —
     // false here because computeFlags doesn't see the access tier. The
@@ -200,7 +202,14 @@ interface StudentAggregate {
         status: EnrollmentStatus
         progressPct: number
         accessTier: EnrollmentAccessTier
-        course: { id: string; title: string; price: number; gstPercent: number; trainerId: string | null; trainer: { id: string; firstName: string; lastName: string; email: string } | null } | null
+        course: {
+            id: string
+            title: string
+            price: number
+            gstPercent: number
+            trainerId: string | null
+            trainer: { id: string; firstName: string; lastName: string; email: string } | null
+        } | null
         invoices: { amount: number; totalAmount: number; status: InvoiceStatus }[]
     }[]
     invoices: { amount: number; totalAmount: number; status: InvoiceStatus }[]
@@ -338,7 +347,9 @@ export const listStudents = async (input: TListStudentsInput, ctx: ScopeContext)
 
     const rows: StudentRow[] = aggregates.map((agg) => {
         const totalPaid = agg.invoices.filter((i) => i.status === InvoiceStatus.PAID).reduce((n, i) => n + i.totalAmount, 0)
-        const pendingFromInvoices = agg.invoices.filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT).reduce((n, i) => n + i.totalAmount, 0)
+        const pendingFromInvoices = agg.invoices
+            .filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT)
+            .reduce((n, i) => n + i.totalAmount, 0)
         const paidCount = agg.invoices.filter((i) => i.status === InvoiceStatus.PAID).length
         const pendingCount = agg.invoices.filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT).length
 
@@ -435,19 +446,35 @@ const computeCategoryTotals = async (baseWhere: Prisma.UserWhereInput, inactivit
 
     const counts = await Promise.all([
         db.client.user.count({
-            where: { ...safeWhere, status: UserStatus.ACTIVE, lastLoginAt: { gte: inactivityCutoff }, enrollments: { some: { status: EnrollmentStatus.ACTIVE, deletedAt: null } } }
+            where: {
+                ...safeWhere,
+                status: UserStatus.ACTIVE,
+                lastLoginAt: { gte: inactivityCutoff },
+                enrollments: { some: { status: EnrollmentStatus.ACTIVE, deletedAt: null } }
+            }
         }),
         db.client.user.count({
-            where: { ...safeWhere, status: { not: UserStatus.SUSPENDED }, OR: [...(safeWhere.OR ?? []), { lastLoginAt: null }, { lastLoginAt: { lt: inactivityCutoff } }] }
+            where: {
+                ...safeWhere,
+                status: { not: UserStatus.SUSPENDED },
+                OR: [...(safeWhere.OR ?? []), { lastLoginAt: null }, { lastLoginAt: { lt: inactivityCutoff } }]
+            }
         }),
         db.client.user.count({
-            where: { ...safeWhere, invoices: { some: { status: InvoiceStatus.PAID } }, NOT: { invoices: { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } } } }
+            where: {
+                ...safeWhere,
+                invoices: { some: { status: InvoiceStatus.PAID } },
+                NOT: { invoices: { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } } }
+            }
         }),
         db.client.user.count({
             where: { ...safeWhere, invoices: { some: { status: { in: [InvoiceStatus.DUE, InvoiceStatus.DRAFT] } } } }
         }),
         db.client.user.count({
-            where: { ...safeWhere, OR: [...(safeWhere.OR ?? []), { enrollments: { none: { deletedAt: null } } }, { enrollments: { some: { progressPct: { lt: 30 } } } }] }
+            where: {
+                ...safeWhere,
+                OR: [...(safeWhere.OR ?? []), { enrollments: { none: { deletedAt: null } } }, { enrollments: { some: { progressPct: { lt: 30 } } } }]
+            }
         }),
         db.client.user.count({ where: { ...safeWhere, status: UserStatus.SUSPENDED } }),
         // DEMO — registration paid but full fee outstanding. Cheap to count
@@ -497,7 +524,10 @@ interface TeamBucket {
     }
 }
 
-const counsellorRollup = async (counsellor: { id: string; firstName: string; lastName: string; email: string; employeeCode: string | null }, tenantId: string): Promise<TeamBucketCounsellor> => {
+const counsellorRollup = async (
+    counsellor: { id: string; firstName: string; lastName: string; email: string; employeeCode: string | null },
+    tenantId: string
+): Promise<TeamBucketCounsellor> => {
     const signups = await db.client.studentSignup.findMany({
         where: { tenantId, counsellorId: counsellor.id },
         include: {
@@ -520,7 +550,9 @@ const counsellorRollup = async (counsellor: { id: string; firstName: string; las
         const u = s.user
         if (!u) continue
         const totalPaid = u.invoices.filter((i) => i.status === InvoiceStatus.PAID).reduce((n: number, i) => n + i.totalAmount, 0)
-        const pendingAmount = u.invoices.filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT).reduce((n: number, i) => n + i.totalAmount, 0)
+        const pendingAmount = u.invoices
+            .filter((i) => i.status === InvoiceStatus.DUE || i.status === InvoiceStatus.DRAFT)
+            .reduce((n: number, i) => n + i.totalAmount, 0)
         revenuePaid += totalPaid
         revenuePending += pendingAmount
         const recentLogin = u.lastLoginAt ? Date.now() - u.lastLoginAt.getTime() < INACTIVITY_MS : false
@@ -577,7 +609,10 @@ export const listTeamBuckets = async (input: TTeamBucketsInput, ctx: ScopeContex
         const rollup = await counsellorRollup(counsellor, ctx.tenantId)
         const totals = aggregateTotals([rollup])
         const manager = counsellor.managerId
-            ? await db.client.user.findUnique({ where: { id: counsellor.managerId }, select: { id: true, firstName: true, lastName: true, email: true } })
+            ? await db.client.user.findUnique({
+                  where: { id: counsellor.managerId },
+                  select: { id: true, firstName: true, lastName: true, email: true }
+              })
             : null
         return {
             buckets: [
@@ -725,11 +760,13 @@ export const getStatsTimeline = async (input: TStatsTimelineInput, ctx: ScopeCon
     // Tenant filter for non-User tables (Enquiry / Enrollment / Invoice).
     const tenantIdFilter: Prisma.IntFilter | Prisma.StringFilter | undefined = undefined // placeholder for type lint
     void tenantIdFilter
-    const tenantWhereForOther = (tenantWhere.tenantId
-        ? { tenantId: tenantWhere.tenantId as string }
-        : tenantWhere.tenant?.slug
-          ? { tenant: tenantWhere.tenant as Prisma.TenantWhereInput }
-          : { tenant: { slug: { not: 'platform' as const } } }) as Prisma.EnquiryWhereInput
+    const tenantWhereForOther = (
+        tenantWhere.tenantId
+            ? { tenantId: tenantWhere.tenantId as string }
+            : tenantWhere.tenant?.slug
+              ? { tenant: tenantWhere.tenant as Prisma.TenantWhereInput }
+              : { tenant: { slug: { not: 'platform' as const } } }
+    ) as Prisma.EnquiryWhereInput
 
     // Enquiries (signups + conversions + lost)
     const enquiries = await db.client.enquiry.findMany({
@@ -771,7 +808,16 @@ export const getStatsTimeline = async (input: TStatsTimelineInput, ctx: ScopeCon
 
     const map = new Map<string, TimelineBucket>()
     for (const key of enumerateBuckets(from, to, granularity)) {
-        map.set(key, { bucket: key, label: bucketLabel(key, granularity), signups: 0, enrolments: 0, revenue: 0, enquiries: 0, converted: 0, lost: 0 })
+        map.set(key, {
+            bucket: key,
+            label: bucketLabel(key, granularity),
+            signups: 0,
+            enrolments: 0,
+            revenue: 0,
+            enquiries: 0,
+            converted: 0,
+            lost: 0
+        })
     }
 
     for (const e of enquiries) {

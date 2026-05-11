@@ -66,7 +66,10 @@ export const getTenantDetail = async (req: Request, res: Response): Promise<void
 // silently dropped from non-SA writes.
 export const updateTenantById = async (req: Request, res: Response): Promise<void> => {
     const tenant = await service.updateBranding(req.params.id, req.body, { allowPlanChange: true })
-    await writeAudit({ action: 'tenant.update', entityType: 'Tenant', entityId: tenant.id, tenantId: tenant.id, metadata: { plan: tenant.plan } }, req)
+    await writeAudit(
+        { action: 'tenant.update', entityType: 'Tenant', entityId: tenant.id, tenantId: tenant.id, metadata: { plan: tenant.plan } },
+        req
+    )
     httpResponse(req, res, 200, responseMessage.SUCCESS, tenant)
 }
 
@@ -78,7 +81,13 @@ export const requestPlanChange = async (req: Request, res: Response): Promise<vo
     const body = req.body as { targetPlan: string; note?: string }
     const result = await service.requestPlanChange(req.auth.tenantId, req.auth.userId, body.targetPlan, body.note)
     await writeAudit(
-        { action: 'tenant.plan_change_requested', entityType: 'Tenant', entityId: req.auth.tenantId, tenantId: req.auth.tenantId, metadata: { targetPlan: body.targetPlan } },
+        {
+            action: 'tenant.plan_change_requested',
+            entityType: 'Tenant',
+            entityId: req.auth.tenantId,
+            tenantId: req.auth.tenantId,
+            metadata: { targetPlan: body.targetPlan }
+        },
         req
     )
     httpResponse(req, res, 200, responseMessage.SUCCESS, result)

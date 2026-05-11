@@ -157,7 +157,20 @@ export const createEnquiry = async (tenantId: string, input: TCreateEnquiryInput
 // the sheet is the marketing team's primary view.
 type EnquiryLike = Pick<
     Awaited<ReturnType<typeof db.client.enquiry.create>>,
-    'name' | 'email' | 'phone' | 'course' | 'city' | 'language' | 'message' | 'source' | 'utmSource' | 'utmMedium' | 'utmCampaign' | 'assignedToId' | 'stage' | 'id'
+    | 'name'
+    | 'email'
+    | 'phone'
+    | 'course'
+    | 'city'
+    | 'language'
+    | 'message'
+    | 'source'
+    | 'utmSource'
+    | 'utmMedium'
+    | 'utmCampaign'
+    | 'assignedToId'
+    | 'stage'
+    | 'id'
 >
 
 export type EnquiryFormType = 'contact-form' | 'enroll-checkout'

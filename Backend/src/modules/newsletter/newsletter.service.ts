@@ -97,10 +97,7 @@ export const pushSubscriberToSheet = async (tenantId: string, sub: SubscriberLik
     })
 }
 
-export const listSubscribers = async (
-    tenantId: string,
-    filter: { status?: 'active' | 'unsubscribed'; q?: string }
-) => {
+export const listSubscribers = async (tenantId: string, filter: { status?: 'active' | 'unsubscribed'; q?: string }) => {
     const trimmed = filter.q?.trim()
     return db.client.newsletterSubscriber.findMany({
         where: {
@@ -108,10 +105,7 @@ export const listSubscribers = async (
             ...(filter.status ? { status: filter.status } : {}),
             ...(trimmed
                 ? {
-                      OR: [
-                          { email: { contains: trimmed, mode: 'insensitive' } },
-                          { name: { contains: trimmed, mode: 'insensitive' } }
-                      ]
+                      OR: [{ email: { contains: trimmed, mode: 'insensitive' } }, { name: { contains: trimmed, mode: 'insensitive' } }]
                   }
                 : {})
         },
@@ -119,11 +113,7 @@ export const listSubscribers = async (
     })
 }
 
-export const updateSubscriberStatus = async (
-    tenantId: string,
-    id: string,
-    status: 'active' | 'unsubscribed'
-) => {
+export const updateSubscriberStatus = async (tenantId: string, id: string, status: 'active' | 'unsubscribed') => {
     const sub = await db.client.newsletterSubscriber.findFirst({ where: { id, tenantId } })
     if (!sub) throw AppError.notFound(responseMessage.NOT_FOUND('Subscriber'), 'NEWSLETTER_NOT_FOUND')
     return db.client.newsletterSubscriber.update({ where: { id }, data: { status } })

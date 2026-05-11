@@ -3,7 +3,12 @@ import db from '../../service/db'
 import AppError from '../../util/AppError'
 import responseMessage from '../../constant/responseMessage'
 import { enqueueNotification } from '../notifications/notification.queue'
-import type { TCancelPaymentRequestInput, TCreatePaymentRequestInput, TListPaymentRequestsInput, TReviewPaymentRequestInput } from './payment-request.schema'
+import type {
+    TCancelPaymentRequestInput,
+    TCreatePaymentRequestInput,
+    TListPaymentRequestsInput,
+    TReviewPaymentRequestInput
+} from './payment-request.schema'
 
 interface ScopeContext {
     role: Role
@@ -11,8 +16,7 @@ interface ScopeContext {
     userId: string
 }
 
-const fmtName = (u: { firstName: string; lastName: string } | null | undefined): string =>
-    u ? `${u.firstName} ${u.lastName}`.trim() || '—' : '—'
+const fmtName = (u: { firstName: string; lastName: string } | null | undefined): string => (u ? `${u.firstName} ${u.lastName}`.trim() || '—' : '—')
 
 const fmtAmount = (amountMinor: number, currency: string): string => {
     if (currency === 'INR') return `₹${(amountMinor / 100).toLocaleString('en-IN')}`
@@ -21,10 +25,7 @@ const fmtAmount = (amountMinor: number, currency: string): string => {
 
 // Scope filter for SA cross-tenant listing. Other roles always see their own
 // tenant only — silently ignore any tenantSlug they pass.
-const resolveTenantWhere = async (
-    slug: string | undefined,
-    ctx: ScopeContext
-): Promise<{ tenantId?: string; tenant?: Prisma.TenantWhereInput }> => {
+const resolveTenantWhere = async (slug: string | undefined, ctx: ScopeContext): Promise<{ tenantId?: string; tenant?: Prisma.TenantWhereInput }> => {
     if (ctx.role !== Role.SUPER_ADMIN) return { tenantId: ctx.tenantId }
     if (!slug || slug === '__all__') return { tenant: { slug: { not: 'platform' } } }
     const tenant = await db.client.tenant.findUnique({ where: { slug } })
