@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Clock, ChevronRight, PlayCircle, GraduationCap, Users, CheckCircle2 } from 'lucide-react'
 import { findSession, listSessions } from '@/constants/soft-skill-content'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildResourceDetailSEO } from '@/constants/seo'
 
 export default function SoftSkillSessionPage() {
     const { slug = '' } = useParams<{ slug?: string }>()
@@ -43,10 +46,33 @@ export default function SoftSkillSessionPage() {
     const Icon = session.Icon
     const related = all.filter((s) => s.slug !== session.slug).slice(0, 3)
 
+    const seo = buildResourceDetailSEO({
+        section: 'soft-skills',
+        slug: session.slug,
+        title: session.title,
+        description: session.description,
+        keywords: session.tags?.join(', ') ?? ''
+    })
+    const breadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/soft-skills' },
+        { name: 'Soft Skills', url: 'https://www.alberoacademy.com/resources/soft-skills' },
+        { name: session.title, url: seo.url }
+    ])
+
     return (
         <div
             className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={breadcrumbs} />
             {/* Hero */}
             <section className="relative pt-[140px] pb-10 px-5 md:px-8">
                 <div

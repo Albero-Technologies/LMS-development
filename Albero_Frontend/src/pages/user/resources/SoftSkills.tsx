@@ -4,6 +4,9 @@ import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { listSessions } from '@/constants/soft-skill-content'
 import { useCollection } from '@/hooks/useContent'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { softSkillsHubSEO } from '@/constants/seo'
 
 const audiences = [
     { label: 'Students', sub: 'Build foundations early' },
@@ -48,6 +51,17 @@ export default function SoftSkills() {
     const rest = all.slice(2)
 
     return (
+        <>
+            <SEO
+                title={softSkillsHubSEO.title}
+                description={softSkillsHubSEO.description}
+                keywords={softSkillsHubSEO.keywords}
+                url={softSkillsHubSEO.url}
+                canonical={softSkillsHubSEO.canonical}
+                image={softSkillsHubSEO.image}
+                type={softSkillsHubSEO.type}
+            />
+            <StructuredData page="softSkills" />
         <ResourceLayout
             eyebrow="Soft Skills Training"
             title="Master the skills that"
@@ -235,5 +249,6 @@ export default function SoftSkills() {
                 </div>
             </div>
         </ResourceLayout>
+        </>
     )
 }

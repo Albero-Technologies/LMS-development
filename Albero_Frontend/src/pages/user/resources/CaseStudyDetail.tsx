@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Clock, Calendar, ChevronRight, Building2, MapPin, TrendingUp, Users } from 'lucide-react'
 import { findCaseStudy, listCaseStudies } from '@/constants/case-study-content'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildResourceDetailSEO } from '@/constants/seo'
 
 export default function CaseStudyDetail() {
     const { slug = '' } = useParams<{ slug?: string }>()
@@ -47,10 +50,33 @@ export default function CaseStudyDetail() {
         .join('')
         .slice(0, 2)
 
+    const seo = buildResourceDetailSEO({
+        section: 'case-studies',
+        slug: study.slug,
+        title: study.title,
+        description: study.description,
+        keywords: study.tags?.join(', ') ?? ''
+    })
+    const breadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/case-studies' },
+        { name: 'Case Studies', url: 'https://www.alberoacademy.com/resources/case-studies' },
+        { name: study.brand, url: seo.url }
+    ])
+
     return (
         <div
             className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={breadcrumbs} />
             {/* ── Hero ── */}
             <section className="relative pt-[140px] pb-10 px-5 md:px-8">
                 <div

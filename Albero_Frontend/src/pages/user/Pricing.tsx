@@ -22,6 +22,8 @@ import {
     Sparkles
 } from 'lucide-react'
 import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { pricingSEO } from '@/constants/seo'
 
 type Program = {
     slug: string
@@ -160,11 +162,15 @@ export default function PricingPage() {
     return (
         <div>
             <SEO
-                title="Pricing — Albero Academy"
-                description="Honest, upfront pricing for every Albero Academy programme. No hidden fees, 0% EMI for up to 18 months, and a 7-day refund guarantee — backed by end-to-end placement support."
-                url="/pricing"
-                canonical="/pricing"
+                title={pricingSEO.title}
+                description={pricingSEO.description}
+                keywords={pricingSEO.keywords}
+                url={pricingSEO.url}
+                canonical={pricingSEO.canonical}
+                image={pricingSEO.image}
+                type={pricingSEO.type}
             />
+            <StructuredData page="pricing" />
 
             {/* ── HERO — dark transparent pricing ── */}
             <section

@@ -176,24 +176,93 @@ function buildBreadcrumbs(items: { name: string; url: string }[]) {
 
 // ─── Page-level breadcrumb presets ───────────────────────────────────────────
 
+const SITE = 'https://www.alberoacademy.com'
+
 export const breadcrumbs = {
-    home: buildBreadcrumbs([{ name: 'Home', url: 'https://www.alberoacademy.com/' }]),
+    home: buildBreadcrumbs([{ name: 'Home', url: `${SITE}/` }]),
     about: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.alberoacademy.com/' },
-        { name: 'About Us', url: 'https://www.alberoacademy.com/about' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'About Us', url: `${SITE}/about` }
     ]),
     work: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.alberoacademy.com/' },
-        { name: 'Case Studies', url: 'https://www.alberoacademy.com/work' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Case Studies', url: `${SITE}/work` }
+    ]),
+    pricing: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Pricing', url: `${SITE}/pricing` }
+    ]),
+    contact: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Contact', url: `${SITE}/contact` }
+    ]),
+    programs: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Programs', url: `${SITE}/#programs` }
+    ]),
+    resources: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/blogs` }
+    ]),
+    blogs: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/blogs` },
+        { name: 'Blogs', url: `${SITE}/resources/blogs` }
+    ]),
+    tutorials: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/tutorials` },
+        { name: 'Tutorials', url: `${SITE}/resources/tutorials` }
+    ]),
+    softSkills: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/soft-skills` },
+        { name: 'Soft Skills', url: `${SITE}/resources/soft-skills` }
+    ]),
+    caseStudies: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/case-studies` },
+        { name: 'Case Studies', url: `${SITE}/resources/case-studies` }
+    ]),
+    interviewGuides: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/interview-guides` },
+        { name: 'Interview Guides', url: `${SITE}/resources/interview-guides` }
+    ]),
+    cheatSheets: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Resources', url: `${SITE}/resources/cheatsheet` },
+        { name: 'Cheat Sheets', url: `${SITE}/resources/cheatsheet` }
     ]),
     refund: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.alberoacademy.com/' },
-        { name: 'Refund Policy', url: 'https://www.alberoacademy.com/refund-policy' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Refund Policy', url: `${SITE}/policies/refund` }
     ]),
     terms: buildBreadcrumbs([
-        { name: 'Home', url: 'https://www.alberoacademy.com/' },
-        { name: 'Terms & Policies', url: 'https://www.alberoacademy.com/terms-and-policies' }
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Terms of Use', url: `${SITE}/policies/terms` }
+    ]),
+    privacy: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Privacy Policy', url: `${SITE}/policies/privacy` }
+    ]),
+    escalation: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Escalation Policy', url: `${SITE}/policies/escalation` }
+    ]),
+    examination: buildBreadcrumbs([
+        { name: 'Home', url: `${SITE}/` },
+        { name: 'Policies', url: `${SITE}/policies/terms` },
+        { name: 'Examination Policy', url: `${SITE}/policies/examination` }
     ])
+}
+
+export function buildDetailBreadcrumbs(items: { name: string; url: string }[]) {
+    return buildBreadcrumbs([{ name: 'Home', url: `${SITE}/` }, ...items])
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -205,13 +274,16 @@ interface StructuredDataProps {
     isHomePage?: boolean
     /** Pass additional custom schema objects */
     extra?: object[]
+    /** Override breadcrumbs entirely (used by dynamic detail pages) */
+    breadcrumbOverride?: object
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function StructuredData({ page = 'home', isHomePage = false, extra = [] }: StructuredDataProps) {
+export default function StructuredData({ page = 'home', isHomePage = false, extra = [], breadcrumbOverride }: StructuredDataProps) {
     // Always include sitewide schemas
-    const schemas: object[] = [organizationSchema, websiteSchema, localBusinessSchema, breadcrumbs[page]]
+    const breadcrumb = breadcrumbOverride ?? breadcrumbs[page]
+    const schemas: object[] = [organizationSchema, websiteSchema, localBusinessSchema, breadcrumb]
 
     // Homepage-only schemas
     if (isHomePage) {

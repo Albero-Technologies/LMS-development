@@ -18,6 +18,9 @@ import {
 } from 'lucide-react'
 import CodeBlock from '@/components/ui/code-block'
 import { findSheet, listSheets } from '@/constants/cheatsheet-content'
+import SEO from '@/components/user/common/SEO'
+import StructuredData, { buildDetailBreadcrumbs } from '@/components/user/common/StructuredData'
+import { buildResourceDetailSEO } from '@/constants/seo'
 
 const iconMap = {
     python: Code2,
@@ -51,10 +54,33 @@ export default function CheatSheetDetail() {
     const Icon = iconMap[sheet.iconKey]
     const related = all.filter((s) => s.slug !== sheet.slug).slice(0, 4)
 
+    const seo = buildResourceDetailSEO({
+        section: 'cheatsheet',
+        slug: sheet.slug,
+        title: sheet.title,
+        description: sheet.description ?? `${sheet.title} cheat sheet — compact reference for interviews and daily work.`,
+        keywords: `${sheet.title} cheat sheet, ${sheet.title} quick reference`
+    })
+    const breadcrumbs = buildDetailBreadcrumbs([
+        { name: 'Resources', url: 'https://www.alberoacademy.com/resources/cheatsheet' },
+        { name: 'Cheat Sheets', url: 'https://www.alberoacademy.com/resources/cheatsheet' },
+        { name: sheet.title, url: seo.url }
+    ])
+
     return (
         <div
             className="min-h-screen relative"
             style={{ background: 'var(--page-bg)', color: 'var(--text-primary)' }}>
+            <SEO
+                title={seo.title}
+                description={seo.description}
+                keywords={seo.keywords}
+                url={seo.url}
+                canonical={seo.canonical}
+                image={seo.image}
+                type={seo.type}
+            />
+            <StructuredData breadcrumbOverride={breadcrumbs} />
             {/* Hero */}
             <section className="relative pt-[140px] pb-12 px-5 md:px-8">
                 <div

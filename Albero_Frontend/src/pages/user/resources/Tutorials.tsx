@@ -3,6 +3,9 @@ import { Library, Code2, BarChart3, Database, FileSpreadsheet, PieChart, Calcula
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { useCollection } from '@/hooks/useContent'
+import SEO from '@/components/user/common/SEO'
+import StructuredData from '@/components/user/common/StructuredData'
+import { tutorialsHubSEO } from '@/constants/seo'
 
 const topics = [
     {
@@ -139,6 +142,17 @@ export default function Tutorials() {
     const allChapters = [...cmsChapters, ...featuredChapters]
 
     return (
+        <>
+            <SEO
+                title={tutorialsHubSEO.title}
+                description={tutorialsHubSEO.description}
+                keywords={tutorialsHubSEO.keywords}
+                url={tutorialsHubSEO.url}
+                canonical={tutorialsHubSEO.canonical}
+                image={tutorialsHubSEO.image}
+                type={tutorialsHubSEO.type}
+            />
+            <StructuredData page="tutorials" />
         <ResourceLayout
             eyebrow="Free Tutorials"
             title="Learn by Doing,"
@@ -307,5 +321,6 @@ export default function Tutorials() {
                 </div>
             </div>
         </ResourceLayout>
+        </>
     )
 }
