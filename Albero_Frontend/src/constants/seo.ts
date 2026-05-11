@@ -320,3 +320,58 @@ export const notFoundSEO: SEOData = {
     image: DEFAULT_IMAGE,
     type: 'website'
 }
+
+// ─── Helpers for dynamic detail pages ────────────────────────────────────────
+
+export function buildResourceDetailSEO(args: {
+    section: 'blogs' | 'tutorials' | 'soft-skills' | 'case-studies' | 'interview-guides' | 'cheatsheet'
+    slug: string
+    title: string
+    description: string
+    keywords?: string
+    image?: string
+}): SEOData {
+    const url = `${SITE_URL}/resources/${args.section}/${args.slug}`
+    return {
+        title: `${args.title} | Albero Academy`,
+        description: args.description,
+        keywords: args.keywords ?? '',
+        url,
+        canonical: url,
+        image: args.image ?? DEFAULT_IMAGE,
+        type: 'article'
+    }
+}
+
+export function buildTutorialChapterSEO(args: {
+    topic: string
+    chapter: string
+    title: string
+    description: string
+    keywords?: string
+}): SEOData {
+    const url = `${SITE_URL}/resources/tutorials/${args.topic}/${args.chapter}`
+    return {
+        title: `${args.title} | Albero Academy Tutorials`,
+        description: args.description,
+        keywords: args.keywords ?? '',
+        url,
+        canonical: url,
+        image: DEFAULT_IMAGE,
+        type: 'article'
+    }
+}
+
+export function buildProgramSEO(slug: string, fallbackTitle: string, fallbackDescription: string): SEOData {
+    return (
+        programSEO[slug] ?? {
+            title: `${fallbackTitle} | Albero Academy`,
+            description: fallbackDescription,
+            keywords: '',
+            url: `${SITE_URL}/programs/${slug}`,
+            canonical: `${SITE_URL}/programs/${slug}`,
+            image: DEFAULT_IMAGE,
+            type: 'article'
+        }
+    )
+}

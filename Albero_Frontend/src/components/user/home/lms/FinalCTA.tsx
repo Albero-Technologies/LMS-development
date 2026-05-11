@@ -1,11 +1,39 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { ArrowUpRight, CheckCircle2, Phone } from 'lucide-react'
+import { ArrowUpRight, CheckCircle2, Loader2, Phone } from 'lucide-react'
 import { useMagnet } from '@/hooks/useInteractive'
+import { sendLeadForm } from '@/services/contactService'
+import { showError } from '@/lib/toast'
 
 export default function FinalCTA() {
     const [submitted, setSubmitted] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [form, setForm] = useState({ name: '', email: '', phone: '', course: 'Not sure yet' })
     const submitRef = useMagnet<HTMLButtonElement>({ strength: 14 })
+
+    const onSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (loading) return
+        setLoading(true)
+        try {
+            await sendLeadForm({
+                name: form.name.trim(),
+                email: form.email.trim(),
+                phone: form.phone.trim(),
+                course: form.course === 'Not sure yet' ? 'General enquiry' : form.course,
+                surface: 'callback-final-cta'
+            })
+            setSubmitted(true)
+        } catch (err) {
+            const message =
+                typeof err === 'object' && err !== null && 'response' in err
+                    ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                    : undefined
+            showError(message || 'Could not request callback — please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
         <section
@@ -98,10 +126,7 @@ export default function FinalCTA() {
                             style={{ background: 'var(--surface)', color: 'var(--text-primary)', boxShadow: 'var(--card-shadow-hover)' }}>
                             {!submitted ? (
                                 <form
-                                    onSubmit={(e) => {
-                                        e.preventDefault()
-                                        setSubmitted(true)
-                                    }}
+                                    onSubmit={onSubmit}
                                     className="space-y-3">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Phone
@@ -116,6 +141,8 @@ export default function FinalCTA() {
                                     </div>
                                     <input
                                         required
+                                        value={form.name}
+                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
                                         placeholder="Full name"
                                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
                                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}
@@ -123,6 +150,8 @@ export default function FinalCTA() {
                                     <input
                                         required
                                         type="email"
+                                        value={form.email}
+                                        onChange={(e) => setForm({ ...form, email: e.target.value })}
                                         placeholder="Email"
                                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
                                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}
@@ -130,26 +159,43 @@ export default function FinalCTA() {
                                     <input
                                         required
                                         type="tel"
+                                        value={form.phone}
+                                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
                                         placeholder="WhatsApp number"
                                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
                                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}
                                     />
                                     <select
+                                        value={form.course}
+                                        onChange={(e) => setForm({ ...form, course: e.target.value })}
                                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
                                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}>
-                                        <option>Program of interest</option>
-                                        <option>Business Analytics</option>
-                                        <option>Data Analytics</option>
-                                        <option>Data Science with ML &amp; GenAI</option>
-                                        <option>Full Stack Development</option>
-                                        <option>Not sure yet</option>
+                                        <option value="Not sure yet">Program of interest</option>
+                                        <option value="Business Analytics">Business Analytics</option>
+                                        <option value="Data Analytics">Data Analytics</option>
+                                        <option value="Data Science with ML & GenAI">Data Science with ML &amp; GenAI</option>
+                                        <option value="Full Stack Development">Full Stack Development</option>
+                                        <option value="Not sure yet">Not sure yet</option>
                                     </select>
                                     <button
                                         ref={submitRef}
                                         type="submit"
-                                        className="w-full rounded-full py-3 text-[14px] font-semibold inline-flex items-center justify-center gap-1.5"
+                                        disabled={loading}
+                                        className="w-full rounded-full py-3 text-[14px] font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed"
                                         style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
-                                        Book my callback <ArrowUpRight size={14} />
+                                        {loading ? (
+                                            <>
+                                                <Loader2
+                                                    size={14}
+                                                    className="animate-spin"
+                                                />
+                                                Booking…
+                                            </>
+                                        ) : (
+                                            <>
+                                                Book my callback <ArrowUpRight size={14} />
+                                            </>
+                                        )}
                                     </button>
                                     <p
                                         className="text-[11px] mt-1 text-center"
