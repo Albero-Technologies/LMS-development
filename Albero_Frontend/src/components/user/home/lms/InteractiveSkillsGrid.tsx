@@ -210,8 +210,7 @@ export default function InteractiveSkillsGrid() {
                                 lineHeight: 1.02
                             }}>
                             <span className="hidden md:inline">Hover a skill</span>
-                            <span className="md:hidden">Skills by track</span>{' '}
-                            —{' '}
+                            <span className="md:hidden">Skills by track</span> —{' '}
                             <span
                                 className="italic font-light"
                                 style={{ color: 'var(--brand)' }}>

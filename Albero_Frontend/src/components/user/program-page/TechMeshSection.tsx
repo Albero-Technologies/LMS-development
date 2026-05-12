@@ -216,17 +216,7 @@ const SectionHeadingAdaptive = ({
 // a faint sweep line connects the hub to the first tile to suggest the
 // "river of data" the canvas animates. No <canvas>, no rAF, no fractional
 // coordinates — so labels can never clip the section.
-const MobileToolMesh = ({
-    nodes,
-    hubLabel,
-    hubGlyph,
-    isDark
-}: {
-    nodes: ArmorCodeNode[]
-    hubLabel: string
-    hubGlyph: string
-    isDark: boolean
-}) => {
+const MobileToolMesh = ({ nodes, hubLabel, hubGlyph, isDark }: { nodes: ArmorCodeNode[]; hubLabel: string; hubGlyph: string; isDark: boolean }) => {
     return (
         <div
             className="lg:hidden relative rounded-3xl p-5 overflow-hidden"
