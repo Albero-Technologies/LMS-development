@@ -395,14 +395,18 @@ const Navbar = () => {
                                 <ThemeToggle size="sm" />
                             </div>
 
-                            <button
-                                onClick={() => {
-                                    window.location.href = dashboardLoginUrl()
-                                }}
+                            {/* Sign in routes to the LMS Frontend's /login,
+                                which then hands off to the student/admin
+                                dashboard. Open in a new tab so the marketing
+                                site stays open behind it. */}
+                            <a
+                                href={dashboardLoginUrl()}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="hidden md:inline-flex items-center gap-1.5 text-[13.5px] font-semibold transition-colors"
                                 style={{ color: navTextColor }}>
                                 <LogIn size={14} /> Sign in
-                            </button>
+                            </a>
 
                             <button
                                 onClick={() => goLink('/pricing')}
@@ -554,15 +558,15 @@ const Navbar = () => {
                                 />
 
                                 <div className="mt-6 grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => {
-                                            setIsOpen(false)
-                                            window.location.href = dashboardLoginUrl()
-                                        }}
-                                        className="py-3 rounded-full font-semibold"
+                                    <a
+                                        href={dashboardLoginUrl()}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => setIsOpen(false)}
+                                        className="inline-flex items-center justify-center py-3 rounded-full font-semibold text-center"
                                         style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--line)' }}>
                                         Sign in
-                                    </button>
+                                    </a>
                                     <button
                                         onClick={() => {
                                             setIsOpen(false)

@@ -29,7 +29,12 @@ import { FEATURED_SUCCESS_STORIES } from '@/constants/program-extras'
 
 export default function Home() {
     return (
-        <div>
+        // overflow-x: clip prevents any rogue child (decor blobs, marquees,
+        // wide gradients) from pushing the home page horizontally on mobile.
+        // The global html/body already do this; pinning it on the Home wrapper
+        // too is belt-and-braces against a single overflowing section
+        // shifting the entire viewport right on phones.
+        <div className="overflow-x-clip">
             <SEO
                 title={homeSEO.title}
                 description={homeSEO.description}

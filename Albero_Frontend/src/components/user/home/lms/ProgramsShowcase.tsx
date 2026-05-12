@@ -201,17 +201,23 @@ export default function ProgramsShowcase() {
             className="relative py-24 px-5 md:px-8 overflow-hidden"
             style={{ background: 'var(--page-bg-soft)', color: 'var(--text-primary)' }}>
             <div className="max-w-[1320px] mx-auto">
-                {/* Heading */}
-                <div className="grid md:grid-cols-[1.4fr_1fr] gap-10 items-end mb-12">
+                {/* Heading — clamped font size so it fits 320px viewports
+                    without forcing the section wider. Desktop look untouched
+                    at lg+ where the clamp maxes out at 60px. */}
+                <div className="grid md:grid-cols-[1.4fr_1fr] gap-6 md:gap-10 items-end mb-8 md:mb-12">
                     <div>
                         <div
-                            className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-4"
+                            className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-3 md:mb-4"
                             style={{ color: 'var(--brand)' }}>
                             Career-First Programs
                         </div>
                         <h2
-                            className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
-                            style={{ color: 'var(--text-primary)' }}>
+                            className="font-display leading-[0.98] tracking-[-0.02em] font-medium"
+                            style={{
+                                color: 'var(--text-primary)',
+                                fontSize: 'clamp(28px, 6.5vw, 60px)',
+                                overflowWrap: 'break-word'
+                            }}>
                             Eight programs.
                             <br />
                             <span
@@ -222,15 +228,105 @@ export default function ProgramsShowcase() {
                         </h2>
                     </div>
                     <p
-                        className="text-[16px] leading-relaxed"
+                        className="text-[14.5px] md:text-[16px] leading-relaxed"
                         style={{ color: 'var(--text-secondary)' }}>
                         Each program is co-designed with hiring managers and built around live mentorship, portfolio-grade projects, and a
                         placement-focused career sprint.
                     </p>
                 </div>
 
-                {/* Bento layout */}
-                <div className="grid lg:grid-cols-[1.2fr_1fr] gap-5 items-start">
+                {/* ── Mobile (<lg): simple stacked program cards ──
+                    The desktop carousel + auto-cycle showcase doesn't translate
+                    well to mobile — the right-side "Pick a track" list was
+                    rendering wider than viewport on phones. This block replaces
+                    it with a clean vertical list (no carousel, no auto-cycle)
+                    where every program is a self-contained card a thumb can
+                    reach. Desktop layout below is untouched. */}
+                <div className="lg:hidden flex flex-col gap-3">
+                    {programs.map((p) => {
+                        const Ic = p.Icon
+                        return (
+                            <motion.button
+                                key={p.slug}
+                                onClick={() => navigate(`/programs/${p.slug}`)}
+                                whileTap={{ scale: 0.98 }}
+                                className="w-full text-left rounded-2xl p-4 relative overflow-hidden"
+                                style={{
+                                    background: 'var(--surface)',
+                                    border: '1px solid var(--line)',
+                                    boxShadow: 'var(--card-shadow)'
+                                }}>
+                                {/* Accent edge */}
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r"
+                                    style={{ background: p.accent }}
+                                />
+                                <div className="flex items-start gap-3">
+                                    <div
+                                        className="w-11 h-11 rounded-xl inline-flex items-center justify-center flex-shrink-0"
+                                        style={{ background: p.accent, color: '#fff' }}>
+                                        <Ic size={18} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                            <h3
+                                                className="font-display text-[15.5px] font-semibold leading-tight"
+                                                style={{ color: 'var(--text-primary)' }}>
+                                                {p.name}
+                                            </h3>
+                                            {p.cert && <CertDots cert={p.cert} />}
+                                            {p.badge && (
+                                                <span
+                                                    className="px-1.5 py-0 rounded-full text-[8.5px] font-bold tracking-[0.14em] uppercase"
+                                                    style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+                                                    {p.badge}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p
+                                            className="text-[11.5px] mb-2"
+                                            style={{ color: 'var(--brand)' }}>
+                                            {p.tagline}
+                                        </p>
+                                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                                            <span
+                                                className="inline-flex items-center gap-1"
+                                                style={{ color: 'var(--text-tertiary)' }}>
+                                                <Clock size={10} /> {p.duration}
+                                            </span>
+                                            <span
+                                                className="inline-flex items-center gap-1 font-semibold"
+                                                style={{ color: 'var(--text-secondary)' }}>
+                                                <TrendingUp size={10} /> {p.salary}
+                                            </span>
+                                            <span
+                                                className="inline-flex items-center gap-1"
+                                                style={{ color: 'var(--text-tertiary)' }}>
+                                                <Users size={10} /> Next: {p.next}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-2.5">
+                                            <span
+                                                className="inline-flex items-center gap-1 text-[11.5px] font-semibold"
+                                                style={{ color: 'var(--brand)' }}>
+                                                View program <ArrowUpRight size={11} />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.button>
+                        )
+                    })}
+                </div>
+
+                {/* ── Desktop (lg+): two-column bento — active program card
+                    on the LEFT, "Pick a track" carousel list on the RIGHT.
+                    Matches the design reference: ~55/45 split so the
+                    active card has room for its 6-section body (intro +
+                    cert callout + meta + highlights + skills + footer)
+                    without the carousel feeling cramped. */}
+                <div className="hidden lg:grid lg:grid-cols-[1.2fr_1fr] gap-5 items-start">
                     {/* ── Left: Active program showcase ── */}
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -241,12 +337,12 @@ export default function ProgramsShowcase() {
                             transition={{ duration: 0.4 }}
                             onMouseEnter={() => setAuto(false)}
                             onMouseLeave={() => setAuto(true)}
-                            className="relative rounded-3xl p-5 md:p-7 overflow-hidden hidden lg:flex flex-col"
+                            className="relative rounded-3xl p-6 md:p-8 overflow-hidden flex flex-col"
                             style={{
                                 background: 'var(--surface)',
                                 border: '1px solid var(--line)',
                                 boxShadow: 'var(--card-shadow-hover)',
-                                minHeight: 480 // ← reduced from 560
+                                minHeight: 620
                             }}>
                             {/* Accent wash */}
                             <div
@@ -281,17 +377,17 @@ export default function ProgramsShowcase() {
                                 </div>
 
                                 <h3
-                                    className="font-display text-[26px] md:text-[34px] leading-[1.02] font-semibold mb-1.5"
+                                    className="font-display text-[34px] md:text-[44px] leading-[1.02] font-semibold mb-2"
                                     style={{ color: 'var(--text-primary)' }}>
                                     {program.name}
                                 </h3>
                                 <p
-                                    className="text-[14.5px] mb-1.5"
+                                    className="text-[15px] font-medium mb-2"
                                     style={{ color: 'var(--brand)' }}>
                                     {program.tagline}
                                 </p>
                                 <p
-                                    className="text-[13.5px] leading-relaxed mb-3 max-w-[520px]"
+                                    className="text-[14px] leading-relaxed mb-4 max-w-[520px]"
                                     style={{ color: 'var(--text-secondary)' }}>
                                     {program.description}
                                 </p>
@@ -422,21 +518,22 @@ export default function ProgramsShowcase() {
 
                     {/* ── Right: Carousel list ── */}
                     <div
-                        className="rounded-3xl p-2 md:p-6 flex flex-col"
+                        className="rounded-3xl p-5 md:p-6 flex flex-col"
                         style={{
                             background: 'var(--surface)',
                             border: '1px solid var(--line)',
-                            boxShadow: 'var(--card-shadow)'
+                            boxShadow: 'var(--card-shadow)',
+                            minHeight: 620
                         }}>
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-5">
                             <div>
                                 <div
-                                    className="text-[10.5px] tracking-[0.18em] uppercase font-semibold"
+                                    className="text-[10.5px] tracking-[0.18em] uppercase font-semibold mb-1"
                                     style={{ color: 'var(--text-tertiary)' }}>
                                     All programs
                                 </div>
                                 <div
-                                    className="font-display text-[18px] font-semibold mt-0.5"
+                                    className="font-display text-[22px] font-semibold"
                                     style={{ color: 'var(--text-primary)' }}>
                                     Pick a track
                                 </div>
@@ -445,27 +542,29 @@ export default function ProgramsShowcase() {
                                 <button
                                     onClick={prev}
                                     aria-label="Previous"
-                                    className="w-9 h-9 rounded-full inline-flex items-center justify-center transition-colors"
+                                    className="w-10 h-10 rounded-full inline-flex items-center justify-center transition-colors"
                                     style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--text-primary)' }}>
                                     <ChevronLeft size={16} />
                                 </button>
                                 <button
                                     onClick={next}
                                     aria-label="Next"
-                                    className="w-9 h-9 rounded-full inline-flex items-center justify-center transition-colors"
+                                    className="w-10 h-10 rounded-full inline-flex items-center justify-center transition-colors"
                                     style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
                                     <ChevronRight size={16} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Scrollable list — hover to preview, click to navigate */}
+                        {/* Scrollable list — hover to preview, click to navigate.
+                            Sized to leave the active-card height roughly matched
+                            so the bento doesn't feel lopsided on desktop. */}
                         <div
                             data-lenis-prevent="true"
-                            className="space-y-2 overflow-y-auto pr-1"
+                            className="space-y-2 overflow-y-auto pr-1 flex-1"
                             onMouseLeave={handleListLeave}
                             style={{
-                                maxHeight: 360,
+                                maxHeight: 480,
                                 scrollbarWidth: 'thin',
                                 scrollbarColor: 'var(--line) transparent'
                             }}>
@@ -478,7 +577,7 @@ export default function ProgramsShowcase() {
                                         onMouseEnter={() => handleHover(i)}
                                         onClick={() => navigate(`/programs/${p.slug}`)}
                                         whileHover={{ x: 3 }}
-                                        className="w-full text-left flex items-center gap-3 p-3 rounded-2xl transition-all relative overflow-hidden"
+                                        className="w-full text-left flex items-center gap-3 p-3.5 rounded-2xl transition-all relative overflow-hidden"
                                         style={{
                                             background: isActive ? 'var(--brand-soft)' : 'var(--surface-2)',
                                             border: '1px solid',
@@ -493,21 +592,21 @@ export default function ProgramsShowcase() {
                                             />
                                         )}
                                         <div
-                                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                                             style={{ background: p.accent, color: '#fff' }}>
-                                            <Ic size={16} />
+                                            <Ic size={18} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-1.5">
                                                 <div
-                                                    className="font-display text-[14.5px] font-semibold leading-tight truncate"
+                                                    className="font-display text-[15px] font-semibold leading-tight truncate"
                                                     style={{ color: 'var(--text-primary)' }}>
                                                     {p.name}
                                                 </div>
                                                 {p.cert && <CertDots cert={p.cert} />}
                                             </div>
                                             <div
-                                                className="text-[11px] mt-0.5 truncate"
+                                                className="text-[11.5px] mt-0.5 truncate"
                                                 style={{ color: 'var(--text-tertiary)' }}>
                                                 {p.duration} · {p.salary}
                                             </div>

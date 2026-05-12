@@ -639,6 +639,32 @@ html.lenis body {
     }
 }
 
+/* ── Collaboration partner card responsive paddings ──
+   The card was originally written with raw inline 32px paddings + headlines.
+   On a 360px viewport that left ~280px of usable column, which clipped the
+   IBM / Microsoft headlines. These utilities give us breakpoint-aware
+   padding without rewriting the inline styles inside the component. */
+.alb-collab-card-pad {
+    padding: 22px 20px 20px;
+}
+.alb-collab-card-body {
+    padding: 22px 20px;
+}
+.alb-collab-card-footer {
+    padding: 14px 20px 18px;
+}
+@media (min-width: 640px) {
+    .alb-collab-card-pad {
+        padding: 28px 32px 26px;
+    }
+    .alb-collab-card-body {
+        padding: 28px 32px;
+    }
+    .alb-collab-card-footer {
+        padding: 16px 32px 20px;
+    }
+}
+
 /* Reduced motion — kill anything beyond a 0.01s transition. */
 @media (prefers-reduced-motion: reduce) {
     .alb-ticker-track,
