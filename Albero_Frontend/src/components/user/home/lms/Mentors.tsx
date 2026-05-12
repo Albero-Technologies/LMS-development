@@ -129,11 +129,21 @@ export default function Mentors() {
     const [active, setActive] = useState(0)
     const [cardWidth, setCardWidth] = useState(0)
 
-    // Measure track visible width so each card = exactly 1/4
+    // Measure track visible width and size cards by viewport.
+    // - mobile (<640px): ~1.1 cards visible so users get a peek-next affordance
+    // - sm  (≥640px):    2 cards
+    // - md  (≥768px):    3 cards
+    // - lg+ (≥1024px):   4 cards (original desktop layout)
+    // The previous logic always divided by 4, which squashed cards on mobile.
     useEffect(() => {
         const el = trackRef.current
         if (!el) return
-        const measure = () => setCardWidth((el.clientWidth - 3 * 20) / 4)
+        const measure = () => {
+            const w = el.clientWidth
+            const gap = 20
+            const visible = w >= 1024 ? 4 : w >= 768 ? 3 : w >= 640 ? 2 : 1.1
+            setCardWidth((w - (visible - 1) * gap) / visible)
+        }
         measure()
         const ro = new ResizeObserver(measure)
         ro.observe(el)
@@ -200,8 +210,12 @@ export default function Mentors() {
                             Industry mentors
                         </div>
                         <h2
-                            className="font-display text-[40px] md:text-[58px] leading-[0.96] tracking-[-0.02em] font-medium"
-                            style={{ color: 'var(--text-primary)' }}>
+                            className="font-display leading-[0.98] tracking-[-0.02em] font-medium"
+                            style={{
+                                color: 'var(--text-primary)',
+                                fontSize: 'clamp(30px, 6.5vw, 58px)',
+                                overflowWrap: 'break-word'
+                            }}>
                             Meet your{' '}
                             <span
                                 className="italic font-light"

@@ -2,11 +2,13 @@
 # Lives inside Backend/ so the Render service can be configured with that as
 # the root directory.
 #
-# Free-tier note: the web service spins down after ~15 min of inactivity.
-# To keep it warm, configure an external pinger (cron-job.org or UptimeRobot)
-# to GET https://<service>.onrender.com/api/v1/health every 10–14 minutes.
-# Render's native Cron service is a paid feature; we use a free external
-# pinger instead.
+# Free-tier keepalive — see Backend/KEEPALIVE.md for details:
+#   - Deployed URL:  https://lms-development.onrender.com
+#   - Health probe:  GET /api/v1/health
+#   - Pinger:        cron-job.org "Albero API keepalive" (every ~10 min)
+# The web service spins down after ~15 min of inactivity, so the external
+# pinger above keeps it warm 24/7. Render's native Cron service is paid;
+# cron-job.org is free and purpose-built for this.
 
 services:
     - type: web

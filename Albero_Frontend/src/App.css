@@ -1,20 +1,44 @@
 /* box-sizing: border-box is already applied globally by Tailwind's preflight */
 
-/* Base element styles expressed via Tailwind's @layer base */
+/* Base element styles expressed via Tailwind's @layer base.
+
+   Type system:
+   - Body / UI:    Inter   (var(--font-body))
+     Modern neutral grotesque used by Notion / Linear / Vercel — the
+     "normal-audience-friendly modern UI font". Loaded via Google Fonts
+     in index.html.
+   - Display:      Fraunces (var(--font-display))
+     Editorial variable serif with strong italic. Used for h1/h2 and the
+     `.font-display` utility, e.g. the "One outcome — your next role"
+     accent. Also Google-Fonts-loaded.
+
+   The previous globals (`* { font-family: ClashDisplay }` and
+   `h1, h2 { font-family: Archivo }`) overrode every element to bespoke
+   display fonts, which gave the site a "designer-y" feel rather than a
+   modern product feel. Those @font-face declarations are kept below as
+   fallbacks for any one-off legacy uses (e.g. workui screens) that still
+   reference them by name. */
 @layer base {
-    * {
-        /* Custom font families cannot be expressed as Tailwind utilities
-           unless registered in tailwind.config — kept as raw CSS */
-        font-family: ClashDisplay, sans-serif;
+    body {
+        font-family: var(--font-body);
+        font-feature-settings:
+            'cv02' on,
+            'cv03' on,
+            'cv04' on,
+            'cv11' on;
     }
 
     h1,
-    h2 {
-        font-family: Archivo, sans-serif;
+    h2,
+    .font-display {
+        font-family: var(--font-display);
     }
 }
 
-/* @font-face declarations must stay as raw CSS — Tailwind has no equivalent */
+/* Legacy @font-face declarations — kept so any component that still
+   references these family names by string (e.g. the workui section) keeps
+   rendering. New code should use var(--font-body) / var(--font-display)
+   via the @layer base rule above. */
 
 /* Tanker */
 @font-face {

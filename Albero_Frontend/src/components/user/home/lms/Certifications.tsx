@@ -140,8 +140,12 @@ export default function Certifications() {
                         <BadgeCheck size={12} /> Certifications
                     </div>
                     <h2
-                        className="font-display text-[40px] md:text-[60px] leading-[0.96] tracking-[-0.02em] font-medium"
-                        style={{ color: 'var(--text-primary)' }}>
+                        className="font-display leading-[0.98] tracking-[-0.02em] font-medium"
+                        style={{
+                            color: 'var(--text-primary)',
+                            fontSize: 'clamp(28px, 6.5vw, 60px)',
+                            overflowWrap: 'break-word'
+                        }}>
                         Credentials hiring managers{' '}
                         <span
                             className="italic font-light"
@@ -156,10 +160,164 @@ export default function Certifications() {
                     </p>
                 </div>
 
-                {/* Two-column: Certificate LEFT | Selector + Stats RIGHT */}
+                {/* Two-column: Certificate LEFT | Selector + Stats RIGHT.
+                    On mobile the certificate card is hidden in favour of a
+                    simpler "mobile credential" card below — the rich desktop
+                    cert design had a horizontal top-row (logo + brand pill
+                    + Verified) and a 3-column footer that couldn't fit a
+                    360px viewport without clipping the right edge. */}
                 <div className="grid lg:grid-cols-[1.25fr_1fr] gap-6 items-start">
-                    {/* ── LEFT: Live certificate ── */}
-                    <div className="relative">
+                    {/* ── Mobile credential — compact stacked layout, only shown <lg ── */}
+                    <div className="lg:hidden relative">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={active.certId + '-mobile'}
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -12 }}
+                                transition={{ duration: 0.3 }}
+                                className="relative rounded-2xl p-5 overflow-hidden"
+                                style={{
+                                    background: active.accentGradient,
+                                    border: `1.5px solid ${active.color}44`,
+                                    boxShadow: 'var(--card-shadow)'
+                                }}>
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute inset-x-0 top-0 h-[3px]"
+                                    style={{ background: active.color }}
+                                />
+
+                                {/* Top — Albero brand + Verified pill */}
+                                <div className="flex items-center justify-between gap-3 mb-4">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <span
+                                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0"
+                                            style={{ background: 'var(--brand)', color: 'var(--text-on-inverse)' }}>
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                width="16"
+                                                height="16"
+                                                fill="none">
+                                                <path
+                                                    d="M12 3 C 7 7, 5 12, 12 21 C 19 12, 17 7, 12 3 Z"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.6"
+                                                    strokeLinejoin="round"
+                                                />
+                                                <path
+                                                    d="M12 8 L12 21"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.6"
+                                                    strokeLinecap="round"
+                                                />
+                                            </svg>
+                                        </span>
+                                        <div className="leading-tight min-w-0">
+                                            <div
+                                                className="font-display text-[14px] font-semibold truncate"
+                                                style={{ color: 'var(--text-primary)' }}>
+                                                Albero Academy
+                                            </div>
+                                            <div
+                                                className="text-[8.5px] tracking-[0.18em] uppercase font-semibold"
+                                                style={{ color: 'var(--brand)' }}>
+                                                Certificate
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold tracking-[0.14em] uppercase flex-shrink-0"
+                                        style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+                                        <Sparkles size={8} /> Verified
+                                    </span>
+                                </div>
+
+                                {/* Issuer pill — own row so the logo has room */}
+                                <div className="mb-4">
+                                    <div
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
+                                        style={{ background: 'var(--surface)', border: `1px solid ${active.color}44` }}>
+                                        <img
+                                            src={active.logoUrl}
+                                            alt={active.issuer}
+                                            loading="lazy"
+                                            style={{ maxHeight: 14, width: 'auto', maxWidth: 80, objectFit: 'contain' }}
+                                        />
+                                        <span
+                                            className="text-[10px] font-bold tracking-[0.14em] uppercase"
+                                            style={{ color: active.color }}>
+                                            {active.issuer}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Body */}
+                                <div
+                                    className="text-[10px] tracking-[0.18em] uppercase font-semibold mb-1.5"
+                                    style={{ color: 'var(--text-tertiary)' }}>
+                                    This certifies that
+                                </div>
+                                <div
+                                    className="font-display text-[26px] leading-tight italic mb-2"
+                                    style={{ color: 'var(--text-primary)', overflowWrap: 'break-word' }}>
+                                    {active.recipientName}
+                                </div>
+                                <p
+                                    className="text-[12.5px] leading-relaxed mb-4"
+                                    style={{ color: 'var(--text-secondary)' }}>
+                                    has successfully completed the{' '}
+                                    <span
+                                        className="font-semibold"
+                                        style={{ color: active.color }}>
+                                        {active.program}
+                                    </span>{' '}
+                                    program — capstones reviewed and approved by industry mentors.
+                                </p>
+
+                                {/* Footer — three stacked rows so nothing has to share a tight row */}
+                                <div
+                                    className="pt-3 border-t flex flex-col gap-2"
+                                    style={{ borderColor: `${active.color}2E` }}>
+                                    <div className="flex items-baseline gap-2 justify-between">
+                                        <span
+                                            className="text-[9px] tracking-[0.16em] uppercase font-semibold flex-shrink-0"
+                                            style={{ color: 'var(--text-tertiary)' }}>
+                                            Lead mentor
+                                        </span>
+                                        <span
+                                            className="font-display italic text-[13px] text-right truncate"
+                                            style={{ color: 'var(--text-primary)' }}>
+                                            {active.mentor}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2 justify-between">
+                                        <span
+                                            className="text-[9px] tracking-[0.16em] uppercase font-semibold flex-shrink-0"
+                                            style={{ color: 'var(--text-tertiary)' }}>
+                                            Issuing partner
+                                        </span>
+                                        <span
+                                            className="font-display italic text-[13px] text-right truncate"
+                                            style={{ color: 'var(--text-primary)' }}>
+                                            {active.partner}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3 justify-between">
+                                        <span
+                                            className="inline-flex items-center gap-1 text-[9.5px] font-mono"
+                                            style={{ color: 'var(--text-secondary)' }}>
+                                            <ScanLine size={10} /> {active.certId}
+                                        </span>
+                                        <QRGrid seed={active.certId} />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* ── LEFT: Live certificate (desktop only) ── */}
+                    <div className="hidden lg:block relative">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={active.certId + '-glow'}
@@ -307,9 +465,12 @@ export default function Certifications() {
                                         </div>
                                     </div>
 
-                                    {/* Footer */}
+                                    {/* Footer — 1-col on the narrowest screens
+                                        (mentor/partner names + cert ID + QR
+                                        all clipped at 3-col below ~420px),
+                                        3-col from sm+. */}
                                     <div
-                                        className="relative z-[1] grid grid-cols-3 gap-4 pt-4 border-t"
+                                        className="relative z-[1] grid grid-cols-1 [@media(min-width:480px)]:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t"
                                         style={{ borderColor: `${active.color}2E` }}>
                                         <div>
                                             <div
@@ -335,13 +496,13 @@ export default function Certifications() {
                                                 {active.partnerTitle}
                                             </div>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="[@media(min-width:480px)]:text-right">
                                             <div
                                                 className="inline-flex items-center gap-1 mb-1.5 text-[9.5px] font-mono"
                                                 style={{ color: 'var(--text-secondary)' }}>
                                                 <ScanLine size={10} /> {active.certId}
                                             </div>
-                                            <div className="flex justify-end">
+                                            <div className="flex [@media(min-width:480px)]:justify-end">
                                                 <QRGrid seed={active.certId} />
                                             </div>
                                         </div>
@@ -367,8 +528,11 @@ export default function Certifications() {
                             </span>
                         </div>
 
-                        {/* 2×2 partner selector */}
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Partner selector — single column on the narrowest
+                            screens (≤400px) so the issuer name + audience +
+                            3-bullet rubric have room to breathe. The 2×2
+                            desktop layout reappears at sm+. */}
+                        <div className="grid grid-cols-1 [@media(min-width:400px)]:grid-cols-2 gap-3">
                             {credentials.map((c, i) => {
                                 const isActive = i === activeIdx
                                 return (
@@ -444,8 +608,9 @@ export default function Certifications() {
                             })}
                         </div>
 
-                        {/* Stats — 3 compact horizontal cards */}
-                        <div className="grid grid-cols-3 gap-3">
+                        {/* Stats — stack at the narrow end (text was clipping
+                            to "Mentor sati…" at ~360px), 3-up from sm+. */}
+                        <div className="grid grid-cols-1 [@media(min-width:480px)]:grid-cols-3 gap-3">
                             {stats.map((s, i) => (
                                 <motion.div
                                     key={i}

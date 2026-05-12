@@ -209,21 +209,28 @@ export default function InteractiveSkillsGrid() {
                                 fontSize: 'clamp(34px, 4.6vw, 56px)',
                                 lineHeight: 1.02
                             }}>
-                            Hover a skill —{' '}
+                            <span className="hidden md:inline">Hover a skill</span>
+                            <span className="md:hidden">Skills by track</span>{' '}
+                            —{' '}
                             <span
                                 className="italic font-light"
                                 style={{ color: 'var(--brand)' }}>
-                                see its track.
+                                <span className="hidden md:inline">see its track.</span>
+                                <span className="md:hidden">tap to explore.</span>
                             </span>
                         </h2>
                         <p
                             className="mt-5 text-[15.5px] leading-relaxed max-w-[520px]"
                             style={{ color: 'var(--text-secondary)' }}>
-                            Every Albero programme maps to a working role. Hover any chip to highlight every other skill in the same track.
+                            Every Albero programme maps to a working role.{' '}
+                            <span className="hidden md:inline">Hover any chip to highlight every other skill in the same track.</span>
+                            <span className="md:hidden">Tap a track to open its program page.</span>
                         </p>
 
+                        {/* Hover-state indicator — desktop only since it has no
+                            touch equivalent. */}
                         <div
-                            className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors"
+                            className="hidden md:inline-flex mt-6 items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors"
                             style={{
                                 background: activeTrack ? 'var(--surface)' : 'transparent',
                                 border: activeTrack ? `1px solid ${trackMeta[activeTrack].color}40` : '1px solid transparent',
@@ -267,14 +274,18 @@ export default function InteractiveSkillsGrid() {
                         </button>
                     </motion.div>
 
-                    {/* Right — skills cloud
+                    {/* Right — skills cloud (md+).
                         Heavy heavy lifting is done with a CSS attribute selector
                         (`[data-active]`) on the cloud — no per-chip state, so
-                        moving the cursor across chips never re-renders React. */}
+                        moving the cursor across chips never re-renders React.
+                        On mobile this cloud is replaced by the grouped track
+                        list below (the cloud's chip "hover-to-highlight track"
+                        affordance has no mobile equivalent, and the dense pill
+                        cloud overflowed the section padding at 360px). */}
                     <div
                         ref={cloudRef}
                         data-active={activeTrack ?? ''}
-                        className="alb-skills-cloud relative flex flex-wrap items-center justify-center gap-2 md:gap-2.5 py-6"
+                        className="alb-skills-cloud relative hidden md:flex flex-wrap items-center justify-center gap-2 md:gap-2.5 py-6"
                         style={{ minHeight: 440 }}
                         onMouseLeave={() => setActiveTrack(null)}>
                         {skills.map((s) => {
@@ -295,6 +306,64 @@ export default function InteractiveSkillsGrid() {
                                         } as React.CSSProperties
                                     }>
                                     {s.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {/* Mobile — grouped track list.
+                        Each track gets a row with its swatch + name on top and
+                        skill chips wrapping below. Lets us drop the chip-cloud
+                        wobble animation (which fights touch scrolling) and
+                        gives the section a clear "which skills go with which
+                        program" reading order that the cloud only hints at via
+                        hover. Tap the track header to navigate to that
+                        program. */}
+                    <div className="md:hidden flex flex-col gap-3 -mx-1">
+                        {Object.entries(trackMeta).map(([slug, meta]) => {
+                            const trackSkills = skills.filter((s) => s.track === slug)
+                            if (trackSkills.length === 0) return null
+                            return (
+                                <button
+                                    key={slug}
+                                    onClick={() => navigate(`/programs/${slug}`)}
+                                    className="w-full text-left rounded-2xl p-3.5 transition-colors"
+                                    style={{
+                                        background: 'var(--surface)',
+                                        border: `1px solid ${meta.color}33`,
+                                        boxShadow: 'var(--card-shadow)'
+                                    }}>
+                                    <div className="flex items-center justify-between gap-3 mb-2.5">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span
+                                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                                style={{ background: meta.color }}
+                                            />
+                                            <span
+                                                className="font-display text-[13.5px] font-semibold tracking-tight truncate"
+                                                style={{ color: 'var(--text-primary)' }}>
+                                                {meta.name}
+                                            </span>
+                                        </div>
+                                        <ArrowUpRight
+                                            size={14}
+                                            style={{ color: meta.color, flexShrink: 0 }}
+                                        />
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {trackSkills.map((s) => (
+                                            <span
+                                                key={s.label}
+                                                className="px-2.5 py-1 rounded-full text-[11.5px] font-medium"
+                                                style={{
+                                                    background: `${meta.color}10`,
+                                                    color: meta.color,
+                                                    border: `1px solid ${meta.color}26`
+                                                }}>
+                                                {s.label}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </button>
                             )
                         })}

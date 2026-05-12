@@ -295,32 +295,37 @@ const BrandTile = ({ entry, index, onClick }: { entry: CaseStudyEntry; index: nu
                 className="absolute inset-x-0 top-0 h-[3px]"
                 style={{ background: `linear-gradient(90deg, ${color}, ${color}99)` }}
             />
-            <div className="flex items-center gap-3">
+            {/* At the narrowest mobile (grid-cols-2 = ~150px columns) the
+                horizontal layout left ~60px for the brand name + sector pill
+                after the 48px monogram and trailing arrow, so labels like
+                "FOOD & BEVERAGE" clipped mid-word. Stack the monogram above
+                the text at <400px, restore the row at sm+. */}
+            <div className="flex flex-col [@media(min-width:400px)]:flex-row [@media(min-width:400px)]:items-center gap-2 [@media(min-width:400px)]:gap-3">
                 <CompanyMark
                     name={entry.brand}
                     size={48}
                 />
                 <div className="min-w-0 flex-1">
                     <div
-                        className="font-display text-[16px] md:text-[17px] font-semibold leading-tight truncate"
-                        style={{ color: 'var(--text-primary)' }}>
+                        className="font-display text-[15px] md:text-[17px] font-semibold leading-tight"
+                        style={{ color: 'var(--text-primary)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                         {entry.brand}
                     </div>
                     {(sector ?? entry.sector) && (
                         <div
-                            className="mt-1 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[9.5px] font-bold tracking-[0.12em] uppercase"
+                            className="mt-1 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[9.5px] font-bold tracking-[0.12em] uppercase max-w-full"
                             style={{ color, background: `${color}14` }}>
                             <span
-                                className="inline-block w-1 h-1 rounded-full"
+                                className="inline-block w-1 h-1 rounded-full flex-shrink-0"
                                 style={{ background: color }}
                             />
-                            {sector ?? entry.sector}
+                            <span className="truncate">{sector ?? entry.sector}</span>
                         </div>
                     )}
                 </div>
                 <ArrowRight
                     size={16}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="hidden [@media(min-width:400px)]:block opacity-0 group-hover:opacity-100 transition-opacity"
                     style={{ color }}
                 />
             </div>

@@ -132,11 +132,10 @@ export default function Collaboration() {
 
     return (
         <section
-            className="relative overflow-hidden"
+            className="relative overflow-hidden px-5 md:px-8 py-20 md:py-24"
             style={{
                 background: 'var(--page-bg-soft)',
-                color: 'var(--text-primary)',
-                padding: '96px 20px 80px'
+                color: 'var(--text-primary)'
             }}>
             {/* Ambient glows */}
             <div
@@ -237,8 +236,18 @@ export default function Collaboration() {
                     </div>
                 </motion.div>
 
-                {/* ── Partner cards grid ── */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: 24, marginBottom: 24 }}>
+                {/* ── Partner cards grid ──
+                    minmax(min(480px, 100%), 1fr) is the mobile-safe pattern: on
+                    narrow screens the column collapses to 100% of the row
+                    instead of forcing 480px (which would overflow viewport and
+                    shift the entire page right). */}
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(480px, 100%), 1fr))',
+                        gap: 24,
+                        marginBottom: 24
+                    }}>
                     <PartnerPanel
                         accent="#0530AD"
                         accentSoft="rgba(5,48,173,0.07)"
@@ -397,9 +406,9 @@ function PartnerPanel({
             }}>
             {/* ── Gradient header ── */}
             <div
+                className="alb-collab-card-pad"
                 style={{
                     position: 'relative',
-                    padding: '28px 32px 26px',
                     background: `linear-gradient(140deg, ${accent} 0%, ${accent}e0 55%, ${accent}b0 100%)`,
                     overflow: 'hidden',
                     flexShrink: 0
@@ -476,10 +485,11 @@ function PartnerPanel({
 
             {/* ── Scrollable content body ── */}
             <div
+                data-lenis-prevent
+                className="alb-collab-card-body"
                 style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '28px 32px',
                     /* Firefox */
                     scrollbarWidth: 'thin',
                     scrollbarColor: `${accent}30 transparent`,
@@ -637,13 +647,14 @@ function PartnerPanel({
 
             {/* ── Pinned CTA footer ── */}
             <div
+                className="alb-collab-card-footer"
                 style={{
                     flexShrink: 0,
-                    padding: '16px 32px 20px',
                     borderTop: '1px solid var(--line)',
                     display: 'flex',
                     gap: 10,
                     alignItems: 'center',
+                    flexWrap: 'wrap',
                     background: 'var(--surface)'
                 }}>
                 <button
