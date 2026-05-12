@@ -25,15 +25,15 @@ interface Props {
 // to a single column with the canvas first.
 export const TechMeshSection = ({
     nodes,
-    hubLabel = 'Studio',
+    hubLabel = 'Albero',
     hubGlyph = '✦',
     heading = (
         <>
-            One stack. <span className="alb-gradient-text italic font-medium">Every connection.</span>
+            Build skills that <span className="alb-gradient-text italic font-medium">top companies hire for.</span>
         </>
     ),
     accent,
-    description = 'See how the tools you learn snap together — from raw data to insight, in one cohesive lab.'
+    description = 'Master AI, Data Science, Full Stack Development, CyberSecurity, Data Engineering, and Finance through live mentor-led programs designed around real industry expectations and high-growth career outcomes.'
 }: Props) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.15)
     const { theme } = useTheme()
@@ -92,7 +92,7 @@ export const TechMeshSection = ({
                                   }
                                 : undefined
                         }>
-                        <Cpu size={12} /> Your toolkit
+                        <Cpu size={12} /> Premium Career-Tech Ecosystem
                     </div>
                     <SectionHeadingAdaptive
                         heading={heading}
@@ -146,20 +146,20 @@ export const TechMeshSection = ({
                     <ul className="space-y-4">
                         <PillarCard
                             icon={<Sparkles size={18} />}
-                            title="Industry-grade tools"
-                            body="Every lab uses the exact stack hiring teams expect — no toy frameworks, no outdated tutorials."
+                            title="Industry-Aligned Learning"
+                            body="Train on modern tools, workflows, and technologies inspired by the ecosystems used at Microsoft, IBM, Cisco, J.P. Morgan, and other global leaders."
                             isDark={isDark}
                         />
                         <PillarCard
                             icon={<Cpu size={18} />}
-                            title="Wired together"
-                            body="Tools don't sit in silos. You'll move data from raw → modelled → visualised in a single capstone."
+                            title="Real Projects. Real Experience."
+                            body="Build portfolio-grade projects, solve practical business problems, and gain hands-on exposure that prepares you for actual interviews and job environments."
                             isDark={isDark}
                         />
                         <PillarCard
                             icon={<Zap size={18} />}
-                            title="Production-ready"
-                            body="Mentor reviews push you past the demo gloss to handle scale, edge cases, and on-call moments."
+                            title="Career Acceleration Support"
+                            body="Get dedicated mentorship, resume building, mock interviews, placement assistance, and career guidance designed to help you secure high-paying opportunities."
                             isDark={isDark}
                         />
                     </ul>

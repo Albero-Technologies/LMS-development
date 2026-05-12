@@ -465,10 +465,10 @@ export default function ProgramPage() {
             <StatsBar
                 tone="deep"
                 stats={[
-                    { label: 'Students placed', value: 12400, suffix: '+' },
-                    { label: 'Placement rate', value: 92, suffix: '%' },
-                    { label: 'Avg salary hike', value: 280, suffix: '%' },
-                    { label: 'Hiring partners', value: 180, suffix: '+' }
+                    { label: 'Students Successfully Placed', value: 2500, suffix: '+' },
+                    { label: 'Placement Rate', value: 98, suffix: '%' },
+                    { label: 'Average Salary Growth', value: 280, suffix: '%' },
+                    { label: 'Hiring partners', value: 500, suffix: '+' }
                 ]}
             />
 

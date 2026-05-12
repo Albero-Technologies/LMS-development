@@ -31,11 +31,11 @@ export const MentorStrip = ({
     mentors,
     heading = (
         <>
-            Learn from the best in <span className="alb-gradient-text italic font-medium">industry.</span>
+            Mentorship that turns learners into <span className="alb-gradient-text italic font-medium">top candidates.</span>
         </>
     ),
     accent,
-    description = 'Mentors who hire — practitioners from MAANG, fintech, and unicorns. They review your code, sit on your mocks, and refer you when you ship.',
+    description = 'Live mentorship, personalised guidance, mock interviews, resume reviews, and career support from experts actively working in the industry.',
     stats,
     tone = 'white'
 }: Props) => {
@@ -45,7 +45,7 @@ export const MentorStrip = ({
             tone={tone}
             spacing="normal">
             <SectionHeading
-                eyebrow="Mentors & Instructors"
+                eyebrow="Industry Professional Mentors"
                 title={heading}
                 accent={accent}
                 description={description}
@@ -144,7 +144,8 @@ const MentorCard = ({ mentor }: { mentor: Mentor }) => {
                     <p
                         className="mt-2 text-[12.5px] leading-relaxed line-clamp-2"
                         style={{ color: 'var(--text-secondary)' }}>
-                        {mentor.bio}
+                        {mentor.bio ??
+                            'Guiding learners through real-world projects, interview preparation, system design, and placement-focused mentorship.'}
                     </p>
                 )}
                 <div
@@ -154,7 +155,7 @@ const MentorCard = ({ mentor }: { mentor: Mentor }) => {
                         <span
                             className="text-[11px] font-semibold"
                             style={{ color: 'var(--brand)' }}>
-                            {mentor.yearsExperience}+ yrs
+                            {mentor.yearsExperience}+ years industry experience
                         </span>
                     )}
                     {mentor.linkedinUrl && (

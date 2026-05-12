@@ -50,23 +50,12 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
     const row1 = items.filter((_, i) => i % 2 === 0)
     const row2 = items.filter((_, i) => i % 2 === 1)
 
-    // Default headline split — keeps the count + the italic accent in
-    // separate slots so callers can override either independently.
-    // Earlier callers passed the accent INSIDE the heading prop AND
-    // accent prop, which duplicated the text. Defaults below render
-    // both halves at most once.
-    const resolvedHeading = heading ?? `${tools.length}+ industry tools,`
-    const resolvedAccent = accent ?? 'woven into every lab.'
+    const resolvedHeading = heading ?? 'Build real-world skills with'
+    const resolvedAccent = accent ?? 'industry-grade tools & technologies.'
 
-    // `tone="deep"` only renders the dark emerald wash in dark mode. In
-    // light mode the same tone falls back to a softer brand-tinted plate
-    // so the section harmonises with the rest of the light palette.
     const isDark = tone === 'deep' && theme === 'dark'
     const sectionStyle: React.CSSProperties = isDark
         ? {
-              // Dark mode = emerald-dominant. Brand chord at higher alpha
-              // over a deep-teal base so the section feels like an
-              // *emerald* dark section, not a generic black surface.
               background:
                   'radial-gradient(75% 65% at 20% 0%, rgba(20,120,95,0.6) 0%, transparent 60%), ' +
                   'radial-gradient(60% 60% at 80% 30%, rgba(52,211,153,0.5) 0%, transparent 60%), ' +
@@ -76,9 +65,6 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
           }
         : tone === 'deep'
           ? {
-                // Light-mode "deep" — explicit ivory base with a soft
-                // emerald hint at the edges. Always renders light, never
-                // inherits dark via a CSS variable indirection.
                 background:
                     'radial-gradient(70% 60% at 20% 0%, rgba(20,120,95,0.07) 0%, transparent 60%), ' +
                     'radial-gradient(60% 60% at 80% 30%, rgba(52,211,153,0.07) 0%, transparent 60%), ' +
@@ -100,8 +86,6 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
         <section
             className="relative overflow-hidden py-20 md:py-28 px-5 md:px-8"
             style={sectionStyle}>
-            {/* Soft top + bottom gradient seams when on dark — keeps the
-                section from looking "boxy" against the next light section. */}
             {isDark && (
                 <>
                     <div
@@ -124,8 +108,6 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
                     opacity: headingVisible ? 1 : 0,
                     transform: headingVisible ? 'translateY(0)' : 'translateY(16px)'
                 }}>
-                {/* Eyebrow chip — manually styled here (instead of the shared
-                    .alb-section-badge primitive) so it reads as crisp on dark. */}
                 <div
                     className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.2em]"
                     style={{
@@ -144,7 +126,7 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
                             style={{ background: 'var(--brand)', opacity: 0.7 }}
                         />
                     </span>
-                    Industry Toolkit
+                    Industry Learning Ecosystem
                 </div>
 
                 <h2
@@ -166,12 +148,11 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
                     <p
                         className="mt-5 text-[15px] md:text-[16.5px] leading-relaxed max-w-2xl mx-auto"
                         style={{ color: isDark ? 'rgba(245,243,234,0.72)' : 'var(--text-secondary)' }}>
-                        {description ?? 'Hands-on labs use the exact stack hiring teams expect — no toy projects, no outdated frameworks.'}
+                        {description ??
+                            'Train with industry-grade technologies, build real-world projects, and gain hands-on experience through mentor-led programs designed around modern hiring standards.'}
                     </p>
                 )}
 
-                {/* Hint chip — small "live count" line so the section feels
-                    data-driven rather than static marketing copy. */}
                 <div
                     className="mt-7 inline-flex items-center gap-2 text-[12px] font-semibold"
                     style={{ color: isDark ? 'rgba(245,243,234,0.6)' : 'var(--text-tertiary)' }}>
@@ -179,14 +160,10 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
                         size={13}
                         style={{ color: 'var(--brand)' }}
                     />
-                    <span>{tools.length} tools in this program · all production-grade</span>
+                    <span>{tools.length} industry-grade tools powering real-world career outcomes</span>
                 </div>
             </div>
 
-            {/* Aurora glass plate that holds the two ticker rows. The plate
-                gives the strip a "premium" frame so pills don't look like
-                they float in space. Emerald-tinted in dark; pure white in
-                light so the section identity matches the TechMesh card. */}
             <div
                 className="relative max-w-7xl mx-auto rounded-3xl py-7 md:py-9 overflow-hidden"
                 style={{
@@ -200,8 +177,6 @@ export const ScrollingToolStrip = ({ tools, heading, accent, description, tone =
                         ? '0 28px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(52,211,153,0.14)'
                         : '0 18px 40px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)'
                 }}>
-                {/* Brand stripe along the top of the plate — adds a colour
-                    anchor so the section identity reads at a glance. */}
                 <span
                     aria-hidden="true"
                     className="absolute inset-x-0 top-0 h-[2px]"
