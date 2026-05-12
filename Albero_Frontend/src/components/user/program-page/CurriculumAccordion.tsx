@@ -84,7 +84,7 @@ export const CurriculumAccordion = ({
             tone={tone}
             id="curriculum"
             spacing="normal">
-            <div className="flex flex-wrap items-end justify-between gap-4 mb-8 md:mb-10">
+            <div className="flex flex-wrap items-end md:justify-between justify-center gap-4 mb-8 md:mb-10">
                 <SectionHeading
                     eyebrow="Curriculum"
                     title={heading}
@@ -92,7 +92,7 @@ export const CurriculumAccordion = ({
                     description={description}
                     align="left"
                 />
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 shrink-0">
                     <button
                         type="button"
                         onClick={copyShareLink}
