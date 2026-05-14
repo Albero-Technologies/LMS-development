@@ -28,16 +28,16 @@ interface Props {
 
 // Auto-advancing carousel with manual nav. Mobile = horizontal snap-scroll
 // (one-and-a-bit cards visible to indicate scrollability). Desktop pages
-// 3 cards at a time and auto-advances every 4s, pausing on hover.
+// 4 cards at a time and auto-advances every 4s, pausing on hover.
 export const SuccessStories = ({
     stories,
     heading = (
         <>
-            Real People. <span className="alb-gradient-text italic font-medium">Real Salary Jumps.</span>
+            Real Learners. <span className="alb-gradient-text italic font-medium">Real Career Transformations.</span>
         </>
     ),
     accent,
-    description = 'Real career transformations with measurable salary growth — from entry-level roles to high-paying positions in top companies.',
+    description = 'From fresh graduates to working professionals, our learners have cracked high-paying roles at top companies with structured mentorship, real projects, and placement-driven training.',
     tone = 'white'
 }: Props) => {
     if (stories.length === 0) return null
@@ -46,7 +46,7 @@ export const SuccessStories = ({
             tone={tone}
             spacing="normal">
             <SectionHeading
-                eyebrow="Proven Career Outcomes"
+                eyebrow="Success Stories"
                 title={heading}
                 accent={accent}
                 description={description}
@@ -56,14 +56,14 @@ export const SuccessStories = ({
     )
 }
 
+const CARDS_PER_PAGE = 4
+
 const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
-    const trackRef = useRef<HTMLDivElement>(null)
+    const wrapperRef = useRef<HTMLDivElement>(null)
     const [page, setPage] = useState(0)
     const [paused, setPaused] = useState(false)
 
-    // 3 at a time on desktop. The counter only drives dot indicators +
-    // scrollIntoView jumps — actual layout is CSS-only.
-    const pages = Math.max(1, Math.ceil(stories.length / 3))
+    const pages = Math.max(1, Math.ceil(stories.length / CARDS_PER_PAGE))
 
     useEffect(() => {
         if (paused || pages < 2) return
@@ -71,24 +71,8 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
         return () => clearInterval(id)
     }, [paused, pages])
 
-    useEffect(() => {
-        const track = trackRef.current
-        if (!track) return
-        const card = track.querySelector('[data-story-card]') as HTMLElement | null
-        if (!card) return
-        const cardWidth = card.offsetWidth + 20 /* gap */
-        track.scrollTo({ left: page * cardWidth * 3, behavior: 'smooth' })
-    }, [page])
-
     // Compact path — fewer than 3 cards reads as a static centred grid.
-    // The carousel chrome (arrows + dots) would be misleading when there's
-    // nothing to scroll to, and the cards centred under the headline feels
-    // more "premium proof" than "leftover from a wider rail".
     if (stories.length <= 2) {
-        // We force `compact` on EVERY card here so each one takes its
-        // cell's full width (capped at 380px) instead of inheriting the
-        // carousel's 60%/33% rail widths — that bug left the photos
-        // squashed to a 80px head-band when only 2 stories existed.
         const colsClass = stories.length === 1 ? 'sm:grid-cols-1' : 'sm:grid-cols-2'
         return (
             <div className={`grid gap-6 ${colsClass} max-w-[820px] mx-auto place-items-center`}>
@@ -137,17 +121,47 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
                 <ChevronRight size={18} />
             </button>
 
+            {/* 
+                Outer wrapper: clips overflow so only 4 cards are visible at once on desktop.
+                On mobile: allow horizontal scroll with snap for native swipe feel.
+            */}
             <div
-                ref={trackRef}
-                className="flex gap-5 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2"
-                style={{ scrollPaddingLeft: 16 }}>
-                {stories.map((s, i) => (
-                    <StoryCard
-                        key={s.id}
-                        story={s}
-                        delayMs={(i % 3) * 100}
-                    />
-                ))}
+                ref={wrapperRef}
+                className="overflow-hidden">
+                {/*
+                    Inner track: a flex row that translates by -page * 100% to slide pages.
+                    Each "page group" is exactly 100% of the wrapper width (4 cards).
+                    On mobile we switch to snap-scroll instead of CSS translate.
+                */}
+                <div
+                    className="hidden md:flex transition-transform duration-500 ease-in-out"
+                    style={{ transform: `translateX(-${page * 100}%)` }}>
+                    {stories.map((s, i) => (
+                        <div
+                            key={s.id}
+                            style={{ width: 'calc(25% - 15px)', flexShrink: 0, marginRight: i < stories.length - 1 ? 20 : 0 }}>
+                            <StoryCard
+                                story={s}
+                                delayMs={(i % CARDS_PER_PAGE) * 100}
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Mobile: native snap scroll, show ~1.1 cards to hint scrollability */}
+                <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory gap-4 pb-2 scrollbar-hide">
+                    {stories.map((s, i) => (
+                        <div
+                            key={s.id}
+                            className="snap-start flex-shrink-0"
+                            style={{ width: '88vw', maxWidth: 340 }}>
+                            <StoryCard
+                                story={s}
+                                delayMs={(i % CARDS_PER_PAGE) * 100}
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {pages > 1 && (
@@ -171,17 +185,7 @@ const Carousel = ({ stories }: { stories: SuccessStory[] }) => {
     )
 }
 
-const StoryCard = ({
-    story,
-    delayMs = 0,
-    compact = false
-}: {
-    story: SuccessStory
-    delayMs?: number
-    /** Single-card centred layout — caps the width so the lone card
-     *  doesn't span the entire section. */
-    compact?: boolean
-}) => {
+const StoryCard = ({ story, delayMs = 0, compact = false }: { story: SuccessStory; delayMs?: number; compact?: boolean }) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.2)
     const initials = story.name
         .split(' ')
@@ -192,17 +196,15 @@ const StoryCard = ({
     const growth = story.growthPct ?? Math.round(((story.salaryAfterLpa - story.salaryBeforeLpa) / Math.max(1, story.salaryBeforeLpa)) * 100)
     const stars = Math.max(0, Math.min(5, story.starRating ?? 5))
 
-    // Width buckets:
-    //   compact  — 1 of 1, capped at 380px so it stays readable
-    //   default  — fills its parent grid cell on desktop, snap-scroll width on mobile
-    const widthClass = compact ? 'w-full max-w-[380px] mx-auto' : 'snap-start shrink-0 w-[88%] sm:w-[60%] md:w-[calc((100%-40px)/3)]'
+    const widthStyle: React.CSSProperties = compact ? { width: '100%', maxWidth: 380 } : { width: '100%' } // width is controlled by the parent wrapper div in the carousel
 
     return (
         <article
             data-story-card
             ref={ref}
-            className={`${widthClass} rounded-2xl overflow-hidden flex flex-col transition-all duration-[600ms] ease-out hover:translate-y-[-4px]`}
+            className="snap-start rounded-2xl overflow-hidden flex flex-col transition-all duration-[600ms] ease-out hover:translate-y-[-4px]"
             style={{
+                ...widthStyle,
                 background: 'var(--surface)',
                 border: '1px solid var(--hairline)',
                 boxShadow: visible ? 'var(--card-shadow-soft)' : 'none',
@@ -210,10 +212,7 @@ const StoryCard = ({
                 transform: visible ? 'translateY(0)' : 'translateY(20px)',
                 transitionDelay: `${delayMs}ms`
             }}>
-            {/* Photo / initials hero. The initials tile is always rendered
-                so a broken external photo (rate-limited Unsplash, dead CMS
-                asset, etc.) still leaves a polished gradient + monogram
-                instead of a broken-image square. */}
+            {/* Photo / initials hero */}
             <div
                 className="relative aspect-[4/3] overflow-hidden"
                 style={{ background: 'var(--gradient-aurora)' }}>
@@ -227,8 +226,6 @@ const StoryCard = ({
                         className="absolute inset-0 w-full h-full object-cover"
                         loading="lazy"
                         onError={(e) => {
-                            // Hide the failed <img> so the initials tile
-                            // underneath shows through cleanly.
                             ;(e.currentTarget as HTMLImageElement).style.display = 'none'
                         }}
                     />
@@ -302,7 +299,7 @@ const StoryCard = ({
                 <p
                     className="mt-4 text-[13px] leading-relaxed line-clamp-3"
                     style={{ color: 'var(--text-secondary)' }}>
-                    “{story.testimonial}”
+                    "{story.testimonial}"
                 </p>
 
                 {/* Footer — stars + placed-at chip */}

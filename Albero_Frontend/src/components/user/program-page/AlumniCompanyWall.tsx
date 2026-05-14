@@ -7,9 +7,7 @@ import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 export interface AlumniCompany {
     name: string
-    /** Optional remote logo. When omitted we render a brand-coloured
-     *  monogram via the local CompanyMark registry — same visual weight,
-     *  no broken-image squares when a CDN logo fails to resolve. */
+    /** Optional caller-supplied logo URL override. Registry logo used when omitted. */
     logoUrl?: string
 }
 
@@ -20,48 +18,70 @@ export interface AlumniWallStat {
 }
 
 interface Props {
-    companies: AlumniCompany[]
+    companies?: AlumniCompany[]
     heading?: React.ReactNode
     accent?: React.ReactNode
     description?: string
-    /** Stats strip rendered between the heading and the logo wall. Set
-     *  to `null` to hide it. Defaults to the marketing-team trio. */
     stats?: AlumniWallStat[] | null
     tone?: 'white' | 'soft' | 'deep'
 }
 
 const DEFAULT_STATS: AlumniWallStat[] = [
-    { icon: 'briefcase', value: '180+', label: 'Hiring partners' },
-    { icon: 'trending', value: '2.4×', label: 'Avg salary growth' },
-    { icon: 'users', value: '92%', label: 'Placement within 6 months' },
-    { icon: 'sparkles', value: '14 LPA', label: 'Median offer (top quartile)' }
+    { icon: 'briefcase', value: '500+', label: 'Hiring partners' },
+    { icon: 'trending', value: '3.1×', label: 'Avg salary growth' },
+    { icon: 'users', value: '94%', label: 'Placed within 90 days' },
+    { icon: 'sparkles', value: '₹18 LPA', label: 'Median offer (top quartile)' }
 ]
 
-// Premium revamp of the hiring-partners wall. Three-part composition:
-//   1. Heading + eyebrow
-//   2. Stats strip — proves the wall isn't just vanity logos
-//   3. Two-row scrolling logo wall with brand-coloured monogram tiles
-// The logo cards now carry a brand-coloured top stripe + sector chip so
-// the wall reads as "real partnerships" instead of a clip-art collage.
+export const DEFAULT_COMPANIES: AlumniCompany[] = [
+    { name: 'Google' },
+    { name: 'Microsoft' },
+    { name: 'Amazon' },
+    { name: 'Meta' },
+    { name: 'Adobe' },
+    { name: 'IBM' },
+    { name: 'Accenture' },
+    { name: 'Deloitte' },
+    { name: 'PwC' },
+    { name: 'KPMG' },
+    { name: 'TCS' },
+    { name: 'Infosys' },
+    { name: 'Wipro' },
+    { name: 'Flipkart' },
+    { name: 'Swiggy' },
+    { name: 'Zomato' },
+    { name: 'Razorpay' },
+    { name: 'PhonePe' },
+    { name: 'Paytm' },
+    { name: 'Goldman Sachs' },
+    { name: 'JP Morgan' },
+    { name: 'Salesforce' },
+    { name: 'Oracle' },
+    { name: 'OpenAI' },
+    { name: 'Uber' }
+]
+
 export const AlumniCompanyWall = ({
-    companies,
+    companies = DEFAULT_COMPANIES,
     heading = (
         <>
-            Our alumni now build at <span className="alb-gradient-text italic font-medium">top companies.</span>
+            Our graduates now build at <span className="alb-gradient-text italic font-medium">India's top companies.</span>
         </>
     ),
     accent,
-    description = 'Real outcomes — every logo is a real placement, not a paid sponsorship.',
+    description = 'Every logo represents a real placement — not a paid sponsorship. Our alumni are powering AI, data, and analytics teams at companies you already admire.',
     stats = DEFAULT_STATS,
     tone = 'soft'
 }: Props) => {
     if (companies.length === 0) return null
+
     const items: TickerItem[] = companies.map((c) => ({
         key: c.name,
         content: <CompanyCard company={c} />
     }))
     const row1 = items.filter((_, i) => i % 2 === 0)
     const row2 = items.filter((_, i) => i % 2 === 1)
+
     return (
         <SectionShell
             tone={tone}
@@ -95,9 +115,6 @@ export const AlumniCompanyWall = ({
     )
 }
 
-// Stats strip — four glass tiles with a brand-tinted icon, metric, and
-// label. Reveals on scroll one tile at a time so the section gains motion
-// from the moment it enters the viewport.
 const StatsStrip = ({ stats }: { stats: AlumniWallStat[] }) => {
     const [ref, visible] = useScrollReveal<HTMLDivElement>(0.2)
     return (
@@ -156,8 +173,6 @@ const StatTile = ({ stat, delayMs }: { stat: AlumniWallStat; delayMs: number }) 
     )
 }
 
-// Premium logo card — brand-coloured top stripe, monogram tile, company
-// name, and sector chip. Hover lifts the card and saturates the stripe.
 const CompanyCard = ({ company }: { company: AlumniCompany }) => {
     const { color, sector } = resolveCompanyMark(company.name)
     return (
@@ -178,29 +193,25 @@ const CompanyCard = ({ company }: { company: AlumniCompany }) => {
                 e.currentTarget.style.boxShadow = 'var(--card-shadow-soft)'
                 e.currentTarget.style.borderColor = 'var(--hairline)'
             }}>
-            {/* Brand stripe — left edge, always visible. Subtle anchor that
-                stops the card looking generic when the monogram is a
-                muted tone. */}
+            {/* Brand accent stripe */}
             <span
                 aria-hidden="true"
                 className="absolute inset-y-0 left-0 w-[3px]"
                 style={{ background: `linear-gradient(180deg, ${color}, ${color}99)` }}
             />
 
-            {/* Logo cell — when an external logo URL is provided we render
-                it on top of the monogram so a successful image hides the
-                fallback. Image-on-error swap keeps a polished look. */}
+            {/* Logo tile — real favicon logo or monogram fallback */}
             <div className="relative ml-1 shrink-0">
                 <CompanyMark
                     name={company.name}
                     size={44}
                 />
+                {/* Caller-supplied override layered on top */}
                 {company.logoUrl && (
                     <img
                         src={company.logoUrl}
                         alt={company.name}
                         className="absolute inset-0 w-full h-full object-contain p-2 rounded-xl bg-white"
-                        style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }}
                         loading="lazy"
                         onError={(e) => {
                             ;(e.currentTarget as HTMLImageElement).style.display = 'none'

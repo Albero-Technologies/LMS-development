@@ -39,9 +39,9 @@ export const programs: ProgramData[] = [
         badge: 'Career Track',
         title: 'Business Analytics',
         highlight: 'Program',
-        subtitle: 'Turn business problems into data-driven decisions',
+        subtitle: 'Master analytics, dashboards & business intelligence for high-growth careers',
         description:
-            'A 6-month structured program covering Excel, SQL, Power BI, Tableau, Python and storytelling — designed to make you industry-ready for analytics, consulting, and BI roles.',
+            'An industry-focused 6-month Business Analytics program designed to help you become job-ready with Excel, SQL, Power BI, Tableau, Python, and real-world business case studies. Learn directly from industry experts and build a portfolio that gets interviews.',
         icon: BarChart3,
         accent: 'oklch(0.795 0.184 86.047)',
         duration: '6 Months',
@@ -55,11 +55,11 @@ export const programs: ProgramData[] = [
             { v: '100%', l: 'Placement Support' }
         ],
         highlights: [
-            'Live mentor-led classes by working analysts',
-            'Hands-on projects with real business datasets',
-            '1:1 mentorship & weekly doubt sessions',
-            'Resume, LinkedIn & mock-interview prep',
-            'Industry-recognised certification on completion'
+            'Live mentor-led training from experienced business analysts',
+            'Hands-on projects using real company datasets',
+            'Complete job preparation with resume & LinkedIn optimization',
+            'Mock interviews and placement-focused mentorship',
+            'Industry-recognized certification upon completion'
         ],
         tools: ['Excel', 'SQL', 'Power BI', 'Tableau', 'Python', 'Google Sheets', 'Looker Studio'],
         modules: [
@@ -97,9 +97,9 @@ export const programs: ProgramData[] = [
         badge: 'Most Popular',
         title: 'Data Analytics',
         highlight: 'Program',
-        subtitle: 'From beginner to job-ready data analyst',
+        subtitle: 'Become a job-ready Data Analyst with industry-grade skills',
         description:
-            '5-month hands-on program covering SQL, Python, statistics, Power BI and Tableau — with portfolio-grade projects and a placement-focused career sprint.',
+            'A career-focused Data Analytics program designed for beginners and professionals who want to break into analytics roles. Master SQL, Python, Power BI, Tableau, and data storytelling while working on real-world projects that recruiters value.',
         icon: Database,
         accent: 'oklch(0.623 0.214 259.815)',
         duration: '5 Months',
@@ -113,11 +113,11 @@ export const programs: ProgramData[] = [
             { v: '92%', l: 'Placement Rate' }
         ],
         highlights: [
-            'SQL, Python, Stats, Power BI, Tableau in one stack',
-            'Daily problem-solving on LeetCode-style platforms',
-            'Portfolio-ready projects across e-commerce, finance, healthcare',
-            'Mock interviews with hiring managers',
-            'Lifetime access to all updates'
+            'Complete analytics stack: SQL, Python, Power BI & Tableau',
+            'Portfolio-ready projects across finance, e-commerce & healthcare',
+            'Live doubt-solving and mentorship sessions every week',
+            'Placement-focused training with mock interviews',
+            'Lifetime access to recordings and learning resources'
         ],
         tools: ['SQL', 'Python', 'Pandas', 'Power BI', 'Tableau', 'Excel', 'Git'],
         modules: [
@@ -152,11 +152,11 @@ export const programs: ProgramData[] = [
     {
         slug: 'data-science-ai',
         badge: 'Future-Ready',
-        title: 'Data Science with',
-        highlight: 'ML & Generative AI',
-        subtitle: 'Build the AI products of tomorrow',
+        title: 'Data Science &',
+        highlight: 'Agentic AI',
+        subtitle: 'Build AI-powered products and become future-ready',
         description:
-            'A flagship 9-month program in Data Science, Machine Learning, Deep Learning, and Generative AI / LLMs — with real-world projects and capstone deployments.',
+            'Our flagship 9-month Data Science & Agentic AI program is built for learners who want to master Machine Learning, Deep Learning, Generative AI, LLMs, and AI deployment. Gain real-world experience by building advanced AI applications with expert mentorship.',
         icon: Brain,
         accent: 'oklch(0.627 0.265 303.9)',
         duration: '9 Months',
@@ -170,11 +170,11 @@ export const programs: ProgramData[] = [
             { v: '100%', l: 'AI Lab Access' }
         ],
         highlights: [
-            'ML, Deep Learning, NLP, Generative AI in one program',
-            'Build & deploy your own LLM-powered apps',
-            'Mentors from MAANG & top AI labs',
-            'GitHub-ready capstone portfolio',
-            'Cohort interviews with hiring partners'
+            'Master Machine Learning, Deep Learning & Generative AI',
+            'Build and deploy real-world AI & LLM-powered applications',
+            'Mentorship from top AI engineers and industry experts',
+            'Hands-on capstone projects for your portfolio',
+            'Career-focused interview preparation and placement support'
         ],
         tools: ['Python', 'Pandas', 'Scikit-Learn', 'PyTorch', 'TensorFlow', 'LangChain', 'Hugging Face', 'OpenAI', 'AWS'],
         modules: [
@@ -210,11 +210,11 @@ export const programs: ProgramData[] = [
     {
         slug: 'full-stack',
         badge: 'Engineer Track',
-        title: 'Full Stack',
-        highlight: 'Development',
-        subtitle: 'Ship products. End to end. With confidence.',
+        title: 'Full Stack Development',
+        highlight: 'with Gen AI',
+        subtitle: 'Learn to build modern full stack applications with AI integration',
         description:
-            'A 7-month MERN-focused program covering React, Node.js, MongoDB, REST/GraphQL APIs, deployment, and system design — built for engineers who ship.',
+            'A premium Full Stack Development program covering frontend, backend, databases, deployment, APIs, and Generative AI integration. Learn by building real-world applications and become ready for top software engineering roles.',
         icon: Code2,
         accent: 'oklch(0.696 0.17 162)',
         duration: '7 Months',
@@ -228,11 +228,11 @@ export const programs: ProgramData[] = [
             { v: '100%', l: 'Code Reviews' }
         ],
         highlights: [
-            'MERN stack mastery with real-world projects',
-            'Daily DSA + system design practice',
-            'Build, ship & deploy 12+ apps to your portfolio',
-            'Open-source contribution sprints',
-            'Mock technical interviews & referrals'
+            'Master React, Node.js, MongoDB, APIs & deployment',
+            'Build portfolio-grade full stack projects from scratch',
+            'Learn Gen AI integration into modern web applications',
+            'Daily coding practice and real-world code reviews',
+            'Technical interview preparation and placement guidance'
         ],
         tools: ['HTML/CSS', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'Express', 'MongoDB', 'Postgres', 'Redis', 'Docker', 'AWS'],
         modules: [
@@ -270,9 +270,9 @@ export const programs: ProgramData[] = [
         badge: 'Cloud Track',
         title: 'Data',
         highlight: 'Engineering',
-        subtitle: 'Build the pipelines that power AI',
+        subtitle: 'Build the data infrastructure powering modern AI companies',
         description:
-            'A 7-month deep-dive in distributed data systems — Spark, Airflow, dbt, Snowflake, and streaming with Kafka. Build the platform every analytics and AI team runs on.',
+            'A high-impact Data Engineering program focused on ETL pipelines, Spark, Airflow, Kafka, Snowflake, cloud systems, and modern data architecture. Learn production-grade workflows used by top tech companies.',
         icon: Server,
         accent: 'oklch(0.645 0.246 16.439)',
         duration: '7 Months',
@@ -286,11 +286,11 @@ export const programs: ProgramData[] = [
             { v: 'IBM', l: 'Cloud Pathway' }
         ],
         highlights: [
-            'Build production ETL pipelines on real datasets',
-            'Lakehouse architecture: Snowflake, Databricks, S3',
-            'Streaming systems with Kafka & Flink',
-            'IBM Cloud + Azure credits for capstones',
-            'Mentors from data platform teams at MAANG and unicorns'
+            'Hands-on training with Spark, Kafka, Airflow & Snowflake',
+            'Build real-world ETL and streaming data pipelines',
+            'Cloud deployment experience with AWS & Azure',
+            'Industry projects designed for data engineering interviews',
+            'Dedicated mentorship and placement support'
         ],
         tools: ['SQL', 'Python', 'Spark', 'Airflow', 'dbt', 'Snowflake', 'Kafka', 'AWS', 'Docker', 'Terraform'],
         modules: [
@@ -328,9 +328,9 @@ export const programs: ProgramData[] = [
         badge: 'Security Track',
         title: 'Cyber',
         highlight: 'Security',
-        subtitle: 'Defend the systems that hold the data',
+        subtitle: 'Protect digital systems with real-world cybersecurity expertise',
         description:
-            'A 6-month program in offensive and defensive security — SOC operations, threat modelling, OWASP Top 10, and red/blue team exercises against real incident playbooks.',
+            'A practical CyberSecurity program covering ethical hacking, SOC operations, threat detection, OWASP security, penetration testing, and defensive security strategies with hands-on labs and live simulations.',
         icon: Shield,
         accent: 'oklch(0.696 0.17 192)',
         duration: '6 Months',
@@ -344,11 +344,11 @@ export const programs: ProgramData[] = [
             { v: '100%', l: 'Lab Access' }
         ],
         highlights: [
-            'OWASP Top 10 deep-dives with hands-on labs',
-            'Red & blue team exercises on real-world topologies',
-            'SOC analyst playbook + SIEM tools (Splunk, Wazuh)',
-            'CTF-style capstones on isolated cyber-ranges',
-            'Mentors who run security at fintech and SaaS scale-ups'
+            'Hands-on cybersecurity labs and real attack simulations',
+            'Learn ethical hacking, SOC operations & threat analysis',
+            'Industry-focused curriculum aligned with modern security roles',
+            'CTF challenges and practical security assessments',
+            'Placement-oriented training with interview preparation'
         ],
         tools: ['Linux', 'Networking', 'Wireshark', 'Burp Suite', 'Metasploit', 'Splunk', 'Wazuh', 'Nmap', 'Kali Linux'],
         modules: [
@@ -386,9 +386,9 @@ export const programs: ProgramData[] = [
         badge: 'Finance Track',
         title: 'Investment',
         highlight: 'Banking',
-        subtitle: 'Financial modelling, valuations & deals',
+        subtitle: 'Master financial modelling, valuation & investment banking skills',
         description:
-            'A 5-month program covering three-statement modelling, M&A, LBOs, and pitchbook craft — taught by ex-bulge-bracket bankers, with live deal walk-throughs.',
+            'A premium Investment Banking program designed to help learners break into finance, investment banking, equity research, and corporate finance roles through practical financial modelling and valuation training.',
         icon: LineChart,
         accent: 'oklch(0.55 0.22 280)',
         duration: '5 Months',
@@ -402,11 +402,11 @@ export const programs: ProgramData[] = [
             { v: 'IB', l: 'Practitioner-led' }
         ],
         highlights: [
-            'Three-statement modelling on live deals',
-            'M&A, LBO, and DCF capstones with mentor reviews',
-            'Pitchbook craft to bulge-bracket standard',
-            'Mock IB interviews with ex-Goldman and JPM bankers',
-            'Cohort kept small to preserve 1:1 modelling time'
+            'Advanced financial modelling and valuation training',
+            'Live deal walkthroughs and real-world case studies',
+            'Learn DCF, M&A, LBO and pitchbook preparation',
+            'Mentorship from experienced finance professionals',
+            'Interview preparation for investment banking roles'
         ],
         tools: ['Excel', 'PowerPoint', 'Bloomberg', 'CapIQ', 'FactSet', 'Pitchbook', 'Power BI'],
         modules: [
