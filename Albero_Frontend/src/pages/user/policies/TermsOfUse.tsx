@@ -18,8 +18,8 @@ export default function TermsOfUse() {
             <StructuredData page="terms" />
             <PolicyLayout
                 eyebrow="Legal"
-                title="Terms of Use"
-                intro="Welcome to Albero Academy. These Terms of Use govern your access to and use of our platform, programs, and services. We've written them to be clear, fair, and transparent — so you always know where you stand."
+                title="Terms and Conditions"
+                intro="Welcome to Albero Academy. These Terms and Conditions govern your access to and use of our platform, programs, and services. We've written them to be clear, fair, and transparent — so you always know where you stand."
                 effective="January 1, 2026"
                 updated="May 1, 2026">
                 <Section title="1. Your Agreement with Us">
@@ -74,7 +74,7 @@ export default function TermsOfUse() {
                             'You agree to pay the fees associated with that program',
                             'Payment timelines (full or installment) must be honored',
                             'Delayed payments may result in restricted access',
-                            'Refunds, if applicable, follow our official Refund Policy'
+                            'Refunds, if applicable, follow our official Refund and Cancellation'
                         ]}
                     />
                     <p>We aim to keep pricing fair and transparent — no hidden surprises.</p>

@@ -58,7 +58,7 @@
             "name": "Do you offer refunds on course purchases?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Refunds are subject to our refund policy. In general, refunds may be available before course access begins or under specific conditions. Please refer to our refund policy page for full details."
+                "text": "Refunds are subject to our Refund and Cancellation. In general, refunds may be available before course access begins or under specific conditions. Please refer to our Refund and Cancellation policy page for full details."
             }
         },
         {

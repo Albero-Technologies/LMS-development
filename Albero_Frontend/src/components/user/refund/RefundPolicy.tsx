@@ -2,8 +2,10 @@ const Refund = () => {
     return (
         <div className="min-h-screen flex items-center bg-black text-gray-200 px-6 md:px-20 py-32">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-4xl font-bold text-white mb-6">Refund Policy</h1>
-                <p className="text-gray-400 mb-8">We value your satisfaction. Please read our refund policy carefully before making a purchase.</p>
+                <h1 className="text-4xl font-bold text-white mb-6">Refund and Cancellation</h1>
+                <p className="text-gray-400 mb-8">
+                    We value your satisfaction. Please read our refund and cancellation policy carefully before making a purchase.
+                </p>
 
                 <section className="mb-8">
                     <h2 className="text-2xl font-semibold text-white mb-3">1. Eligibility for Refund</h2>

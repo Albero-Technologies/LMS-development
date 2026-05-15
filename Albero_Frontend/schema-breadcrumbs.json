@@ -136,7 +136,7 @@
         {
             "@type": "BreadcrumbList",
             "@id": "https://www.alberoacademy.com/refund-policy#breadcrumb",
-            "name": "Refund Policy Breadcrumb",
+            "name": "Refund and Cancellation Breadcrumb",
             "itemListElement": [
                 {
                     "@type": "ListItem",
@@ -147,7 +147,7 @@
                 {
                     "@type": "ListItem",
                     "position": 2,
-                    "name": "Refund Policy",
+                    "name": "Refund and Cancellation",
                     "item": "https://www.alberoacademy.com/refund-policy"
                 }
             ]

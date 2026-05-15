@@ -61,7 +61,7 @@ const FAQS: Faq[] = [
     {
         q: '↩️ Can I get a refund?',
         a: 'Yes — full refund within 7 days of enrollment, no questions asked.',
-        cta: { label: 'See the refund policy', to: '/policies/refund' }
+        cta: { label: 'See the Refund and Cancellation', to: '/policies/refund' }
     }
 ]
 

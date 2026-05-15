@@ -230,9 +230,10 @@ export const cheatSheetsHubSEO: SEOData = {
 // ─── Policies ────────────────────────────────────────────────────────────────
 
 export const refundSEO: SEOData = {
-    title: 'Refund Policy | Albero Academy',
-    description: "Read Albero Academy's refund policy — eligibility windows, timelines, and conditions for course enrollments and training programs.",
-    keywords: 'Albero Academy refund policy, course refund terms, online learning refund India, training refund rules',
+    title: 'Refund and Cancellation | Albero Academy',
+    description:
+        "Read Albero Academy's refund and Cancellation policy — eligibility windows, timelines, and conditions for course enrollments and training programs.",
+    keywords: 'Albero Academy Refund and Cancellation, course refund terms, online learning refund India, training refund rules',
     url: `${SITE_URL}/policies/refund`,
     canonical: `${SITE_URL}/policies/refund`,
     image: DEFAULT_IMAGE,
@@ -240,9 +241,10 @@ export const refundSEO: SEOData = {
 }
 
 export const termsSEO: SEOData = {
-    title: 'Terms of Use | Albero Academy',
-    description: "Albero Academy's Terms of Use — course access, user responsibilities, intellectual property, payment, and platform usage rules.",
-    keywords: 'Albero Academy terms, terms of use, user agreement, course access policy, intellectual property',
+    title: 'Terms and Conditions | Albero Academy',
+    description:
+        "Albero Academy's Terms and Conditions — course access, user responsibilities, intellectual property, payment, and platform usage rules.",
+    keywords: 'Albero Academy terms, Terms and Conditions, user agreement, course access policy, intellectual property',
     url: `${SITE_URL}/policies/terms`,
     canonical: `${SITE_URL}/policies/terms`,
     image: DEFAULT_IMAGE,

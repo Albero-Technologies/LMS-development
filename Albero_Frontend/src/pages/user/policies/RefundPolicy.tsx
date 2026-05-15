@@ -23,7 +23,7 @@ export default function RefundPolicy() {
                 effective="January 1, 2026"
                 updated="May 1, 2026">
                 <Section title="1. Our Approach to Refunds">
-                    <p>Our refund policy is designed to be:</p>
+                    <p>Our Refund and Cancellation is designed to be:</p>
                     <Bullets items={['Fair to learners', 'Sustainable for program delivery', 'Transparent at every step']} />
                     <p>We encourage you to review program details carefully before enrolling.</p>
                 </Section>
@@ -55,7 +55,7 @@ export default function RefundPolicy() {
                         items={[
                             'More than 10–15% of the program has been completed',
                             'You have accessed a substantial portion of course materials',
-                            'You violate our Terms of Use or code of conduct',
+                            'You violate our Terms and Conditions or code of conduct',
                             'Payment default leads to suspension',
                             'The program has been completed or certification issued'
                         ]}

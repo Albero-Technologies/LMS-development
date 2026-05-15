@@ -237,12 +237,12 @@ export const breadcrumbs = {
     refund: buildBreadcrumbs([
         { name: 'Home', url: `${SITE}/` },
         { name: 'Policies', url: `${SITE}/policies/terms` },
-        { name: 'Refund Policy', url: `${SITE}/policies/refund` }
+        { name: 'Refund and Cancellation', url: `${SITE}/policies/refund` }
     ]),
     terms: buildBreadcrumbs([
         { name: 'Home', url: `${SITE}/` },
         { name: 'Policies', url: `${SITE}/policies/terms` },
-        { name: 'Terms of Use', url: `${SITE}/policies/terms` }
+        { name: 'Terms and Conditions', url: `${SITE}/policies/terms` }
     ]),
     privacy: buildBreadcrumbs([
         { name: 'Home', url: `${SITE}/` },

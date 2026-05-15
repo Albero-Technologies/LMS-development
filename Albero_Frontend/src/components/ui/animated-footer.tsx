@@ -44,7 +44,7 @@ const companyLinks: LinkItem[] = [
 ]
 
 const legalLinks: LinkItem[] = [
-    { label: 'Cancellation and Refund', href: '/policies/refund' },
+    { label: 'Refund and Cancellation', href: '/policies/refund' },
     { label: 'Examination Policy', href: '/policies/examination' },
     { label: 'Escalation Policy', href: '/policies/escalation' },
     { label: 'Privacy Policy', href: '/policies/privacy' },
