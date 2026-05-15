@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+seedimport { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { BarChart3, Brain, Code2, Database, Download, Mail, Phone, User, X, FileText, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'

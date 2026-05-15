@@ -44,11 +44,11 @@ const companyLinks: LinkItem[] = [
 ]
 
 const legalLinks: LinkItem[] = [
-    { label: 'Refund Policy', href: '/policies/refund' },
+    { label: 'Cancellation and Refund', href: '/policies/refund' },
     { label: 'Examination Policy', href: '/policies/examination' },
     { label: 'Escalation Policy', href: '/policies/escalation' },
     { label: 'Privacy Policy', href: '/policies/privacy' },
-    { label: 'Terms of Use', href: '/policies/terms' },
+    { label: 'Terms and Conditions', href: '/policies/terms' },
     { label: 'Complaint Forum', href: '/policies/escalation' }
 ]
 
